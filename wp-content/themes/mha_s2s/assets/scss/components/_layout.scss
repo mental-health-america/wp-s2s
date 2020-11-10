@@ -1,0 +1,83 @@
+/* Overall Layout  */
+
+// Simple Flex Grid
+.grid {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: center;
+    justify-content: center;
+    &.grid-2 .grid-item {
+        flex: 0 1 50%;
+    }
+    &.grid-3 .grid-item {
+        flex: 0 1 33.33%;
+    }
+    &.grid-4 .grid-item {
+        flex: 0 1 25%;
+    }
+    &.grid-5 .grid-item {
+        flex: 0 1 20%;
+    }
+}
+
+
+/* Template */
+
+.wrap { 
+
+    &.narrow {
+        margin: 0 auto; 
+        width: 820px; 
+        @media only screen and (max-width: 860px){
+            margin: 0 20px;
+            width: auto;
+        }
+    }
+
+    &.normal {
+        margin: 0 auto; 
+        width: 1024px; 
+        @media only screen and (max-width: 1064px){
+            margin: 0 20px;
+            width: auto;
+        }
+    }
+    
+    &.wide {
+        margin: 0 auto; 
+        width: 1330px; 
+        @media only screen and (max-width: 1370px){
+            margin: 0 20px;
+            width: auto;
+        }
+    }
+
+}
+
+/* Overall Content Layout */
+
+#header {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background: $white;
+
+    #logo {
+        display: block;
+        margin: 0 0 1.5em 0;
+    }
+}
+
+#content {
+    padding: 40px 0;
+    font-size: 1.6em;
+    line-height: 1.4em;
+    background: $white;
+}
+
+
+#footer {
+    padding: 40px 0;
+    color: $white;
+    font-size: 1.2em;
+    line-height: 1.4em;
+}

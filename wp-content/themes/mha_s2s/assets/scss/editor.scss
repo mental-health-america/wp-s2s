@@ -1,0 +1,22 @@
+/**
+ * Custom styles for the WP editor
+ **/
+
+// General Stuff
+@import 'global/variables';
+@import 'global/mixins';
+@import 'global/fonts';
+
+// Content
+@import 'global/styles';
+
+body {
+    &.mce-content-body {
+        max-width: 720px;
+        font-size: 16px;
+        line-height: 27px;
+        background: $white;
+        color: $black;
+        margin: 30px;
+    }
+}

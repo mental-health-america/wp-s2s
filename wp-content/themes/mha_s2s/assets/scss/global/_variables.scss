@@ -1,0 +1,36 @@
+/* Generic Colors */
+$white              : #FFFFFF;
+$black              : #333333; 
+$gray               : #646464;
+$grayLight          : #a7a9ac;
+$green              : #197b30;
+
+/* Brand Colors */
+$blue               : #365888;
+$teal               : #1db4bb;
+$teal               : #00b4bc;
+$tealDark           : #154b5e;
+$purple             : #810262;
+$red                : #ed6963;
+$orange             : #ff9f37;
+$darkTeal           : $tealDark;
+
+/* Color Classes */
+.red { color: $red; }
+
+/* Default Text */
+$linkColor          : $blue;
+$textColor          : $gray;
+$headColor          : $black;
+
+/* Social Media */
+$facebook           : hsla(222, 47%, 40%, 1);     // #365397
+$twitter            : hsla(198, 100%, 47%, 1);    // #00a9f1
+$linkedin           : hsla(203, 100%, 35%, 1);    // #006db3
+$apple              : hsla(0, 0%, 45%, 1);        // #737373
+$google             : hsla(217, 89%, 61%, 1);     // #4285f4
+$youtube            : hsla(0, 100%, 60%, 1);      // #ff3333
+$vimeo              : hsla(200, 82%, 61%, 1);     // #48b6ed
+$pinterest          : hsla(0, 78%, 45%, 1);       // #ce1a19
+$instagram          : hsla(208, 46%, 41%, 1);     // #396d9a
+

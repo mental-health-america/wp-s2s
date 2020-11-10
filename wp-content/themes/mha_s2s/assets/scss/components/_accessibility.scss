@@ -1,0 +1,26 @@
+/* Accessibility Specific Styles */
+
+        
+/* Highlight Colors */
+
+::-moz-selection { background: rgba(41,65,138,.9); color: #FFFFFF; text-shadow: none; }
+::selection { background: rgba(41,65,138,.9); color: #FFFFFF; text-shadow: none; }
+
+
+/* Skip Link Helper */
+
+a.skip-link {    
+    &, &:visited, &:link, &:hover { 
+        position: absolute;
+        left: -999em;
+        top: auto;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }    
+    &:active, &:focus {
+        position: static;
+        width: auto;
+        height: auto;
+    }
+}

@@ -1,0 +1,191 @@
+/*
+ * Responsive Breakpoints
+ */
+
+ @mixin breakpoint($bp: "xsmall"){
+
+    @if $bp == 'xsmall' {
+        @media only screen and (min-width:530px) { @content };
+    }
+    @if $bp == 'small' {
+        @media only screen and (min-width:768px) { @content };
+    }
+    @if $bp == 'medium' {
+        @media only screen and (min-width:992px) { @content };
+    }
+    @if $bp == 'medslim' {
+        @media only screen and (min-width:1100px) { @content };
+    }
+    @if $bp == 'large' {
+        @media only screen and (min-width:1200px) { @content };
+    }
+    @if $bp == 'xlarge' {
+        @media only screen and (min-width:1400px) { @content };
+    }
+  
+}
+
+/*
+ * Simple CSS transitions (Justin Style)
+ * Usage: @include transitions(background-color 150ms ease, color 200ms ease-out)
+ */
+@mixin transitions($transition...) { // Justin Style
+    -webkit-transition: $transition;
+    -moz-transition: $transition;
+    -ms-transition: $transition;
+    -o-transition: $transition;
+    transition: $transition;
+}
+
+/*
+ * Simple CSS transitions (Chong Style)
+ * Usage: @include transOnly(1s, margin-left)
+ */
+@mixin transOnly($delay, $easing, $wait: 0s){
+    -webkit-transition-duration: $delay; 
+    -moz-transition-duration: $delay; 
+    -o-transition-duration: $delay; 
+    transition-duration: $delay; 
+  
+    -webkit-timing-function: $easing;
+    -moz-transition-timing-function: $easing;
+     -o-transition-timing-function: $easing;
+    transition-timing-function: $easing;
+  
+    -webkit-transition-delay: $wait;
+    -moz-transition-delay: $wait;
+    -o-transition-delay: $wait;
+    transition-delay: $wait;
+}
+
+@mixin wait($time:1s) { 
+    -webkit-transition-delay: $time;
+    -moz-transition-delay: $time;
+    -o-transition-delay: $time;
+    transition-delay: $time;
+}
+
+/*
+ * Simple Gradient
+ */
+@mixin gradient($color1, $color2){
+    background-color: $color1;
+    background-repeat: repeat-x;
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from($color1), to($color2));
+    background: -webkit-linear-gradient(top, $color2, $color1);
+    background: -moz-linear-gradient(top, $color2, $color1);
+    background: -ms-linear-gradient(top, $color2, $color1);
+    background: -o-linear-gradient(top, $color2, $color1);  
+}
+
+/*
+ * Simple Border Radius
+ * Usage: @include radius(50%)
+ */
+@mixin radius($radius) {
+    -webkit-border-radius: $radius;
+    -moz-border-radius: $radius;
+    border-radius: $radius; 
+}
+
+@mixin wordbreak(){
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    -ms-word-break: break-all;
+    word-break: break-all;
+    word-break: break-word;
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+}
+
+@mixin shading($weight,$color){
+    -webkit-box-shadow: $weight $color;
+    -moz-box-shadow: $weight $color;
+    box-shadow: $weight $color;
+}
+
+@mixin opacity($strength) {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$strength})";
+    filter: alpha(opacity=$strength);
+    -moz-opacity: $strength/100;
+    -khtml-opacity: $strength/100;
+    opacity: $strength/100;
+} 
+
+
+@mixin skewer($xy,$deg){
+    @if $xy == 'x' or $xy == 'X' {
+      -ms-transform: skewX(#{$deg}deg);
+      -webkit-transform: skewX(#{$deg}deg);
+      transform: skewX(#{$deg}deg);
+    }
+    @if $xy == 'y' or $xy == 'Y' {
+      -ms-transform: skewY(#{$deg}deg);
+      -webkit-transform: skewY(#{$deg}deg);
+      transform: skewY(#{$deg}deg);
+    }
+}
+
+@mixin scrollBar($track, $thumb, $width){
+    ::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 0px rgba(0,0,0,0.1);
+        border-radius: 0px;
+        background-color: $track;
+    }  
+    ::-webkit-scrollbar {
+        width: $width;
+        background-color: $thumb;
+        margin-right: 10px;
+    }  
+    ::-webkit-scrollbar-thumb {
+        border-radius: 0px; 
+        background-color: $thumb;
+    }
+}
+  
+@mixin smooth(){
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+@mixin contrast($perc:100%){
+    -webkit-filter: contrast($perc);
+    filter: contrast($perc);
+}
+  
+@mixin scaler($perc: 1){
+    -ms-transform: scale($perc, $perc); /* IE 9 */
+    -webkit-transform: scale($perc, $perc); /* Safari */
+    transform: scale($perc, $perc);
+}
+
+@mixin flexbox() {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+  
+@mixin flex($values) {
+    -webkit-box-flex: $values;
+    -moz-box-flex:  $values;
+    -webkit-flex:  $values;
+    -ms-flex:  $values;
+    flex:  $values;
+}
+  
+@mixin order($val) {
+    -webkit-box-ordinal-group: $val;  
+    -moz-box-ordinal-group: $val;     
+    -ms-flex-order: $val;     
+    -webkit-order: $val;  
+    order: $val;
+}
+  
+@mixin flexwidth($cols){
+    width: unquote(100/$cols+'%');
+}
+  
