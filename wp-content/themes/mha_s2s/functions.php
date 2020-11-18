@@ -216,7 +216,7 @@ add_filter( 'query_vars', 'mha_s2s_query_vars' );
 /**
  * 0 based ACF index for updating rows
  */
-// add_filter('acf/settings/row_index_offset', '__return_zero');
+add_filter('acf/settings/row_index_offset', '__return_zero');
 
 
 /**
