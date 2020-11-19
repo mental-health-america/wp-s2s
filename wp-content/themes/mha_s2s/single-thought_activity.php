@@ -44,9 +44,9 @@ get_header();
 	endwhile;
 	
 	$previous_responses = '';
-	$last_response = '---';
-	$last_path = '...';
-	$last_question = '!!!';
+	$last_response = '';
+	$last_path = '';
+	$last_question = '';
 	if($unfinished_thought){
 		if(get_field('responses', $unfinished_thought)){
 			$previous_responses = get_field('responses', $unfinished_thought);
@@ -57,7 +57,6 @@ get_header();
 	}
 
 	// Debugging
-	/*
 	echo '<pre>';
 	//print_r($previous_responses);
 	print_r('Response '.$last_response);
@@ -66,15 +65,14 @@ get_header();
 	echo '<br />';
 	print_r('Question '.$last_question);
 	echo '</pre>';
-	*/
-	wp_reset_query();	
+	wp_reset_query();
 ?>
 
 	<div id="thought-history" class="alert alert-success" style="display: none;"></div>
 
 	<form action="<?php the_permalink(); ?>" method="POST" autocomplete="off" id="form-activity">
 
-		<div class="form-item initial"<?php if($unfinished_thought){ echo ' style="display: none;"'; }?>>
+		<div class="question-item form-item initial"<?php if($unfinished_thought){ echo ' style="display: none;"'; }?>>
 			<label><?php the_field('question'); ?></label>
 			<p>
 				<textarea name="thought_0" data-question="0" class="required"><?php 
@@ -83,14 +81,15 @@ get_header();
 						echo $previous_responses[0]['response'];
 					} else if($previous_responses[0]['admin_pre_seeded_thought']){
 						// Admin seeded thought
-						$initial_thought = get_field('responses', $previous_responses[0]['admin_pre_seeded_thought']);
-						echo $initial_thought;
+						$initial_thought = get_field('pre_generated_responses', $activity_id);
+						echo $initial_thought[$previous_responses[0]['admin_pre_seeded_thought']]['response'];
 					} else if($previous_responses[0]['user_pre_seeded_thought']){
 						// User seeded thought
 						$initial_thought = get_field('responses', $previous_responses[0]['user_pre_seeded_thought']);
-						echo $initial_thought;
+						echo $initial_thought[0]['response'];
 					}
 				?></textarea>
+				<div class="validation"></div>
 			</p>
 			<p><button class="submit submit-initial-thought self-thought" value="0">Submit</button></p>
 		</div>
@@ -110,15 +109,21 @@ get_header();
 		
 		<?php
 			// Path to follow
-			if(!$unfinished_thought):
-				if( have_rows('paths') ):
-				echo '<div class="further-actions" style="display: none;"><h3>Continue working with this thought</h3>';
-					while( have_rows('paths') ) : the_row();
-						$path = get_sub_field('title');
-						echo '<p><button class="submit submit-path" value="'.get_row_index().'">'.$path.'</button><br />'.get_sub_field('description').'</p>';				
-					endwhile;
-				echo '</div>';
-				endif;
+			$further_action_display = 'none';
+			$further_action_class = '';
+			if($unfinished_thought && $last_path == ''):
+				$further_action_display = 'block';
+				$further_action_class = ' continue';
+			endif;
+
+			if( have_rows('paths') ):
+			echo '<div class="further-actions'.$further_action_class.'" style="display: '.$further_action_display.';">';
+				echo '<h3>Continue working with this thought</h3>';
+				while( have_rows('paths') ) : the_row();
+					$path = get_sub_field('title');
+					echo '<p><button class="submit submit-path" value="'.get_row_index().'">'.$path.'</button><br />'.get_sub_field('description').'</p>';				
+				endwhile;
+			echo '</div>';
 			endif;
 		?>
 
@@ -204,6 +209,7 @@ get_header();
 													echo $previous_responses[$row + 1]['response'];
 												}
 											?></textarea>
+											<div class="validation"></div>
 										</p>
 										<p><button class="submit submit-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit</button></p>
 								</li>
@@ -227,140 +233,10 @@ get_header();
 		</div>
 
 	</form>
-
-	<?php
-		$admin_seeds = get_field('pre_generated_responses');
-		$unique_admin_seeds = [];
-		$unique_user_seeds = [];
-
-		$args = array(
-			"post_type" 	 => 'thought',
-			"post_status" 	 => 'publish',
-			"order"			 => 'DESC',
-			"orderby" 		 => 'date',
-			"posts_per_page" => 50,
-			"meta_key" 		 => 'activity',
-			"meta_value"     => $activity_id,
-			/*
-			'meta_query' 	 => array(
-				'relation'   => 'AND',
-				array(
-					'key' 	 	=> 'activity',
-					'value'  	=> $activity_id,
-					'compare'	=> '='
-				),
-				array(
-					'key'		=> 'responses_$_response', // Avoid empty entries (Yeah it's an edge case)
-					'value'  	=> '',
-					'compare'	=> '!='
-				)
-			),
-			*/
-		);
-		$loop = new WP_Query($args);
-		if($loop->have_posts()):
-			echo '<ol id="thoughts-submitted">';
-			while($loop->have_posts()) : $loop->the_post();
-
-				$thoughts = get_field('responses');
-				
-				if($thoughts[0]['response']) { 
-
-					// Vars
-					$pid = get_the_ID();
-
-					// Entered response					
-					if(in_array($pid, $unique_user_seeds)){
-						continue;
-					}
-				
-					echo '<li class="submitted-by-user">';
-					echo ' <p class="thought-text" data-pid="'.$pid.'">'.$thoughts[0]['response'].'</p>'; 
-
-					$liked = likeChecker($pid, 0);
-					$like_text = 'Like';
-					$like_class = '';
-					if($liked){
-						$like_text = 'Unlike';
-						$like_class = ' liked';
-					}
-					echo ' <button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="0">'.$like_text.'</button>';
-					echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0">Flag</button>';
-					
-					if(!$unfinished_thought){
-						echo ' <button class="submit submit-initial-thought seed-user submitted-thought" value="'.$pid.'">Explore this thought</button>';
-					}
-					echo ' <br />'.edit_post_link('Edit', '', '', $pid);
-					echo '</li>';
-
-					$unique_user_seeds[] = $thoughts[0]['user_pre_seeded_thought'];
-
-				} elseif($thoughts[0]['admin_pre_seeded_thought']) { 
-					
-					// Admin seeded response					
-					if(in_array($thoughts[0]['admin_pre_seeded_thought'], $unique_admin_seeds)){
-						continue;
-					}
-
-					$admin_thought_text = get_field('pre_generated_responses', $activity_id);
-					$admin_thought_row = $thoughts[0]['admin_pre_seeded_thought'];
-					$admin_thought_row_adjust = $admin_thought_row - 1; // ACF saves with a 1 based index instead of 0
-
-					echo '<li class="submitted-by-admin">';
-					echo ' <p class="thought-text">'.$admin_thought_text[$admin_thought_row_adjust]['response'].'</p>'; 
-					
-					$liked = likeChecker($activity_id, $admin_thought_row);
-					$like_text = 'Like';
-					$like_class = '';
-					if($liked){
-						$like_text = 'Unlike';
-						$like_class = ' liked';
-					}
-					echo ' <button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">'.$like_text.'</button>';
-					echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">Flag</button>';
-					
-					if(!$unfinished_thought){
-						echo ' <button class="submit submit-initial-thought seed-admin submitted-thought" value="'.$admin_thought_row.'">Explore this thought</button>';
-					}
-					
-					echo ' <br />'.edit_post_link('Edit', '', '', get_the_ID());
-					echo '</li>';
-
-					$unique_admin_seeds[] = $thoughts[0]['admin_pre_seeded_thought'];
-				
-				} elseif($thoughts[0]['user_pre_seeded_thought']) { 
-					
-					/**
-					 * User seeds should never show, only display admin seeds or user 
-					 * thoughts directly for liking consolidation and such.
-					 */
-					continue;
-
-					/*
-					// User seeded response					
-					if(in_array($thoughts[0]['user_pre_seeded_thought'], $unique_user_seeds)){
-						continue;
-					}
-
-					$user_thought_id = $thoughts[0]['user_pre_seeded_thought'];
-					$user_thoughts = get_field('responses',$user_thought_id);
-
-					echo '<li class="submitted-by-seed">';
-					echo 'Seed<p class="thought-text">'.$user_thoughts[0]['response'].'</p>'; 
-					echo ' <button class="thought-like" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$user_thought_id.'" data-row="0">Like</button>';
-					echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$user_thought_id.'" data-row="0">Flag</button>';
-					echo ' <button class="submit submit-initial-thought seed-user submitted-thought" value="'.$user_thought_id.'">Explore this thought</button>';
-					echo '<br />'.edit_post_link('Edit', '', '', get_the_ID());
-					echo '</li>';
-
-					$unique_user_seeds[] = $thoughts[0]['user_pre_seeded_thought'];
-					*/
-
-				}
-			endwhile; 
-			echo '</ol>';
-		endif; 
-	?>
+	
+	<ol id="thoughts-submitted">
+		<?php echo getThoughtsSubmitted(); ?>
+	</ol>
 
 	</div>
 

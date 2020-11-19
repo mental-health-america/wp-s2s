@@ -10,40 +10,53 @@ jQuery(function ($) {
 
 			// Disable default form submit
 			event.preventDefault();
+			
+			if($('textarea[name="thought_0').val()){
+
+				// Disable submit
+				$('.submit-initial-thought').prop('disabled', true);
+
+				// Clear validation
+				$('.validation').removeClass('alert alert-warning').html('');
 				
-			// Disable submit
-			$('.submit-initial-thought').prop('disabled', true);
-			
-			// Hide initial thought
-			$('.form-item.initial, .form-item.pre-seed').hide(); // TODO: If errors show everything again
-			
-			// Prep the data
-			var args = $('#form-activity').serialize() + '&start=1';
-			
-			$.ajax({
-				type: "POST",
-				url: do_mhaActivity.ajaxurl,
-				data: { 
-					action: 'thoughtSubmission',
-					data: args
-				},
-				success: function( results ) {
+				// Hide initial thought
+				$('.form-item.initial, .form-item.pre-seed').hide(); // TODO: If errors show everything again
+				
+				// Prep the data
+				var args = $('#form-activity').serialize() + '&start=1';
+				
+				$.ajax({
+					type: "POST",
+					url: do_mhaActivity.ajaxurl,
+					data: { 
+						action: 'thoughtSubmission',
+						data: args
+					},
+					success: function( results ) {
 
-					// Show initial thought in the log
-					var resultData = JSON.parse(results);	
-					console.log(resultData);
+						// Show initial thought in the log
+						var resultData = JSON.parse(results);	
+						console.log(resultData);
 
-					// ID associated with the thought 
-					$('input[name="pid"]').val(resultData['pid']);
+						// ID associated with the thought 
+						$('input[name="pid"]').val(resultData['pid']);
 
-					// Next steps
-					$('.further-actions').show();
+						// Next steps
+						$('.further-actions').show();
 
-				},
-				error: function(xhr, ajaxOptions, thrownError){
-					console.error(xhr,thrownError);
-				}
-			});				
+					},
+					error: function(xhr, ajaxOptions, thrownError){
+						console.error(xhr,thrownError);
+					}
+				});				
+
+			} else {
+				
+				// There is no thought submitted
+				$(this).parents('.question-item').find('.validation').addClass('alert alert-warning').html('Responses cannot be blank.');
+				//alert('No thought submitted');
+				
+			}
 
 		});
 
@@ -191,8 +204,8 @@ jQuery(function ($) {
 			// Disable default form submit
 			event.preventDefault();
 				
-			// Disable submit
-			$('.submit-initial-thought').prop('disabled', true);
+			// Disable this submit button
+			$(this).prop('disabled', true);
 			
 			// Prep the data
 			var ref = $(this).parents('li').attr('data-reference'),
@@ -222,7 +235,7 @@ jQuery(function ($) {
 					
 					// Hide other questions
 					$('ol[data-path="'+path+'"] li').hide();
-
+					
 					if($('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').length){
 						// Show next question
 						$('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').show();
@@ -361,9 +374,10 @@ jQuery(function ($) {
 		/**
 		 * Continue a thought upon returning
 		 */
+
+		 // User stopped at a question
 		if($('.question-item.continue').length){
-			// User has returned, load the thought history at the top
-			
+	
 			var path = $('.question-item.continue').parent('ol').attr('data-path'),
 				ref = $('.question-item.continue').attr('data-reference'),
 				ref_2 = $('.question-item.continue').attr('data-additional-reference'),
@@ -383,6 +397,16 @@ jQuery(function ($) {
 			}	
 			
 			$('#thought-history').html(thoughtHistory).show();	
+		}
+
+		// User has yet to choose a path
+		if($('.further-actions.continue').length){
+			
+			// Show initial thought and the thought history for path selection
+			var refText0 = $('textarea[name="thought_0"]').val();
+			var thoughtHistory = '<p>'+refText0+'</p>'; // Initial thought
+			$('#thought-history').html(thoughtHistory).show();
+
 		}
 
 
