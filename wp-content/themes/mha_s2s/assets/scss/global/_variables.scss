@@ -1,19 +1,46 @@
 /* Generic Colors */
 $white              : #FFFFFF;
-$black              : #333333; 
-$gray               : #646464;
-$grayLight          : #a7a9ac;
-$green              : #197b30;
+$black              : #000000; 
+$gray               : #464646;
+$silver             : #D2D9E2;
+$grayLight          : #EDEDED;
+// $grayLight2         : #F1F4F5;
+
 
 /* Brand Colors */
-$blue               : #365888;
-$teal               : #1db4bb;
-$teal               : #00b4bc;
+$orange             : #F89941;
+
+$blue               : #055596;
+$blueLight          : #ECF3FA;
+$lightBlue          : $blueLight;
+$blueDark           : #144B5E;
+$darkBlue           : $blueDark;
+
+$cerulean           : #007BA7;
+$ceruleanLight      : #CBE8FF;
+$lightCerulean      : $ceruleanLight;
+$ceruleanPale       : #F8FCFF;
+$paleCerulean       : $ceruleanPale;
+
+$purple             : #7B2E67;
+$purpleLight        : #F5D9F0;
+$lightPurple        : $purpleLight;
+
+$teal               : #1CA4AB;
+$green              : $teal;
+$tealLight          : #1CA4AB;
+$lightTeal          : $tealLight;
 $tealDark           : #154b5e;
-$purple             : #810262;
-$red                : #ed6963;
-$orange             : #ff9f37;
 $darkTeal           : $tealDark;
+
+$red                : #FC545A;
+$redLight           : #FAECEC;
+$lightRed           : $redLight;
+$coral              : #FA6767;
+$raspberry          : #C1335D;
+$razzberry          : $raspberry;
+$razz               : $raspberry;
+$raz                : $raspberry;
 
 /* Color Classes */
 .red { color: $red; }

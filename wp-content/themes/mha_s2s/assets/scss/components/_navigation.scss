@@ -1,13 +1,134 @@
-// Main menu
+// User menu
+#utility-menu {
+    position: relative;
+    margin: -12px 0 0 0;
+    float: right;
+    text-align: right;
+    font-size: 1.4em;
+    line-height: normal;
+    width: calc(100% - 217px);
 
+    @media only screen and (max-width: 767px){
+        width: calc(100% - 150px);
+        margin: 0;
+    }
+
+    button {
+        display: inline-block;
+        vertical-align: middle;
+        background: none;
+        padding: 0;
+        margin: 0 0 0 5px;
+        color: $black;
+        font-weight: 400;
+        
+        &#sign-in-toggle {
+            height: 35px;
+            line-height: 35px;
+            padding: 0;
+            @media only screen and (max-width: 767px){
+                display: none;
+            }
+        }
+
+                
+        &#search-toggle {
+            width: 35px;
+            height: 35px;
+            padding: 0;
+            text-align: center;
+            background-color: rgba(255,255,255,0);
+            //background: url('../images/magnifying-glass.svg') right center no-repeat;
+            //background-size: 16px auto;
+            /*
+            &:hover {
+                background: $blue;
+                .icon {
+                    &:before {
+                        border-color: $white;
+                    }
+                    &:after {
+                        background-color: $white;
+                    }
+                }
+            }
+            */
+
+            .icon {
+                display: block;
+                position: relative;
+                width: 15px;
+                height: 19px;
+                margin: 0 auto;
+                top: -3px;
+                &:before {
+                    content: "";
+                    display: block;
+                    position: absolute;
+                    width: 15px;
+                    height: 15px;
+                    right: 4px;
+                    bottom: 3px;
+                    border: 2px solid $black;
+                    @include radius(50%);
+                    transform-origin: top left;
+                    transform: rotate(0deg);
+                    @include transitions(background-color 200ms ease, border-color 200ms ease, height 200ms ease, transform 200ms ease, right 200ms ease, width 200ms ease, bottom 200ms ease);
+                    .search-active & {
+                        height: 8px;
+                        width: 2px;
+                        right: 0;
+                        bottom: -5px;
+                        background-color: $white;
+                        transform: rotate(45deg);
+                        border: 0;
+                        border-color: $white;
+                        @include radius(0px);
+                    }
+                }
+                &:after {
+                    content: "";
+                    display: block;
+                    position: absolute;
+                    right: 0px;
+                    bottom: 0;
+                    width: 2px;
+                    height: 9px;
+                    background: $black;
+                    transform-origin: bottom right;
+                    transform: rotate(-45deg);
+                    @include transitions(background-color 200ms ease, height 200ms ease);
+                    .search-active & {
+                        height: 18px;
+                        background-color: $white;
+                    }
+                }
+            }
+
+        }
+
+    }
+    
+}
+
+// Main menu
 #navigation {
     display: block;
+    float: right;
+    text-align: right;
+    font-size: 1.4em;
+    line-height: normal;
+    @include montserrat(700);
+    width: calc(100% - 217px);
+
+    @media only screen and (max-width: 767px){
+        width: calc(100% - 150px);
+    }
 
     ul {
         display: block;
         margin: 0;
         padding: 0;
-        background: $gray;
 
         // First Level
         li {
@@ -17,10 +138,39 @@
             list-style-type: none;
             a {
                 display: block;
+                position: relative;
                 padding: 15px;
-                background: $blue;
-                color: $white;
+                color: $blue;
                 text-decoration: none;
+            }
+
+            &.footer-only {
+                display: none;
+            }
+        }
+
+        &.sf-menu > li {
+            padding-bottom: 15px;
+            & > a {
+                &:after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    display: block;
+                    width: 0%;
+                    max-width: 150px;
+                    height: 4px;
+                    margin-top: 12px;
+                    background: $orange; 
+                    @include transitions(width 200ms ease);
+                }
+            }
+            &.sfHover > a,
+            & > a:hover {
+                color: $blue;
+                &:after {
+                    width: 50%;
+                }
             }
         }
 
@@ -31,9 +181,15 @@
         &.sf-menu ul {
             position: absolute;
             display: none;
+            padding: 30px;
             top: 100%;
-            left: 0;
+            left: 15px;
             z-index: 99;
+            width: 280px;
+            text-align: left;
+            background: $white;
+            box-shadow: 0px 0px 20px rgba(0,0,0,.15);
+            @extend .round-tl;
         }
         &.sf-menu > li {
             float: left;
@@ -48,9 +204,51 @@
         }
 
     }
+    
+    #main-menu-buttons {
+        margin: 0;
+        padding: 0;
+        float: right;
+        text-align: right;
+        
+        @media only screen and (max-width: 940px){
+            display: block;
+            float: none;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            z-index: 500;
+            width: 100%;
+            text-align: center;
+        }
+
+        li {
+            display: block;
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+        a {
+            background: $orange;
+            @extend .button;
+            @extend .round-tr;
+            font-size: .85em;
+            @include transitions(background-color 150ms ease);
+            
+            @media only screen and (max-width: 940px){
+                width: 100%;
+                @include radius(0px);
+            }
+            &:hover {
+                background: $cerulean;
+            }
+        }
+    }
 
     @media only screen and (max-width: 767px){ 
-        display: none;
+        .menu-main-menu-container {
+            display: none;
+        }
     }
 }
 
@@ -67,8 +265,8 @@ button.menu-toggle {
     position: relative;
     margin: 0 20px 0 0;
     padding: 0;
-    width: 50px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     background: none;
     border: 0;
     outline: none;
@@ -80,19 +278,13 @@ button.menu-toggle {
 
     .text {
         position: absolute;
-        bottom: -10px;
-        left: 0;
-        width: 100%;
-        text-align: center;
-        color: $orange;
-        font-size: 1em;
-        text-indent: none;
+        left: -999em;
     }
 
     span {
         display: block;
         position: absolute;
-        height: 4px;
+        height: 2px;
         width: 50%;
         background: $orange;
         opacity: 1;
@@ -103,30 +295,32 @@ button.menu-toggle {
         @include transitions(all 200ms ease);
         &:nth-child(even) {
             left: 50%;
-            border-radius: 0 9px 9px 0;
         }
         
         &:nth-child(odd) {
             left:0px;
-            border-radius: 9px 0 0 9px;
         }
         
         &:nth-child(1), 
         &:nth-child(2) {
-            top: 0px;
+            top: 6px;
+        }
+        &:nth-child(2) {
+            width: 10%;
         }
         
         &:nth-child(3), 
         &:nth-child(4) {
-            top: 12px;
+            top: 14px;
         }
         
         &:nth-child(5),
         &:nth-child(6) {
-            top: 24px;
+            top: 22px;
         }  
         
         .mobile-menu-active & {
+            margin-top: 5px;
             &:nth-child(1),
             &:nth-child(6) {
                 -webkit-transform: rotate(45deg);
@@ -145,35 +339,44 @@ button.menu-toggle {
             
             &:nth-child(1) {
                 left: 5px;
-                top: 3px;
+                top: 6px;
             }
             
             &:nth-child(2) {
                 left: calc(50% - 5px);
-                top: 3px;
+                top: 6px;
+                width: 50%;
             }
             
             &:nth-child(3) {
                 left: -10px;
+                top: 9px;
                 opacity: 0;
             }
             
             &:nth-child(4) {
-                left: 40px;
+                left: 30px;
+                top: 9px;
                 opacity: 0;
             }
             
             &:nth-child(5) {
                 left: 5px;
-                top: 18px;
+                top: 14px;
             }
             
             &:nth-child(6) {
                 left: calc(50% - 5px);
-                top: 18px;
+                top: 14px;
             }
         }
         
+    }
+
+    &:hover {
+        span:nth-child(2) {
+            width: 50%;
+        }
     }
 }
 
@@ -184,17 +387,19 @@ button.menu-toggle {
     display: none; // Hide by default
     /* Fixed elements can't scroll in some browsers/iOS */
     position: fixed;
-    top: 0;
-    left: -200px;
-    width: 200px;
-    height: 100%;
-    z-index: 999;
-    background-color: $blue; 
-    @include transitions(left 250ms ease);
+    top: 80px;
+    left: -100%;
+    width: 100%;
+    height: calc(100% - 80px);
+    z-index: 490;
+    background-color: $white; 
+    @include transitions(all 250ms ease);
     @media only screen and (max-width: 767px) {
         display: block !important; // Show only on mobile
+        opacity: 0;
         .mobile-menu-active & {
             left: 0;
+            opacity: 1;
         }
     }
     .inner {
@@ -203,7 +408,7 @@ button.menu-toggle {
         position: absolute;
         top: 0;
         left: 0;
-        width: 200px;
+        width: 100%;
         height: 100%;
         /* The main point: */
         overflow-y: scroll;
@@ -218,7 +423,6 @@ button.menu-toggle {
                 margin: 0;
                 padding: 0;
                 list-style-type: none;
-                border-bottom: 1px solid $white;
                 a {
                     color: $linkColor;
                     display: block;

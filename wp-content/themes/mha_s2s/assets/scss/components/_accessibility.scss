@@ -3,8 +3,8 @@
         
 /* Highlight Colors */
 
-::-moz-selection { background: rgba(41,65,138,.9); color: #FFFFFF; text-shadow: none; }
-::selection { background: rgba(41,65,138,.9); color: #FFFFFF; text-shadow: none; }
+::-moz-selection { background: rgba(58,88,136,.9); color: #FFFFFF; text-shadow: none; }
+::selection { background: rgba(58,88,136,.9); color: #FFFFFF; text-shadow: none; }
 
 
 /* Skip Link Helper */
@@ -23,4 +23,9 @@ a.skip-link {
         width: auto;
         height: auto;
     }
+}
+
+.hide-text {
+    position: absolute;
+    left: -999em;
 }

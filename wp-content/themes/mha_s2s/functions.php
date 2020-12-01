@@ -85,6 +85,8 @@ function mha_s2s_scripts() {
     
 	// Scripts
 	wp_enqueue_script( 'mha_s2s-skip-link-focus-fix', get_template_directory_uri() . '/assets/js/skip-link-focus-fix.js', array(), '1.0', true );
+	wp_enqueue_script( 'mha_s2s-hover-intent', get_template_directory_uri() . '/assets/js/hoverIntent.js', array(), '0.7', true );
+	wp_enqueue_script( 'mha_s2s-superfish', get_template_directory_uri() . '/assets/js/superfish.min.js', array(), '1.7.10.1', true );
 	//wp_enqueue_script( 'mha_s2s-bootstrap-js', get_template_directory_uri() . '/assets/bootstrap/js/bootstrap.bundle.min.js', array(), '4.3.1', true );
 
 	// Load the html5 shiv.
@@ -202,15 +204,11 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
 /**
  * Allowed additional query vars
  */
-/*
 function mha_s2s_query_vars( $qvars ) {
-    $qvars[] = 'source';
-    $qvars[] = 'path';
-    $qvars[] = 'step';
+    $qvars[] = 'pathway';
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );
-*/
 
 
 /**

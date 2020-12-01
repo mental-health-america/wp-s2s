@@ -24,6 +24,16 @@
 			}
 		});
 		
+		// Dropdown Menus
+		$('.sf-menu').superfish({
+			delay:         400,                         
+			speed:         'fast',                          
+			autoArrows:    false,        
+			animation:     { opacity: 'show', left: '15px' },
+			animationOut:  { opacity: 'hide', left: '-15px' }
+		});
+
+		// Hamburger Icon
 		$('#mobile-menu-button').on('click',function(e){
 			e.preventDefault();
 

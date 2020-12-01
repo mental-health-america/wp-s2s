@@ -5,16 +5,11 @@
 
 get_header();
 
-	// Introduction
-	while ( have_posts() ) : the_post();
-		get_template_part( 'templates/blocks/content', 'page' );
-	endwhile;
-
 	// General Vars
 	$activity_id = get_the_ID();
 	$uid = get_current_user_id();
 	if(!$uid){
-		$uid = 4;
+		$uid = 4; // Default "Anonymous" User
 	}
 
 	// Get user's most recent incomplete thought
@@ -33,8 +28,8 @@ get_header();
 				'value'		=> md5($_SERVER['REMOTE_ADDR'])
 			),
 			array(
-				'key'		=> 'abandoned', // TODO: Update this in case "reopening" thoughts is ever a thing
-				'compare'   => 'NOT EXISTS',
+				'key'		=> 'abandoned',
+				'compare'   => 'NOT EXISTS'
 			)
 		)
 	);
@@ -43,30 +38,65 @@ get_header();
 		$unfinished_thought = get_the_ID();
 	endwhile;
 	
+	// Previous Response Vars
 	$previous_responses = '';
-	$last_response = '';
+	$last_response = 0;
 	$last_path = '';
 	$last_question = '';
+	$last_admin_seed = '';
+	$last_user_seed = '';
 	if($unfinished_thought){
 		if(get_field('responses', $unfinished_thought)){
 			$previous_responses = get_field('responses', $unfinished_thought);
 			$last_response = array_key_last($previous_responses);
 			$last_path = $previous_responses[$last_response]['path'];
 			$last_question = $previous_responses[$last_response]['question'];
+			$last_admin_seed = $previous_responses[0]['admin_pre_seeded_thought'];
+			$last_user_seed = $previous_responses[0]['user_pre_seeded_thought'];
 		}
 	}
 
 	// Debugging
+	/*
 	echo '<pre>';
-	//print_r($previous_responses);
+	print_r($previous_responses);
+	echo "<br />";
 	print_r('Response '.$last_response);
 	echo '<br />';
 	print_r('Path '.$last_path);
 	echo '<br />';
 	print_r('Question '.$last_question);
+	echo '<br />';
+	print_r('Admin Seed '.$last_admin_seed);
+	echo '<br />';
+	print_r('User Seed '.$last_user_seed);
 	echo '</pre>';
+	*/
 	wp_reset_query();
+
+
+	/**
+	 * Introduction
+	 */
+	if(!$unfinished_thought): // Hide introduction if returning with unfinished thought
+		while ( have_posts() ) : the_post();
+			get_template_part( 'templates/blocks/content', 'page' );
+		endwhile;
+	endif;
+
+
+	/**
+	 * Begin Activity
+	 */
+
+	// Display start over button or not check
+	$start_over_display = 'none';
+	if($previous_responses){
+		$start_over_display = 'inline-block';
+	}
 ?>
+
+	<p><button id="start-over" style="display: <?php echo $start_over_display; ?>;" data-nonce="<?php echo wp_create_nonce('abandonThought'); ?>">Start New Thought</button></p>
 
 	<div id="thought-history" class="alert alert-success" style="display: none;"></div>
 
@@ -75,17 +105,17 @@ get_header();
 		<div class="question-item form-item initial"<?php if($unfinished_thought){ echo ' style="display: none;"'; }?>>
 			<label><?php the_field('question'); ?></label>
 			<p>
-				<textarea name="thought_0" data-question="0" class="required"><?php 
-					if($previous_responses[0]['response']){
+				<textarea name="thought_0" data-question="0" class="required" required><?php 
+					if($previous_responses[0]['response'] != ''){
 						// Previously submitted thought
 						echo $previous_responses[0]['response'];
-					} else if($previous_responses[0]['admin_pre_seeded_thought']){
+					} else if(is_numeric($last_admin_seed)){
 						// Admin seeded thought
 						$initial_thought = get_field('pre_generated_responses', $activity_id);
 						echo $initial_thought[$previous_responses[0]['admin_pre_seeded_thought']]['response'];
-					} else if($previous_responses[0]['user_pre_seeded_thought']){
+					} else if(is_numeric($last_user_seed)){
 						// User seeded thought
-						$initial_thought = get_field('responses', $previous_responses[0]['user_pre_seeded_thought']);
+						$initial_thought = get_field('responses', $last_user_seed);
 						echo $initial_thought[0]['response'];
 					}
 				?></textarea>
@@ -105,6 +135,8 @@ get_header();
 			<input type="hidden" name="page" value="<?php echo $activity_id; ?>" />
 			<input type="hidden" name="source" value="<?php echo $source; ?>" />		
 			<input type="hidden" name="pid" value="<?php echo $unfinished_thought; ?>" />
+			<input type="hidden" name="admin_seed" value="<?php echo $last_admin_seed; ?>" />
+			<input type="hidden" name="user_seed" value="<?php echo $last_user_seed; ?>" />
 		</div>
 		
 		<?php
@@ -204,14 +236,21 @@ get_header();
 										<div><?php the_sub_field('introduction'); ?></div>
 										<label class="bold"><?php the_sub_field('question'); ?></label>
 										<p>
-											<textarea name="<?php echo $thought_name; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" class="required"><?php 
+											<textarea name="<?php echo $thought_name; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" class="required" required><?php 
 												if($previous_responses[$row + 1]['response']){
 													echo $previous_responses[$row + 1]['response'];
 												}
 											?></textarea>
 											<div class="validation"></div>
 										</p>
-										<p><button class="submit submit-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit</button></p>
+										<p>
+											<?php if($last_class == ''): ?>
+												<button class="submit submit-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit</button>
+												<button class="submit continue-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" style="display: none;">Continue</button>
+											<?php else: ?>
+												<button class="submit complete-thought" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Complete</button>
+											<?php endif; ?>
+										</p>
 								</li>
 							<?php
 							endwhile;
@@ -234,9 +273,29 @@ get_header();
 
 	</form>
 	
-	<ol id="thoughts-submitted">
-		<?php echo getThoughtsSubmitted(); ?>
-	</ol>
+	<?php 
+		$display_other_responses = 'block';
+
+		// If returning on the path page, don't show
+		if($unfinished_thought && $last_path == ''):
+			$display_other_responses = 'none';
+		endif;
+	?>
+	<div id="other-responses" style="display: <?php echo $display_other_responses; ?>">
+		<h2>What Others Are Saying</h2>
+		<ol id="thoughts-submitted">
+			<?php 
+				$return = null;
+				if($previous_responses){
+					$return = 1;
+				}
+				if($previous_responses && $last_response > 0){
+					$last_response = $last_response + 1;
+				}
+				echo getThoughtsSubmitted( $activity_id, $last_response, $last_path, $last_admin_seed, $last_user_seed, $return ); 
+			?>
+		</ol>
+	</div>
 
 	</div>
 

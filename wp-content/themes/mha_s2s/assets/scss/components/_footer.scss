@@ -1,0 +1,172 @@
+
+
+/* Overall Footer */
+
+#footer {
+    padding: 0;
+
+    #footer-left {
+        float: left;
+        width: 55%;
+        position: relative;
+    }
+
+    #footer-right {
+        float: right;
+        width: 45%;
+        font-size: 1.4em;
+        line-height: normal;
+
+        ul {
+            display: block;
+            margin: 0;
+            padding: 0;
+
+            li {
+                display: block;
+                width: 45%;
+                float: right;
+                margin: 10px 0;
+                padding: 0;
+                list-style-type: none;
+
+                // Left Column
+                &.left-col {
+                    float: left;
+                }
+
+                // Headings
+                &.heading {
+                    margin: 0;
+                    & > a {
+                        font-weight: 700;
+                        width: 100%;
+                        max-width: 180px;
+                        color: $white;
+                        cursor: default;
+                        @extend .bottom-border;
+                        &:hover {
+                            text-decoration: none;
+                            color: $white;
+                        }
+                    }
+                }
+
+                // Buttons
+                &.button {
+                    &.red {
+                        a {
+                            color: $white;
+                            background: $coral;
+                            @extend .round;  
+                            @include transitions(background-color 150ms ease);
+                            &:hover {
+                                background-color: $teal;
+                                text-decoration: none;
+                                color: $white;
+                            } 
+                        }
+                    }
+                }
+
+                // First Level
+                a {                  
+                    display: inline-block;  
+                    text-decoration: none;
+                    font-weight: 700;
+                    @include transitions(color 150ms ease);
+                    &:hover {
+                        color: $orange;
+                        text-decoration: underline;
+                    }
+                }
+
+                // Second Level
+                ul { 
+                    margin-top: 20px; 
+                    display: block;
+                    li {
+                        display: block;
+                        width: calc(100% - 15px);
+                        margin: 0 0 10px 0;
+                        a {
+                            font-weight: 400;
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+
+#footer-sign-up {
+    float: left;
+    max-width: 400px;
+    font-size: 1.5em;
+    line-height: 1.5em;
+    position: relative;
+    top: -80px;
+}
+
+#footer-social {
+    float: left;
+    width: 40px;
+    margin-left: 20px;
+    ul {
+        display: block;
+        margin: 0;
+        padding: 0;
+        li {
+            display: block;
+            margin: 0 0 5px 0;
+            padding: 0;
+            list-style-type: none;
+            a {
+                display: block;
+                @include radius(50%);
+                width: 40px;
+                height: 40px;
+                font-size: 28px;
+                line-height: 40px;
+                text-align: center;
+                color: $white;
+                background: rgba(237,237,237,0);
+                @include transitions(all 150ms ease);
+                &:hover {
+                    color: $blue;
+                    background: rgba(237,237,237,1);
+
+                }
+            }
+        }
+    }
+}
+
+
+#smart-footer {
+    background: $blue;
+    color: $white;
+    padding: 30px 0 60px 0;
+    a {
+        color: $white;
+    }
+}
+
+#disclaimer {
+    padding: 25px 0;
+    text-align: center;
+    @include montserrat();
+    @media only screen and (max-width: 940px){
+        padding-bottom: 60px;
+    }
+    a {
+        color: $gray;
+        text-decoration: none;
+        &:hover {
+            color: $blue;
+            text-decoration: underline;
+        }
+    }
+}

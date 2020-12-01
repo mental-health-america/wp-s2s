@@ -33,7 +33,7 @@ function thoughtSubmission(){
 		$ipiden = md5($_SERVER['REMOTE_ADDR']);	
 		$uid = get_current_user_id();	
 		if(!$uid){
-			$uid = 4; // Anonymous user
+			$uid = 4; // Default "Anonymous" User
 		}
 		
 		/**
@@ -130,7 +130,6 @@ function thoughtSubmission(){
 			
 			// Publish if its the last question
 			if(isset($result['response']['last']) && $result['response']['last'] == 1){	
-				// Update post 37
 				$publish = array(
 					'ID'           => $post_id,
 					'post_status'  => 'publish',
@@ -178,7 +177,7 @@ function thoughtLike(){
 		$ipiden = md5($_SERVER['REMOTE_ADDR']);	
 		$uid = get_current_user_id();	
 		if(!$uid){
-			$uid = 4; // Anonymous user
+			$uid = 4; // Default "Anonymous" User
 		}
 
 		// Handle anonymous or logged in differently
@@ -265,7 +264,7 @@ function thoughtFlag(){
 		$ipiden = md5($_SERVER['REMOTE_ADDR']);	
 		$uid = get_current_user_id();	
 		if(!$uid){
-			$uid = 4; // Anonymous user
+			$uid = 4; // Default "Anonymous" User
 		}
 
 		// Handle anonymous or logged in differently
@@ -321,7 +320,7 @@ function likeChecker($pid, $row){
 	$ipiden = md5($_SERVER['REMOTE_ADDR']);	
 	$uid = get_current_user_id();	
 	if(!$uid){
-		$uid = 4; // Anonymous user
+		$uid = 4; // Default "Anonymous" User
 	}
 
 	// Handle anonymous or logged in differently
@@ -345,136 +344,309 @@ function likeChecker($pid, $row){
  * Update Thoughts Submitted
  */
 
- function getThoughtsSubmitted(){
-	 
-	$admin_seeds = get_field('pre_generated_responses');
-	$unique_admin_seeds = [];
-	$unique_user_seeds = [];
+ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null, $admin_seed = null, $user_seed = null, $return = null ){
+	
+	/*
+	echo '<pre>';
+	echo 'Activity ID: ';
+	print_r($activity_id);
+	echo '<br />';
 
-	$args = array(
-		"post_type" 	 => 'thought',
-		"post_status" 	 => 'publish',
-		"order"			 => 'DESC',
-		"orderby" 		 => 'date',
-		"posts_per_page" => 50,
-		"meta_key" 		 => 'activity',
-		"meta_value"     => $activity_id,
-		/*
-		'meta_query' 	 => array(
-			'relation'   => 'AND',
-			array(
-				'key' 	 	=> 'activity',
-				'value'  	=> $activity_id,
-				'compare'	=> '='
-			),
-			array(
-				'key'		=> 'responses_$_response', // Avoid empty entries (Yeah it's an edge case)
-				'value'  	=> '',
-				'compare'	=> '!='
+	echo 'Index: ';
+	print_r($index);
+	echo '<br />';
+
+	echo 'Path: ';
+	print_r($path);
+	echo '<br />';
+
+	echo 'Admin Seed: ';
+	print_r($admin_seed);
+	echo '<br />';
+	
+	echo 'User Seed: ';
+	print_r($user_seed);
+	echo '</pre>';
+	*/
+
+	/** Initital Thoughts */
+	if($index === 0){
+
+		$admin_seeds = get_field('pre_generated_responses', $activity_id);
+		$unique_admin_seeds = [];
+		$unique_user_seeds = [];
+
+		$args = array(
+			"post_type" 	 => 'thought',
+			"post_status" 	 => 'publish',
+			"order"			 => 'DESC',
+			"orderby" 		 => 'date',
+			"posts_per_page" => 50,
+			"meta_query"	 => array(
+				'relation'	 	=> 'AND',
+				array(
+					'key'		=> 'activity',
+					'value'		=> $activity_id
+				),
+				array(
+					'key'		=> 'abandoned', // TODO: Update this in case "reopening" thoughts is ever a thing
+					'compare'   => 'NOT EXISTS',
+				)
 			)
-		),
-		*/
-	);
-	$loop = new WP_Query($args);
-	if($loop->have_posts()):
-		while($loop->have_posts()) : $loop->the_post();
+		);
 
-			$thoughts = get_field('responses');
-			
-			if($thoughts[0]['response']) { 
+		$loop = new WP_Query($args);
+		if($loop->have_posts()):
+			while($loop->have_posts()) : $loop->the_post();
 
-				// Vars
-				$pid = get_the_ID();
+				$thoughts = get_field('responses');	
 
-				// Entered response					
-				if(in_array($pid, $unique_user_seeds)){
+				if($thoughts[0]['response']) { 
+
+					// Vars
+					$pid = get_the_ID();
+
+					// Entered response					
+					if(in_array($pid, $unique_user_seeds)){
+						continue;
+					}
+				
+					echo '<li class="submitted-by-user">';
+					echo ' <p class="thought-text" data-pid="'.$pid.'">'.$thoughts[0]['response'].'</p>'; 
+
+					$liked = likeChecker($pid, 0);
+					$like_text = 'Like';
+					$like_class = '';
+					if($liked){
+						$like_text = 'Unlike';
+						$like_class = ' liked';
+					}
+					echo ' <p><button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="0">'.$like_text.'</button>';
+					echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0">Flag</button>';
+					
+					if(!$return){
+						echo ' <button class="submit submit-initial-thought seed-user submitted-thought" value="'.$pid.'">Explore this thought</button>';
+					}
+					echo ' <br />'.edit_post_link('Edit', '', '', $pid);
+					echo '</p></li>';
+
+					$unique_user_seeds[] = $thoughts[0]['user_pre_seeded_thought'];
+
+				} elseif($thoughts[0]['admin_pre_seeded_thought'] != '') { 
+					
+					// Admin seeded response					
+					if(in_array($thoughts[0]['admin_pre_seeded_thought'], $unique_admin_seeds)){
+						continue;
+					}
+
+					$admin_thought_text = get_field('pre_generated_responses', $activity_id);
+					$admin_thought_row = intval($thoughts[0]['admin_pre_seeded_thought']);
+					$admin_thought_row_adjust = $admin_thought_row; // ACF saves with a 1 based index instead of 0
+
+					echo '<li class="submitted-by-admin">';
+					echo ' <p class="thought-text">'.$admin_thought_text[$admin_thought_row_adjust]['response'].'</p>'; 
+					
+					$liked = likeChecker($activity_id, $admin_thought_row);
+					$like_text = 'Like';
+					$like_class = '';
+					if($liked){
+						$like_text = 'Unlike';
+						$like_class = ' liked';
+					}
+					echo ' <p><button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">'.$like_text.'</button>';
+					echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">Flag</button>';
+					
+					if(!$return){
+						echo ' <button class="submit submit-initial-thought seed-admin submitted-thought" value="'.$admin_thought_row.'">Explore this thought</button>';
+					}
+					
+					echo ' <br />'.edit_post_link('Edit', '', '', get_the_ID());
+					echo '</p></li>';
+
+					$unique_admin_seeds[] = $thoughts[0]['admin_pre_seeded_thought'];
+				
+				} elseif($thoughts[0]['user_pre_seeded_thought']) { 
+					
+					/**
+					 * User seeds should never show, only display admin seeds or user 
+					 * thoughts directly for liking consolidation and such.
+					 */
 					continue;
 				}
+
+			endwhile; 
+		endif; 
+	}
+
+
+	/**
+	 * Follow Up Thoughts
+	 */
+	if($index > 0 || $_POST['data'] ){
+		
+		// For ajax requested calls
+		if($_POST['data']){
+			parse_str($_POST['data'], $data); 
+			$activity_id = $data['activity_id'];
+			$index = $data['index'];
+			$path = $data['path'];
+			$admin_seed = $data['admin_seed'];
+			$user_seed = $data['user_seed'];
+		}
+
+		$args = array(
+			"post_type" 	 => 'thought',
+			"post_status" 	 => 'publish',
+			"order"			 => 'DESC',
+			"orderby" 		 => 'date',
+			"posts_per_page" => 50,
+			'meta_query' 	 => array(
+				'relation'   => 'AND',
+				array(
+					'key' 	 	=> 'activity',
+					'value'  	=> intval($activity_id),
+					'compare'	=> '='
+				),
+				array(
+					'key'		=> 'responses_1_path', // Check for path on the second response entry
+					'value'  	=> intval($path),
+					'compare'	=> '=='
+				)
+			),
+		);
+		
+		// Seed Overrides
+		if(is_numeric($admin_seed)){
+			$args['meta_query'][] = array(
+				'key'		=> 'responses_0_admin_pre_seeded_thought',
+				'value'  	=> intval($admin_seed),
+				'compare'	=> '=='
+			);
+		}
+		if(is_numeric($user_seed)){
+			$args['meta_query'][] = array(
+				'key'		=> 'responses_0_user_pre_seeded_thought',
+				'value'  	=> intval($admin_seed),
+				'compare'	=> '=='
+			);
+		}
+
+		$loop = new WP_Query($args);
+		if($loop->have_posts()):
+			while($loop->have_posts()) : $loop->the_post();
+											
+				// Vars
+				$pid = get_the_ID();				
+				$thoughts = get_field( 'responses', $pid );	
 			
 				echo '<li class="submitted-by-user">';
-				echo ' <p class="thought-text" data-pid="'.$pid.'">'.$thoughts[0]['response'].'</p>'; 
-
-				$liked = likeChecker($pid, 0);
+				echo ' <p class="thought-text" data-pid="'.$pid.'">'.$thoughts[$index]['response'].'</p>'; 
+				
+				$liked = likeChecker($pid, $index);
 				$like_text = 'Like';
 				$like_class = '';
 				if($liked){
 					$like_text = 'Unlike';
 					$like_class = ' liked';
 				}
-				echo ' <button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="0">'.$like_text.'</button>';
-				echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0">Flag</button>';
+				echo ' <button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="'.$index.'">'.$like_text.'</button>';
+				echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'">Flag</button>';
 				
-				if(!$unfinished_thought){
-					echo ' <button class="submit submit-initial-thought seed-user submitted-thought" value="'.$pid.'">Explore this thought</button>';
-				}
 				echo ' <br />'.edit_post_link('Edit', '', '', $pid);
 				echo '</li>';
 
-				$unique_user_seeds[] = $thoughts[0]['user_pre_seeded_thought'];
+			endwhile;
+		else:
+			echo '<li>No one else has explored this path yet. Keep going!</li>';
+		endif;
 
-			} elseif($thoughts[0]['admin_pre_seeded_thought']) { 
-				
-				// Admin seeded response					
-				if(in_array($thoughts[0]['admin_pre_seeded_thought'], $unique_admin_seeds)){
-					continue;
-				}
+		if($_POST['data']){
+			die(); // Prevent Wordpress default ajax from returning 0
+		}
+	}
 
-				$admin_thought_text = get_field('pre_generated_responses', $activity_id);
-				$admin_thought_row = $thoughts[0]['admin_pre_seeded_thought'];
-				$admin_thought_row_adjust = $admin_thought_row - 1; // ACF saves with a 1 based index instead of 0
+}
+add_action("wp_ajax_nopriv_getThoughtsSubmitted", "getThoughtsSubmitted");
+add_action("wp_ajax_getThoughtsSubmitted", "getThoughtsSubmitted");
 
-				echo '<li class="submitted-by-admin">';
-				echo ' <p class="thought-text">'.$admin_thought_text[$admin_thought_row_adjust]['response'].'</p>'; 
-				
-				$liked = likeChecker($activity_id, $admin_thought_row);
-				$like_text = 'Like';
-				$like_class = '';
-				if($liked){
-					$like_text = 'Unlike';
-					$like_class = ' liked';
-				}
-				echo ' <button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">'.$like_text.'</button>';
-				echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">Flag</button>';
-				
-				if(!$unfinished_thought){
-					echo ' <button class="submit submit-initial-thought seed-admin submitted-thought" value="'.$admin_thought_row.'">Explore this thought</button>';
-				}
-				
-				echo ' <br />'.edit_post_link('Edit', '', '', get_the_ID());
-				echo '</li>';
 
-				$unique_admin_seeds[] = $thoughts[0]['admin_pre_seeded_thought'];
+
+/** 
+ * Thought flagging
+ */
+function abandonThought(){
+	
+	// General variables
+	global $wpdb;
+    $result = array();
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);  
+    $isAuthentic = wp_verify_nonce( $data['nonce'], 'abandonThought');
+	
+	// Submission is good, proceed
+	if($isAuthentic){
 			
-			} elseif($thoughts[0]['user_pre_seeded_thought']) { 
-				
-				/**
-				 * User seeds should never show, only display admin seeds or user 
-				 * thoughts directly for liking consolidation and such.
-				 */
-				continue;
+		// Organize our data
+		$result['response'] = $data;
+		$page = intval($data['page']);
 
-				/*
-				// User seeded response					
-				if(in_array($thoughts[0]['user_pre_seeded_thought'], $unique_user_seeds)){
-					continue;
-				}
+		// Vars
+		$ipiden = md5($_SERVER['REMOTE_ADDR']);	
+		$uid = get_current_user_id();	
+		if(!$uid){
+			$uid = 4; // Default "Anonymous" User
+		}
 
-				$user_thought_id = $thoughts[0]['user_pre_seeded_thought'];
-				$user_thoughts = get_field('responses',$user_thought_id);
+		// Do all this just to make sure someone isn't trying to game the system
+		$args = array(
+			"post_type" 	 => 'thought',
+			"author"		 => $uid,
+			"orderby" 		 => 'date', // Get the most recent
+			"order"			 => 'DESC', // Get the most recent
+			"post_status" 	 => 'draft', // Incomplete thoughts only
+			"posts_per_page" => 1,
+			"meta_query"	 => array(
+				'relation'	 	=> 'AND',
+				array(
+					'key'		=> 'ipiden',
+					'value'		=> $ipiden
+				),
+				array(
+					'key'		=> 'abandoned',
+					'compare'   => 'NOT EXISTS'
+				),
+				array(
+					'key'		=> 'activity',
+					'compare'   => $page
+				)
+			)
+		);
+		$loop = new WP_Query($args);
+		while($loop->have_posts()) : $loop->the_post();
+			$post_id = get_the_ID();
+			$result['post_id'] = $post_id;
+		endwhile;
+		
+		// Update the post and abandon it
+		$publish = array(
+			'ID'           => $post_id,
+			'post_status'  => 'publish',
+		);
+		wp_update_post( $publish );
+		update_field('abandoned', date('Y-m-d H:i:s'), $post_id);
 
-				echo '<li class="submitted-by-seed">';
-				echo 'Seed<p class="thought-text">'.$user_thoughts[0]['response'].'</p>'; 
-				echo ' <button class="thought-like" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$user_thought_id.'" data-row="0">Like</button>';
-				echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$user_thought_id.'" data-row="0">Flag</button>';
-				echo ' <button class="submit submit-initial-thought seed-user submitted-thought" value="'.$user_thought_id.'">Explore this thought</button>';
-				echo '<br />'.edit_post_link('Edit', '', '', get_the_ID());
-				echo '</li>';
+		// Set a redirect to start from scratch
+		$result['page_redirect'] = get_the_permalink($page);
 
-				$unique_user_seeds[] = $thoughts[0]['user_pre_seeded_thought'];
-				*/
+    } else {
 
-			}
-		endwhile; 
-	endif; 
+		$result['error'] = 'Error';	
 
- }
+	}
+
+    echo json_encode($result);
+    exit();
+}
+add_action("wp_ajax_nopriv_abandonThought", "abandonThought");
+add_action("wp_ajax_abandonThought", "abandonThought");
