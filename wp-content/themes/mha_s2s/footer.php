@@ -1,6 +1,3 @@
-		</div>	
-		</div>	
-		</div>
 	</main>
 
 	<footer id="footer" class="clear">
@@ -54,7 +51,7 @@
 </div>
 
 
-<div id="mobile-menu">
+<div id="mobile-menu-container">
 <div class="inner">
 	<?php 
 		// Mobile Slider Menu

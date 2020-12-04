@@ -41,38 +41,118 @@ input[type="button"] {
     border: 0; 
     background: $blue;
     color: $white;
+    font-size: .8em;
     text-decoration: none;
     text-transform: uppercase;
     @include montserrat(700);
-    @include transitions(background-color 150ms ease);
+    @include transitions(color 150ms ease, background-color 150ms ease);
+}
+
+button.plain {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $blueDark;
+    text-transform: none;
+    font-weight: 600;
+}
+
+button.icon {
+    display: inline-block;
+    padding: 0;
+    background: none;
+    color: $blueDark;
+    text-transform: none;
+    @include noto(700);
+    .image {
+        display: inline-block;
+        width: 32px;
+        text-align: center;
+        margin-right: 5px;
+    }
+    svg {
+        transform: scale(1);
+        @include transitions(transform 100ms ease);
+    }
+    &:hover {
+        svg { 
+            transform: scale(1.2);
+        }
+    }
+    &.liked:hover,
+    &.flagged:hover {
+        svg {
+            transform: scale(1);
+        }
+    }
+}
+
+button.bar {
+    display: inline-block;
+    padding: 0;
+    background: none;
+    color: $blueDark;
+    text-transform: none;
+    position: relative;
+    @include noto(700);
+    font-size: 1em;
+    &:after {
+        content: "";
+        display: block;
+        width: 35%;
+        height: 7px;
+        margin-top: 5px;
+        background: $coral; 
+        @include transitions(width 150ms ease);
+    }
+    &:hover {
+        &:after {
+            width: 100%;
+        }
+    }
 }
 
 /* Stylish Flourishes */
-
-.round {
-    @include radius(30px);
-}
-.round-tl {
-    @include radius(0px 30px 30px 30px);
-}
-.round-tr {
-    @include radius(30px 0px 30px 30px);
-}
-.round-br {
-    @include radius(30px 30px 0px 30px);
-}
-.round-bl {
-    @include radius(30px 30px 30px 0px);
-}
+.round { @include radius(30px); }
+.round-tl { @include radius(0px 30px 30px 30px); }
+.round-tr { @include radius(30px 0px 30px 30px); }
+.round-br { @include radius(30px 30px 0px 30px); }
+.round-bl { @include radius(30px 30px 30px 0px); }
 
 
 /* Bubbles */
 .bubble {
     background: $teal;
     color: $white;  
-
     .inner {
         padding: 50px;
+    }
+
+    // Additional Styles
+    &.bubble-border {
+        border: 1px solid $blueDark;
+    }
+
+    // Size Options
+    &.thin {
+        .inner {
+            padding: 30px;
+        }
+    }
+
+    // Color Variants
+    &.light-blue {
+        background: $blueLight;
+        color: $blueDark;
+    }
+    &.blue {
+        background: $blue;
+        color: $white;
+    }
+
+    &.gray {
+        background: $grayLight;
+        color: $blueDark;
     }
     
 }
@@ -94,19 +174,21 @@ input[type="button"] {
 /* Text */
 
 h1 {
-    margin: 0 0 .25em 0;
+    margin: 0 0 .5em 0;
     padding: 0;
-    font-size: 3em;
-    line-height: 1.1em;
-    text-transform: uppercase;
+	font-size: 3.4em;
+    line-height: 1.15em;
+    color: $blue;
+    @include montserrat(700);
 }
 
 h2 {
-    margin: 0 0 .5em 0;
-    padding: 0 0 .5em 0;
-    font-size: 1.8em;
-    line-height: 1.1em;
-    text-transform: uppercase;
+    margin: 0 0 .15em 0;
+    padding: 0;
+	font-size: 3.4em;
+    line-height: 1.15em;
+    color: $blue;
+    @include montserrat(700);
 }
 
 h3 {
@@ -118,10 +200,12 @@ h3 {
 }
 
 h4 {
-    margin: 0;
-    padding: 0;
-	font-size: 1.2em;
-    line-height: 1em;
+    padding: .5em;
+    margin: 0 0 .5em 0;
+	font-size: 1.6em;
+    line-height: 1.15em;
+    color: $blueDark;
+    @include montserrat(700);
 }
 
 p { 
@@ -303,4 +387,31 @@ img.right {
 
 .clearfix {
   display: block;
+}
+
+/* Admin Stuff */
+.post-edit-link {
+    opacity: 0;
+    position: absolute;
+    bottom: 0;
+    z-index: 5;
+    display: block;
+    width: 70px;
+    text-align: center;
+    margin: 0;
+    font-size: 12px;
+    background: $red;
+    color: $white;
+    font-weight: 700;
+    padding: 0 10px;
+    text-decoration: none;
+    @include transitions(all 150ms ease);
+    &:hover {
+        background: $white;
+        color: $coral;
+    }
+
+    #thoughts-submitted li:hover & {
+        opacity: 1;
+    }
 }

@@ -1,2 +1,7 @@
 /* General Vendor Styles */
+@import 'animate';
 @import 'font-awesome/font-awesome';
+
+.wow {
+    visibility: hidden;
+  }

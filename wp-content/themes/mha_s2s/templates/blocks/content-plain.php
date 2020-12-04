@@ -13,12 +13,10 @@
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-
-	<div class="page-heading bar">			
+	<div class="page-heading plain">			
 		<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
 	</div>
 	<div class="page-intro">
 		<?php the_content(); ?>				
 	</div>
-
 </article>

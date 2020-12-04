@@ -92,6 +92,8 @@ function thoughtSubmission(){
 			$question = intval($data['question']);
 			$path = intval($data['path']);
 			$response_text = $data['thought_'.$path.'_'.$question.''];
+			$result['path'] = $path;
+			$result['question'] = $question;
 			
 			// Get user's most recent incomplete thought to update.
 			// Shouldn't trust a variable from the front end
@@ -136,7 +138,7 @@ function thoughtSubmission(){
 				);
 
 				// Update the post into the database
-				wp_update_post( $publish );
+				$result['publish'] = wp_update_post( $publish );
 			}
 
 
@@ -406,29 +408,47 @@ function likeChecker($pid, $row){
 					// Vars
 					$pid = get_the_ID();
 
-					// Entered response					
+					// Skip already displayed responses				
 					if(in_array($pid, $unique_user_seeds)){
 						continue;
 					}
 				
-					echo '<li class="submitted-by-user">';
-					echo ' <p class="thought-text" data-pid="'.$pid.'">'.$thoughts[0]['response'].'</p>'; 
+					echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
+					echo '<div class="inner clearfix">';
 
-					$liked = likeChecker($pid, 0);
-					$like_text = 'Like';
-					$like_class = '';
-					if($liked){
-						$like_text = 'Unlike';
-						$like_class = ' liked';
-					}
-					echo ' <p><button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="0">'.$like_text.'</button>';
-					echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0">Flag</button>';
-					
-					if(!$return){
-						echo ' <button class="submit submit-initial-thought seed-user submitted-thought" value="'.$pid.'">Explore this thought</button>';
-					}
-					echo ' <br />'.edit_post_link('Edit', '', '', $pid);
-					echo '</p></li>';
+						// Thought Display
+						echo edit_post_link('Edit', '', '', $pid);
+						echo '<div class="thought-text" data-pid="'.$pid.'">';
+							echo $thoughts[0]['response'];
+						echo '</div>';		
+						
+						// Actions
+						echo '<div class="thought-actions">';
+							// Relate
+							$like_class = (likeChecker($pid, 0)) ? ' liked' : '';
+							echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="0">';
+								echo '<span class="image">';
+									include("assets/heart.svg");
+								echo '</span>';
+								echo '<span class="text">I relate</span>';
+							echo '</button>';
+
+							// Flag
+							echo '<button class="icon thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0">';
+								echo '<span class="image">';
+									include("assets/flag.svg");
+								echo '</span>';
+								echo '<span class="text">Flag</span>';
+							echo '</button>';
+							
+							// Explore
+							if(!$return){
+								echo '<span class="explore-container"><button class="bar submit submit-initial-thought seed-user submitted-thought" value="'.$pid.'">Explore this thought &raquo;</button></span>';
+							}						
+						echo '</div>';
+
+					echo '</div>';
+					echo '</li>';
 
 					$unique_user_seeds[] = $thoughts[0]['user_pre_seeded_thought'];
 
@@ -443,25 +463,42 @@ function likeChecker($pid, $row){
 					$admin_thought_row = intval($thoughts[0]['admin_pre_seeded_thought']);
 					$admin_thought_row_adjust = $admin_thought_row; // ACF saves with a 1 based index instead of 0
 
-					echo '<li class="submitted-by-admin">';
-					echo ' <p class="thought-text">'.$admin_thought_text[$admin_thought_row_adjust]['response'].'</p>'; 
-					
-					$liked = likeChecker($activity_id, $admin_thought_row);
-					$like_text = 'Like';
-					$like_class = '';
-					if($liked){
-						$like_text = 'Unlike';
-						$like_class = ' liked';
-					}
-					echo ' <p><button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">'.$like_text.'</button>';
-					echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">Flag</button>';
-					
-					if(!$return){
-						echo ' <button class="submit submit-initial-thought seed-admin submitted-thought" value="'.$admin_thought_row.'">Explore this thought</button>';
-					}
-					
-					echo ' <br />'.edit_post_link('Edit', '', '', get_the_ID());
-					echo '</p></li>';
+					echo '<li class="round-bl bubble thin submitted-by-admin wow fadeIn">';
+					echo '<div class="inner clearfix">';
+
+						// Thought Display
+						echo edit_post_link('Edit', '', '', get_the_ID());
+						echo '<div class="thought-text">';
+							echo $admin_thought_text[$admin_thought_row_adjust]['response']; 
+						echo '</div>';							
+
+						// Actions
+						echo '<div class="thought-actions">';
+							// Relate
+							$like_class = (likeChecker($activity_id, $admin_thought_row)) ? ' liked' : '';
+							echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">';
+								echo '<span class="image">';
+									include("assets/heart.svg");
+								echo '</span>';
+								echo '<span class="text">I relate</span>';
+							echo '</button>';
+
+							// Flag
+							echo '<button class="icon thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">';
+								echo '<span class="image">';
+									include("assets/flag.svg");
+								echo '</span>';
+								echo '<span class="text">Flag</span>';
+							echo '</button>';
+							
+							// Explore
+							if(!$return){
+								echo '<span class="explore-container"><button class="bar submit submit-initial-thought seed-admin submitted-thought" value="'.$admin_thought_row.'">Explore this thought &raquo;</button></span>';
+							}						
+						echo '</div>';
+
+					echo '</div>';
+					echo '</li>';
 
 					$unique_admin_seeds[] = $thoughts[0]['admin_pre_seeded_thought'];
 				
@@ -475,7 +512,11 @@ function likeChecker($pid, $row){
 				}
 
 			endwhile; 
-		endif; 
+		else:
+			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
+			echo '<div class="inner clearfix">No one else has explored this path yet. Keep going!</div>';
+			echo '</li>';
+		endif;
 	}
 
 
@@ -537,32 +578,53 @@ function likeChecker($pid, $row){
 											
 				// Vars
 				$pid = get_the_ID();				
-				$thoughts = get_field( 'responses', $pid );	
-			
-				echo '<li class="submitted-by-user">';
-				echo ' <p class="thought-text" data-pid="'.$pid.'">'.$thoughts[$index]['response'].'</p>'; 
-				
-				$liked = likeChecker($pid, $index);
-				$like_text = 'Like';
-				$like_class = '';
-				if($liked){
-					$like_text = 'Unlike';
-					$like_class = ' liked';
+				$thoughts = get_field( 'responses', $pid );		
+
+				if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != ''){
+					echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
+					echo '<div class="inner clearfix">';
+						
+						// Thought Display
+						echo edit_post_link('Edit', '', '', $pid);
+						echo '<div class="thought-text" data-pid="'.$pid.'">';
+							echo $thoughts[$index]['response'];
+						echo '</div>';
+						
+						// Actions
+						echo '<div class="thought-actions">';
+							// Relate
+							$like_class = (likeChecker($pid, $index)) ? ' liked' : '';
+							echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="'.$index.'">';
+								echo '<span class="image">';
+									include("assets/heart.svg");
+								echo '</span>';
+								echo '<span class="text">I relate</span>';
+							echo '</button>';
+
+							// Flag
+							echo '<button class="icon thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'">';
+								echo '<span class="image">';
+									include("assets/flag.svg");
+								echo '</span>';
+								echo '<span class="text">Flag</span>';
+							echo '</button>';			
+						echo '</div>';
+
+					echo '</div>';
+					echo '</li>';
 				}
-				echo ' <button class="thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="'.$index.'">'.$like_text.'</button>';
-				echo ' <button class="thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'">Flag</button>';
-				
-				echo ' <br />'.edit_post_link('Edit', '', '', $pid);
-				echo '</li>';
 
 			endwhile;
 		else:
-			echo '<li>No one else has explored this path yet. Keep going!</li>';
+			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
+			echo '<div class="inner clearfix">No one else has explored this path yet. Keep going!</div>';
+			echo '</li>';
 		endif;
+		
+	}
 
-		if($_POST['data']){
-			die(); // Prevent Wordpress default ajax from returning 0
-		}
+	if($_POST['data']){
+		die(); // Prevent Wordpress default ajax from returning 0
 	}
 
 }

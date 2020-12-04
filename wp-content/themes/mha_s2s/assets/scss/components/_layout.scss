@@ -27,7 +27,7 @@
 
     &.narrow {
         margin: 0 auto; 
-        width: 820px; 
+        width: 780px; 
         @media only screen and (max-width: 860px){
             margin: 0 20px;
             width: auto;
@@ -85,8 +85,8 @@
 /* Overall Content Layout */
 
 #content {
-    padding: 40px 0 100px 0;
-    font-size: 1.6em;
-    line-height: 1.4em;
+    padding: 0 0 140px 0;
+    font-size: 1.7em;
+    line-height: 1.7em;
     background: $white;
 }

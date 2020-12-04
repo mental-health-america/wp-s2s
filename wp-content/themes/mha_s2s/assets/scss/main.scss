@@ -16,10 +16,13 @@
 @import 'global/styles';
 @import 'global/forms';
 
-// Content Specific
+// General Content and Layout
 @import 'components/layout';
 @import 'components/footer';
 @import 'components/navigation';
 @import 'components/homepage';
 @import 'components/interior';
+
+// Specific Content
 @import 'components/screens';
+@import 'components/thoughts';

@@ -19,13 +19,13 @@ jQuery(function ($) {
 
 			if(thoughtCheck){
 
-				$('#thoughts-submitted .seed-admin, #thoughts-submitted .seed-user').remove();
+				$('#thoughts-submitted .seed-admin, #thoughts-submitted .seed-user').fadeOut();
 
 				// Clear validation
 				$('.validation').removeClass('alert alert-warning').html('');
 				
 				// Hide initial thought
-				$('.form-item.initial, .form-item.pre-seed').hide(); // TODO: If errors show everything again
+				$('.activity-response, .form-item.pre-seed').fadeOut();
 				
 				// Prep the data
 				var args = $('#form-activity').serialize() + '&start=1';
@@ -45,12 +45,12 @@ jQuery(function ($) {
 
 						// ID associated with the thought 
 						$('input[name="pid"]').val(resultData['pid']);
-						$('#start-over').show();
-						$('article.thought_activity, #other-responses').hide();
+						$('#start-over-container').fadeIn();
+						$('article.thought_activity, #other-responses').slideUp();
 
 						// Next steps
-						$('.further-actions').show();
-						$('#thought-history').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').show();
+						$('.further-actions').fadeIn();
+						$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
 
 					},
 					error: function(xhr, ajaxOptions, thrownError){
@@ -85,7 +85,7 @@ jQuery(function ($) {
 			$('.submit-initial-thought').prop('disabled', true);
 			
 			// Hide initial thought
-			$('.form-item.initial, .form-item.pre-seed').hide(); // TODO: If errors show everything again
+			$('.activity-response, .form-item.pre-seed').fadeOut(); // TODO: If errors show everything again
 			
 			// Prep the data
 			$('textarea[name="thought_0').val(seedText);
@@ -105,11 +105,11 @@ jQuery(function ($) {
 					console.log(resultData);
 					
 					// Next steps
-					$('.further-actions').show();
-					$('#start-over').show();
-					$('article.thought_activity, #other-responses').hide();
+					$('.further-actions').fadeIn();
+					$('#start-over-container').fadeIn();
+					$('article.thought_activity, #other-responses').slideUp();
 
-					$('#thought-history').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').show();
+					$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){
@@ -130,13 +130,13 @@ jQuery(function ($) {
 
 			// Vars
 			var seedVal = $(this).val(),
-				seedText = $(this).parents('li').find('.thought-text').text();
+				seedText = $('.thought-text[data-pid="'+seedVal+'"]').text();
 				
 			// Disable submit
 			$('.submit-initial-thought').prop('disabled', true);
 			
 			// Hide initial thought
-			$('.form-item.initial, .form-item.pre-seed').hide(); // TODO: If errors show everything again
+			$('.activity-response, .form-item.pre-seed').fadeOut(); // TODO: If errors show everything again
 			
 			// Prep the data
 			$('textarea[name="thought_0').val(seedText);
@@ -156,11 +156,11 @@ jQuery(function ($) {
 					console.log(resultData);
 
 					// Next steps
-					$('.further-actions').show();
-					$('#start-over').show();
-					$('article.thought_activity, #other-responses').hide();
+					$('.further-actions').slideDown();
+					$('#start-over-container').fadeIn();
+					$('article.thought_activity, #other-responses').slideUp();
 
-					$('#thought-history').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').show();
+					$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){
@@ -180,12 +180,12 @@ jQuery(function ($) {
 			event.preventDefault();
 
 			// Hide path selection
-			$('.further-actions').hide();
+			$('.further-actions').slideUp().addClass('fadeOut animated');
 
 			// Show selected path and first question
 			var path = $(this).val();
-			$('ol[data-path="'+path+'"]').addClass('active').show();
-			$('ol[data-path="'+path+'"] li[data-question="0"]').show();
+			$('ol[data-path="'+path+'"]').addClass('active').fadeIn();
+			$('ol[data-path="'+path+'"] li[data-question="0"]').fadeIn().addClass('active');
 
 			// Prep the data
 			var args = $('#form-activity').serialize() + '&continue=0';
@@ -203,16 +203,18 @@ jQuery(function ($) {
 					var resultData = JSON.parse(results);
 					console.log(resultData);
 
-					$('#other-responses').show();
-					$('#thought-history').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').show();
+					$('#other-responses').fadeIn();
+					$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
 									
 					/**
 					 * Update the user submitted thought list
 					 */
-					var index = 1,
+					var index = 0,
 						admin_seed = $('input[name="admin_seed').val(),
 						user_seed = $('input[name="user_seed').val(),
 						userThoughtArgs = 'activity_id='+resultData.response['page']+'&index='+index+'&path='+resultData.response['path']+'&admin_seed='+admin_seed+'&user_seed='+user_seed;
+
+						console.log(userThoughtArgs);
 
 					$.ajax({
 						type: "POST",
@@ -224,7 +226,7 @@ jQuery(function ($) {
 						success: function( results ) {		
 
 							//var resultData = JSON.parse(results);
-							console.log(results);								
+							//console.log(results);								
 							$('#thoughts-submitted').html(results)
 
 						},
@@ -245,7 +247,7 @@ jQuery(function ($) {
 		/**
 		 * Submit follow up thoughts
 		 */
-		$('.submit-thought, .complete-thought').on('click', function(event){
+		$('.submit-thought').on('click', function(event){
 
 			// Disable default form submit
 			event.preventDefault();
@@ -253,8 +255,12 @@ jQuery(function ($) {
 			// Disable this submit button
 			$(this).prop('disabled', true);
 
+			// Set up easy referencees for later
+			var $thisButton = $(this);
+
 			// Simple validation for response
 			var thoughtCheck = $.trim($(this).parents('.question-item').find('textarea').val());
+			console.log(thoughtCheck);
 			
 			if(thoughtCheck){
 				
@@ -263,14 +269,18 @@ jQuery(function ($) {
 					ref_2 = $(this).parents('li').attr('data-additional-reference'),
 					question = parseInt($(this).parents('li').attr('data-question')),
 					path = parseInt($('ol.path.active').attr('data-path')),
-					last = '',
 					argsSuffix = '';
 
-				if($(this).hasClass('last')){
+				if($(this).parents('li.question-item').hasClass('last')){
 					argsSuffix = '&last=1';			
+				} else {
+					argsSuffix = '&continue=1';			
 				}
 
-				var args = $('#form-activity').serialize() + '&ref=' + ref + '&ref2=' + ref_2 + '&question=' + question + '&path=' + path + '&continue=1' + argsSuffix;
+				var args = $('#form-activity').serialize() + '&ref=' + ref + '&ref2=' + ref_2 + '&question=' + question + '&path=' + path + argsSuffix;
+				
+				// Disable textarea
+				// $(this).parents('.question-item').find('textarea').prop('disabled', true);
 				
 				$.ajax({
 					type: "POST",
@@ -283,77 +293,23 @@ jQuery(function ($) {
 						
 						var resultData = JSON.parse(results);
 						console.log(resultData);	
+
+						$('#temp-result-data').text(results);
 						
-						// Hide other questions
-						$('ol[data-path="'+path+'"] li').hide();
-						
-						if($('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').length){
-
-							// Show next question
-							$('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').show();
-
-							// Update thought log
-							var thoughtHistory = '';
-							if(ref == 0){
-								thoughtHistory += '<p>'+resultData.response['thought_'+ref]+'</p>'; // Initial thought
-							} else if(resultData.response['thought_'+path+'_'+ref]){	
-								thoughtHistory += '<p>'+resultData.response['thought_'+path+'_'+ref]+'</p>'; // Referred thought
-							}
-
-							if(resultData.response['thought_'+path+'_'+ref_2]){	
-								thoughtHistory += '<p>'+resultData.response['thought_'+path+'_'+ref_2]+'</p>'; // Additional referred thought	
-							}		
-										
-							$('#thought-history').html(thoughtHistory);	
-
-						} else {
-							
-							// Question Log
-							var thoughtSummary = '<h2>Your Responses</h2>';
-							$('.question-item').each(function(event){
-								var question = $(this).find('label').text(),
-									answer = $(this).find('textarea').val();
-								if(answer){
-									thoughtSummary += '<p><strong>'+question+'</strong><br />'+answer+'</p>';
-								}
-							});
-							$('#thought-summary').html(thoughtSummary);
-
-							// Show ending
-							$('#other-responses, #thought-history').hide();
-							$('#thought-end').show();
-						}
-
-											
 						/**
-						 * Update the user submitted thought list
+						 * Interstitial Step
 						 */
-						var index = parseInt(resultData.add_row);
-						if(!$('ol[data-path="'+path+'"] li[data-question="'+index+'"]').length){
-							index = index - 1;
-						}
-						var admin_seed = $('input[name="admin_seed').val(),
-							user_seed = $('input[name="user_seed').val(),
-							userThoughtArgs = 'activity_id='+resultData.response['page']+'&index='+index+'&path='+resultData.response['path']+'&admin_seed='+admin_seed+'&user_seed='+user_seed;
-
-						$.ajax({
-							type: "POST",
-							url: do_mhaActivity.ajaxurl,
-							data: { 
-								action: 'getThoughtsSubmitted',
-								data: userThoughtArgs
-							},
-							success: function( results ) {		
-
-								//var resultData = JSON.parse(results);
-								console.log(results);								
-								$('#thoughts-submitted').html(results)
-
-							},
-							error: function(xhr, ajaxOptions, thrownError){
-								console.error('Error');
-							}
-						});	
+						$thisButton.hide();
+						$thisButton.next('.continue-thought').fadeIn();
+						
+						// Display thought in the submitted area
+						var newThought = '<li class="round-bl bubble thin submitted-by-user new-thought" style="display: none;"><div class="inner clearfix"><div class="thought-text">'+thoughtCheck+'</div><div class="thought-actions"><span class="explore-container"><button class="bar submit continue-thought-preview">Continue »</button></span></div></div></li>';		
+						$('#thoughts-submitted').prepend(newThought);	
+						$('.new-thought').slideDown();
+						setTimeout(() => {
+							$('.new-thought').addClass('show-thought');							
+						}, 400);
+						
 
 					},
 					error: function(xhr, ajaxOptions, thrownError){
@@ -372,11 +328,120 @@ jQuery(function ($) {
 
 		});
 
+
+		/**
+		 * Additional continue button
+		 */
+		$(document).on('click', '.continue-thought-preview', function(event){
+			
+			// Disable default form submit
+			event.preventDefault();
+
+			// Just click our existing continue button
+			$(document).find('.question-item.active .continue-thought').click();
+
+		})
+
+
+		/**
+		 * Continue after interstitial step
+		 */
+		$('.continue-thought').on('click', function(event){
+
+			// Disable default form submit
+			event.preventDefault();
+
+			// Carry over data			
+			var resultData = JSON.parse($('#temp-result-data').text());
+			$('#temp-result-data').html('');
+			
+			// Prep the data
+			var ref = $(this).parents('li').attr('data-reference'),
+				ref_2 = $(this).parents('li').attr('data-additional-reference'),
+				question = parseInt($(this).parents('li').attr('data-question')),
+				path = parseInt($('ol.path.active').attr('data-path'));
+
+			// Hide other questions
+			$('ol[data-path="'+path+'"] li').slideUp().removeClass('active');
+			
+			if($('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').length){
+
+				// Show next question
+				$('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').fadeIn().addClass('active');
+
+				// Update thought log
+				var thoughtHistory = '';
+				if(ref == 0){
+					thoughtHistory += '<p>'+resultData.response['thought_'+ref]+'</p>'; // Initial thought
+				} else if(resultData.response['thought_'+path+'_'+ref]){	
+					thoughtHistory += '<p>'+resultData.response['thought_'+path+'_'+ref]+'</p>'; // Referred thought
+				}
+
+				if(resultData.response['thought_'+path+'_'+ref_2]){	
+					thoughtHistory += '<p>'+resultData.response['thought_'+path+'_'+ref_2]+'</p>'; // Additional referred thought	
+				}		
+							
+				$('#thought-history .inner').html(thoughtHistory);	
+
+			} else {
+				
+				// Question Log
+				var thoughtSummary = '<h2>Your Responses</h2>';
+				thoughtSummary += '<div class="bubble round-bl gray thin"><div class="inner">';
+				$('.question-item').each(function(event){
+					var question = $(this).find('label').text(),
+						answer = $(this).find('textarea').val();
+					if(answer){
+						thoughtSummary += '<p><strong>'+question+'</strong><br />'+answer+'</p>';
+					}
+				});
+				thoughtSummary += '</div></div>';
+				$('#thought-summary').html(thoughtSummary);
+
+				// Show ending
+				$('#other-responses, #thought-history, #start-over-container').fadeOut();
+				$('#thought-end').fadeIn();
+
+			}
+
+								
+			/**
+			 * Update the user submitted thought list
+			 */
+			var index = parseInt(resultData.add_row);
+			if(!$('ol[data-path="'+path+'"] li[data-question="'+index+'"]').length){
+				index = index - 1;
+			}
+			var admin_seed = $('input[name="admin_seed').val(),
+				user_seed = $('input[name="user_seed').val(),
+				userThoughtArgs = 'activity_id='+resultData.response['page']+'&index='+index+'&path='+resultData.response['path']+'&admin_seed='+admin_seed+'&user_seed='+user_seed;
+
+			$.ajax({
+				type: "POST",
+				url: do_mhaActivity.ajaxurl,
+				data: { 
+					action: 'getThoughtsSubmitted',
+					data: userThoughtArgs
+				},
+				success: function( results ) {		
+
+					//var resultData = JSON.parse(results);
+					//console.log(results);								
+					$('#thoughts-submitted').html(results)
+
+				},
+				error: function(xhr, ajaxOptions, thrownError){
+					console.error('Error');
+				}
+			});	
+
+		});
+
 		
 		/**
 		 * Liking a thought
 		 */
-		$('.thought-like').on('click', function(event){
+		$(document).on('click', '.thought-like', function(event){
 
 			// Disable default form submit
 			event.preventDefault();
@@ -401,15 +466,7 @@ jQuery(function ($) {
 				},
 				success: function( results ) {
 
-					var resp = JSON.parse(results),
-						likeText = 'Unlike';
-					console.log(resp);
-
-					if(resp.liked == 0){
-						likeText = 'Like';
-					}
-
-					$(`.thought-like[data-pid="${pid}"][data-row="${row}"]`).text(likeText).toggleClass('liked').prop('disabled', false);
+					$(`.thought-like[data-pid="${pid}"][data-row="${row}"]`).toggleClass('liked').prop('disabled', false);
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){
@@ -425,7 +482,7 @@ jQuery(function ($) {
 		/**
 		 * Flagging a thought
 		 */
-		$('.thought-flag').on('click', function(event){
+		$(document).on('click', '.thought-flag', function(event){
 
 			// Disable default form submit
 			event.preventDefault();
@@ -450,10 +507,7 @@ jQuery(function ($) {
 				},
 				success: function( results ) {
 
-					var resp = JSON.parse(results);
-					console.log(results);
-
-					$(`.thought-flag[data-pid="${pid}"][data-row="${row}"]`).text('Flagged').toggleClass('flagged').prop('disabled', false);
+					$(`.thought-flag[data-pid="${pid}"][data-row="${row}"]`).toggleClass('flagged').prop('disabled', false);
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){
@@ -491,7 +545,7 @@ jQuery(function ($) {
 				thoughtHistory += '<p>'+refText2+'</p>'; // Additional referred thought	
 			}	
 			
-			$('#thought-history').html(thoughtHistory).show();	
+			$('#thought-history .inner').html(thoughtHistory).slideDown();	
 		}
 
 		// User has yet to choose a path
@@ -500,7 +554,7 @@ jQuery(function ($) {
 			// Show initial thought and the thought history for path selection
 			var refText0 = $('textarea[name="thought_0"]').val();
 			var thoughtHistory = '<p>'+refText0+'</p>'; // Initial thought
-			$('#thought-history').html(thoughtHistory).show();
+			$('#thought-history .inner').html(thoughtHistory).slideDown();
 
 		}
 

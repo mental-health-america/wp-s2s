@@ -1,5 +1,7 @@
 (function( $ ) {
-    
+	
+	new WOW().init(); 
+
 	/**
 	 * Document Ready Functions
 	 */
