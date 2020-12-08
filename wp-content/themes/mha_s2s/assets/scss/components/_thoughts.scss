@@ -29,10 +29,22 @@
         padding: 10px 0;
         border: 0;
         width: 100%;
+        height: 42px;
         background: none;
         padding: 0;
         color: $blueDark;
         border-bottom: 4px solid $blueDark;
+    }
+
+    .text-entry p {
+        margin: 0;
+        padding: 0 0 1.5em 0;
+        &:last-of-type {
+            padding: 0;
+        }
+    }
+    .text-actions p {
+        margin: 0;
     }
 
     .blue {
@@ -107,12 +119,12 @@
 // Other Responses
 
 #other-responses {
-    padding-top: 70px;
+    padding-top: 40px;
 }
 
 #thoughts-submitted {
-    margin: 30px 0 0 0;
-    padding: 0;
+    margin: 0;
+    padding: 15px 0 0 0;
 
     li {
         position: relative;
@@ -145,6 +157,10 @@
         button {
             margin-left: 20px;
         }
+        .explore-container {
+            display: block;
+            margin-top: 10px;
+        }
         @media only screen and (max-width: 940px){
             float: none;
             width: auto;
@@ -173,6 +189,7 @@
             }
             .explore-container {
                 display: block;
+                margin-top: 0;
             }
         }
     }
@@ -182,6 +199,7 @@
         opacity: 0;
         left: -50px;
         position: relative;
+        background-color: $ceruleanLight;
         @include transitions(opacity 400ms ease, left 400ms ease);
         &.show-thought {
             opacity: 1;

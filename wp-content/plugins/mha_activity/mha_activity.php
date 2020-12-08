@@ -514,7 +514,7 @@ function likeChecker($pid, $row){
 			endwhile; 
 		else:
 			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
-			echo '<div class="inner clearfix">No one else has explored this path yet. Keep going!</div>';
+			echo '<div class="inner clearfix">There are no other thoughts to display.</div>';
 			echo '</li>';
 		endif;
 	}
@@ -533,6 +533,9 @@ function likeChecker($pid, $row){
 			$path = $data['path'];
 			$admin_seed = $data['admin_seed'];
 			$user_seed = $data['user_seed'];
+			if($index == 0){
+				$index = 1;
+			}
 		}
 
 		$args = array(
@@ -556,70 +559,81 @@ function likeChecker($pid, $row){
 			),
 		);
 		
-		// Seed Overrides
+		// Admin Seeded Thought Overrides
 		if(is_numeric($admin_seed)){
+			// Add the admin connection 
 			$args['meta_query'][] = array(
 				'key'		=> 'responses_0_admin_pre_seeded_thought',
 				'value'  	=> intval($admin_seed),
 				'compare'	=> '=='
 			);
 		}
+		
+		// User Seeeded Thought Overrides
+		$loop_extra = '';
 		if(is_numeric($user_seed)){
+
 			$args['meta_query'][] = array(
 				'key'		=> 'responses_0_user_pre_seeded_thought',
-				'value'  	=> intval($admin_seed),
+				'value'  	=> intval($user_seed),
 				'compare'	=> '=='
 			);
+			
+			// Add the original thought to our list
+			$args_extra = array(
+				"p" 			=> $user_seed,
+				"post_type" 	=> 'thought'
+			);
+			$loop_extra = new WP_Query($args_extra);
+
 		}
 
 		$loop = new WP_Query($args);
-		if($loop->have_posts()):
+		$max = $loop->post_count;
+		$counter = 0;
+		$if_check = 0;
+
+		if($loop_extra != ''){
+			if($loop_extra->have_posts()):		
+				while($loop_extra->have_posts()) : $loop_extra->the_post();
+												
+					// Vars
+					$pid = get_the_ID();				
+					$thoughts = get_field( 'responses', $pid );	
+					
+					if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != ''){					
+						thoughtRow($pid, $thoughts, $index);
+					}
+
+				endwhile;
+			endif;
+		}
+
+		if($loop->have_posts()):		
 			while($loop->have_posts()) : $loop->the_post();
 											
 				// Vars
 				$pid = get_the_ID();				
-				$thoughts = get_field( 'responses', $pid );		
-
-				if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != ''){
-					echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
-					echo '<div class="inner clearfix">';
-						
-						// Thought Display
-						echo edit_post_link('Edit', '', '', $pid);
-						echo '<div class="thought-text" data-pid="'.$pid.'">';
-							echo $thoughts[$index]['response'];
-						echo '</div>';
-						
-						// Actions
-						echo '<div class="thought-actions">';
-							// Relate
-							$like_class = (likeChecker($pid, $index)) ? ' liked' : '';
-							echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="'.$index.'">';
-								echo '<span class="image">';
-									include("assets/heart.svg");
-								echo '</span>';
-								echo '<span class="text">I relate</span>';
-							echo '</button>';
-
-							// Flag
-							echo '<button class="icon thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'">';
-								echo '<span class="image">';
-									include("assets/flag.svg");
-								echo '</span>';
-								echo '<span class="text">Flag</span>';
-							echo '</button>';			
-						echo '</div>';
-
-					echo '</div>';
-					echo '</li>';
+				$thoughts = get_field( 'responses', $pid );	
+				
+				if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != ''){					
+					thoughtRow($pid, $thoughts, $index);
+					$counter++;
 				}
 
 			endwhile;
 		else:
-			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
-			echo '<div class="inner clearfix">No one else has explored this path yet. Keep going!</div>';
+			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn no-thought">';
+			echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
 			echo '</li>';
+			$if_check = 1;
 		endif;
+
+		if($counter == 0 && $if_check == 0){			
+			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn no-thought">';
+			echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
+			echo '</li>';
+		}
 		
 	}
 
@@ -632,6 +646,42 @@ add_action("wp_ajax_nopriv_getThoughtsSubmitted", "getThoughtsSubmitted");
 add_action("wp_ajax_getThoughtsSubmitted", "getThoughtsSubmitted");
 
 
+/**
+ * Template for display other responses
+ */
+function thoughtRow($pid, $thoughts, $index) {
+	echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
+	echo '<div class="inner clearfix">';
+		
+		// Thought Display
+		echo edit_post_link('Edit', '', '', $pid);
+		echo '<div class="thought-text" data-pid="'.$pid.'">';
+			echo $thoughts[$index]['response'];
+		echo '</div>';
+		
+		// Actions
+		echo '<div class="thought-actions">';
+			// Relate
+			$like_class = (likeChecker($pid, $index)) ? ' liked' : '';
+			echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="'.$index.'">';
+				echo '<span class="image">';
+					include("assets/heart.svg");
+				echo '</span>';
+				echo '<span class="text">I relate</span>';
+			echo '</button>';
+
+			// Flag
+			echo '<button class="icon thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'">';
+				echo '<span class="image">';
+					include("assets/flag.svg");
+				echo '</span>';
+				echo '<span class="text">Flag</span>';
+			echo '</button>';			
+		echo '</div>';
+
+	echo '</div>';
+	echo '</li>';
+}
 
 /** 
  * Thought flagging

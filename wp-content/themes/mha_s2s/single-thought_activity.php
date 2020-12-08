@@ -116,7 +116,7 @@ get_header();
 
 			<div class="question-item form-item initial">
 				<label><?php the_field('question'); ?></label>
-				<p>
+				<p class="text-entry">
 					<textarea name="thought_0" data-question="0" class="required" required placeholder="I think..."><?php 
 						if($previous_responses[0]['response'] != ''){
 							// Previously submitted thought
@@ -133,7 +133,7 @@ get_header();
 					?></textarea>
 					<div class="validation"></div>
 				</p>
-				<div class="form-actions">
+				<div class="text-actions">
 					<button class="submit bar submit-initial-thought self-thought" value="0">Submit this thought &raquo;</button>
 				</div>
 			</div>
@@ -267,19 +267,18 @@ get_header();
 										<div class="bubble blue round-bl">
 										<div class="inner">
 
-											<label for="<?php echo $thought_name; ?>">
-												<?php //echo $row; ?>
-												<?php the_sub_field('question'); ?>
-											</label>
-											<p>
-												<textarea name="<?php echo $thought_name; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" class="required" required><?php 
+											<p class="text-entry">
+												<label for="<?php echo $thought_name; ?>">
+													<?php the_sub_field('question'); ?>
+												</label>
+												<textarea name="<?php echo $thought_name; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" class="required" placeholder="I think..." required><?php 
 													if($previous_responses[$row + 1]['response']){
 														echo $previous_responses[$row + 1]['response'];
 													}
 												?></textarea>
 												<span class="validation"></span>
 											</p>
-											<p>
+											<div class="text-actions">
 												<?php if($last == ''): ?>
 													<button class="submit bar submit-thought" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit this thought &raquo;</button>
 													<button class="submit bar continue-thought" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" style="display: none;">Continue &raquo;</button>
@@ -287,7 +286,7 @@ get_header();
 													<button class="submit bar submit-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit this thought &raquo;</button>
 													<button class="submit bar continue-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" style="display: none;">View summary &raquo;</button>
 												<?php endif; ?>
-											</p>
+												</div>
 
 										</div>
 										</div>
@@ -313,7 +312,7 @@ get_header();
 </div>
 
 
-<div class="wrap normal">
+<div class="wrap narrow">
 	
 	<?php 
 		$display_other_responses = 'block';
@@ -324,7 +323,7 @@ get_header();
 		endif;
 	?>
 	<div id="other-responses" style="display: <?php echo $display_other_responses; ?>">
-		<h2 class="wow fadeIn">What Others Are Saying</h2>
+		<h3 class="wow fadeIn blue">What Others Are Saying</h3>
 		<ol id="thoughts-submitted">
 			<?php 
 				$return = null;
