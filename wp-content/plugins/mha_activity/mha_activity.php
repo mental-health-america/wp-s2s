@@ -412,8 +412,10 @@ function likeChecker($pid, $row){
 					if(in_array($pid, $unique_user_seeds)){
 						continue;
 					}
+
+					$like_count = getThoughtLikes($pid, 0);
 				
-					echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
+					echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'">';
 					echo '<div class="inner clearfix">';
 
 						// Thought Display
@@ -463,7 +465,9 @@ function likeChecker($pid, $row){
 					$admin_thought_row = intval($thoughts[0]['admin_pre_seeded_thought']);
 					$admin_thought_row_adjust = $admin_thought_row; // ACF saves with a 1 based index instead of 0
 
-					echo '<li class="round-bl bubble thin submitted-by-admin wow fadeIn">';
+					$like_count = getThoughtLikes($pid, $admin_thought_row);
+				
+					echo '<li class="round-bl bubble thin submitted-by-admin wow fadeIn" data-count="'.$like_count.'">';
 					echo '<div class="inner clearfix">';
 
 						// Thought Display
@@ -514,7 +518,7 @@ function likeChecker($pid, $row){
 			endwhile; 
 		else:
 			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
-			echo '<div class="inner clearfix">There are no other thoughts to display.</div>';
+				echo '<div class="inner clearfix">There are no other thoughts to display.</div>';
 			echo '</li>';
 		endif;
 	}
@@ -624,14 +628,14 @@ function likeChecker($pid, $row){
 			endwhile;
 		else:
 			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn no-thought">';
-			echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
+				echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
 			echo '</li>';
 			$if_check = 1;
 		endif;
 
 		if($counter == 0 && $if_check == 0){			
 			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn no-thought">';
-			echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
+				echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
 			echo '</li>';
 		}
 		
@@ -650,7 +654,10 @@ add_action("wp_ajax_getThoughtsSubmitted", "getThoughtsSubmitted");
  * Template for display other responses
  */
 function thoughtRow($pid, $thoughts, $index) {
-	echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
+	
+	$like_count = getThoughtLikes($pid, $index);
+
+	echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'">';
 	echo '<div class="inner clearfix">';
 		
 		// Thought Display
@@ -682,6 +689,20 @@ function thoughtRow($pid, $thoughts, $index) {
 	echo '</div>';
 	echo '</li>';
 }
+
+
+/**
+ * Get a thought's total likes
+ */
+function getThoughtLikes($pid, $row = 0){
+	global $wpdb;
+	$like_count = $wpdb->get_var( "SELECT COUNT(*) FROM thoughts_likes WHERE pid = $pid AND row = $row AND unliked = 0" );
+	if(!$like_count){
+		$like_count = 0;
+	}
+	return $like_count;
+}
+
 
 /** 
  * Thought flagging

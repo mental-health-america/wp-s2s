@@ -1,5 +1,18 @@
 jQuery(function ($) {
 
+
+	// Initial sort the other thoughts
+	function sortThoughts(){
+		if($('#thoughts-submitted').length){
+			$("#thoughts-submitted li").sort(sort_li).appendTo('#thoughts-submitted');
+			function sort_li(a, b) {
+				return ($(a).data('count')) < ($(b).data('count')) ? 1 : -1;
+			}
+		}
+	}
+	sortThoughts();
+
+	
 	// Thought Form Actions
 	if($('#form-activity').length){
 
@@ -239,6 +252,7 @@ jQuery(function ($) {
 							//var resultData = JSON.parse(results);
 							//console.log(results);								
 							$('#thoughts-submitted').html(results);
+							sortThoughts();
 
 						},
 						error: function(xhr, ajaxOptions, thrownError){
@@ -400,7 +414,7 @@ jQuery(function ($) {
 				
 				// Question Log
 				var thoughtSummary = '<h2>Your Responses</h2>';
-				thoughtSummary += '<div class="bubble round-bl gray thin"><div class="inner">';
+				thoughtSummary += '<div class="bubble round-bl light-blue thin"><div class="inner">';
 				$('.question-item').each(function(event){
 					var question = $(this).find('label').text(),
 						answer = $(this).find('textarea').val();
@@ -442,7 +456,8 @@ jQuery(function ($) {
 
 					//var resultData = JSON.parse(results);
 					//console.log(results);								
-					$('#thoughts-submitted').html(results)
+					$('#thoughts-submitted').html(results);					
+					sortThoughts();
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){

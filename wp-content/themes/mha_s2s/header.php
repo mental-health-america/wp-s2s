@@ -31,29 +31,28 @@
 
 		<a id="logo" href="/"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/mha-logo.png" alt="<?php bloginfo( 'name' ); ?>" /></a>
 
-		<div id="utility-menu">		
-			<button id="search-toggle"
-				aria-haspopup="true"
-				aria-expanded="false"
-				aria-controls="search-container">
-				<strong class="hide-text">Search</strong>
-				<span class="icon"></span>
-			</button>
+		<div id="utility-menu">	
+
+			<div id="search-header">
+				<button id="search-toggle"
+					aria-haspopup="true"
+					aria-expanded="false"
+					aria-controls="search-container">
+					<strong class="hide-text">Search</strong>
+					<span class="icon"></span>
+				</button>
+			</div>
 			
-			<button id="sign-in-toggle"
-				aria-haspopup="true"
-				aria-expanded="false"
-				aria-controls="sign-in-container">			
-				<strong>
-					<?php
-						if(is_user_logged_in()): 
-							echo 'My Account';
-						else:
-							echo 'Sign In';
-						endif;
-					?>
-				</strong>
-			</button>
+			<?php if(is_user_logged_in()): ?>						
+				<a class="my-account-link" href="/my-account"></a>
+			<?php else: ?>							
+				<button id="sign-in-toggle"
+					aria-haspopup="true"
+					aria-expanded="false"
+					aria-controls="sign-in-container">			
+					<strong>Log In</strong>
+				</button>
+			<?php endif; ?>
 
 			<button id="mobile-menu-button" class="menu-toggle" aria-controls="main-menu" aria-label="Toggle Menu" aria-expanded="false">
 				<span></span>
