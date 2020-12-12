@@ -35,18 +35,19 @@
 
 			<div id="search-header">
 				<button id="search-toggle"
-					aria-haspopup="true"
 					aria-expanded="false"
-					aria-controls="search-container">
-					<strong class="hide-text">Search</strong>
+					aria-controls="search-form">
+					<strong class="screen-reader-text">Search</strong>
 					<span class="icon"></span>
 				</button>
+				<?php get_search_form(); ?>
 			</div>
 			
 			<?php if(is_user_logged_in()): ?>						
-				<a class="my-account-link" href="/my-account"></a>
+				<a class="my-account-link button" href="/my-account">My Account</a>
 			<?php else: ?>							
 				<button id="sign-in-toggle"
+					class="button"
 					aria-haspopup="true"
 					aria-expanded="false"
 					aria-controls="sign-in-container">			
@@ -54,7 +55,7 @@
 				</button>
 			<?php endif; ?>
 
-			<button id="mobile-menu-button" class="menu-toggle" aria-controls="main-menu" aria-label="Toggle Menu" aria-expanded="false">
+			<button id="mobile-menu-button" class="menu-toggle button" aria-controls="main-menu" aria-label="Toggle Menu" aria-expanded="false">
 				<span></span>
 				<span></span>
 				<span></span>

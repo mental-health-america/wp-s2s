@@ -6,11 +6,17 @@
 	font-family: 'Montserrat', Arial, Helvetica, sans-serif;
 	font-weight: $weight; // 400, 700
 }
+.montserrat {
+	@include montserrat(400);
+}
 
 // Noto
 @mixin noto($weight:'400'){  
 	font-family: 'Noto Sans', Arial, Helvetica, sans-serif;
 	font-weight: $weight; // 400, 700
+}
+.noto {
+	@include noto(400);
 }
 
 /**

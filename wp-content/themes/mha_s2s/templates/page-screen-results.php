@@ -1,68 +1,68 @@
 <?php 
 /* Template Name: Screen Results */
 get_header(); 
-
-function in_multiarray($needle, $haystack, $strict = false) {
-    foreach ($haystack as $item) {
-        if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && in_multiarray($needle, $item, $strict))) {
-            return true;
-        }
-    }
-    return false;
-}
-
 ?>
 
-<div class="clearfix" style="background: #FFF;">
-<?php
-	while ( have_posts() ) : the_post();
-		get_template_part( 'templates/blocks/content', 'page' );
-    endwhile;
-?>
+<div class="wrap normal">
+    <?php
+        while ( have_posts() ) : the_post();
+            get_template_part( 'templates/blocks/content', 'plain' );
+        endwhile;
+    ?>
+</div>
 
-<?php
-    /**
-     * Results Scoring
-     */
+<div class="wrap narrow">
 
-    // Vars
-    $screen_id = $_GET['sid'];
-
-    $total_score = 0;
-
-    // Gravity Forms API Connection
-    $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
-    $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
-    $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-    $response = wp_remote_get( 'https://mhascreening.wpengine.com/wp-json/gf/v2/entries/'.$screen_id.'?_labels[0]=1&_field_ids[0]=1' , array( 'headers' => $headers ) );
+    <ol class="screen-progress-bar clearfix step-3-of-3">
+        <li class="step-1"><span>Test<br />Questions</span></li>
+        <li class="step-2"><span>Demographic<br />Information</span></li>
+        <li class="step-3"><span>Your<br />Results</span></li>
+    </ol>
     
-    $your_answers = '';
-    $result_terms = [];
-    $next_step_terms = [];
-    $next_step_manual = [];
-    $required_result_tags = [];
+    <?php
+        /**
+         * Results Scoring
+         */
 
-    // Check the response code.
-    if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
+        // Vars
+        $user_screen_id = get_query_var('sid');
+        $total_score = 0;
+
+        // Gravity Forms API Connection
+        $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
+        $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
+        $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
+        $response = wp_remote_get( 'https://mhascreening.wpengine.com/wp-json/gf/v2/entries/'.$user_screen_id.'?_labels[0]=1&_field_ids[0]=1' , array( 'headers' => $headers ) );
         
-        // There was an error here
+        // Future Content
+        $your_answers = '';
+        $result_terms = [];
+        $next_step_terms = [];
+        $next_step_manual = [];
+        $required_result_tags = [];
 
-    } else {
-
-        // Got a good response, proceed
-        $json = wp_remote_retrieve_body($response);
-        $data = json_decode($json);
-
-        // Text
-        $label = '';
-        $value_label = '';
-        $screen_id = '';
-        $alert = 0;
-        $i = 0;
-
-        $your_answers .= "<h3>Your Answers</h3>";
-        $your_answers .= '<ul>';
+        // Check the response code.
+        if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
             
+            // Error!
+            echo '<p>There was a problem displaying to your results. Please contact us if the issue persists.</p>';
+            echo '<p><strong>Response Error:</strong>'.wp_remote_retrieve_response_code( $response ).'<br />';
+            echo '<strong>Screen ID:</strong>'.$user_screen_id.'</p>';
+
+        } else {
+
+            // Got a good response, proceed!
+            $json = wp_remote_retrieve_body($response);
+            $data = json_decode($json);
+
+            // Text
+            $label = '';
+            $value_label = '';
+            $screen_id = '';
+            $alert = 0;
+            $i = 0;          
+
+            $your_answers .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';              
             foreach($data as $k => $v){
                 
                 // Get field object
@@ -79,7 +79,10 @@ function in_multiarray($needle, $haystack, $strict = false) {
                     $label = $field->label; // Field label                    
                     $value_label = $field['choices'][$v]['text']; // Selection Label                    
                     $total_score = $total_score + $v; // Add to total score
-                    $your_answers .= "<li><strong>$label:</strong> $value_label (+$v)</li>";
+                    $your_answers .= '<div class="row pb-4">';
+                        $your_answers .= '<div class="col-7 text-gray">'.$label.'</div>';
+                        $your_answers .= '<div class="col-5 bold caps dark-teal pl-4">'.$value_label.'</div>';
+                    $your_answers .= '</div>';
                 }
 
                 // Warning message counter
@@ -99,166 +102,200 @@ function in_multiarray($needle, $haystack, $strict = false) {
                     }
                 }
                 
-            }
-            
-        $your_answers .= '</ul>';
+            }   
 
-        // For Debugging
-        /*
-        $your_answers .= "<h3>Optional Answers</h3>";
-        $your_answers .= '<ul>';
-        $previous_label = '';
-        foreach($data as $k => $v){
-            
-            // Get field object
-            $field = GFFormsModel::get_field( $data->form_id, $k );
+            // For Debugging
+            /*
+            $your_answers .= "<h3>Optional Answers</h3>";
+            $your_answers .= '<ul>';
+            $previous_label = '';
+            foreach($data as $k => $v){
+                
+                // Get field object
+                $field = GFFormsModel::get_field( $data->form_id, $k );
 
-            // Demo Questions
-            if (strpos($field->cssClass, 'optional') !== false && $v != '') {   
-                if($previous_label != $field->label){
-                    $your_answers .= "</li>";
-                    $label = $field->label; // Field label
-                    $previous_label = $label;
-                    $value_label = $v; // Selection Label
-                    $your_answers .= "<li><strong>$label:</strong> $value_label";
-                } else {                
-                    $your_answers .= ", $v"; 
+                // Demo Questions
+                if (strpos($field->cssClass, 'optional') !== false && $v != '') {   
+                    if($previous_label != $field->label){
+                        $your_answers .= "</li>";
+                        $label = $field->label; // Field label
+                        $previous_label = $label;
+                        $value_label = $v; // Selection Label
+                        $your_answers .= "<li><strong>$label:</strong> $value_label";
+                    } else {                
+                        $your_answers .= ", $v"; 
+                    }
                 }
+                
             }
-            
+            $your_answers .= '</ul>';
+            */
         }
-        $your_answers .= '</ul>';
-        */
+        
+        /**
+         * Results Content
+         */
 
-    }
-
-?>
-
-
-<?
-    /**
-     * Results Content
-     */
-
-    $required_check = '0';
-    
-    // Check this result's required tags
-    if( have_rows('results', $screen_id) ):
-    while( have_rows('results', $screen_id) ) : the_row();
-    
-        $min = get_sub_field('score_range_minimum');
-        $max = get_sub_field('score_range_max');
-        if($total_score >= $min && $total_score <= $max || $total_score >= $min && !is_numeric($max)){
-            if(get_sub_field('required_tags')){
-                $req = get_sub_field('required_tags');
-                foreach($req as $t){
-                    if(in_multiarray($t, $result_terms)){
-                        $required_result_tags[] = $t;
+        $required_check = '0';
+        
+        // Check this result's required tags
+        if( have_rows('results', $screen_id) ):
+        while( have_rows('results', $screen_id) ) : the_row();
+        
+            $min = get_sub_field('score_range_minimum');
+            $max = get_sub_field('score_range_max');
+            if($total_score >= $min && $total_score <= $max || $total_score >= $min && !is_numeric($max)){
+                if(get_sub_field('required_tags')){
+                    $req = get_sub_field('required_tags');
+                    foreach($req as $t){
+                        if(in_multiarray($t, $result_terms)){
+                            $required_result_tags[] = $t;
+                        }
                     }
                 }
             }
-        }
 
-    endwhile;
-    endif;
-
-
-    if( have_rows('results', $screen_id) ):
-    while( have_rows('results', $screen_id) ) : the_row();
-
-        $min = get_sub_field('score_range_minimum');
-        $max = get_sub_field('score_range_max');
-
-        /*
-        echo '<hr />';
-        echo get_row_index();
-        echo "Min: $min<br />";
-        echo "Max: $max<br />";
-        echo "Total: $total_score<br />";
-        */
+        endwhile;
+        endif;
         
-        if($total_score >= $min && $total_score <= $max || $total_score >= $min && !is_numeric($max)){
             
-            // Required Tags Check
-            if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
-                continue;
+        if( have_rows('results', $screen_id) ):
+        while( have_rows('results', $screen_id) ) : the_row();
+
+            $min = get_sub_field('score_range_minimum');
+            $max = get_sub_field('score_range_max');
+
+            /*
+            echo '<hr />';
+            echo get_row_index();
+            echo "Min: $min<br />";
+            echo "Max: $max<br />";
+            echo "Total: $total_score<br />";
+            */
+            
+            if($total_score >= $min && $total_score <= $max || $total_score >= $min && !is_numeric($max)){
+                
+                // Required Tags Check
+                if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
+                    continue;
+                }
+
+                // Relevant Tags
+                if(get_sub_field('relevant_tags')){
+                    $tags = get_sub_field('relevant_tags');
+                    foreach($tags as $t){
+                        $next_step_terms[] = $t;
+                    }
+                }
+
+                // Manual Next Steps
+                $next = get_sub_field('featured_next_steps');
+                foreach($next as $n){
+                    $next_step_manual[] = $n['link']->ID;
+                }
+                ?>
+                    <div class="bubble thin teal round-small-bl mb-4">
+                    <div class="inner">
+                        <div class="subtitle thin caps block pb-1">Your score was</div>
+                        <h2 class="white small m-0">
+                            <strong><?php the_sub_field('result_title'); ?></strong>
+                        </h2>
+                    </div>
+                    </div>
+                                
+                    <div id="screen-result-buttons" class="button-grid">
+                        <button id="screen-about" class="button mint round thin reveal-slide-button" data-reveal="score-interpretation">About your Score: <?php echo $total_score; ?></button>
+                        <button id="screen-email" class="button mint round thin">Email Results</button>
+                        <button id="screen-answers" class="button mint round thin reveal-slide-button" data-reveal="your-answers">Your Answers</button>
+                        <a class="button mint round thin" id="screen-take" href="/screening-tools/">Take a Mental Health Test</a>
+                    </div>
+
+                    <div class="pt-4">
+
+                        <div class="bubble thick light-blue bubble-border round-tl montserrat mb-4" id="your-answers" style="display: none;">
+                        <div class="inner small">
+                            <div class="container-fluid">
+                                <?php echo $your_answers; ?>
+                            </div>
+                        </div>
+                        </div>
+                        
+                        <div class="bubble thick light-blue bubble-border round-tl montserrat mb-4" id="score-interpretation" style="display: none;">
+                        <div class="inner small">
+                            <div class="container-fluid">
+                            <h3 class="section-title dark-teal mb-4">Interpretation of Scores</h3>
+                                <?php the_field('interpretation_of_scores', $screen_id); ?>
+                            </div>
+                        </div>
+                        </div>                        
+                    
+                        <?php
+                            if($alert > 0){
+                                the_field('warning_message', $screen_id);
+                            }
+                            the_sub_field('result_content');
+                        ?>
+                    </div>
+
+            <?php
             }
 
-            // Relevant Tags
-            if(get_sub_field('relevant_tags')){
-                $tags = get_sub_field('relevant_tags');
-                foreach($tags as $t){
-                    $next_step_terms[] = $t;
+        endwhile;
+        endif;
+    ?>
+</div>
+
+<div class="wrap normal pt-5 pb-3">
+    <h2 class="section-title dark-blue bold">Next Steps</h2>
+    <?php if(get_field('next_steps_subtitle', $screen_id)): ?>
+        <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $screen_id); ?></h2>
+    <?php endif; ?>
+</div>
+
+<div class="wrap narrow">
+    <ol class="next-steps">        
+        <?php
+            // Result based manual steps
+            foreach($next_step_manual as $step){
+                echo "<li><strong>Manual step from result: </strong>".get_the_title($step).'</li>';
+            }
+
+            // Manual steps
+            if( have_rows('featured_next_steps', $screen_id) ):
+            while( have_rows('featured_next_steps', $screen_id) ) : the_row();
+                $step = get_sub_field('link');
+                echo '<li><strong>Manual step from screen:</strong> '. get_the_title($step->ID).'</li>'; // Simply print the manual selection
+            endwhile;        
+            endif;
+
+            // Result based related tag steps
+            $next_step_terms = array_unique($next_step_terms);
+            foreach($next_step_terms as $step){
+                echo "<li><strong>Relevant tag from result: </strong>".get_term($step)->name.'</li>';
+            }
+
+            // Demographic based steps
+            if(!empty($result_terms)){
+                foreach($result_terms as $step){         
+                    echo "<li><strong>Optional answers tag: </strong>".get_term_by('id', $step['id'], $step['taxonomy'])->name.'</li>';            
                 }
             }
 
-            // Manual Next Steps
-            $next = get_sub_field('featured_next_steps');
-            foreach($next as $n){
-                $next_step_manual[] = $n['link']->ID;
+            // Overall screen based steps
+            $tags = get_field('related_tags', $screen_id);
+            foreach($tags as $t){
+                echo "<li><strong>Related tag from screen: </strong>".get_term($t)->name.'</li>';
             }
 
-            echo '<h2>'.get_sub_field('result_title').'</h2>';
-            if($alert > 0){
-                the_field('warning_message', $screen_id);
+            if(get_field('see_all_link', $screen_id)){
+                $see_all_text = 'See All';
+                if(get_field('see_all_link_text', $screen_id)){
+                    $see_all_text = get_field('see_all_link_text', $screen_id);
+                }
+                echo '<li><a class="caps cerulean plain" href="'.get_field('see_all_link', $screen_id).'">'.$see_all_text.'</a></li>';
             }
-            the_sub_field('result_content');
-            
-        }
-
-    endwhile;
-    endif;
-
-    echo "<p><strong>Total Score:</strong> $total_score</p>";
-    echo "<hr />";
-
-    echo "<h2>Interpretation of Scores</h2>";
-    the_field('interpretation_of_scores', $screen_id);
-    echo "<hr />";
-
-    echo $your_answers;
-    echo "<hr />";
-
-    echo "<h2>Next Steps</h2>";
-    echo '<ol>';
-
-        // Result based manual steps
-        foreach($next_step_manual as $step){
-            echo "<li><strong>Manual step from result: </strong>".get_the_title($step).'</li>';
-        }
-
-        // Manual steps
-        if( have_rows('featured_next_steps', $screen_id) ):
-        while( have_rows('featured_next_steps', $screen_id) ) : the_row();
-            $step = get_sub_field('link');
-            echo '<li><strong>Manual step from screen:</strong> '. get_the_title($step->ID).'</li>'; // Simply print the manual selection
-        endwhile;        
-        endif;
-
-        // Result based related tag steps
-        $next_step_terms = array_unique($next_step_terms);
-        foreach($next_step_terms as $step){
-            echo "<li><strong>Relevant tag from result: </strong>".get_term($step)->name.'</li>';
-        }
-
-        // Demographic based steps
-        if(!empty($result_terms)){
-            foreach($result_terms as $step){         
-                echo "<li><strong>Optional answers tag: </strong>".get_term_by('id', $step['id'], $step['taxonomy'])->name.'</li>';            
-            }
-        }
-
-        // Overall screen based steps
-        $tags = get_field('related_tags', $screen_id);
-        foreach($tags as $t){
-            echo "<li><strong>Related tag from screen: </strong>".get_term($t)->name.'</li>';
-        }
-
-    echo '</ol>';
-
-
-?>
-
+        ?>
+    </ol>
 
 </div>
 

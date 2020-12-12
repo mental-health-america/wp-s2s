@@ -1,63 +1,408 @@
 
-.gf_progressbar_wrapper,
-.gform_heading {
-    display: none;
-}
-.gform_fields  {
-    margin: 0;
-    padding: 0;
-    li {
-        list-style-type: none;
-        margin: 0 0 2em 0;
-        padding: 0;
-    }
-}
+article.screen {
 
-.gfield_radio {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-
-    li {
-        position: relative;
-        flex: 0 1 calc(25% - 20px);
-        margin: 0 10px 20px 10px;
-        padding: 0;
-    }
-
-    label {
-        display: block;
-        text-align: center;
-        background: $white;
-        color: $blue;
-        padding: 10px;
-        @include radius(20px);
-        border: 2px solid $blue;
-        @include transitions(color 100ms ease, background-color 100ms ease);
-    }    
-
-    input[type="radio"] {
-        position: absolute;
-        left: -999em;
-    }
-
-    input[type="radio"]:checked+label {
-        background: $blue;
-        color: $white;
-    }
-
-}
-
-.hidden_label {
-    .gfield_label {
+    // Default Colors
+    & { color: $blue; }
+    h1 { color: $teal; }
+    
+    // Default Hidden Elements
+    .gform_heading,
+    .hidden_label .gfield_label {
         display: none;
     }
+
+    // Labels 
+    .gfield_description,
+    label.gfield_label {
+        font-weight: 400;
+        color: $gray;
+    }
+
+    // Headings
+    .gform_fields li.section-title {
+        margin-bottom: 0;
+    }
+
+    // General Fields
+    .gform_fields  {
+        margin: 0;
+        padding: 0;
+        li {
+            list-style-type: none;
+            margin: 0 0 35px 0;
+            padding: 0;
+        }
+    }
+
+    // Radio and Checkboxes
+    li:not(.traditional){
+        .gfield_checkbox,
+        .gfield_radio {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            flex-direction: row;
+            align-items: stretch;
+
+            &:focus,
+            &:hover {
+                li {
+                    label {
+                        background-color: $silver;
+                    }
+                }
+            }
+
+            li {
+                position: relative;
+                flex: 1 1 auto;
+                margin: 0 5px 5px 5px;
+                padding: 0;
+                opacity: 1;
+                @include transitions(opacity 200ms ease);
+                &:hover {
+                    opacity: 1;
+                    label { background-color: $mint; }
+                }
+            }
+
+            label {
+                display: block;
+                text-align: center;
+                background: $grayLight2;
+                color: $blue;
+                padding: 20px 5px;
+                text-transform: uppercase;
+                font-size: .85em;
+                line-height: 1em;
+                border: 1px solid $silver;
+                @include montserrat(600);
+                @include radius(40px);
+                @include transitions(color 100ms ease, background-color 100ms ease);
+
+            }    
+
+            input[type="checkbox"],
+            input[type="radio"] {
+                position: absolute;
+                left: -999em;
+            }
+            input[type="checkbox"]:focus+label,
+            input[type="radio"]:focus+label {
+                background-color: $silver;
+            }
+            input[type="checkbox"]:checked+label,
+            input[type="radio"]:checked+label {
+                background: $green;
+                color: $white;
+                border: 1px solid $green;
+            }
+
+        }
+    }
+
+    // Checkbox Overrides
+    li:not(.traditional){
+        .gfield_checkbox {
+            justify-content: normal;
+            flex-direction: row;
+            align-items: stretch;
+            li {
+                flex: 0 1 auto;
+                label {
+                    padding: 20px;
+                }
+            }
+        }
+    }
+
+    // Radio Override
+    li.short{
+        .gfield_radio {
+            justify-content: normal;
+            flex-direction: row;
+            align-items: stretch;
+            li {
+                flex: 0 1 auto;
+                label {
+                    padding: 20px 40px;
+                }
+            }
+        }
+    }
+
+    // Traditional Radio/Checkboxes
+    li.traditional {
+        .gfield_checkbox,
+        .gfield_radio {
+            margin: 0;
+            padding: 10px 0 0 0;
+            display: block;
+
+            li {
+                clear: both;
+                display: block;
+                position: relative;
+                margin: 0 5px 22px 5px;
+                padding: 0;
+            }
+
+            label {
+                display: block;
+                padding: 4px 0 0 0;
+                text-align: left;
+                color: $blue;
+                font-size: .85em;
+                line-height: 1em;
+                @include montserrat(400);
+                @include radius(40px);
+
+                &:before {
+                    content: "";
+                    display: block;
+                    position: relative;
+                    float: left;
+                    width: 30px;
+                    height: 30px;
+                    top: -8px;
+                    margin-right: 10px;
+                    border: 2px solid $green;
+                    background: none;
+                    @include radius(50%);
+                    @include transitions(border-color 100ms ease, background-color 100ms ease);
+                }
+
+            }    
+
+            input[type="checkbox"],
+            input[type="radio"] {
+                position: absolute;
+                left: -999em;
+            }
+            input[type="checkbox"]:checked+label,
+            input[type="radio"]:checked+label {
+                &:before {
+                    background: $teal;
+                    border: 2px solid $teal;
+                }
+            }
+
+        }
+    }
+
+    // Normal Input
+    .ginput_container_text {
+        input {
+            text-align: left;
+            background: $grayLight2;
+            color: $blue;
+            padding: 20px 20px;
+            width: 100%;
+            max-width: 200px;
+            text-transform: none;
+            font-size: .85em;
+            line-height: 1em;
+            border: 1px solid $silver;
+            @include montserrat(600);
+            @include radius(40px);
+        }
+    }
+
+    // Selects
+    .ginput_container_select {
+        select {
+            text-align: left;
+            background: url('../images/arrow-down-dark.png') 90% center no-repeat $grayLight2;
+            background-size: 12px auto;
+            color: $blue;
+            padding: 20px 50px 20px 20px;
+            width: 100%;
+            max-width: 320px;
+            text-transform: uppercase;
+            font-size: .85em;
+            line-height: 1em;
+            border: 1px solid $silver;
+
+            // Remove Arrow                        
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            
+            @include montserrat(600);
+            @include radius(40px);
+            @include transitions(color 100ms ease, background-color 100ms ease);
+        }
+        select::-ms-expand {
+            display: none; /* Hide the default arrow in Internet Explorer 10 and Internet Explorer 11 */
+        }
+    }
+
+    // Alert Messages
+    .gfield.warning {
+        background: $red;
+        color: $white;
+        padding: 20px 25px;
+        margin: -20px 5px 30px 5px;
+        line-height: 1.4em;
+        font-weight: 700;
+        @include radius(20px);
+    }
+    
+    // Submit buttons
+    .gform_page_footer {
+        text-align: right;
+        padding-top: 80px;
+        .button {
+            font-size: .85em;
+            padding-right: 80px;
+            padding-left: 40px;
+            @extend .round-small-tl;
+            background-image: url('../images/arrow-right-white.png');
+            background-size: auto 50%;
+            background-position: 80% center;
+            background-repeat: no-repeat;
+            @include transitions(background-position 150ms ease, background-color 150ms ease);
+            &:hover {
+                background-color: $teal;
+                background-position: 85% center;
+            }
+
+            &.gform_previous_button  {
+                float: left;
+                color: $gray;
+                padding-left: 80px;
+                padding-right: 40px;
+                background: $grayLight;
+                background-image: url('../images/arrow-left-gray.png');
+                background-size: auto 50%;
+                background-position: 20% center;
+                background-repeat: no-repeat;
+                @extend .round-small-tr;
+                &:hover {
+                    background-color: $silver;
+                    background-position: 15% center;
+                }
+            }
+
+        }
+    }
+
+    // Validation
+    .gfield_description.validation_message {
+        background: $orange;
+        color: $black;
+        padding: 10px 25px;
+        margin: 0 5px 30px 5px;
+        font-size: .85em;
+        font-weight: 700;
+        text-transform: uppercase;
+        @include radius(40px);
+    }
+
 }
 
-.gfield.warning {
-    background: $red;
-    color: $white;
-    padding: 10px;
-    margin-top: -2em;
+
+// Progress Bar
+ol.screen-progress-bar {    
+    display: block;
+    position: relative;
+    max-width: 530px;
+    width: 100%;
+    margin: 0 auto 40px auto;
+    padding: 0;
+    
+    li {
+        display: block;
+        float: left;
+        width: 33.33%;
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+        text-align: center;
+        font-weight: 400;
+        font-size: .85em;
+        line-height: 1.3em;
+        padding-top: 40px;
+        position: relative;
+        color: $darkTeal;
+        &:before {
+            content: "";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            width: 30px;
+            height: 30px;
+            border: 4px solid $darkTeal;
+            background: $grayLight;
+            @include radius(50%);
+        }
+    }
+    
+    &.step-1-of-3 {
+        li.step-1 {
+            font-weight: 700;
+            &:before {
+                background-color: $teal;
+            }
+        }
+    }
+    &.step-2-of-3 {
+        li.step-1 {
+            font-weight: 700;
+            &:before {
+                background-color: $tealDark;
+                border-color: $tealDark;
+                background-image: url('../images/check-white.png');
+                background-size: 16px auto;
+                background-position: 3px 5px;
+                background-repeat: no-repeat;
+            }
+        }
+        li.step-2 {
+            font-weight: 700;
+            &:before {
+                background-color: $teal;
+            }
+        }
+    }
+    &.step-3-of-3 {
+        li.step-1,
+        li.step-2 {
+            font-weight: 700;
+            &:before {
+                background-color: $tealDark;
+                border-color: $tealDark;
+                background-image: url('../images/check-white.png');
+                background-size: 16px auto;
+                background-position: 3px 5px;
+                background-repeat: no-repeat;
+            }
+        }
+        li.step-3 {
+            font-weight: 700;
+            &:before {
+                background-color: $teal;
+            }
+        }
+    }
+
+    // Line
+    &:before {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 15px;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        width: 65%;
+        height: 4px;
+        background: $darkTeal;
+    }
+
 }

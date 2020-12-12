@@ -206,6 +206,8 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
  * Allowed additional query vars
  */
 function mha_s2s_query_vars( $qvars ) {
+    $qvars[] = 'sid';
+    $qvars[] = 'login_error';
     $qvars[] = 'pathway';
     return $qvars;
 }
@@ -238,3 +240,149 @@ function user_seeds_where( $where ) {
 	return $where;
 }
 add_filter('posts_where', 'user_seeds_where');
+
+
+/**
+ * Custom Progress Bar
+ */
+add_filter( 'gform_progress_bar', 'custom_screen_progress_bar', 10, 3 );
+function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message ) {
+
+	$current_page = GFFormDisplay::get_current_page( $form['id'] );
+	$page_count = GFFormDisplay::get_max_page_number( $form ) + 1;
+	
+    $progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+        <li class="step-1"><span>Test<br />Questions</span></li>
+        <li class="step-2"><span>Demographic<br />Information</span></li>
+        <li class="step-3"><span>Your<br />Results</span></li>
+    </ol>';
+ 
+    return $progress_bar;
+}
+
+/**
+ * Useful array search function
+ */
+function in_multiarray($needle, $haystack, $strict = false) {
+    foreach ($haystack as $item) {
+        if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && in_multiarray($needle, $item, $strict))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Function Name: front_end_login_fail.
+ * Description: This redirects the failed login to the custom login page instead of default login page with a modified url
+**/
+add_action( 'wp_login_failed', 'front_end_login_fail' );
+function front_end_login_fail( $username ) {
+	// Getting URL of the login page
+	$referrer = $_SERVER['HTTP_REFERER'];    
+	// if there's a valid referrer, and it's not the default log-in screen
+	if( !empty( $referrer ) && !strstr( $referrer,'wp-login' ) && !strstr( $referrer,'wp-admin' ) ) {
+		wp_redirect( get_permalink( 566 ) . "?login_error=true" ); 
+		exit;
+	}
+}
+
+/**
+ * Function Name: check_username_password.
+ * Description: This redirects to the custom login page if user name or password is   empty with a modified url
+**/
+add_action( 'authenticate', 'check_username_password', 1, 3);
+function check_username_password( $login, $username, $password ) {
+	// Getting URL of the login page
+	$referrer = $_SERVER['HTTP_REFERER'];
+
+	// if there's a valid referrer, and it's not the default log-in screen
+	if( !empty( $referrer ) && !strstr( $referrer,'wp-login' ) && !strstr( $referrer,'wp-admin' ) ) { 
+		if( $username == "" || $password == "" ){
+			wp_redirect( get_permalink( 566 ) . "?login_error=true" );
+			exit;
+		}
+	}
+}
+
+/**
+ * Custom archive titles
+ */
+add_filter( 'get_the_archive_title', function ($title) {    
+	if ( is_category() ) {    
+		$title = single_cat_title( '', false );    
+	} elseif ( is_tag() ) {    
+		$title = single_tag_title( '', false );    
+	} elseif ( is_author() ) {    
+		$title = '<span class="vcard">' . get_the_author() . '</span>' ;    
+	} elseif ( is_tax() ) { //for custom post types
+		$title = sprintf( __( '%1$s' ), single_term_title( '', false ) );
+	} elseif (is_post_type_archive()) {
+		$title = post_type_archive_title( '', false );
+	}
+	return $title;    
+});
+
+
+/**
+ * Remove slug from taxonomy archives
+ */
+/*
+add_filter('request', 'mha_s2s_change_term_request', 1, 1 );
+function mha_s2s_change_term_request($query){
+ 
+	$tax_name = 'condition'; // specify you taxonomy name here, it can be also 'category' or 'post_tag'
+ 
+	// Request for child terms differs, we should make an additional check
+	if( $query['attachment'] ) :
+		$include_children = true;
+		$name = $query['attachment'];
+	else:
+		$include_children = false;
+		$name = $query['name'];
+	endif;
+ 
+ 
+	$term = get_term_by('slug', $name, $tax_name); // get the current term to make sure it exists
+ 
+	if (isset($name) && $term && !is_wp_error($term)): // check it here
+ 
+		if( $include_children ) {
+			unset($query['attachment']);
+			$parent = $term->parent;
+			while( $parent ) {
+				$parent_term = get_term( $parent, $tax_name);
+				$name = $parent_term->slug . '/' . $name;
+				$parent = $parent_term->parent;
+			}
+		} else {
+			unset($query['name']);
+		}
+ 
+		switch( $tax_name ):
+			default:{
+				$query[$tax_name] = $name; // for another taxonomies
+				break;
+			}
+		endswitch;
+ 
+	endif;
+ 
+	return $query;
+ 
+}
+ 
+ 
+add_filter( 'term_link', 'mha_s2s_term_permalink', 10, 3 );
+function mha_s2s_term_permalink( $url, $term, $taxonomy ){ 
+	$taxonomy_name = 'condition'; // your taxonomy name here
+	$taxonomy_slug = 'condition'; // the taxonomy slug can be different with the taxonomy name (like 'post_tag' and 'tag' )
+
+	// exit the function if taxonomy slug is not in URL
+	if ( strpos($url, $taxonomy_slug) === FALSE || $taxonomy != $taxonomy_name ) return $url;
+
+	$url = str_replace('/' . $taxonomy_slug, '', $url);
+
+	return $url;
+}
+*/

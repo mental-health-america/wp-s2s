@@ -30,6 +30,7 @@ a.social {
     span { position: absolute; left: -999em; }
 }
 
+button.button,
 a.button,
 .button a,
 button,
@@ -45,7 +46,64 @@ input[type="button"] {
     text-decoration: none;
     text-transform: uppercase;
     @include montserrat(700);
-    @include transitions(color 150ms ease, background-color 150ms ease);
+    @include transitions(color 100ms ease, background-color 100ms ease);
+    
+
+    // States
+    &.active {
+        background: $blueDark;
+    }
+
+    // Color Options
+    &.white {
+        color: $white;
+        &:hover {
+            color: $white;
+        }
+        &.hover-bar {
+            &:after { background: $white; }
+            &:hover {
+                &:after { background: $white; }
+            }
+        }
+    }
+
+    &.mint {
+        color: $blueDark;
+        background: $mint;
+        &.active,
+        &:hover {
+            color: $white;
+            background-color: $blueDark;
+        }
+    }
+
+    // Sizes
+    &.thin {
+        padding: 5px 25px; 
+    }
+    
+    // Alternative Buttons
+    &.hover-bar {
+        position: relative;
+        &:after {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            background: $coral; 
+            @include transitions(width 150ms ease);
+        }
+        &:hover {
+            &:after {
+                width: 100%;
+            }
+        }
+    }
+
+
 }
 
 button.plain {
@@ -55,6 +113,10 @@ button.plain {
     color: $blueDark;
     text-transform: none;
     font-weight: 600;
+
+    &.caps {
+        @extend .caps;
+    }
 }
 
 button.icon {
@@ -114,17 +176,24 @@ button.bar {
 }
 
 /* Stylish Flourishes */
-.round { @include radius(30px); }
-.round-tl { @include radius(0px 30px 30px 30px); }
-.round-tr { @include radius(30px 0px 30px 30px); }
-.round-br { @include radius(30px 30px 0px 30px); }
-.round-bl { @include radius(30px 30px 30px 0px); }
+.round { @include radius(50px); }
+.round-tl { @include radius(0px 50px 50px 50px); }
+.round-tr { @include radius(50px 0px 50px 50px); }
+.round-br { @include radius(50px 50px 0px 50px); }
+.round-bl { @include radius(50px 50px 50px 0px); }
+
+.round-small { @include radius(30px); }
+.round-small-tl { @include radius(0px 30px 30px 30px); }
+.round-small-tr { @include radius(30px 0px 30px 30px); }
+.round-small-br { @include radius(30px 30px 0px 30px); }
+.round-small-bl { @include radius(30px 30px 30px 0px); }
 
 
 /* Bubbles */
 .bubble {
     background: $teal;
     color: $white;  
+
     .inner {
         padding: 50px;
     }
@@ -140,12 +209,26 @@ button.bar {
             padding: 30px;
         }
     }
+    &.narrow {
+        .inner {
+            padding: 30px 50px;
+        }
+    }
+    &.thick {
+        .inner {
+            padding: 30px 80px;
+        }
+    }
 
     // Color Variants
     &.light-blue {
         background: $blueLight;
         color: $blueDark;
+        &.bubble-border {
+            border-color: $blue;
+        }
     }
+
     &.blue {
         background: $blue;
         color: $white;
@@ -154,6 +237,11 @@ button.bar {
     &.gray {
         background: $grayLight;
         color: $blueDark;
+    }
+
+    // Widths
+    &.width-50 {
+        width: 50%;
     }
     
 }
@@ -190,6 +278,25 @@ h2 {
     line-height: 1.15em;
     color: $blue;
     @include montserrat(700);
+    
+    // Styles
+    &.small,
+    .section-title &,
+    &.section-title {
+        margin: 0 0 .25em 0;
+        font-size: 2em;
+        line-height: 1.15em;
+        color: $gray;
+        font-weight: 600;
+    }
+
+    &.bold { font-weight: 700; }
+
+    // Colors
+    &.white { color: $white; }
+    &.cerulean { color: $cerulean; }
+    &.blue { color: $blue; }
+    &.dark-blue { color: $blueDark; }
 }
 
 h3 {
@@ -205,7 +312,7 @@ h3 {
 }
 
 h4 {
-    padding: .5em;
+    padding: 0;
     margin: 0 0 .5em 0;
 	font-size: 1.6em;
     line-height: 1.15em;
@@ -233,8 +340,11 @@ p {
 }
 
 em { font-style: italic; }
+
 .bold,
-strong { font-weight: bold; }
+strong { font-weight: 700; }
+
+.thin { font-weight: 400; }
 
 hr { 
     margin: 0 0 1.5em 0; 
@@ -336,6 +446,8 @@ img {
 .serif { font-family: Georgia, serif; }
 .no-serif, .san-serif { font-family: Arial, Helvetica, sans-serif; }
 
+.relative { position: relative; }
+
 img.l, 
 img.left { 
     float: left;
@@ -346,6 +458,9 @@ img.right {
     float: right;
     margin: 0 0 10px 10px; 
 }
+
+.block { display: block; }
+.inline { display: block; }
 
 
 /* Video */

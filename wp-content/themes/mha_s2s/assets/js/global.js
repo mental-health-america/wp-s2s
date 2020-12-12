@@ -14,6 +14,16 @@
 			window.open(url, '_blank', 'toolbar=yes, scrollbars=yes, resizable=no, top=200, left=200, width=570, height=400');
 		});
 
+		// Search Toggle
+		$('#search-toggle').on('click', function(event){
+			event.preventDefault();
+			$(this).attr('aria-expanded', function (i, attr) {
+				return attr == 'true' ? 'false' : 'true'
+			});
+			$('#search-header').toggleClass('show');
+			$("#mha-search-form").focus();
+		});
+
 		// External links open in a new tab
 		$('#content a').each(function() {
 			var a = new RegExp('/' + window.location.host + '/');
@@ -50,6 +60,75 @@
 			// Toggle the text
 			var text = $('#mobile-menu-button .text').text();
 			$('#mobile-menu-button .text').text(text == 'Menu' ? 'Close' : 'Menu');
+		});
+
+
+		// Reveal Buttons
+		$('.reveal-button').on('click', function(event){
+			event.preventDefault();			
+			var id = $(this).attr('data-reveal');
+			$(this).toggleClass('active');
+			$('#'+id).toggleClass('reveal');
+		});
+		$('.reveal-slide-button').on('click', function(event){
+			event.preventDefault();			
+			var id = $(this).attr('data-reveal');
+			$(this).toggleClass('active');
+			$('#'+id).slideToggle().toggleClass('reveal');
+		});
+
+		// Account Confirmation Message Check Display
+		if($('#account-settings-form').length){
+			if($('.gform_confirmation_wrapper').length){
+				$('#account-settings-form').addClass('reveal');
+			}
+		}
+
+		// Checkbox Limiter
+		if($('.limit-3 .ginput_container_checkbox').length){			
+			$.fn.limit = function(n) {
+				var self = this;
+				this.click(function(){ return (self.filter(":checked").length<=n); });
+			}
+			$('.limit-2 .ginput_container_checkbox ul').each(function(e){
+				var id = $(this).attr('id');
+				$("ul#"+id+" li input:checkbox").limit(2);
+			});
+			$('.limit-3 .ginput_container_checkbox ul').each(function(e){
+				var id = $(this).attr('id');
+				$("ul#"+id+" li input:checkbox").limit(3);
+			});
+			$('.limit-4 .ginput_container_checkbox ul').each(function(e){
+				var id = $(this).attr('id');
+				$("ul#"+id+" li input:checkbox").limit(4);
+			});
+			$('.limit-5 .ginput_container_checkbox ul').each(function(e){
+				var id = $(this).attr('id');
+				$("ul#"+id+" li input:checkbox").limit(5);
+			});
+		}
+
+		// Animated form labels
+		$(".float-label input").on("blur input focus", function() {
+			var $field = $(this).closest(".float-label");
+			if (this.value) {
+				$field.addClass("filled");
+			} else {
+				$field.removeClass("filled");
+			}
+		});
+		$(".float-label input").on("focus", function() {
+			var $field = $(this).parents(".float-label");
+			if (this) {
+				$field.addClass("filled");
+			} else {
+				$field.removeClass("filled");
+			}
+		});
+		$(".float-label input").each(function(e){
+			if($(this).val()){
+				$(this).parents(".float-label").addClass('filled');
+			}
 		});
 
 	});

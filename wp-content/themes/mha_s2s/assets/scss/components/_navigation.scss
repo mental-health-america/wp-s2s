@@ -1,7 +1,136 @@
+// Search
+#search-header {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+
+    #search-toggle {
+        display: inline-block;
+        vertical-align: middle;
+        width: 40px;
+        height: 35px;
+        padding: 0;
+        margin-right: -10px;
+        position: relative;
+        text-align: center;
+        background-color: rgba(255,255,255,0);
+        //background: url('../images/magnifying-glass.svg') right center no-repeat;
+        //background-size: 16px auto;
+        /*
+        &:hover {
+            background: $blue;
+            .icon {
+                &:before {
+                    border-color: $white;
+                }
+                &:after {
+                    background-color: $white;
+                }
+            }
+        }
+        */
+
+        .icon {
+            display: block;
+            position: relative;
+            width: 15px;
+            height: 19px;
+            margin: 0 auto;
+            top: -3px;
+            &:before {
+                content: "";
+                display: block;
+                position: absolute;
+                width: 15px;
+                height: 15px;
+                right: 4px;
+                bottom: 3px;
+                border: 2px solid $black;
+                @include radius(50%);
+                transform-origin: top left;
+                transform: rotate(0deg);
+                @include transitions(background-color 200ms ease, border-color 200ms ease, height 200ms ease, transform 200ms ease, right 200ms ease, width 200ms ease, bottom 200ms ease);
+                .search-active & {
+                    height: 8px;
+                    width: 2px;
+                    right: 0;
+                    bottom: -5px;
+                    background-color: $white;
+                    transform: rotate(45deg);
+                    border: 0;
+                    border-color: $white;
+                    @include radius(0px);
+                }
+            }
+            &:after {
+                content: "";
+                display: block;
+                position: absolute;
+                right: 0px;
+                bottom: 0;
+                width: 2px;
+                height: 9px;
+                background: $black;
+                transform-origin: bottom right;
+                transform: rotate(-45deg);
+                @include transitions(background-color 200ms ease, height 200ms ease);
+                .search-active & {
+                    height: 18px;
+                    background-color: $white;
+                }
+            }
+        }
+
+    }
+
+    .search-form {
+        display: inline-block;
+        width: 0px;
+        overflow-x: hidden;
+        top: 5px;
+        position: relative;
+        @include transitions(width 200ms ease);
+        
+        .search-submit {
+            display: none;
+        }
+        
+        label {
+            display: inline;
+            margin: 0;
+        }
+        input {
+            border: 0;
+            padding: 5px 10px 3px 0;
+            margin: 0 0 0 0;
+            width: 100%;
+            color: $blue;
+            border-bottom: 2px solid $blue;
+            @include montserrat(600);
+        }
+    }
+
+    &.show {
+        #search-toggle {
+            .icon {
+                &:before,
+                &:after {
+                    border-color: $blue;
+                }
+            }
+        }
+        .search-form {
+            width: 200px;
+        }
+    }
+
+}
+
 // User menu
+
 #utility-menu {
     position: relative;
-    margin: -12px 0 0 0;
+    margin: -18px 0 0 0;
     float: right;
     text-align: right;
     font-size: 1.4em;
@@ -13,14 +142,15 @@
         margin: 0;
     }
 
-    button {
+    .button {
         display: inline-block;
         vertical-align: middle;
         background: none;
         padding: 0;
         margin: 0 0 0 5px;
         color: $black;
-        font-weight: 400;
+        font-size: 1em;
+        font-weight: 600;
         
         &#sign-in-toggle {
             height: 35px;
@@ -29,82 +159,6 @@
             @media only screen and (max-width: 767px){
                 display: none;
             }
-        }
-
-                
-        &#search-toggle {
-            width: 35px;
-            height: 35px;
-            padding: 0;
-            text-align: center;
-            background-color: rgba(255,255,255,0);
-            //background: url('../images/magnifying-glass.svg') right center no-repeat;
-            //background-size: 16px auto;
-            /*
-            &:hover {
-                background: $blue;
-                .icon {
-                    &:before {
-                        border-color: $white;
-                    }
-                    &:after {
-                        background-color: $white;
-                    }
-                }
-            }
-            */
-
-            .icon {
-                display: block;
-                position: relative;
-                width: 15px;
-                height: 19px;
-                margin: 0 auto;
-                top: -3px;
-                &:before {
-                    content: "";
-                    display: block;
-                    position: absolute;
-                    width: 15px;
-                    height: 15px;
-                    right: 4px;
-                    bottom: 3px;
-                    border: 2px solid $black;
-                    @include radius(50%);
-                    transform-origin: top left;
-                    transform: rotate(0deg);
-                    @include transitions(background-color 200ms ease, border-color 200ms ease, height 200ms ease, transform 200ms ease, right 200ms ease, width 200ms ease, bottom 200ms ease);
-                    .search-active & {
-                        height: 8px;
-                        width: 2px;
-                        right: 0;
-                        bottom: -5px;
-                        background-color: $white;
-                        transform: rotate(45deg);
-                        border: 0;
-                        border-color: $white;
-                        @include radius(0px);
-                    }
-                }
-                &:after {
-                    content: "";
-                    display: block;
-                    position: absolute;
-                    right: 0px;
-                    bottom: 0;
-                    width: 2px;
-                    height: 9px;
-                    background: $black;
-                    transform-origin: bottom right;
-                    transform: rotate(-45deg);
-                    @include transitions(background-color 200ms ease, height 200ms ease);
-                    .search-active & {
-                        height: 18px;
-                        background-color: $white;
-                    }
-                }
-            }
-
         }
 
     }

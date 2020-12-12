@@ -30,12 +30,16 @@ $teal               : #1CA4AB;
 $green              : $teal;
 $tealLight          : #1CA4AB;
 $lightTeal          : $tealLight;
+$greenLight         : $tealLight;
+$lightGreen         : $tealLight;
 $tealDark           : #154b5e;
 $darkTeal           : $tealDark;
+$mint               : #DDF9F3;
 
 $red                : #FC545A;
 $redLight           : #FAECEC;
 $lightRed           : $redLight;
+$pink               : $redLight;
 $coral              : #FA6767;
 $raspberry          : #C1335D;
 $razzberry          : $raspberry;
@@ -43,7 +47,11 @@ $razz               : $raspberry;
 $raz                : $raspberry;
 
 /* Color Classes */
-.red { color: $red; }
+.text-gray { color: $gray; }
+.text-red { color: $red; }
+.text-blue { color: $blue; }
+.text-teal,
+.text-green { color: $teal; }
 
 /* Default Text */
 $linkColor          : $blue;

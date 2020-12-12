@@ -10,6 +10,10 @@
 				<div id="footer-sign-up" class="bubble round-bl">
 				<div class="inner">
 					<?php the_field('footer_sign_up_form', 'options'); ?>
+
+					<div class="form-container line-form">
+						<?php echo do_shortcode('[gravityform id="4" title="false" description="false" ajax="true"]'); ?>
+					</div>
 				</div>
 				</div>
 

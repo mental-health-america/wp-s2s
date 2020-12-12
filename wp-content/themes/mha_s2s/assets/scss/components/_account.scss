@@ -1,0 +1,30 @@
+
+#account-settings {
+    float: left;
+}
+
+#account-settings-form {
+    overflow: hidden;
+    opacity: 0;
+    height: 0px;
+    @include transitions(all 200ms ease);
+    &.reveal {
+        opacity: 1;
+        height: auto;
+    }
+
+    form {
+        padding-top: 20px;
+    }
+}
+
+#sign-up-form {
+    .gform_footer {
+        text-align: left;
+    }
+}
+
+#existing-account {
+    position: relative;
+    z-index: 10;
+}

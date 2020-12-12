@@ -34,6 +34,15 @@
         }
     }
 
+    &.medium {
+        margin: 0 auto; 
+        width: 840px; 
+        @media only screen and (max-width: 880px){
+            margin: 0 20px;
+            width: auto;
+        }
+    }
+
     &.normal {
         margin: 0 auto; 
         width: 1080px; 
@@ -86,7 +95,60 @@
 
 #content {
     padding: 0 0 140px 0;
-    font-size: 1.7em;
-    line-height: 1.7em;
+    font-size: 1.6em;
+    line-height: 1.6em;
     background: $white;
+}
+
+.page-heading {
+    
+
+    // Bar Style
+    &.bar {
+        background: $blueLight;
+        padding: 70px 0;
+        margin: 0 0 40px 0;        
+        h1 { 
+            margin: 0; 
+            font-size: 4.5em;
+            @media only screen and (max-width: 1120px){
+                font-size: 6.5vw;
+            }
+        }
+
+        // Colors
+        &.red {
+            background: $pink;
+            h1 { color: $red; }
+        }
+        
+    }
+
+    
+
+    
+}
+
+.button-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    .button {
+        flex: 0 1 calc(50% - 10px);
+        margin: 0 0 10px 0;
+        text-align: center;
+    }
+}
+
+ol.next-steps {
+    margin: 0;
+    padding: 0;
+    column-count: 2;
+    column-gap: 40px;
+    li {
+        list-style-type: none;
+        margin: 0 0 1em 0;
+        padding: 0;
+        @include montserrat(600);
+    }
 }

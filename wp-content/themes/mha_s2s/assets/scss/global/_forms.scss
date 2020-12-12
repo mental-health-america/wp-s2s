@@ -1,134 +1,335 @@
 
 /* Forms */
 
+// Global
+.gform_fields {
+    margin: 0;
+}
+
 label {
     display: block;
     font-weight: 700;
 }
 
-.form-container {
-    width: 40%;
-    max-width: 640px;  
+.gfield_required {
+    display: none;
+}
 
-    // Form Fields
-    .form-group {
+
+// Animated Labels
+.float-label {
+    position: relative;
+    label {
+        position: absolute;
+        z-index: 1;
+        left: 0;
+        top: 0px;
+        @include transitions(top 150ms ease, font-size 150ms ease);
+    }
+    &.filled label {
+        top: -15px;
+        font-size: 10px !important;
+    }
+    input {
         position: relative;
-        padding: 5px 0;
+        z-index: 2;
+    }
+}  
 
-        input,
-        textarea,
-        select {
-            width: 100%;
-            height: 64px;
-            font-size: 15px;
-            border: 1px solid $gray;
-            padding: 25px 15px 10px 15px;
-            margin: 0 auto;
-            @include transitions(border 150ms ease);
-            &.error {
-                border-color: $red;
+
+.form-container.line-form {
+
+    &,
+    .gform_wrapper {
+        position: relative;
+        
+        p,
+        li {
+            clear: both;
+            display: block;
+            width: 50%;
+            position: relative;
+            #footer &,
+            &.wide {
+                width: 100%;
             }
         }
-        select {
-            padding: 15px;
-        }
-        option {
-            font-size: 15px;
-        }
 
-        // Honeypot
-        input.email_doublecheck { 
-            position: absolute; 
-            left: -999em; 
-            &:focus { left: auto; }
-        }
-
-        // Animated Labels
-        .form-label {
-            position: absolute;
-            left: 15px;
-            top: 32px;
-            color: $black;
-            background-color: #fff;
-            font-weight: 300;
-            z-index: 10;
-            font-size: 15px;
-            line-height: 1;
+        .gform_fields li {
             margin: 0;
-            @include transitions(top 150ms ease, font-size 150ms ease);
-        }    
-        &.focused .form-label {
-            top: 15px;
-            font-size: 11px;
+            padding: 0 0 20px 0;
+            &:last-of-type {
+                padding-bottom: 0;
+            }
         }
 
-    }
-
-    // Labels
-    label.error {
-        display: block;
-        z-index: 5;
-        padding: 5px 15px;
-        color: $white;
-        background: $red;
-        font-size: 13px;
-        line-height: 1.1em;
-        font-weight: 700;
-        text-align: left;
-        margin: 0;
-    }    
-    .form-label {
-        position: absolute;
-        left: 20px;
-        top: 25px;
-        color: $black;
-        background-color: #fff;
-        font-weight: 300;
-        z-index: 10;
-        font-size: 15px;
-        line-height: 1;
-        margin: 0;
-        @include transitions(top 150ms ease, font-size 150ms ease);
-    }    
-    .focused .form-label {
-        top: 7px;
-        font-size: 11px;
-    }
-
-    // Form Actions
-    .form-actions {
-        padding-top: 15px;
-        clear: both;
-    }
-
-    // Form States
-    .form-content {
-        @include transitions(opacity 250ms ease);
-    }
-    .form-message {
-        opacity: 0;
-        @include transitions(opacity 250ms ease);
-    }
-
-    &.error {
-        .form-message {
-            opacity: 1;
+        label {
+            display: block;
+            margin: 0;
+            padding: 0;
+            text-transform: uppercase;
+            font-size: .9em;
+            color: $white;
+            @include montserrat(700);
         }
-    }
-
-    &.submitted {
-        .form-content {
-            opacity: 0;
+        span label {
+            font-size: .8em;
+            text-transform: none;
+            @include montserrat(600);
         }
-        .form-message {
-            position: absolute;
+
+        input {
+            border: 0;
+            padding: 5px 0;
+            background: none;
+            color: $white;
             width: 100%;
-            height: 100px;
-            left: 0;
+            border-bottom: 4px solid $white;
+        }
+        
+        .login-submit .button,
+        .button.gform_button {
+            background: $white;
+            border: 0;
+            padding: 10px 40px;
+            color: $teal;
+            font-size: 1em;
+            width: auto;
+            @include radius(50px);
+            @include montserrat(700);
+            &:hover {
+                background: $coral;
+                color: $white;
+            }
+        }
+
+        // Password
+        .ginput_container_password {
+            width: 50%;
+            float: left;
+        }
+        .gfield_password_strength  {
+            position: relative;
+            float: left;
+            width: 180px;
+            padding: 15px 15px 0 15px;
+            margin-left: 20px;
+            height: 90px;
+            background: $white;
+            color: $blue;
+            font-weight: 700;
+            font-size: .9em;
+            line-height: normal;
+            border: 1px solid $blue;
+            @extend .bubble;
+            @include radius(20px);
+
+
+            &:after {
+                content: "";
+                display: block;
+                position: absolute;
+                z-index: 1;
+                bottom: 20px;
+                left: 15px;
+                width: calc(100% - 30px);
+                height: 4px;
+                background: $silver;
+            }
+            &:before {
+                content: "";
+                display: block;
+                position: absolute;
+                z-index: 2;
+                bottom: 20px;
+                left: 10px;
+                width: 0px;
+                height: 4px;
+                background: $red;
+                @include transitions(background-color 100ms ease, width 100ms ease);
+            }
+
+            &.short {
+                &:before {
+                    background-color: $red;
+                    width: 10%;
+                }
+            }
+            &.bad {
+                &:before {
+                    background-color: $red;
+                    width: 30%;
+                }
+            }
+            &.mismatch {
+                &:before {
+                    background-color: $red;
+                    width: calc(100% - 30px);
+                }
+            }
+            &.good {
+                &:before {
+                    background-color: $orange;
+                    width: 60%;
+                }
+            }
+            &.strong {
+                &:before {
+                    background-color: $green;
+                    width: calc(100% - 20px);
+                }
+            }
+        }
+
+        
+        .gfield_checkbox,
+        .gfield_radio {
             margin: 0;
-            font-size: 32px;
-            opacity: 1;
-        }   
+            padding: 10px 0 0 0;
+            display: block;
+
+            li {
+                clear: both;
+                display: block;
+                position: relative;
+                margin: 0 5px 22px 5px;
+                padding: 0;
+            }
+
+            label {
+                display: block;
+                padding: 0;
+                text-align: left;
+                font-size: .85em;
+                line-height: 1.2em;
+                text-transform: none;
+                color: $gray;
+                @include noto(400);
+                @include radius(40px);
+
+                &:before {
+                    content: "";
+                    display: block;
+                    position: relative;
+                    float: left;
+                    width: 30px;
+                    height: 30px;
+                    top: -6px;
+                    margin-right: 10px;
+                    border: 2px solid $green;
+                    background: none;
+                    @include radius(50%);
+                    @include transitions(border-color 100ms ease, background-color 100ms ease);
+                }
+
+            }    
+
+            input[type="checkbox"],
+            input[type="radio"] {
+                position: absolute;
+                left: -999em;
+            }
+            input[type="checkbox"]:checked+label,
+            input[type="radio"]:checked+label {
+                &:before {
+                    background: $teal;
+                    border: 2px solid $teal;
+                }
+            }
+
+        }
+
+        // Actions
+        .gform_footer {
+            padding-top: 20px;
+            clear: both;
+            text-align: center;
+        }
+
     }
+
+    .gform_confirmation_wrapper  {
+        padding: 10px 20px;
+        color: $green;
+        background: $white;
+        border: 1px solid $blueLight;
+        @include radius(20px);
+    }
+
+    // Color Alternatives
+    &.blue  {
+        
+        p,
+        .gform_wrapper {
+            label {
+                color: $blue;
+            }
+            .gfield_checkbox label {
+                color: $gray;
+            }
+            input {
+                color: $blue;
+                border-bottom: 4px solid $blue;
+            }
+            label {
+                &:before {
+                    border-color: $blue;
+                }
+            }    
     
+            input[type="checkbox"]:checked+label,
+            input[type="radio"]:checked+label {
+                &:before {
+                    background: $blue;
+                    border-color: $blue;
+                }
+            }
+        }
+
+        
+        .login-submit .button,
+        .button.gform_button {
+            background: $blue;
+            color: $white;
+            &:hover {
+                background: $white;
+                color: $blue;
+            }
+        }
+
+
+    }
+
+    // General Errors
+    .validation_error {
+        clear: both;
+        padding: 15px 30px;
+        margin-bottom: 1.5em;
+        @extend .bubble;
+        @include radius(20px);
+        background: $orange;
+        color: $black;
+        @include montserrat(700);
+        line-height: 1.2em;
+    }
+
+    // Validation
+    .gfield_description.validation_message {
+        clear: both;
+        background: $orange;
+        color: $black;
+        padding: 5px 25px;
+        margin: 10px 0 30px 0;
+        font-size: .85em;
+        font-weight: 700;
+        text-transform: uppercase;
+        @include radius(20px);
+    }
+
+}
+
+.single-screen .gform_page.demographics .gform_fields {
+    li.optional {
+        padding: 10px 0 0 50px
+    }
 }

@@ -15,6 +15,9 @@
 get_header(); 
 ?>
 
+<div class="wrap wide">
+    <div class="bubble round-small-tl">
+        <div class="inner">
 <?php 
     the_title('<h1>','</h1>');
     the_content();
