@@ -1,16 +1,7 @@
 <?php
-/**
- * The template for displaying search results pages
- *
- * @link https://developer.wordpress.org/themes/basics/template-hierarchy/#search-result
- *
- * @package MHA S2S
- * @subpackage MHA S2S
- * @since 1.0
- * @version 1.0
- */
-
-get_header(); ?>
+/* Template Name: Search */
+get_header(); 
+?>
 
 	<header class="page-header">
 		<?php if ( have_posts() ) : ?>
@@ -41,7 +32,7 @@ get_header(); ?>
 
 			<p><?php _e( 'Sorry, but nothing matched your search terms. Please try again with some different keywords.', 'mha_s2s' ); ?></p>
 			<?php
-				get_search_form();
+				echo get_search_form();
 
 		endif;
 		?>

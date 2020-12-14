@@ -17,7 +17,7 @@ get_header();
 
         <div id="sign-up-form" class="form-container line-form blue">
 
-            <div id="existing-account" class="right">
+            <div class="existing-account right">
                 <a href="/log-in">Have an account? <strong>Log in here</strong></a>
             </div>
 

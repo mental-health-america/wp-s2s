@@ -102,6 +102,14 @@ label {
                 color: $white;
             }
         }
+        .button.gform_button {
+            background: $white;
+            color: $blueDark;
+            &:hover {
+                background: $coral;
+                color: $white;
+            }
+        }
 
         // Password
         .ginput_container_password {
@@ -287,6 +295,7 @@ label {
         }
 
         
+        #utility-menu & .login-submit .button,
         .login-submit .button,
         .button.gform_button {
             background: $blue;
@@ -298,6 +307,17 @@ label {
         }
 
 
+    }
+
+    // Special Overrides
+    &.wide {   
+        &,
+        .gform_wrapper {
+            p,
+            li {
+                width: 100%;
+            }
+        }
     }
 
     // General Errors

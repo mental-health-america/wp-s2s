@@ -21,7 +21,18 @@
 				return attr == 'true' ? 'false' : 'true'
 			});
 			$('#search-header').toggleClass('show');
-			$("#mha-search-form").focus();
+		});
+
+		// Log In Toggle
+		$('#sign-in-toggle').on('click', function(event){
+			event.preventDefault();			
+			$(this).attr('aria-expanded', function (i, attr) {
+				return attr == 'true' ? 'false' : 'true'
+			});					
+			$('strong', this).text(function (i, attr) {
+				return attr == 'Close' ? 'Log In' : 'Close'
+			});			
+			$('#utility-menu').toggleClass('show-login-hover');
 		});
 
 		// External links open in a new tab

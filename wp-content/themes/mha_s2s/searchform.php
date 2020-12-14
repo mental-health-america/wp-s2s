@@ -11,5 +11,5 @@ $aria_label = ! empty( $args['label'] ) ? 'aria-label="' . esc_attr( $args['labe
 		<span class="screen-reader-text">Search</span>
 		<input type="search" id="<?php echo esc_attr( $unique_id ); ?>" class="search-field" placeholder="Search" value="<?php echo get_search_query(); ?>" name="s" />
 	</label>
-	<input type="submit" class="search-submit" value="<?php echo esc_attr_x( 'Search', 'submit button', 'mha_s2s' ); ?>" />
+	<input type="submit" class="search-submit" value="<?php echo esc_attr_x( 'SEARCH SITE', 'submit button', 'mha_s2s' ); ?>" />
 </form>

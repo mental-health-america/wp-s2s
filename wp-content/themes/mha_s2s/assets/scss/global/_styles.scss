@@ -23,6 +23,13 @@ a {
     &:hover {
         text-decoration: none;
     } 
+
+    &.plain {
+        text-decoration: none;
+        &:hover {
+            text-decoration: underline;
+        } 
+    }
 }
 
 a.social {
@@ -227,6 +234,12 @@ button.bar {
         &.bubble-border {
             border-color: $blue;
         }
+        &.bubble-border.dark {
+            border-color: $blueDark;
+        }
+        &.bubble-border.light {
+            border-color: $cerulean;
+        }
     }
 
     &.blue {
@@ -326,7 +339,7 @@ p {
 }
 
 .small { 
-    font-size: .89em; 
+    font-size: .85em; 
     line-height: 1.6em; 
 }
 

@@ -18,7 +18,7 @@
 		<div class="wrap normal relative">		
 			<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
 			
-			<div class="bubble narrow round-bl blue width-50" id="account-settings">
+			<div class="bubble narrow round-small-bl blue width-50" id="account-settings">
 			<div class="inner">
 				<div class="caps large">DISPLAY NAME:</div>
 				<?php
@@ -32,7 +32,7 @@
 					<a class="button white plain caps p-0 hover-bar" href="<?php echo wp_logout_url( home_url() ); ?>">Log Out</a>
 				</div>
 
-				<div id="account-settings-form" class="line-form">
+				<div id="account-settings-form" class="form-container line-form">
 					<?php echo do_shortcode('[gravityform id="3" title="false" description="false"]'); ?>
 				</div>
 

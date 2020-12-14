@@ -1,6 +1,60 @@
 
+// Header
+#sign-in-container {
+    @media only screen and (max-width: 767px){
+        display: none;
+    }
+}
+
+#sign-in-toggle {
+    min-width: 60px;
+    text-align: center;
+    position: relative;
+    margin-right: -5px;
+}
+
+#sign-in-hover {
+    width: 400px;
+    position: absolute;
+    right: 999em;
+    top: 20px;
+    z-index: 100;
+    font-size: 1.1em;
+    line-height: 1.4em;
+    opacity: 0;
+    @include transitions(opacity 200ms ease, top 200ms ease);
+
+    .show-login-hover & {
+        opacity: 1;
+        top: 40px;
+        right: 0;
+    }
+
+    .login-submit {
+        float: left;
+        margin: 0;
+        width: auto;
+        input {
+            margin: 0;
+            padding-left: 25px;
+            padding-right: 25px;
+        }
+    }
+    .existing-account {
+        float: right;
+        padding-top: 11px;
+    }
+
+    h3 {
+        font-size: 1.5em;
+    }
+}
+
+
+// Account Page
 #account-settings {
     float: left;
+    margin-top: 15px;
 }
 
 #account-settings-form {
@@ -24,7 +78,7 @@
     }
 }
 
-#existing-account {
+.existing-account {
     position: relative;
     z-index: 10;
 }

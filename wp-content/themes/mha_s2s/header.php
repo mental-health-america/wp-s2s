@@ -31,29 +31,60 @@
 
 		<a id="logo" href="/"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/mha-logo.png" alt="<?php bloginfo( 'name' ); ?>" /></a>
 
-		<div id="utility-menu">	
+		<div id="utility-menu" class="utility-menu relative">	
 
 			<div id="search-header">
 				<button id="search-toggle"
 					aria-expanded="false"
-					aria-controls="search-form">
+					aria-controls="search-form"
+					data-href="<?php echo get_search_link(); ?>">
 					<strong class="screen-reader-text">Search</strong>
 					<span class="icon"></span>
 				</button>
 				<?php get_search_form(); ?>
 			</div>
 			
-			<?php if(is_user_logged_in()): ?>						
-				<a class="my-account-link button" href="/my-account">My Account</a>
-			<?php else: ?>							
-				<button id="sign-in-toggle"
-					class="button"
-					aria-haspopup="true"
-					aria-expanded="false"
-					aria-controls="sign-in-container">			
-					<strong>Log In</strong>
-				</button>
-			<?php endif; ?>
+			<span id="sign-in-container">	
+				<?php if(is_user_logged_in()): ?>						
+					<a class="my-account-link button" href="/my-account">My Account</a>
+				<?php else: ?>						
+					<button id="sign-in-toggle"
+						class="button"
+						aria-haspopup="true"
+						aria-expanded="false"
+						aria-controls="sign-in-container">			
+						<strong>Log In</strong>
+					</button>
+					<div id="sign-in-hover" aria-controls="sign-in-toggle" aria-label="Toggle Sign In Form" aria-expanded="false">
+						<div class="bubble round-tr bubble-border narrow dark light-blue">
+						<div class="inner clearfix">
+							<div class="sign-up-form form-container line-form blue text-left wide">	
+								<div class="intro text-blue">
+									<?php the_field('log_in_introduction', 'options'); ?>
+								</div>
+								<?php
+									$args = array( 
+										'label_username' => 'Email Address',
+										'remember' => false,
+										'echo' => false
+									);
+									$login_form = wp_login_form($args); 
+									$login_form = str_replace('login-username', 'login-username float-label', $login_form);
+									$login_form = str_replace('login-password', 'login-password float-label', $login_form);
+									echo $login_form;
+								?>
+								<div class="right existing-account small">
+									<a class="plain" href="<?php echo wp_lostpassword_url(); ?>">Forgot Password</a> |
+									<a class="plain" href="/sign-up">Sign Up</a>
+								</div>	
+							</div>
+						</div>
+						</div>
+					</div>
+				<?php endif; ?>
+				
+
+			</span>
 
 			<button id="mobile-menu-button" class="menu-toggle button" aria-controls="main-menu" aria-label="Toggle Menu" aria-expanded="false">
 				<span></span>

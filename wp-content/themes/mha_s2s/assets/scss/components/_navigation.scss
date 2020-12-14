@@ -50,16 +50,8 @@
                 transform-origin: top left;
                 transform: rotate(0deg);
                 @include transitions(background-color 200ms ease, border-color 200ms ease, height 200ms ease, transform 200ms ease, right 200ms ease, width 200ms ease, bottom 200ms ease);
-                .search-active & {
-                    height: 8px;
-                    width: 2px;
-                    right: 0;
-                    bottom: -5px;
-                    background-color: $white;
-                    transform: rotate(45deg);
-                    border: 0;
-                    border-color: $white;
-                    @include radius(0px);
+                @media only screen and (max-width: 767px){
+                    border-color: $blue;
                 }
             }
             &:after {
@@ -74,9 +66,8 @@
                 transform-origin: bottom right;
                 transform: rotate(-45deg);
                 @include transitions(background-color 200ms ease, height 200ms ease);
-                .search-active & {
-                    height: 18px;
-                    background-color: $white;
+                @media only screen and (max-width: 767px){
+                    border-color: $blue;
                 }
             }
         }
@@ -91,6 +82,23 @@
         position: relative;
         @include transitions(width 200ms ease);
         
+        @media only screen and (max-width: 767px){
+            display: block;
+            position: absolute;
+            width: 280px;
+            overflow-x: auto;
+            top: auto;
+            bottom: -25px;
+            right: 999em;
+            z-index: 900;
+            background: $blueLight;
+            color: $blueDark;
+            opacity: 0;
+            border: 1px solid $blueDark;
+            @include radius(30px 0px 30px 30px);
+            @include transitions(opacity 200ms ease, bottom 200ms ease);
+        }
+
         .search-submit {
             display: none;
         }
@@ -98,6 +106,10 @@
         label {
             display: inline;
             margin: 0;
+            @media only screen and (max-width: 767px){
+                display: block;
+                padding: 20px;
+            }
         }
         input {
             border: 0;
@@ -107,20 +119,49 @@
             color: $blue;
             border-bottom: 2px solid $blue;
             @include montserrat(600);
+            @media only screen and (max-width: 767px){
+                background: none;
+            }
         }
     }
 
     &.show {
-        #search-toggle {
-            .icon {
-                &:before,
-                &:after {
-                    border-color: $blue;
+        @media only screen and (min-width: 768px){
+            #search-toggle {
+                .icon {
+                    &:before,
+                    &:after {
+                        border-color: $blue;
+                    }
                 }
             }
+            .search-form {
+                width: 200px;
+            }
         }
-        .search-form {
-            width: 200px;
+        @media only screen and (max-width: 767px){
+            .search-form {
+                right: -45px;
+                opacity: 1;
+                bottom: -80px;
+                right: -45px;
+            }           
+
+            #search-toggle .icon:before {
+                height: 18px;
+                width: 2px;
+                right: 0;
+                bottom: -5px;
+                background-color: $black;
+                transform: rotate(45deg);
+                border: 0;
+                border-color: $black;
+                @include radius(0px);
+            }
+            #search-toggle .icon:after {
+                height: 18px;
+                background-color: $black;
+            }
         }
     }
 
@@ -128,8 +169,7 @@
 
 // User menu
 
-#utility-menu {
-    position: relative;
+.utility-menu {
     margin: -18px 0 0 0;
     float: right;
     text-align: right;
@@ -137,9 +177,13 @@
     line-height: normal;
     width: calc(100% - 217px);
 
+    @media only screen and (max-width: 940px){
+        padding-right: 15px;
+    }
     @media only screen and (max-width: 767px){
         width: calc(100% - 150px);
         margin: 0;
+        padding-right: 0;
     }
 
     .button {
@@ -175,6 +219,9 @@
     @include montserrat(700);
     width: calc(100% - 217px);
 
+    @media only screen and (max-width: 940px){
+        width: auto;
+    }
     @media only screen and (max-width: 767px){
         width: calc(100% - 150px);
     }
@@ -320,7 +367,7 @@ button.menu-toggle {
 
         float: right;
         position: relative;
-        margin: 0 20px 0 0;
+        margin: -1px 0 0 10px;
         padding: 0;
         width: 35px;
         height: 35px;
@@ -363,17 +410,17 @@ button.menu-toggle {
                 top: 6px;
             }
             &:nth-child(2) {
-                width: 10%;
+                width: 5%;
             }
             
             &:nth-child(3), 
             &:nth-child(4) {
-                top: 14px;
+                top: 15px;
             }
             
             &:nth-child(5),
             &:nth-child(6) {
-                top: 22px;
+                top: 25px;
             }  
             
             .mobile-menu-active & {

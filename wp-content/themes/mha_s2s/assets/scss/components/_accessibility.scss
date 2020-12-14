@@ -6,6 +6,11 @@
 ::-moz-selection { background: rgba(58,88,136,.9); color: #FFFFFF; text-shadow: none; }
 ::selection { background: rgba(58,88,136,.9); color: #FFFFFF; text-shadow: none; }
 
+button:focus { 
+    border: 0;
+    outline: none;
+    box-shadow: none;
+}
 
 /* Skip Link Helper */
 
