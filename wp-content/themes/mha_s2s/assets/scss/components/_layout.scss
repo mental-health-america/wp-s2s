@@ -54,8 +54,8 @@
     
     &.wide {
         margin: 0 auto; 
-        width: 1280px; 
-        @media only screen and (max-width: 1320px){
+        width: 1200px; 
+        @media only screen and (max-width: 1240px){
             margin: 0 20px;
             width: auto;
         }
@@ -100,9 +100,11 @@
     background: $white;
 }
 
+
+// Page Headings
+
 .page-heading {
     
-
     // Bar Style
     &.bar {
         background: $blueLight;
@@ -123,9 +125,6 @@
         }
         
     }
-
-    
-
     
 }
 

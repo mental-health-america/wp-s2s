@@ -85,6 +85,16 @@ input[type="button"] {
         }
     }
 
+    &.green {
+        color: $white;
+        background: $teal;
+        &.active,
+        &:hover {
+            color: $white;
+            background-color: $blueDark;
+        }
+    }
+
     // Sizes
     &.thin {
         padding: 5px 25px; 
@@ -249,7 +259,17 @@ button.bar {
 
     &.gray {
         background: $grayLight;
+        color: $blue;
+    }
+
+    &.mint {
+        background: $mint;
         color: $blueDark;
+        h1,
+        h2,
+        h3 {
+            color: $blueDark;
+        }
     }
 
     // Widths
