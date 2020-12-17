@@ -19,14 +19,14 @@ label {
 // Animated Labels
 .float-label {
     position: relative;
-    label {
+    label:not(.error) {
         position: absolute;
         z-index: 1;
         left: 0;
         top: 0px;
         @include transitions(top 150ms ease, font-size 150ms ease);
     }
-    &.filled label {
+    &.filled label:not(.error) {
         top: -15px;
         font-size: 10px !important;
     }
@@ -35,6 +35,23 @@ label {
         z-index: 2;
     }
 }  
+
+.email_doublecheck {
+    position: absolute !important;
+    left: -999em;
+    &.active {
+        position: relative;
+        left: auto;        
+    }
+}
+
+.form-message-inner.warning {
+    background: $orange;
+    color: $black;
+    font-weight: 700;
+    padding: 10px 20px;
+    @include radius(0 20px 20px 20px);
+}
 
 
 .form-container.line-form {
@@ -321,6 +338,8 @@ label {
     }
 
     // General Errors
+    
+    label.error,
     .validation_error {
         clear: both;
         padding: 15px 30px;
@@ -328,9 +347,13 @@ label {
         @extend .bubble;
         @include radius(20px);
         background: $orange;
-        color: $black;
+        color: $black !important;
         @include montserrat(700);
         line-height: 1.2em;
+    }
+    label.error {
+        margin-top: 5px;
+        margin-bottom: 0;
     }
 
     // Validation

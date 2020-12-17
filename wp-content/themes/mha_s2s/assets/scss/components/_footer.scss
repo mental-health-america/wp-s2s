@@ -171,3 +171,19 @@
         }
     }
 }
+
+#supporter-logos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+
+    .supporter-logo {
+        flex: 0 1 calc(20% - 20px);
+        margin: 0 10px 20px 10px;
+
+        img {
+            width: 80%;
+        }
+    }
+}

@@ -24,7 +24,7 @@
 				<?php
 					global $current_user;
 					get_currentuserinfo();
-					echo '<h3>'.$current_user->nickname.'</h3>';
+					echo '<h3 class="text-white">'.$current_user->nickname.'</h3>';
 				?>
 
 				<div class="pt-2">

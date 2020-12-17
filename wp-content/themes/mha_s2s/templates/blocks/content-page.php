@@ -11,28 +11,24 @@
  */
 
 $type = get_post_type();
-$customClasses = '';
-
-if($type == 'article'){
-	$customClasses = ' red';
-}
-
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
-	<div class="page-heading bar<?php echo $customClasses; ?>">	
-	<div class="wrap normal">		
-		
-		<?php
-			if ( function_exists('yoast_breadcrumb') ) {
-				yoast_breadcrumb( '<p id="breadcrumbs">','</p>' );
-			}
-		?>
-		<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
-		
-	</div>
-	</div>
+	<?php if(!get_field('hero_headline') || !get_field('hero_introduction')): ?>
+		<div class="page-heading bar">	
+		<div class="wrap normal">		
+			
+			<?php
+				if ( function_exists('yoast_breadcrumb') ) {
+					yoast_breadcrumb( '<p id="breadcrumbs">','</p>' );
+				}
+			?>
+			<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
+			
+		</div>
+		</div>
+	<?php endif; ?>
 
 	<div class="page-content">
 	<div class="wrap normal">	

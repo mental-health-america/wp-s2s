@@ -30,6 +30,13 @@ a {
             text-decoration: underline;
         } 
     }
+
+    &.cerulean {
+        color: $cerulean;
+    }
+    &.gray {
+        color: $grayMedium;
+    }
 }
 
 a.social {
@@ -51,6 +58,7 @@ input[type="button"] {
     color: $white;
     font-size: .8em;
     text-decoration: none;
+    text-align: center;
     text-transform: uppercase;
     @include montserrat(700);
     @include transitions(color 100ms ease, background-color 100ms ease);
@@ -60,11 +68,15 @@ input[type="button"] {
     &.active {
         background: $blueDark;
     }
+    &.block {
+        display: block;
+    }
 
     // Color Options
     &.white {
-        color: $white;
+        background: $white;
         &:hover {
+            background: $cerulean;
             color: $white;
         }
         &.hover-bar {
@@ -73,6 +85,27 @@ input[type="button"] {
                 &:after { background: $white; }
             }
         }
+
+        &.plain {
+            background: none;
+            color: $white;
+            &:hover {
+                background: none;
+                color: $white;
+            }
+        }
+    }
+
+    &.cerulean {
+        background: $cerulean;
+        color: $white;
+        &:hover {
+            background-color: $orange;
+        }
+    }
+
+    &.text-orange {
+        color: $orange;
     }
 
     &.mint {
@@ -85,6 +118,7 @@ input[type="button"] {
         }
     }
 
+    &.teal,
     &.green {
         color: $white;
         background: $teal;
@@ -98,6 +132,9 @@ input[type="button"] {
     // Sizes
     &.thin {
         padding: 5px 25px; 
+    }
+    &.large {
+        font-size: 15px;
     }
     
     // Alternative Buttons
@@ -114,12 +151,69 @@ input[type="button"] {
             @include transitions(width 150ms ease);
         }
         &:hover {
+            text-decoration: none;
             &:after {
                 width: 100%;
             }
         }
     }
+    
 
+    &.next {
+        padding-right: 80px;
+        padding-left: 40px;
+        background-image: url('../images/arrow-right-white.png');
+        background-size: auto 50%;
+        background-position: 80% center;
+        background-repeat: no-repeat;
+        @include transitions(background-position 150ms ease, background-color 150ms ease);
+        &:hover {
+            background-color: $teal;
+            background-position: 85% center;
+        }
+    }
+
+}
+
+.text-button {
+    display: inline-block;
+    position: relative;
+    color: $teal;
+    text-transform: uppercase;
+    text-decoration: none;
+    @include montserrat(700);
+    @include transitions(color 150ms ease);
+    
+    &:after {
+        content: "";
+        display: block;
+        width: 0%;
+        height: 4px;
+        margin-top: 3px;
+        background: $teal; 
+        @include transitions(width 150ms ease);
+    }
+    &:hover {
+        color: $blueDark;
+        &:after {
+            width: 100%;
+            background: $blueDark;
+        }
+    }
+
+    // Color Variant
+    &.gray {
+        color: $grayMedium;
+        &:hover {
+            color: $blueDark;
+        }
+    }
+    &.blue {
+        color: $blue;
+        &:hover {
+            color: $blueDark;
+        }
+    }
 
 }
 
@@ -134,6 +228,20 @@ button.plain {
     &.caps {
         @extend .caps;
     }
+    
+    &.white {
+        color: $white;
+        &:hover {
+            color: $white;
+        }
+        &.hover-bar {
+            &:after { background: $white; }
+            &:hover {
+                &:after { background: $white; }
+            }
+        }
+    }
+
 }
 
 button.icon {
@@ -213,11 +321,18 @@ button.bar {
 
     .inner {
         padding: 50px;
+        @media only screen and (max-width: 679px){
+            padding: 30px;
+        }
     }
 
     // Additional Styles
     &.bubble-border {
         border: 1px solid $blueDark;
+    }
+
+    &.short {
+        max-width: 740px;
     }
 
     // Size Options
@@ -229,11 +344,17 @@ button.bar {
     &.narrow {
         .inner {
             padding: 30px 50px;
+            @media only screen and (max-width: 679px){
+                padding: 30px;
+            }
         }
     }
     &.thick {
         .inner {
             padding: 30px 80px;
+            @media only screen and (max-width: 679px){
+                padding: 30px 40px;
+            }
         }
     }
 
@@ -250,31 +371,122 @@ button.bar {
         &.bubble-border.light {
             border-color: $cerulean;
         }
+        &.plain { background: none; }
     }
 
     &.blue {
         background: $blue;
         color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $blue;
+        }
+        &.plain { background: none; color: $gray; }
+    }
+
+    &.dark-blue {
+        background: $cerulean;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $white;
+        }
+        a {
+            color: $white;
+        }
+    }
+
+    &.orange {
+        background: $orange;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $white;
+        }
+    }
+
+    &.cloud,
+    &.light-teal {
+        background: #F7FFFF;
+        color: $gray;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $darkBlue;
+        }
+        &.bubble-border {
+            border-color: $teal;
+        }
+    }
+
+    &.pale-blue,
+    &.blue-pale {
+        background: $paleBlue;
+        color: $gray;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $cerulean;
+        }
+        &.bubble-border {
+            border-color: $cerulean;
+        }
+    }
+
+    &.cerulean {
+        background: $ceruleanPale;
+        color: $cerulean;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $cerulean;
+        }
+        &.plain { background: none; }
     }
 
     &.gray {
         background: $grayLight;
         color: $blue;
+        &.plain { background: none; }
     }
 
     &.mint {
         background: $mint;
-        color: $blueDark;
+        color: $gray;
         h1,
         h2,
-        h3 {
+        h3,
+        h4 {
             color: $blueDark;
         }
+        &.plain { background: none; }
+    }
+
+    &.purple {
+        background: $lightPurple;
+        color: $gray;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $purple;
+        }
+        &.plain { background: none; }
     }
 
     // Widths
     &.width-50 {
         width: 50%;
+        &.plain { background: none; }
     }
     
 }
@@ -329,6 +541,8 @@ h2 {
     &.white { color: $white; }
     &.cerulean { color: $cerulean; }
     &.blue { color: $blue; }
+    .text-dark-blue &,
+    .dark-blue &,
     &.dark-blue { color: $blueDark; }
 }
 
@@ -383,7 +597,7 @@ hr {
     margin: 0 0 1.5em 0; 
     border: 0; 
     border-top: 0;
-    border-bottom: 1px solid $grayLight;
+    border-bottom: 1px solid $gray;
 }
 
 sub,
@@ -442,11 +656,21 @@ tr.odd,
 
 ol, 
 ul { 
-    margin: 0 0 1.5em 2em; 
+    margin: 0 0 1.5em 4em; 
     padding: 0; 
     li { 
         margin: 0 0 .5em 0; 
         padding: 0;
+    }
+
+    &.plain {
+        margin: .25em 0 1.5em 0;
+        li {
+            padding: 0;
+            margin: 0 0 .5em 0;
+            list-style-type: none;
+            font-weight: 600;
+        }
     }
 }
 
@@ -493,7 +717,8 @@ img.right {
 }
 
 .block { display: block; }
-.inline { display: block; }
+.inline-block { display: inline-block; }
+.inline { display: inline; }
 
 
 /* Video */

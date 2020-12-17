@@ -84,6 +84,8 @@ function mha_s2s_scripts() {
 	// wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/print.css', null, '1.0', 'print' );
     
 	// Scripts
+	wp_enqueue_script( 'jquery-ui-core' );
+	wp_enqueue_script( 'jquery-effects-slide' );
 	wp_enqueue_script( 'mha_s2s-skip-link-focus-fix', get_template_directory_uri() . '/assets/js/skip-link-focus-fix.js', array(), '1.0', true );
 	wp_enqueue_script( 'mha_s2s-hover-intent', get_template_directory_uri() . '/assets/js/hoverIntent.js', array(), '0.7', true );
 	wp_enqueue_script( 'mha_s2s-superfish', get_template_directory_uri() . '/assets/js/superfish.min.js', array(), '1.7.10.1', true );
@@ -188,11 +190,11 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
 		$input = '<input name="input_'.$field->id.'" id="input_'.$form_id.'_'.$field->id.'" type="hidden" class="gform_hidden" aria-invalid="false" value="'.wp_generate_uuid4().'">';
 	}
 
-   // Prepopulate with screen page's ID
-   if ( $field->label == 'Screen ID' ) {
+	// Prepopulate with screen page's ID
+	if ( $field->label == 'Screen ID' ) {
 		$input = '<input name="input_'.$field->id.'" id="input_'.$form_id.'_'.$field->id.'" type="hidden" class="gform_hidden" aria-invalid="false" value="'.get_the_ID().'">';
 	}
-
+	
 	// Legacy IP Identifier
 	if ( $field->label == 'ipiden' ) {
 		$input = '<input name="input_'.$field->id.'" id="input_'.$form_id.'_'.$field->id.'" type="hidden" class="gform_hidden" aria-invalid="false" value="'.md5($_SERVER['REMOTE_ADDR']).'">';
@@ -207,6 +209,7 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
  */
 function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'sid';
+    $qvars[] = 'usid';
     $qvars[] = 'login_error';
     $qvars[] = 'pathway';
     return $qvars;

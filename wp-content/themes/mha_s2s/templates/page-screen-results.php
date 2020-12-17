@@ -32,7 +32,9 @@ get_header();
         $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
         $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
         $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-        $response = wp_remote_get( 'https://mhascreening.wpengine.com/wp-json/gf/v2/entries/'.$user_screen_id.'?_labels[0]=1&_field_ids[0]=1' , array( 'headers' => $headers ) );
+        //$response = wp_remote_get( 'https://mhascreening.wpengine.com/wp-json/gf/v2/entries/'.$user_screen_id.'?_labels[0]=1&_field_ids[0]=1' , array( 'headers' => $headers ) );
+        $response = wp_remote_get( 'https://mhascreening.wpengine.com/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers ) );
+
         
         // Future Content
         $your_answers = '';
@@ -53,7 +55,8 @@ get_header();
 
             // Got a good response, proceed!
             $json = wp_remote_retrieve_body($response);
-            $data = json_decode($json);
+            $data = json_decode($json);                 
+            $data = $data->entries[0];
 
             // Text
             $label = '';
@@ -62,7 +65,7 @@ get_header();
             $alert = 0;
             $i = 0;          
 
-            $your_answers .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';              
+            $your_answers .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';      
             foreach($data as $k => $v){
                 
                 // Get field object
@@ -76,12 +79,12 @@ get_header();
 
                 //Screening Questions
                 if (strpos($field->cssClass, 'question') !== false) {                    
-                    $label = $field->label; // Field label                    
+                    $label = $field->label; // Field label 
                     $value_label = $field['choices'][$v]['text']; // Selection Label                    
-                    $total_score = $total_score + $v; // Add to total score
+                    $total_score = $total_score + $field['choices'][$v]['value']; // Add to total score
                     $your_answers .= '<div class="row pb-4">';
                         $your_answers .= '<div class="col-7 text-gray">'.$label.'</div>';
-                        $your_answers .= '<div class="col-5 bold caps dark-teal pl-4">'.$value_label.'</div>';
+                        $your_answers .= '<div class="col-5 bold caps text-dark-blue pl-4">'.$value_label.'</div>';
                     $your_answers .= '</div>';
                 }
 
@@ -104,32 +107,6 @@ get_header();
                 
             }   
 
-            // For Debugging
-            /*
-            $your_answers .= "<h3>Optional Answers</h3>";
-            $your_answers .= '<ul>';
-            $previous_label = '';
-            foreach($data as $k => $v){
-                
-                // Get field object
-                $field = GFFormsModel::get_field( $data->form_id, $k );
-
-                // Demo Questions
-                if (strpos($field->cssClass, 'optional') !== false && $v != '') {   
-                    if($previous_label != $field->label){
-                        $your_answers .= "</li>";
-                        $label = $field->label; // Field label
-                        $previous_label = $label;
-                        $value_label = $v; // Selection Label
-                        $your_answers .= "<li><strong>$label:</strong> $value_label";
-                    } else {                
-                        $your_answers .= ", $v"; 
-                    }
-                }
-                
-            }
-            $your_answers .= '</ul>';
-            */
         }
         
         /**
@@ -158,90 +135,148 @@ get_header();
         endwhile;
         endif;
         
+        if(get_field('survey', $screen_id)){
             
-        if( have_rows('results', $screen_id) ):
-        while( have_rows('results', $screen_id) ) : the_row();
+            // Survey Results
+            $result = get_field('results', $screen_id);
+            ?>
 
-            $min = get_sub_field('score_range_minimum');
-            $max = get_sub_field('score_range_max');
-
-            /*
-            echo '<hr />';
-            echo get_row_index();
-            echo "Min: $min<br />";
-            echo "Max: $max<br />";
-            echo "Total: $total_score<br />";
-            */
-            
-            if($total_score >= $min && $total_score <= $max || $total_score >= $min && !is_numeric($max)){
+                <div class="bubble thin teal round-small-bl mb-4">
+                <div class="inner">
+                    <h2 class="white small m-0">
+                        <strong><?php echo $result[0]['result_title']; ?></strong>
+                    </h2>
+                </div>
+                </div>
                 
-                // Required Tags Check
-                if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
-                    continue;
-                }
-
-                // Relevant Tags
-                if(get_sub_field('relevant_tags')){
-                    $tags = get_sub_field('relevant_tags');
-                    foreach($tags as $t){
-                        $next_step_terms[] = $t;
-                    }
-                }
-
-                // Manual Next Steps
-                $next = get_sub_field('featured_next_steps');
-                foreach($next as $n){
-                    $next_step_manual[] = $n['link']->ID;
-                }
-                ?>
-                    <div class="bubble thin teal round-small-bl mb-4">
-                    <div class="inner">
-                        <div class="subtitle thin caps block pb-1">Your score was</div>
-                        <h2 class="white small m-0">
-                            <strong><?php the_sub_field('result_title'); ?></strong>
-                        </h2>
-                    </div>
-                    </div>
-                                
-                    <div id="screen-result-buttons" class="button-grid">
-                        <button id="screen-about" class="button mint round thin reveal-slide-button" data-reveal="score-interpretation">About your Score: <?php echo $total_score; ?></button>
-                        <button id="screen-email" class="button mint round thin">Email Results</button>
-                        <button id="screen-answers" class="button mint round thin reveal-slide-button" data-reveal="your-answers">Your Answers</button>
-                        <a class="button mint round thin" id="screen-take" href="/screening-tools/">Take a Mental Health Test</a>
-                    </div>
-
-                    <div class="pt-4">
-
-                        <div class="bubble thick light-blue bubble-border round-tl montserrat mb-4" id="your-answers" style="display: none;">
-                        <div class="inner small">
-                            <div class="container-fluid">
-                                <?php echo $your_answers; ?>
-                            </div>
-                        </div>
-                        </div>
-                        
-                        <div class="bubble thick light-blue bubble-border round-tl montserrat mb-4" id="score-interpretation" style="display: none;">
-                        <div class="inner small">
-                            <div class="container-fluid">
-                            <h3 class="section-title dark-teal mb-4">Interpretation of Scores</h3>
-                                <?php the_field('interpretation_of_scores', $screen_id); ?>
-                            </div>
-                        </div>
-                        </div>                        
-                    
-                        <?php
-                            if($alert > 0){
-                                the_field('warning_message', $screen_id);
-                            }
-                            the_sub_field('result_content');
-                        ?>
-                    </div>
+                <div class="pt-4">                   
+                    <?php echo $result[0]['result_content']; ?>
+                </div>
 
             <?php
-            }
 
-        endwhile;
-        endif;
+        } else {
+
+            // Screening Results                
+            if( have_rows('results', $screen_id) ):
+            while( have_rows('results', $screen_id) ) : the_row();
+
+                $min = get_sub_field('score_range_minimum');
+                $max = get_sub_field('score_range_max');
+
+                /*
+                echo '<hr />';
+                echo get_row_index();
+                echo "Min: $min<br />";
+                echo "Max: $max<br />";
+                echo "Total: $total_score<br />";
+                */
+                
+                if($total_score >= $min && $total_score <= $max || $total_score >= $min && !is_numeric($max)){
+                    
+                    // Required Tags Check
+                    if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
+                        continue;
+                    }
+
+                    // Relevant Tags
+                    if(get_sub_field('relevant_tags')){
+                        $tags = get_sub_field('relevant_tags');
+                        foreach($tags as $t){
+                            $next_step_terms[] = $t;
+                        }
+                    }
+
+                    // Manual Next Steps
+                    $next = get_sub_field('featured_next_steps');
+                    foreach($next as $n){
+                        $next_step_manual[] = $n['link']->ID;
+                    }
+                    ?>
+
+                        <div class="bubble thin teal round-small-bl mb-4">
+                        <div class="inner">
+                            <div class="subtitle thin caps block pb-1">Your score was</div>
+                            <h2 class="white small m-0">
+                                <strong><?php the_sub_field('result_title'); ?></strong>
+                            </h2>
+                        </div>
+                        </div>
+                                    
+                        <div id="screen-result-buttons" class="button-grid p-4 pl-5 pr-5">
+                            <button id="screen-about" class="button mint round thin reveal-slide-button" data-reveal="score-interpretation">About your Score: <?php echo $total_score; ?></button>
+                            <button id="screen-email" class="button mint round thin reveal-slide-button" data-reveal="email-results">Email Results</button>
+                            <button id="screen-answers" class="button mint round thin reveal-slide-button" data-reveal="your-answers">Your Answers</button>
+                            <a class="button mint round thin" id="screen-take" href="/screening-tools/">Take a Mental Health Test</a>
+                        </div>
+
+                        <div class="pt-4">
+
+                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4" id="email-results" style="display: none;">
+                            <div class="inner small">
+                                <div class="container-fluid">
+                                    
+                                    <form id="email-screening-results" action="#" method="POST" class="form-container line-form wide blue" autocomplete="off">   
+
+                                    <div class="form-message" style="display: none;"></div>
+                                    <div class="form-content">
+
+                                        <p class="form-group float-label mb-0">
+                                            <label class="form-label" for="email">email</label>
+                                            <input type="text" name="email" id="email" class="form-input required" />
+                                            <input type="text" autocomplete="off" name="email_doublecheck" value="" class="email_doublecheck" tabindex="-1" />
+                                        </p>
+
+                                        <?php 					
+                                            global $post;
+                                            $postSlug = $post->post_name;
+                                        ?>
+                                        <div class="form-actions pt-3">
+                                            <input type="hidden" name="nonce" value="<?php $nonce = wp_create_nonce('mhaScreenEmail'); echo $nonce; ?>" />
+                                            <input type="hidden" name="screen_id" value="<?php echo $screen_id; ?>" />
+                                            <input type="hidden" name="screen_user_id" value="<?php echo $user_screen_id; ?>" />
+                                            <input type="submit" class="submit button teal gform_button" value="Send Results" />
+                                        </div>
+
+                                    </div>
+                                    </form>
+
+                                </div>
+                            </div>
+                            </div>
+
+                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4" id="your-answers" style="display: none;">
+                            <div class="inner small">
+                                <div class="container-fluid">
+                                    <?php echo $your_answers; ?>
+                                </div>
+                            </div>
+                            </div>
+                            
+                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4" id="score-interpretation" style="display: none;">
+                            <div class="inner small">
+                                <div class="container-fluid">
+                                <h3 class="section-title dark-teal mb-4">Interpretation of Scores</h3>
+                                    <?php the_field('interpretation_of_scores', $screen_id); ?>
+                                </div>
+                            </div>
+                            </div>                        
+                        
+                            <?php
+                                if($alert > 0){
+                                    the_field('warning_message', $screen_id);
+                                }
+                                the_sub_field('result_content');
+                            ?>
+                        </div>
+
+                    <?php
+                }
+
+            endwhile;
+            endif;
+
+        }
     ?>
 </div>
 

@@ -85,7 +85,13 @@
 			event.preventDefault();			
 			var id = $(this).attr('data-reveal');
 			$(this).toggleClass('active');
-			$('#'+id).slideToggle().toggleClass('reveal');
+			$('#'+id).slideToggle(500, "easeOutBounce");
+
+			if($(this).hasClass('active')){
+				$('html, body').animate({
+					scrollTop: $('#'+id).offset().top
+				}, 1000);
+			}
 		});
 
 		// Account Confirmation Message Check Display
@@ -140,6 +146,20 @@
 			if($(this).val()){
 				$(this).parents(".float-label").addClass('filled');
 			}
+		});
+
+		// Reveal button toggle
+		$('.reveal-excerpt').on('click', function(event){
+			event.preventDefault();
+			var reveal = $(this).attr('data-reveal');
+			$('#'+reveal).slideToggle('200', 'easeInOutQuad').toggleClass('show').parent('a').toggleClass('revealed');
+			
+			$(this).attr('aria-expanded', function (i, attr) {
+				return attr == 'true' ? 'false' : 'true'
+			});					
+			$(this).toggleClass('revealed').text(function (i, attr) {
+				return attr == '-' ? '+' : '-'
+			});			
 		});
 
 	});

@@ -1,3 +1,43 @@
+		<?php if(get_field('display_supporters')): ?>
+			<div id="supporters" class="pt-5">
+			<div class="wrap wide">
+				
+				<div class="wrap narrow">
+					<?php the_field('supporter_introduction','options'); ?>
+				</div>
+
+			
+				<?php
+					if( have_rows('supporters', 'options') ):
+					echo '<div id="supporter-logos">';
+					while( have_rows('supporters', 'options') ) : the_row();
+
+						$image = get_sub_field('logo');
+						$link = get_sub_field('link');
+
+						if($link){
+							echo '<a class="supporter-logo plain" href="">';
+						} else {
+							echo '<span class="supporter-logo">';						
+						}
+
+						echo '<img src="'.$image['url'].'" alt="'.$image['alt'].'" />';
+
+						if($link){
+							echo '</a>';
+						} else {
+							echo '</span>';
+						}
+
+					endwhile;
+					echo '</div>';
+					endif;
+				?>
+
+			</div>
+			</div>
+		<?php endif; ?>
+
 	</main>
 
 	<footer id="footer" class="clear">

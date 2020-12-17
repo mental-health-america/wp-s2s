@@ -9,7 +9,7 @@
 ?>
 
 <div class="content-block block-grid <?php echo $custom.' '.$color.' '.$padding; ?>">
-<div class="wrap wide">
+<div class="wrap normal">
 <div class="inner">
 
     <?php if(get_sub_field('headline')): ?>
@@ -23,22 +23,37 @@
         if( have_rows('grid_items') ):
         echo '<div class="grid-items">';
         while( have_rows('grid_items') ) : the_row();
+        $link = get_sub_field('link');
         ?>
             <div class="grid-item">
             <div class="grid-item-inner">
             <div class="grid-item-content">
-                <?php
-                    $image = get_sub_field('icon');
-                    if( !empty( $image ) ): 
-                ?>
-                    <div class="icon"><img src="<?php echo esc_url($image['url']); ?>" alt="<?php echo esc_attr($image['alt']); ?>" /></div>
+
+                <?php if($link['url']): ?>
+                    <a class="content-inner" href="<?php echo get_sub_field('link'); ?>">
+                <?php else: ?>
+                    <span class="content-inner">
                 <?php endif; ?>
 
-                <?php if(get_sub_field('title')): ?>
-                    <h4><?php the_sub_field('title'); ?></h4>
-                <?php endif; ?>
+                    <?php
+                        $image = get_sub_field('icon');
+                        if( !empty( $image ) ): 
+                    ?>
+                        <div class="icon"><img src="<?php echo esc_url($image['url']); ?>" alt="<?php echo esc_attr($image['alt']); ?>" /></div>
+                    <?php endif; ?>
 
-                <?php the_sub_field('text'); ?>
+                    <?php if(get_sub_field('title')): ?>
+                        <h4><?php the_sub_field('title'); ?></h4>
+                    <?php endif; ?>
+
+                    <?php the_sub_field('text'); ?>
+
+                <?php if($link['url']): ?>
+                    </a>
+                <?php else: ?>
+                    </span>
+                <?php endif; ?>
+                
             </div>
             </div>
             </div>

@@ -6,8 +6,10 @@
                 <?php if(get_field('hero_headline')): ?>
                     <h1><?php the_field('hero_headline'); ?></h1>
                 <?php endif; ?>
-
-                <?php the_field('hero_introduction'); ?>
+                
+                <div class="text">
+                    <?php the_field('hero_introduction'); ?>
+                </div>
 
                 <?php 
                     if( have_rows('hero_buttons') ):
@@ -16,7 +18,7 @@
 
                         $text = get_sub_field('text');
                         $url = get_sub_field('link');
-                        echo '<a href="'.$url.'" class="button round green" href="">'.$text.'</a>';
+                        echo '<a href="'.$url.'" class="button round green large" href="">'.$text.'</a>';
 
                     endwhile;
                     echo '</div>';

@@ -2,6 +2,7 @@
 $white              : #FFFFFF;
 $black              : #000000; 
 $gray               : #464646;
+$grayMedium         : #818181;
 $silver             : #D2D9E2;
 $grayLight          : #E9EEF5;
 $grayLight2         : #F1F4F5;
@@ -15,11 +16,14 @@ $blueLight          : #ECF3FA;
 $lightBlue          : $blueLight;
 $blueDark           : #144B5E;
 $darkBlue           : $blueDark;
+$bluePale           : #F8FCFF;
+$paleBlue           : $bluePale;
+$brightBlue         : #438FEF;
 
 $cerulean           : #007BA7;
 $ceruleanLight      : #CBE8FF;
 $lightCerulean      : $ceruleanLight;
-$ceruleanPale       : #F8FCFF;
+$ceruleanPale       : #E5F2FC;
 $paleCerulean       : $ceruleanPale;
 
 $purple             : #7B2E67;
@@ -52,6 +56,7 @@ $raz                : $raspberry;
 .text-blue { color: $blue; }
 .text-teal,
 .text-green { color: $teal; }
+.text-dark-blue { color: $darkBlue; }
 
 /* Default Text */
 $linkColor          : $blue;

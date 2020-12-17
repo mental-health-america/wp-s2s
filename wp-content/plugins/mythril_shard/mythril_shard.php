@@ -5,7 +5,7 @@
  * Version: 1.0.0
  * Author: Mythril Web Team
  * Author URI: http://
- * Description: A companion plugin for the Mythril theme.
+ * Description: A companion plugin for the Mythril base theme.
  */
 
 // General Wordpress Options
