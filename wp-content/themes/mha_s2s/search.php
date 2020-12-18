@@ -3,23 +3,42 @@
 get_header(); 
 ?>
 
-	<header class="page-header">
-		<?php if ( have_posts() ) : ?>
-			<h1 class="page-title"><?php printf( __( 'Search Results for: %s', 'mha_s2s' ), '<span>' . get_search_query() . '</span>' ); ?></h1>
-		<?php else : ?>
-			<h1 class="page-title"><?php _e( 'Nothing Found', 'mha_s2s' ); ?></h1>
-		<?php endif; ?>
-	</header><!-- .page-header -->
+
+	<div class="wrap medium center mb-5">
+		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+			<div class="page-heading plain">			
+			<?php if ( have_posts() ) : ?>
+				<h1 class="page-title"><?php printf( __( 'Search Results for: %s', 'mha_s2s' ), '' ); ?></h1>
+			<?php else : ?>
+				<h1 class="page-title"><?php _e( 'No items found', 'mha_s2s' ); ?></h1>
+			<?php endif; ?>
+				<div class="page-intro">
+					<p class="text-center bold large text-blue"><?php echo get_search_query(); ?></p>
+				</div>
+			</div>
+		</article>
+	</div>
+
 
 	<div id="primary" class="content-area">
+	<div class="wrap medium">		
 
 		<?php
 		if ( have_posts() ) :
 			/* Start the Loop */
 			while ( have_posts() ) : the_post();
+			?>
+			<article class="bubble round-small-br cerulean mb-4">
+			<div class="inner">
+				<?php the_title('<h3><a class="plain cerulean" href="'.get_the_permalink().'">','</a></h3>'); ?>
+				<div class="text-gray mb-0">
+					<?php echo get_the_excerpt(); ?> 
+					<!--<strong><a class="cerulean" href="<?php echo get_the_permalink(); ?>">Read More &raquo;</a></strong>-->
+				</div>				
+			</div>
+			</article>
 
-				get_template_part( 'templates/blocks/content', 'excerpt' );
-
+			<?php
 			endwhile; // End of the loop.
 
 			the_posts_pagination( array(
@@ -38,5 +57,8 @@ get_header();
 		?>
 
 	</div>
+	</div>
+
+</div>
 
 <?php get_footer();

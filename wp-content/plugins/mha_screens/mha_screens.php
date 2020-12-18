@@ -60,7 +60,6 @@ add_action("wp_ajax_nopriv_mhaScreenEmail", "mhaScreenEmail");
 add_action("wp_ajax_mhaScreenEmail", "mhaScreenEmail");
 
 
-
 function getScreenAnswers( $user_screen_id, $screen_id ){
 	
 	// Vars

@@ -104,15 +104,50 @@
             @media only screen and (max-width: 767px){
                 max-width: 100%;
             }
+            @media only screen and (max-width: 540px){
+                font-size: 2em;
+            }
         }
 
         // Colors
         &.red {
             background: $pink;
             h1 { color: $red; }
+            #breadcrumbs,
+            #breadcrumbs a {
+                color: $red;
+            }
         }
         
     }
+
+    // Plain
+    &.plain {
+        margin: 0 0 40px 0;        
+        h1 { 
+            margin: 0 0 15px 0; 
+            font-size: 4.5em;
+            color: $cerulean;
+            text-align: center;
+            @media only screen and (max-width: 1120px){
+                font-size: 6.5vw;
+            }
+            @media only screen and (max-width: 767px){
+                max-width: 100%;
+            }
+            @media only screen and (max-width: 540px){
+                font-size: 2em;
+            }
+        }
+
+        // Colors
+        &.red {
+            color: $red;
+            h1 { color: $red; }
+        }
+        
+    }
+
     
 }
 
@@ -203,6 +238,9 @@ ol.next-steps {
 .bubble.path-container {
     .inner {
         padding-bottom: 40px;
+    }
+    h3 {
+        padding-left: 10px;
     }
 }
 .path-list {
@@ -325,6 +363,301 @@ ol.next-steps {
 
         &:last-child {
             display: none !important;
+        }
+    }
+}
+
+
+// Like and Share Buttons
+
+button.icon.like-button,
+button.icon.share-button {
+    color: $blue;
+    @include montserrat(600);
+    .image {
+        width: 25px;
+        margin-right: 10px;
+        svg {
+            width: 100%;
+        }
+    }
+    
+    svg {
+        transform: scale(1);
+        @include transitions(transform 100ms ease);
+    }
+    &:hover {
+        svg { 
+            transform: scale(1.2);
+        }
+    }
+    &.liked:hover {
+        svg {
+            transform: scale(1);
+        }
+    }
+}
+
+button.icon.like-button {
+    .image {
+        svg {
+            .fill {
+                fill: $white;
+            }
+            .stroke {
+                fill: $blue;
+            }
+        }
+    }
+    &.liked {
+        .image {
+            svg {
+                .fill {
+                    fill: $coral;
+                }
+            }
+        }
+    }
+}
+
+
+// Filter Pages
+#filter-toggle {
+    display: none;
+    position: relative;
+    z-index: 10;
+    @extend .round;
+    color: $blueDark;
+    padding: 10px 50px 10px 30px;
+    background: url('../images/filter.png') 90% center no-repeat $grayLight;
+    background-size: auto 15px;
+    width: auto;
+    @include transitions(background-color 150ms ease);
+    &:after {
+        display: none;
+    }
+    &:hover {
+        background-color: $silver;
+    }
+
+    @media only screen and (max-width: 767px){
+        display: inline-block;
+    }
+}
+
+.search-filters {
+    @media only screen and (max-width: 767px){
+        position: relative;
+        z-index: 9;
+        top: -40px;
+        border-bottom: 4px solid $silver;
+        padding-bottom: 40px;
+    }
+}
+
+.intro-label {
+    @media only screen and (max-width: 767px){
+        visibility: hidden;
+    }    
+}
+
+#filters-container {
+    
+    #filters {
+        float: left;
+        width: 25%;
+        @media only screen and (max-width: 767px){
+            float: none;
+            width: auto;
+        }
+        .inner {
+            padding-right: 20px;
+            @media only screen and (max-width: 767px){
+                padding: 0;
+            }
+        }
+
+        input.gray {
+            background: $grayLight;
+            color: $blueDark;
+            width: 100%;
+            padding: 15px 20px 15px 20px;
+            border: 0;
+            @include montserrat(600);
+            @include radius(40px 40px 40px 0);
+        }
+    }
+
+    #filters-content-container {
+        float: right;
+        width:  75%;
+        @media only screen and (max-width: 767px){
+            float: none;
+            width: auto;
+        }
+    }
+
+    .filter-checkboxes {
+        .form-item {
+            margin-bottom: 7px;
+            margin-left: 20px;
+            position: relative;
+            input {
+                position: absolute;
+                left: -999em;
+            }
+            label{
+                display: block;
+                padding: 0 0 0 30px;
+                margin: 0;
+                color: $blueDark;
+                @include montserrat(600);
+                &:before {
+                    content: "";
+                    display: block;
+                    position: absolute;
+                    top: 3px;
+                    left: 0;
+                    width: 20px;
+                    height: 20px;
+                    background: $grayLight;
+                    @include transitions(background-color 150ms ease);
+                }
+                &:focus,
+                &:hover {
+                    &:before {
+                        background: $silver;
+                    }
+                }
+            }
+            input[type="checkbox"]:focus+label,
+            input[type="radio"]:focus+label {
+                &:before {
+                    background: $silver;
+                }
+            }
+            
+            input[type="checkbox"]:active+label,
+            input[type="radio"]:active+label,
+            input[type="checkbox"]:checked+label,
+            input[type="radio"]:checked+label {
+                &:before {
+                    background: $blueDark;
+                }
+            }
+        }
+    }
+
+}
+
+#filters-content {
+    display: flex;
+    flex-wrap: wrap;
+    opacity: 1;
+    @include transitions(opacity 250ms ease);
+
+    &.loading {
+        opacity: .5;
+    }
+
+    .filter-bubble {
+        // Layout
+        flex: 0 1 calc(33.333% - 20px);
+        margin: 0 20px 20px 0;
+        position: relative;
+        @media only screen and (max-width: 1023px){
+            flex: 0 1 calc(50% - 20px);
+            margin: 0 10px 20px 10px;
+        }
+        @media only screen and (max-width: 440px){
+            flex: 0 1 calc(100%);
+            margin: 0 0 20px 0;
+        }
+
+        // Style
+        background: $pink;
+        text-decoration: none;
+        color: $gray;
+        border: 1px solid $red;
+        overflow: hidden;
+        @include radius(30px);
+        line-height: 1.4em;
+        box-shadow: 0 3px 5px #EDEDED;
+        transform: scale(1);
+
+        @include transitions(transform 150ms ease);
+
+        &:hover {
+            transform: scale(1.05);
+        }
+
+        .inner-text {
+            padding: 30px;
+            @media only screen and (max-width: 540px){
+                padding: 15px;
+            }
+
+            .learn-more {
+                position: absolute;
+                bottom: 30px;
+                left: 30px;
+                @media only screen and (max-width: 540px){
+                    bottom: 15px;
+                    left: 15px;
+                }
+            }
+        }
+
+        .image {
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-color: $white;
+            height: 160px;
+            @media only screen and (max-width: 540px){
+                height: 120px;
+            }
+            &.title-image {
+                background: none;
+            }
+        }
+
+        .title-image {
+            font-size: 1.6em;
+            line-height: 1.2em;
+            padding: 30px;
+            height: 160px;
+            overflow: hidden;
+            @media only screen and (max-width: 540px){
+                height: 120px;
+                padding: 15px;
+                font-size: 1.2em;
+                line-height: 1.2em;
+            }
+        }
+
+    }    
+
+    .pagination {
+        flex: 1 1 100%;
+        position: relative;
+        
+        .page-numbers { display: none; }
+
+        a.next {
+            float: right;
+            @extend .button;
+            @extend .round-tl;
+            background-color: $red;
+            &:hover {
+                background-color: $blueDark;
+            }
+        }
+        a.prev {
+            float: left;
+            @extend .button;
+            @extend .round-tr;
+            background-color: $grayLight;
         }
     }
 }

@@ -81,9 +81,7 @@
 						</div>
 						</div>
 					</div>
-				<?php endif; ?>
-				
-
+				<?php endif; ?>	
 			</span>
 
 			<button id="mobile-menu-button" class="menu-toggle button" aria-controls="main-menu" aria-label="Toggle Menu" aria-expanded="false">

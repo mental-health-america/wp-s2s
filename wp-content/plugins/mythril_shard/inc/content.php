@@ -1,5 +1,12 @@
 <?php
 
+
+add_action('init', 'mhaContentScripts');
+function mhaContentScripts() {
+	wp_enqueue_script('process_mhaContent', plugin_dir_url( __FILE__ ).'js/scripts.js', 'jquery', time(), true);
+	wp_localize_script('process_mhaContent', 'do_mhaContent', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+}
+
 /**
  * Add additional classes to the body
  */
@@ -170,3 +177,121 @@ function mha_show_tests() {
 
 } 
 add_shortcode('mha_show_tests', 'mha_show_tests'); 
+
+
+/**
+ * Filter Bubble Query
+ */
+
+function connectArticlesAjax(){
+	
+	// General variables
+    $result = array();
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);
+
+	// SSearch Content
+	$search = null;
+	if($data['search'] != ''){
+		$search = sanitize_text_field($data['search']);
+	}
+
+	// Conditions Content
+	$conditions = '';
+	if(isset($data['condition'])){
+		$conditions = [];
+		foreach($data['condition'] as $c){
+			$conditions[] = intval($c);
+		}	
+	}
+	echo get_articles('connect', $search, $conditions);
+	exit();
+
+}
+add_action("wp_ajax_nopriv_connectArticlesAjaxx", "connectArticlesAjax");
+add_action("wp_ajax_connectArticlesAjax", "connectArticlesAjax");
+
+
+function get_articles( $type = null, $search = null, $conditions = null ){
+	
+	$html = '';
+
+    $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+	$args = array(
+		"post_type"      => 'article',
+		"orderby"        => 'title',
+		"order"	         => 'DESC',
+		"post_status"    => 'publish',
+        "paged" 		 => $paged,
+		"posts_per_page" => 15,
+		"meta_query"	 => array(
+			array(
+				'key'	 	=> 'type',
+				'value'	  	=> sanitize_text_field($type),
+				'compare'   => 'LIKE'
+			)
+		)
+	);
+
+	if($search){
+		$args['s'] = sanitize_text_field($search);
+	}
+
+	if($conditions){
+		$args['tax_query'] = array(
+			array(
+				'taxonomy' => 'condition',
+				'field'    => 'term_id',
+				'terms'    => $conditions,
+			)
+		);
+	}
+
+	$loop = new WP_Query($args);
+	if($loop->have_posts()):
+		while($loop->have_posts()) : $loop->the_post();
+
+			$html .= '<a href="'.get_the_permalink().'" class="filter-bubble red">';
+			if(get_the_post_thumbnail_url()){
+				$html .= '<span class="block image" style="background-image: url(\''.get_the_post_thumbnail_url().'\');"></span>';
+				$html .= '<span class="inner-text block">';
+				$html .= '<strong class="text-red title caps block mb-3">'.get_the_title().'</strong>';
+			} else {
+				$html .= '<span class="title-image image block"><strong class="text-red caps">'.get_the_title().'</strong></span>';
+				$html .= '<span class="inner-text block">';
+			}
+			$html .= '<span class="text-gray excerpt block pb-5">'.get_the_excerpt().'</span>'; 
+			$html .= '<strong class="text-red caps block learn-more">Learn More</strong>';
+			$html .= '<div style="display:none"></div>';
+			$html .= '</span>';
+			$html .= '</a>';  
+
+		endwhile; 
+
+		$html .= '<div class="pagination pt-5">';
+		$html .= paginate_links( array(
+			'base'         => str_replace( 999999999, '%#%', esc_url( get_pagenum_link( 999999999 ) ) ),
+			'total'        => $loop->max_num_pages,
+			'current'      => max( 1, get_query_var( 'paged' ) ),
+			'format'       => '?paged=%#%',
+			'show_all'     => false,
+			'type'         => 'plain',
+			'end_size'     => 2,
+			'mid_size'     => 1,
+			'prev_next'    => true,
+			'prev_text'    => sprintf( '<i></i> %1$s', __( 'Previous', 'text-domain' ) ),
+			'next_text'    => sprintf( '%1$s <i></i>', __( 'Next', 'text-domain' ) ),
+			'add_args'     => false,
+			'add_fragment' => '',
+		) );
+		$html .= '</div>';
+		
+	else:
+		$html .= '<div class="bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>No items matched your filter selections. Please try another search.</strong></div></div>';
+	endif;
+
+
+	return $html;
+	
+}

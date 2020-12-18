@@ -148,6 +148,7 @@ get_header();
 				<input type="hidden" name="nonce" value="<?php echo wp_create_nonce('thoughtSubmission'); ?>" />
 				<input type="hidden" name="page" value="<?php echo $activity_id; ?>" />
 				<input type="hidden" name="source" value="<?php echo $source; ?>" />		
+				<input type="hidden" name="started" value="<?php echo date('Y-m-d H:i:s'); ?>" />		
 				<input type="hidden" name="pid" value="<?php echo $unfinished_thought; ?>" />
 				<input type="hidden" name="admin_seed" value="<?php echo $last_admin_seed; ?>" />
 				<input type="hidden" name="user_seed" value="<?php echo $last_user_seed; ?>" />

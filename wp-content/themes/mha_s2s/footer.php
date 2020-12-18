@@ -57,7 +57,7 @@
 				</div>
 				</div>
 
-				<div id="footer-social">
+				<div id="footer-social-top" class="footer-social-top footer-social">
 					<?php 
 						// Footer Menu
 						wp_nav_menu([
@@ -79,7 +79,17 @@
 					]);
 				?>
 			</div>
-
+			
+			<div id="footer-social-bottom" class="footer-social-top footer-social">
+				<?php 
+					// Footer Menu
+					wp_nav_menu([
+						'menu'           => 'social-icons',
+						'menu_id'        => 'social-menu',
+					]);
+				?>
+			</div>
+			
 			<div class="clear"></div>
 		</div>
 		</div>
@@ -97,6 +107,7 @@
 
 <div id="mobile-menu-container">
 <div class="inner">
+
 	<?php 
 		// Mobile Slider Menu
 		wp_nav_menu([
@@ -104,6 +115,15 @@
 			'menu_id'        => 'mobile-menu',
 		]);
 	?>
+
+	<ul id="mobile-menu-footer" class="menu last secondary">
+		<?php if(is_user_logged_in()): ?>						
+			<li class="menu-item"><a href="/my-account">My Account</a></li>
+		<?php else: ?>						
+			<li class="menu-item"><a href="/my-account">Log In</a></li>
+		<?php endif; ?>
+	</ul>
+	
 </div>
 </div>
 

@@ -626,9 +626,49 @@ jQuery(function ($) {
 				}
 			});	
 
-		})
-
+		});
 
 	}
+	
+
+	/**
+	 * Liking an article
+	 */
+	$(document).on('click', '.article-like', function(event){
+
+		// Disable default form submit
+		event.preventDefault();
+
+		// Vars
+		var nonce = $(this).attr('data-nonce'),
+			pid = $(this).attr('data-pid'),
+			$this = $(this),
+			text = $(this).find('.text').text();
+			
+		// Prep the data
+		var args = 'nonce='+nonce+'&pid='+pid;
+		
+		// Disable like button
+		$(this).prop('disabled', true);			
+		
+		$.ajax({
+			type: "POST",
+			url: do_mhaActivity.ajaxurl,
+			data: { 
+				action: 'articleLike',
+				data: args
+			},
+			success: function( results ) {
+				console.log(results);
+				$this.toggleClass('liked').prop('disabled', false);				
+				$this.find('.text').text(text == 'Unsave This Page' ? 'Save This Page' : 'Unsave This Page');
+			},
+			error: function(xhr, ajaxOptions, thrownError){				
+				console.error(xhr,thrownError);
+			}
+		});	
+
+	});
+	
 
 });

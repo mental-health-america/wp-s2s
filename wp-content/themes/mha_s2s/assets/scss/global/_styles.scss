@@ -37,6 +37,9 @@ a {
     &.gray {
         color: $grayMedium;
     }
+    &.red {
+        color: $red;
+    }
 }
 
 a.social {
@@ -103,6 +106,13 @@ input[type="button"] {
             background-color: $orange;
         }
     }
+    &.red {
+        background: $red;
+        color: $white;
+        &:hover {
+            background-color: $blueDark;
+        }
+    }
 
     &.text-orange {
         color: $orange;
@@ -131,7 +141,7 @@ input[type="button"] {
 
     // Sizes
     &.thin {
-        padding: 5px 25px; 
+        padding: 10px 25px; 
     }
     &.large {
         font-size: 15px;
@@ -173,6 +183,55 @@ input[type="button"] {
         }
     }
 
+    &.prev {
+        color: $gray;
+        padding-left: 80px;
+        padding-right: 40px;
+        background: $grayLight;
+        background-image: url('../images/arrow-left-gray.png');
+        background-size: auto 50%;
+        background-position: 20% center;
+        background-repeat: no-repeat;
+        @include transitions(background-position 150ms ease, background-color 150ms ease);
+        &:hover {
+            background-color: $silver;
+            background-position: 15% center;
+        }
+    }
+
+}
+
+button.accordion-button {
+    width: 100%;
+    position: relative;
+    padding: 0 25px 0 0;
+    margin: 0;
+    background: none;
+    color: $blueDark;
+    @include montserrat(700);
+    text-align: left;
+    font-size: 1em;
+    text-transform: none;
+    &.collapsed {
+        &:after {
+            transform: rotate(180deg);
+        }
+    }
+    &:after {
+        content: "";
+        display: block;
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: auto 0;
+        width: 26px;
+        height: 14px;
+        background: url('../images/arrow-down-dark.png') 95% center no-repeat transparent;
+        background-size: contain;
+        @include transitions(transform 150ms ease);
+        transform-origin: center;
+    }
 }
 
 .text-button {
@@ -313,6 +372,11 @@ button.bar {
 .round-small-br { @include radius(30px 30px 0px 30px); }
 .round-small-bl { @include radius(30px 30px 30px 0px); }
 
+.round-big { @include radius(60px); }
+.round-big-tl { @include radius(0px 60px 60px 60px); }
+.round-big-tr { @include radius(60px 0px 60px 60px); }
+.round-big-br { @include radius(60px 60px 0px 60px); }
+.round-big-bl { @include radius(60px 60px 60px 0px); }
 
 /* Bubbles */
 .bubble {
@@ -411,6 +475,20 @@ button.bar {
         }
     }
 
+    &.raspberry {
+        background: $raspberry;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $white;
+        }
+        a {
+            color: $white;
+        }
+    }
+
     &.cloud,
     &.light-teal {
         background: #F7FFFF;
@@ -486,6 +564,9 @@ button.bar {
     // Widths
     &.width-50 {
         width: 50%;
+        @media only screen and (max-width: 540px){
+            width: auto;
+        }
         &.plain { background: none; }
     }
     
@@ -579,7 +660,11 @@ p {
 
 .large { 
     font-size: 1.2em; 
-    line-height: 1.6em; 
+    line-height: 1.5em; 
+    @media only screen and (max-width: 540px){
+        font-size: 1.1em; 
+        line-height: 1.3em; 
+    }
 }
 
 .caps {

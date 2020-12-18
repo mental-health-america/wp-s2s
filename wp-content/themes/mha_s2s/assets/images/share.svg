@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="31" height="31" viewBox="0 0 31 31">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_353" data-name="Rectangle 353" width="31" height="31" transform="translate(0 -0.233)" fill="#055596"/>
+    </clipPath>
+  </defs>
+  <g data-name="Bookmark" transform="translate(0 0.355)">
+    <g data-name="Bookmark" transform="translate(0 -0.122)" clip-path="url(#clip-path)">
+      <path d="M30.024,144.943H.639A.639.639,0,0,1,0,144.3v-7.666a.639.639,0,0,1,1.278,0v7.027H29.385v-7.027a.639.639,0,0,1,1.278,0V144.3a.639.639,0,0,1-.639.639" transform="translate(0 -114.177)" fill="#055596"/>
+      <path d="M92.639,25.553A.639.639,0,0,1,92,24.914V.639a.639.639,0,0,1,1.278,0V24.914a.639.639,0,0,1-.639.639" transform="translate(-77.307 0.104)" fill="#055596"/>
+      <path d="M59.97,8.944a.637.637,0,0,1-.452-.187L52.3,1.542,45.09,8.757a.639.639,0,1,1-.9-.9L51.853.187a.639.639,0,0,1,.9,0l7.666,7.666a.639.639,0,0,1-.452,1.091" transform="translate(-36.973 0.103)" fill="#055596"/>
+    </g>
+  </g>
+</svg>

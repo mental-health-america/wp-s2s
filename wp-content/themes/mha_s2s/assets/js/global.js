@@ -1,6 +1,20 @@
 (function( $ ) {
 	
+	// Wow implementation
 	new WOW().init(); 
+
+	// Show/Hide filter on mobile
+	function showFilters() {
+		if($('.search-filters.form-container').length){
+			var windowWidth = $(window).width();
+			if(windowWidth < 768){
+				$('.search-filters.form-container').removeClass('show');
+			} else {
+				$('.search-filters.form-container').addClass('show');
+			}
+		}
+	}
+
 
 	/**
 	 * Document Ready Functions
@@ -162,6 +176,9 @@
 			});			
 		});
 
+		// Filter Display
+		showFilters();
+
 	});
 
 	/**
@@ -169,6 +186,8 @@
 	 */
 	$(window).resize(function() {
 		
+		showFilters();
+
 	});
 
 })( jQuery );

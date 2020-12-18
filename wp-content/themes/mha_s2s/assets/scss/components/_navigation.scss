@@ -531,7 +531,7 @@ button.menu-toggle {
         ul.menu {
             display: block;
             margin: 0 auto;
-            padding: 30px 0 80px 0;
+            padding: 30px 0 0 0;
             max-width: 280px;
 
             li {
@@ -605,6 +605,13 @@ button.menu-toggle {
                 }
 
             }
+        }
+
+        ul.last {
+            padding-bottom: 80px;
+        }
+        ul.secondary {
+            padding-top: 0;
         }
 
     }

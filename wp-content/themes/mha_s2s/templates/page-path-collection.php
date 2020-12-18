@@ -56,7 +56,7 @@ get_header();
 								if( have_rows('path') ):
 								while( have_rows('path') ) : the_row();
 									$article = get_sub_field('article');
-									echo '<li class="path-item"><a class="button round cerulean block" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'">'.get_the_title($article).'</a></li>';
+									echo '<li class="path-item"><a class="button round thin cerulean block" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'">'.get_the_title($article).'</a></li>';
 									$counter++;
 									if($counter < $max){
 										echo '<li class="path-spacer"></li>';

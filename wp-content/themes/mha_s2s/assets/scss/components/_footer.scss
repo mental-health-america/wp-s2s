@@ -9,6 +9,10 @@
         float: left;
         width: 55%;
         position: relative;
+        @media only screen and (max-width: 767px){
+            float: none;
+            width: auto;
+        }
     }
 
     #footer-right {
@@ -16,11 +20,22 @@
         width: 45%;
         font-size: 1.4em;
         line-height: normal;
+        @media only screen and (max-width: 767px){
+            float: none;
+            width: auto;
+            font-size: 1.3em;
+        }
 
         ul {
             display: block;
             margin: 0;
             padding: 0;
+            @media only screen and (max-width: 940px){
+                padding-left: 20px;
+            }
+            @media only screen and (max-width: 767px){
+                padding-left: 20px;
+            }
 
             li {
                 display: block;
@@ -54,12 +69,22 @@
 
                 // Buttons
                 &.button {
+                    @media only screen and (max-width: 767px){
+                        clear: both;
+                        float: none;
+                        width: 100%;
+                    }
                     &.red {
                         a {
                             color: $white;
                             background: $coral;
                             @extend .round;  
                             @include transitions(background-color 150ms ease);
+                            @media only screen and (max-width: 767px){
+                                margin-top: 20px;
+                                width: 100%;
+                                font-size: 1em;
+                            }
                             &:hover {
                                 background-color: $teal;
                                 text-decoration: none;
@@ -109,12 +134,46 @@
     line-height: 1.5em;
     position: relative;
     margin-top: -80px;
+    @media only screen and (max-width: 767px){
+        float: none;
+        margin: -90px auto 40px auto;
+    }
+    @media only screen and (max-width: 440px){
+        width: calc(100% + 40px);
+        position: relative;
+        max-width: calc(100% + 40px);
+        left: -20px;
+    }
 }
 
-#footer-social {
+#footer-social-top {
     float: left;
     width: 40px;
     margin-left: 20px;
+    @media only screen and (max-width: 940px){
+        display: none;
+    }
+}
+
+
+#footer-social-bottom {
+    display: none;
+    @media only screen and (max-width: 940px){
+        display: block;
+        clear: both;
+        text-align: center;
+        #footer & ul {
+            margin: 0;
+            padding-top: 20px;
+            li {
+                display: inline-block;
+                vertical-align: middle;
+            }
+        }
+    }
+}
+
+#footer .footer-social {
     ul {
         display: block;
         margin: 0;

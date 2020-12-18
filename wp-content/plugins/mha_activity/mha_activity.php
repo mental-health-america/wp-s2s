@@ -51,6 +51,9 @@ function thoughtSubmission(){
 
 			// Update Activity reference
 			update_field('activity', intval($data['page']), $post_id);
+
+			// Started Time
+			update_field('started', sanitize_text_field($data['started']), $post_id);
 			
 			// Add first thought to repeater
 			$response_row = array(
@@ -783,3 +786,92 @@ function abandonThought(){
 }
 add_action("wp_ajax_nopriv_abandonThought", "abandonThought");
 add_action("wp_ajax_abandonThought", "abandonThought");
+
+
+
+/**
+ * Check Article Likes
+ */
+function checkArticleLikes( $pid, $uid ){
+	global $wpdb;
+	$like_count = $wpdb->get_var( "SELECT COUNT(*) FROM article_likes WHERE pid = $pid AND uid = $uid AND unliked = 0" );
+	if($like_count){
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Like an article
+ */
+function articleLike(){
+	
+	// General variables
+	global $wpdb;
+    $result = array();
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);  
+    $isAuthentic = wp_verify_nonce( $data['nonce'], 'articleLike');
+	
+	// Submission is good, proceed
+	if($isAuthentic && is_user_logged_in()){
+			
+		// Organize our data
+		$result['response'] = $data;
+		$uid = get_current_user_id();
+		$pid = $data['pid'];	
+
+		// Vars
+		$table = 'article_likes';	
+
+		// Check if liked previously
+		$db_like = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");				
+		
+		if($db_like && $db_like[0]->unliked == 0){
+
+			// Result found, let's unlike it!
+			$result['db_update'] = $wpdb->update(
+				$table, 
+				array('unliked' => 1), 
+				array('id' => $db_like[0]->id)
+			);			
+			$result['liked'] = 0;
+
+		} else if($db_like && $db_like[0]->unliked == 1){
+
+			// Thought was previously unliked, so lets like it again!
+			$result['db_update'] = $wpdb->update(
+				$table, 
+				array('unliked' => 0), 
+				array('id' => $db_like[0]->id)
+			);			
+			$result['liked'] = 2;
+
+		} else {
+
+			// No results, like it for the first time!
+			$response =	array( 
+				'uid' => $uid,
+				'pid' => $pid
+			);	
+			$result['db_insert'] = $wpdb->insert($table, $response);
+			$result['liked'] = 1;
+
+		}
+
+    } else {
+
+		if(!is_user_logged_in()){
+			$result['login'] = 1;	
+		} else {
+			$result['error'] = 'Error';	
+		}
+
+	}
+
+    echo json_encode($result);
+    exit();
+}
+add_action("wp_ajax_nopriv_articleLike", "articleLike");
+add_action("wp_ajax_articleLike", "articleLike");
