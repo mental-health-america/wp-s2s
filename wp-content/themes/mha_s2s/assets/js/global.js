@@ -88,22 +88,12 @@
 		});
 
 
-		// Reveal Buttons
-		$('.reveal-button').on('click', function(event){
-			event.preventDefault();			
-			var id = $(this).attr('data-reveal');
-			$(this).toggleClass('active');
-			$('#'+id).toggleClass('reveal');
-		});
-		$('.reveal-slide-button').on('click', function(event){
-			event.preventDefault();			
-			var id = $(this).attr('data-reveal');
-			$(this).toggleClass('active');
-			$('#'+id).slideToggle(500, "easeOutBounce");
-
+		// Anchor Jump Buttons
+		$('.anchor-button').on('click', function(event){
+			var id = $(this).attr('data-target');
 			if($(this).hasClass('active')){
 				$('html, body').animate({
-					scrollTop: $('#'+id).offset().top
+					scrollTop: $(id).offset().top
 				}, 1000);
 			}
 		});
@@ -114,6 +104,26 @@
 				$('#account-settings-form').addClass('reveal');
 			}
 		}
+		
+		// Scrolling to reveal content when opened    
+		$(document).on('shown.bs.collapse', function(event){
+
+			// If .anchor-content scroll to the content
+			// Useful for multiple stacking reveals
+			if($(event.target).hasClass('anchor-content')){
+				$('html, body').animate({
+					scrollTop: $(event.target).offset().top
+				}, 1000, 'easeInOutQuad');		
+			}
+
+			if($(event.target).attr('id') == 'allScreenResults'){
+				var id = $(event.target).attr('id'),
+					text = $('button[aria-controls="'+id+'"]').text();
+				$('button[aria-controls="'+id+'"]').text(text == 'Show More Results' ? 'Show Less Results' : 'Show More Results');
+			}
+
+
+		});
 
 		// Checkbox Limiter
 		if($('.limit-3 .ginput_container_checkbox').length){			
@@ -186,6 +196,7 @@
 	 */
 	$(window).resize(function() {
 		
+		// Filter Display
 		showFilters();
 
 	});

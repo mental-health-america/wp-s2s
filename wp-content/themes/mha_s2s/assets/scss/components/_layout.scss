@@ -50,6 +50,16 @@
             margin: 0 20px;
             width: auto;
         }
+        .wrap.narrow {
+            @media only screen and (max-width: 860px){
+                margin: 0;
+            }
+        }
+        .wrap.medium {
+            @media only screen and (max-width: 880px){
+                margin: 0;
+            }
+        }
     }
     
     &.wide {

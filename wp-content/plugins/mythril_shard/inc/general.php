@@ -16,6 +16,13 @@ function pre($arr){
 
 
 /**
+ * Get ipiden value
+ */
+function get_ipiden(){
+	return md5($_SERVER['REMOTE_ADDR']);
+}
+
+/**
  * Replaces "[...]" (appended to automatically generated excerpts) with ... and a 'Continue reading' link.
  */
 function mythril_excerpt_more( $url ) {

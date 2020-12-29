@@ -120,6 +120,12 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 			}
 			
 		}   
+		
+		// Update total score to be the max possible score if its over
+		$max_score = get_field('overall_max_score', $screen_id);
+		if($total_score >= $max_score){
+			$total_score = $max_score;
+		}
 
 		// Warning Message
 		if($alert > 0){
@@ -135,7 +141,7 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 		while( have_rows('results', $screen_id) ) : the_row();
 			$min = get_sub_field('score_range_minimum');
 			$max = get_sub_field('score_range_max');				
-			if($total_score >= $min && $total_score <= $max || $total_score >= $min && !is_numeric($max)){		
+			if($total_score >= $min && $total_score <= $max){		
 
 				// Result Header
 				$header .= '<div>Your score was</div><h1 style="margin-top: 0; padding-top: 0;"><strong>'.get_sub_field('result_title').'</strong></h1>';

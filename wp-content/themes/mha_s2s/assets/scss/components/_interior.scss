@@ -118,6 +118,16 @@
                 color: $red;
             }
         }
+
+        // Colors
+        &.blue {
+            background: $lightBlue;
+            h1 { color: $blue; }
+            #breadcrumbs,
+            #breadcrumbs a {
+                color: $blue;
+            }
+        }
         
     }
 
@@ -146,6 +156,20 @@
             h1 { color: $red; }
         }
         
+    }
+
+
+    .thought_activity & {
+        margin-bottom: 20px;
+        h1 {
+            font-size: 3.5em;
+            text-align: left;
+            color: $blue;
+            margin: 0; 
+            @media only screen and (max-width: 767px){
+                font-size: 2.5em;
+            }
+        }
     }
 
     

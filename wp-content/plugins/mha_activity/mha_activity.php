@@ -30,7 +30,7 @@ function thoughtSubmission(){
 		// Organize our data
 		$result['response'] = $data;
 		$timestamp = date('Y-m-d H:i:s');		
-		$ipiden = md5($_SERVER['REMOTE_ADDR']);	
+		$ipiden = get_ipiden();	
 		$uid = get_current_user_id();	
 		if(!$uid){
 			$uid = 4; // Default "Anonymous" User
@@ -179,7 +179,7 @@ function thoughtLike(){
 
 		// Vars
 		$table = 'thoughts_likes';
-		$ipiden = md5($_SERVER['REMOTE_ADDR']);	
+		$ipiden = get_ipiden();	
 		$uid = get_current_user_id();	
 		if(!$uid){
 			$uid = 4; // Default "Anonymous" User
@@ -266,7 +266,7 @@ function thoughtFlag(){
 
 		// Vars
 		$table = 'thoughts_flags';
-		$ipiden = md5($_SERVER['REMOTE_ADDR']);	
+		$ipiden = get_ipiden();	
 		$uid = get_current_user_id();	
 		if(!$uid){
 			$uid = 4; // Default "Anonymous" User
@@ -322,7 +322,7 @@ function likeChecker($pid, $row){
 
 	// Vars
 	$table = 'thoughts_likes';
-	$ipiden = md5($_SERVER['REMOTE_ADDR']);	
+	$ipiden = get_ipiden();	
 	$uid = get_current_user_id();	
 	if(!$uid){
 		$uid = 4; // Default "Anonymous" User
@@ -728,7 +728,7 @@ function abandonThought(){
 		$page = intval($data['page']);
 
 		// Vars
-		$ipiden = md5($_SERVER['REMOTE_ADDR']);	
+		$ipiden = get_ipiden();	
 		$uid = get_current_user_id();	
 		if(!$uid){
 			$uid = 4; // Default "Anonymous" User

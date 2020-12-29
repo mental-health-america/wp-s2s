@@ -1,0 +1,242 @@
+
+/* Bubbles */
+
+.bubble {
+    background: $teal;
+    color: $white;  
+
+    .inner {
+        padding: 50px;
+        @media only screen and (max-width: 679px){
+            padding: 30px;
+        }
+    }
+
+    // Default Additional Styles
+    &.bubble-border { border: 1px solid $blueDark; }
+    &.short { max-width: 740px; }
+
+    // Widths
+    &.width-50 {
+        width: 50%;
+        @media only screen and (max-width: 540px){
+            width: auto;
+        }
+        &.plain { background: none; }
+    }
+    
+
+    // Size Options
+    &.thin {
+        .inner {
+            padding: 30px;
+        }
+    }
+    &.thinner {
+        .inner {
+            padding: 15px 25px;
+        }
+    }
+    &.narrow {
+        .inner {
+            padding: 30px 50px;
+            @media only screen and (max-width: 679px){
+                padding: 30px;
+            }
+        }
+    }
+    &.thick {
+        .inner {
+            padding: 30px 80px;
+            @media only screen and (max-width: 679px){
+                padding: 30px 40px;
+            }
+        }
+    }
+
+    // Color Variants
+
+    // Light Blue
+    &.light-blue {
+        background: $blueLight;
+        color: $blueDark;
+        &.bubble-border {
+            border-color: $blue;
+        }
+        &.bubble-border.dark {
+            border-color: $blueDark;
+        }
+        &.bubble-border.light {
+            border-color: $cerulean;
+        }
+        &.plain { background: none; }
+    }
+
+    // Blue
+    &.blue {
+        background: $blue;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $blue;
+        }
+        &.plain { background: none; color: $gray; }
+    }
+
+    // Dark Blue
+    &.dark-blue {
+        background: $cerulean;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $white;
+        }
+        a {
+            color: $white;
+        }
+    }
+    
+    // Light Teal
+    &.cloud,
+    &.light-teal {
+        background: #F7FFFF;
+        color: $gray;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $darkBlue;
+        }
+        &.bubble-border {
+            border-color: $teal;
+        }
+    }
+
+    // Pale Blue
+    &.pale-blue,
+    &.blue-pale {
+        background: $paleBlue;
+        color: $gray;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $cerulean;
+        }
+        &.bubble-border {
+            border-color: $cerulean;
+        }
+    }
+
+    // Cerulean
+    &.cerulean {
+        background: $ceruleanPale;
+        color: $cerulean;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $cerulean;
+        }
+        &.plain { background: none; }
+    }
+
+    // Special Screen Graph
+    &.results-graph {
+        background: #FBFBFB;
+        color: $teal;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $blue;
+        }
+        &.bubble-border { border-color: $teal; }
+    }
+
+    // Orange
+    &.orange {
+        background: $orange;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $white;
+        }
+    }
+
+    // Raspberry
+    &.raspberry {
+        background: $raspberry;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $white;
+        }
+        a {
+            color: $white;
+        }
+    }
+
+    // Red
+    &.red {
+        background: $pink;
+        color: $gray;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $red;
+        }
+        &.bubble-border {
+            border-color: $red;
+        }
+    }
+
+    // Gray
+    &.gray {
+        background: $grayLight;
+        color: $blue;
+        &.plain { background: none; }
+    }
+
+    // Mint
+    &.mint {
+        background: $mint;
+        color: $gray;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $blueDark;
+        }
+        &.plain { background: none; }
+    }
+
+    // Purple
+    &.purple {
+        background: $lightPurple;
+        color: $gray;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $purple;
+        }
+        &.plain { background: none; }
+        .button { 
+            background-color: $purple; 
+            &:hover {
+                background-color: $blueDark;
+            }
+        }
+    }
+
+}

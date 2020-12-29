@@ -24,6 +24,7 @@ a {
         text-decoration: none;
     } 
 
+    // Styles
     &.plain {
         text-decoration: none;
         &:hover {
@@ -31,11 +32,26 @@ a {
         } 
     }
 
+    &.bubble-link {
+        display: block;
+        text-decoration: none;
+        @include transitions(background-color 150ms ease, color 150ms ease);
+        &:hover {
+            color: $white !important;
+            background-color: $blueDark;
+        }
+    }
+
+    // Colors
     &.cerulean {
         color: $cerulean;
     }
     &.gray {
         color: $grayMedium;
+    }
+    &.dark-gray,
+    &.gray-dark {
+        color: $gray;
     }
     &.red {
         color: $red;
@@ -60,12 +76,16 @@ input[type="button"] {
     background: $blue;
     color: $white;
     font-size: .8em;
+    line-height: 1.4em;
     text-decoration: none;
     text-align: center;
     text-transform: uppercase;
     @include montserrat(700);
     @include transitions(color 100ms ease, background-color 100ms ease);
     
+    &:hover {
+        background-color: $orange;
+    }
 
     // States
     &.active {
@@ -73,6 +93,9 @@ input[type="button"] {
     }
     &.block {
         display: block;
+    }
+    &.bold {
+        font-weight: 900;
     }
 
     // Color Options
@@ -114,13 +137,19 @@ input[type="button"] {
         }
     }
 
-    &.text-orange {
-        color: $orange;
-    }
-
     &.mint {
         color: $blueDark;
         background: $mint;
+        &.active,
+        &:hover {
+            color: $white;
+            background-color: $blueDark;
+        }
+    }
+
+    &.gray {
+        color: $blueDark;
+        background: $grayLight;
         &.active,
         &:hover {
             color: $white;
@@ -139,12 +168,20 @@ input[type="button"] {
         }
     }
 
+    // Color OVerrides   
+    &.text-orange {
+        color: $orange;
+    }
+
     // Sizes
     &.thin {
         padding: 10px 25px; 
     }
     &.large {
         font-size: 15px;
+    }
+    &.wide {
+        padding: 15px 40px; 
     }
     
     // Alternative Buttons
@@ -284,10 +321,20 @@ button.plain {
     text-transform: none;
     font-weight: 600;
 
+    &:hover {
+        background: none;
+        color: $orange;
+    }
+
+    // Styles
     &.caps {
         @extend .caps;
     }
-    
+    &.bold {
+        font-weight: 700;
+    }
+
+    // Colors    
     &.white {
         color: $white;
         &:hover {
@@ -298,6 +345,13 @@ button.plain {
             &:hover {
                 &:after { background: $white; }
             }
+        }
+    }
+
+    &.teal {
+        color: $teal;
+        &:hover {
+            color: $orange;
         }
     }
 
@@ -334,6 +388,7 @@ button.icon {
     }
 }
 
+a.bar,
 button.bar {
     display: inline-block;
     padding: 0;
@@ -353,6 +408,7 @@ button.bar {
         @include transitions(width 150ms ease);
     }
     &:hover {
+        text-decoration: none;
         &:after {
             width: 100%;
         }
@@ -377,200 +433,6 @@ button.bar {
 .round-big-tr { @include radius(60px 0px 60px 60px); }
 .round-big-br { @include radius(60px 60px 0px 60px); }
 .round-big-bl { @include radius(60px 60px 60px 0px); }
-
-/* Bubbles */
-.bubble {
-    background: $teal;
-    color: $white;  
-
-    .inner {
-        padding: 50px;
-        @media only screen and (max-width: 679px){
-            padding: 30px;
-        }
-    }
-
-    // Additional Styles
-    &.bubble-border {
-        border: 1px solid $blueDark;
-    }
-
-    &.short {
-        max-width: 740px;
-    }
-
-    // Size Options
-    &.thin {
-        .inner {
-            padding: 30px;
-        }
-    }
-    &.narrow {
-        .inner {
-            padding: 30px 50px;
-            @media only screen and (max-width: 679px){
-                padding: 30px;
-            }
-        }
-    }
-    &.thick {
-        .inner {
-            padding: 30px 80px;
-            @media only screen and (max-width: 679px){
-                padding: 30px 40px;
-            }
-        }
-    }
-
-    // Color Variants
-    &.light-blue {
-        background: $blueLight;
-        color: $blueDark;
-        &.bubble-border {
-            border-color: $blue;
-        }
-        &.bubble-border.dark {
-            border-color: $blueDark;
-        }
-        &.bubble-border.light {
-            border-color: $cerulean;
-        }
-        &.plain { background: none; }
-    }
-
-    &.blue {
-        background: $blue;
-        color: $white;
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: $blue;
-        }
-        &.plain { background: none; color: $gray; }
-    }
-
-    &.dark-blue {
-        background: $cerulean;
-        color: $white;
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: $white;
-        }
-        a {
-            color: $white;
-        }
-    }
-
-    &.orange {
-        background: $orange;
-        color: $white;
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: $white;
-        }
-    }
-
-    &.raspberry {
-        background: $raspberry;
-        color: $white;
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: $white;
-        }
-        a {
-            color: $white;
-        }
-    }
-
-    &.cloud,
-    &.light-teal {
-        background: #F7FFFF;
-        color: $gray;
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: $darkBlue;
-        }
-        &.bubble-border {
-            border-color: $teal;
-        }
-    }
-
-    &.pale-blue,
-    &.blue-pale {
-        background: $paleBlue;
-        color: $gray;
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: $cerulean;
-        }
-        &.bubble-border {
-            border-color: $cerulean;
-        }
-    }
-
-    &.cerulean {
-        background: $ceruleanPale;
-        color: $cerulean;
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: $cerulean;
-        }
-        &.plain { background: none; }
-    }
-
-    &.gray {
-        background: $grayLight;
-        color: $blue;
-        &.plain { background: none; }
-    }
-
-    &.mint {
-        background: $mint;
-        color: $gray;
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: $blueDark;
-        }
-        &.plain { background: none; }
-    }
-
-    &.purple {
-        background: $lightPurple;
-        color: $gray;
-        h1,
-        h2,
-        h3,
-        h4 {
-            color: $purple;
-        }
-        &.plain { background: none; }
-    }
-
-    // Widths
-    &.width-50 {
-        width: 50%;
-        @media only screen and (max-width: 540px){
-            width: auto;
-        }
-        &.plain { background: none; }
-    }
-    
-}
 
 /* Flourishes */
 
@@ -604,6 +466,10 @@ h2 {
     line-height: 1.15em;
     color: $blue;
     @include montserrat(700);
+    @media only screen and (max-width: 767px){
+        font-size: 2.2em;
+        line-height: 1.15em;
+    }
     
     // Styles
     &.small,
@@ -614,6 +480,10 @@ h2 {
         line-height: 1.15em;
         color: $gray;
         font-weight: 600;
+        @media only screen and (max-width: 767px){
+            font-size: 1.8em;
+            line-height: 1.15em;
+        }
     }
 
     &.bold { font-weight: 700; }
@@ -625,6 +495,21 @@ h2 {
     .text-dark-blue &,
     .dark-blue &,
     &.dark-blue { color: $blueDark; }
+
+    &.bar {
+        margin-bottom: 40px;
+        
+        &:after {
+            content: "";
+            display: block;
+            width: 35%;
+            max-width: 205px;
+            height: 7px;
+            margin-top: 5px;
+            background: $coral; 
+            @include transitions(width 150ms ease);
+        }
+    }
 }
 
 h3 {
@@ -633,6 +518,10 @@ h3 {
 	font-size: 2.075em;
     line-height: 1.15em;
     @include montserrat(700);
+    @media only screen and (max-width: 767px){
+        font-size: 1.8em;
+        line-height: 1.15em;
+    }
 
     &.blue {
         color: $blueDark;
@@ -646,6 +535,10 @@ h4 {
     line-height: 1.15em;
     color: $blueDark;
     @include montserrat(700);
+    @media only screen and (max-width: 767px){
+        font-size: 1.4em;
+        line-height: 1.15em;
+    }
 }
 
 p { 
@@ -656,6 +549,7 @@ p {
 .small { 
     font-size: .85em; 
     line-height: 1.6em; 
+    font-weight: inherit;
 }
 
 .large { 
@@ -675,6 +569,13 @@ em { font-style: italic; }
 
 .bold,
 strong { font-weight: 700; }
+
+.medium { 
+    font-weight: 600;
+    &.wrap {
+        font-weight: inherit;
+    }
+}
 
 .thin { font-weight: 400; }
 
@@ -757,6 +658,20 @@ ul {
             font-weight: 600;
         }
     }
+
+    &.link-list {
+        margin: 1.5em 0 1.5em 30px;
+        li {
+            padding: 0;
+            margin: 0 0 1em 0;
+            list-style-type: none;
+            font-weight: 600;
+            line-height: 1.2em;
+            a {
+                color: $gray;
+            }
+        }
+    }
 }
 
 
@@ -790,15 +705,26 @@ img {
 
 .relative { position: relative; }
 
+img.alignleft,
 img.l, 
 img.left { 
     float: left;
-    margin: 0 10px 10px 0;    
+    margin: 0 20px 1.5em 0;    
 }
+img.alignright,
 img.r, 
 img.right {
     float: right;
-    margin: 0 0 10px 10px; 
+    margin: 0 0 1.5em 20px; 
+}
+img.alignleft,
+img.alignright {
+    @media only screen and (max-width: 580px){
+        display: block;
+        float: none;
+        max-width: 80%;
+        margin: 0 auto 1.5em auto;
+    }
 }
 
 .block { display: block; }

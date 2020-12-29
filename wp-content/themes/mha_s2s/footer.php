@@ -119,6 +119,7 @@
 	<ul id="mobile-menu-footer" class="menu last secondary">
 		<?php if(is_user_logged_in()): ?>						
 			<li class="menu-item"><a href="/my-account">My Account</a></li>
+			<li class="menu-item"><a href="<?php echo wp_logout_url(); ?>">Log Out</a></li>
 		<?php else: ?>						
 			<li class="menu-item"><a href="/my-account">Log In</a></li>
 		<?php endif; ?>

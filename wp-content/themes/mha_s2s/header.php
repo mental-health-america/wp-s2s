@@ -16,6 +16,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&display=swap" rel="stylesheet"> 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"> 
 
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-RVS5DCS9C1"></script>
+<script>
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+
+	gtag('config', 'G-RVS5DCS9C1', {
+		'user_id': '<?php echo get_ipiden().'_'.get_current_user_id(); ?>'
+	});
+</script>
+
 <?php wp_head(); ?>
 </head>
 
@@ -47,6 +59,8 @@
 			<span id="sign-in-container">	
 				<?php if(is_user_logged_in()): ?>						
 					<a class="my-account-link button" href="/my-account">My Account</a>
+					&nbsp;|
+					<a class="my-account-link button" href="<?php echo wp_logout_url(); ?>">Log Out</a>
 				<?php else: ?>						
 					<button id="sign-in-toggle"
 						class="button"

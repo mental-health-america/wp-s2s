@@ -29,7 +29,7 @@ get_header();
 				'relation'	 	=> 'AND',
 				array(
 					'key'		=> 'ipiden',
-					'value'		=> md5($_SERVER['REMOTE_ADDR'])
+					'value'		=> get_ipiden()
 				),
 				array(
 					'key'		=> 'abandoned',

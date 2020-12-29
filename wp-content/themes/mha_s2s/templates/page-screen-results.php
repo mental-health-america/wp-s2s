@@ -106,6 +106,12 @@ get_header();
                 }
                 
             }   
+            
+            // Update total score to be the max possible score if its over
+            $max_score = get_field('overall_max_score', $screen_id);
+            if($total_score >= $max_score){
+                $total_score = $max_score;
+            }
 
         }
         
@@ -121,7 +127,7 @@ get_header();
         
             $min = get_sub_field('score_range_minimum');
             $max = get_sub_field('score_range_max');
-            if($total_score >= $min && $total_score <= $max || $total_score >= $min && !is_numeric($max)){
+            if($total_score >= $min && $total_score <= $max){
                 if(get_sub_field('required_tags')){
                     $req = get_sub_field('required_tags');
                     foreach($req as $t){
@@ -172,7 +178,7 @@ get_header();
                 echo "Total: $total_score<br />";
                 */
                 
-                if($total_score >= $min && $total_score <= $max || $total_score >= $min && !is_numeric($max)){
+                if($total_score >= $min && $total_score <= $max){
                     
                     // Required Tags Check
                     if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
@@ -204,15 +210,15 @@ get_header();
                         </div>
                                     
                         <div id="screen-result-buttons" class="button-grid p-4 pl-5 pr-5">
-                            <button id="screen-about" class="button mint round thin reveal-slide-button" data-reveal="score-interpretation">About your Score: <?php echo $total_score; ?></button>
-                            <button id="screen-email" class="button mint round thin reveal-slide-button" data-reveal="email-results">Email Results</button>
-                            <button id="screen-answers" class="button mint round thin reveal-slide-button" data-reveal="your-answers">Your Answers</button>
+                            <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">About your Score: <?php echo $total_score; ?></button>
+                            <button id="screen-email" class="button mint round thin" type="button" data-toggle="collapse" data-target="#email-results" aria-expanded="false" aria-controls="email-results">Email Results</button>
+                            <button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">Your Answers</button>
                             <a class="button mint round thin" id="screen-take" href="/screening-tools/">Take a Mental Health Test</a>
                         </div>
 
                         <div class="pt-4">
 
-                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4" id="email-results" style="display: none;">
+                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="email-results">
                             <div class="inner small">
                                 <div class="container-fluid">
                                     
@@ -245,7 +251,7 @@ get_header();
                             </div>
                             </div>
 
-                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4" id="your-answers" style="display: none;">
+                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="your-answers">
                             <div class="inner small">
                                 <div class="container-fluid">
                                     <?php echo $your_answers; ?>
@@ -253,7 +259,7 @@ get_header();
                             </div>
                             </div>
                             
-                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4" id="score-interpretation" style="display: none;">
+                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="score-interpretation">
                             <div class="inner small">
                                 <div class="container-fluid">
                                 <h3 class="section-title dark-teal mb-4">Interpretation of Scores</h3>
@@ -287,7 +293,7 @@ get_header();
     <?php endif; ?>
 </div>
 
-<div class="wrap narrow">
+<div class="wrap narrow mb-5">
     <ol class="next-steps">        
         <?php
             // Result based manual steps
@@ -331,8 +337,18 @@ get_header();
             }
         ?>
     </ol>
-
 </div>
+    
+<?php
+    // CTA
+    if( have_rows('global_call_to_actions', 'option') ):
+    while( have_rows('global_call_to_actions', 'option') ) : the_row();      
+        if(!get_sub_field('disabled')){    
+            get_template_part( 'templates/blocks/block', 'text' );        
+        }    
+    endwhile;
+    endif;
+?>
 
 
 <?php

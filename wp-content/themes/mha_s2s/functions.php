@@ -76,7 +76,6 @@ function mha_s2s_scripts() {
 
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
-    //wp_enqueue_style( 'mha_s2s-bootstrap-full-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap.min.css', array(), '4.3.1' ); // Optional Full Bootstrap
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
 	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
@@ -84,13 +83,12 @@ function mha_s2s_scripts() {
 	// wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/print.css', null, '1.0', 'print' );
     
 	// Scripts
-	wp_enqueue_script( 'jquery-ui-core' );
-	wp_enqueue_script( 'jquery-effects-slide' );
 	wp_enqueue_script( 'mha_s2s-skip-link-focus-fix', get_template_directory_uri() . '/assets/js/skip-link-focus-fix.js', array(), '1.0', true );
 	wp_enqueue_script( 'mha_s2s-hover-intent', get_template_directory_uri() . '/assets/js/hoverIntent.js', array(), '0.7', true );
 	wp_enqueue_script( 'mha_s2s-superfish', get_template_directory_uri() . '/assets/js/superfish.min.js', array(), '1.7.10.1', true );
 	wp_enqueue_script( 'mha_s2s-wow', get_template_directory_uri() . '/assets/js/wow.min.js', array(), '1.3', true );
 	wp_enqueue_script( 'mha_s2s-bootstrap-js', get_template_directory_uri() . '/assets/bootstrap/js/bootstrap.bundle.min.js', array(), '4.3.1', true );
+	wp_enqueue_script( 'mha_s2s-chart-js', get_template_directory_uri() . '/assets/js/chart.js', array(), '2.7.2', false );
 
 	// Load the html5 shiv.
 	wp_enqueue_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '3.7.3' );
@@ -197,7 +195,7 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
 	
 	// Legacy IP Identifier
 	if ( $field->label == 'ipiden' ) {
-		$input = '<input name="input_'.$field->id.'" id="input_'.$form_id.'_'.$field->id.'" type="hidden" class="gform_hidden" aria-invalid="false" value="'.md5($_SERVER['REMOTE_ADDR']).'">';
+		$input = '<input name="input_'.$field->id.'" id="input_'.$form_id.'_'.$field->id.'" type="hidden" class="gform_hidden" aria-invalid="false" value="'.get_ipiden().'">';
 	}
 	
     return $input;

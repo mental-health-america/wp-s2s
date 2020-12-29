@@ -36,6 +36,16 @@
 
     <?php the_sub_field('content'); ?>
 
+    <?php if(get_sub_field('button_url')): ?>
+        <?php 
+            if(get_sub_field('button_text')){
+                $button_text = get_sub_field('button_text');
+            } else {
+                $button_text = 'Read More';
+            }
+        ?>
+        <a class="button round wide" href="<?php echo get_sub_field('button_text'); ?>"><?php echo $button_text; ?></a>
+    <?php endif; ?>
     
     <?php
         // Close Wrappers

@@ -295,3 +295,44 @@ function get_articles( $type = null, $search = null, $conditions = null ){
 	return $html;
 	
 }
+
+
+
+// Provider Location Address Conversions
+add_action('acf/save_post', 'update_article', 20);
+function update_article( $post_id ){
+
+    // Only if lat/lng is blank
+    if( !isset($_POST['acf']['field_5fd3efa5c74a5']) || !isset($_POST['acf']['field_5fd3efaac74a6']) ) {
+
+		// get the number of rows in the repeater
+		$count = intval(get_post_meta($post_id, 'location', true));
+
+		// loop through the rows
+		for ($i=0; $i<$count; $i++) {
+
+			// Prep address
+			if(!get_post_meta($post_id, 'location_'.$i.'_latitude', true) || !get_post_meta($post_id, 'location_'.$i.'_longitude', true)){
+
+				$check_address = get_post_meta($post_id, 'location_'.$i.'_address', true);
+
+				// Connect to Google
+				$address_url = urlencode( $check_address );		
+				$handle = curl_init(); 
+				$url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address_url&key=AIzaSyAi7OToMkshpA4zFYbj_MsWh3QOREESaxc";
+				curl_setopt($handle, CURLOPT_URL, $url);
+				curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+				$output = json_decode(curl_exec($handle), true);
+				curl_close($handle);
+				
+				// Update values
+				update_post_meta($post_id, 'location_'.$i.'_latitude', sanitize_text_field($output['results'][0]['geometry']['location']['lat']));
+				update_post_meta($post_id, 'location_'.$i.'_longitude', sanitize_text_field($output['results'][0]['geometry']['location']['lng']));
+			}
+
+		}
+		
+    }
+
+}
+
