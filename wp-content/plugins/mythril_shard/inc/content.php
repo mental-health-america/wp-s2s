@@ -103,7 +103,6 @@ function mha_popular_articles( $atts ) {
 add_shortcode('mha_popular_articles', 'mha_popular_articles'); 
 
 
-
 /**
  * Shortcode - Conditions
  * Display all conditions in a simple text list
@@ -183,7 +182,7 @@ add_shortcode('mha_show_tests', 'mha_show_tests');
  * Filter Bubble Query
  */
 
-function connectArticlesAjax(){
+function getArticlesAjax(){
 	
 	// General variables
     $result = array();
@@ -191,53 +190,103 @@ function connectArticlesAjax(){
 	// Make serialized data readable
 	parse_str($_POST['data'], $data);
 
-	// SSearch Content
+	// Article Type
+	$type = sanitize_text_field($data['type']);
+
+	// Search Content
 	$search = null;
 	if($data['search'] != ''){
 		$search = sanitize_text_field($data['search']);
 	}
 
-	// Conditions Content
+	// Additional Filters
+	$filters = [];	
 	$conditions = '';
+
+	// Conditions Content
 	if(isset($data['condition'])){
 		$conditions = [];
 		foreach($data['condition'] as $c){
 			$conditions[] = intval($c);
 		}	
 	}
-	echo get_articles('connect', $search, $conditions);
+
+	// Meta Query Filters
+	if(isset($data['service_type'])){
+		foreach($data['service_type'] as $k => $v){
+			$filters['service_type'][$k][] = sanitize_text_field($v);
+		}	
+	}
+	if(isset($data['area_served'])){
+		foreach($data['area_served'] as $k => $v){
+			$filters['area_served'][$k][] = sanitize_text_field($v);
+		}	
+	}
+	if(isset($data['treatment_type'])){
+		foreach($data['treatment_type'] as $k => $v){
+			$filters['treatment_type'][$k][] = sanitize_text_field($v);
+		}	
+	}
+	if(isset($data['diy_issue'])){
+		foreach($data['diy_issue'] as $k => $v){
+			$filters['diy_issue'][$k][] = sanitize_text_field($v);
+		}	
+	}
+	if(isset($data['diy_type'])){
+		foreach($data['diy_type'] as $k => $v){
+			$filters['diy_type'][$k] = sanitize_text_field($v);
+		}	
+	}
+
+	// Ordering
+	$order = '';
+	$orderby = '';
+	if(isset($data['order'])){
+		$order = sanitize_text_field($data['order']);
+	}
+	if(isset($data['orderby'])){
+		$orderby = sanitize_text_field($data['orderby']);
+	}
+
+	echo get_articles($type, $search, $conditions, $filters, $order, $orderby);
 	exit();
 
 }
-add_action("wp_ajax_nopriv_connectArticlesAjaxx", "connectArticlesAjax");
-add_action("wp_ajax_connectArticlesAjax", "connectArticlesAjax");
+add_action("wp_ajax_nopriv_getArticlesAjax", "getArticlesAjax");
+add_action("wp_ajax_getArticlesAjax", "getArticlesAjax");
 
 
-function get_articles( $type = null, $search = null, $conditions = null ){
+function get_articles( $type = null, $search = null, $conditions = null, $filters = null , $order = 'DESC' , $orderby = 'featured' ){
 	
 	$html = '';
-
     $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
 	$args = array(
 		"post_type"      => 'article',
-		"orderby"        => 'title',
-		"order"	         => 'DESC',
+		"orderby"        => $orderby,
+		"order"	         => $order,
 		"post_status"    => 'publish',
         "paged" 		 => $paged,
 		"posts_per_page" => 15,
 		"meta_query"	 => array(
 			array(
 				'key'	 	=> 'type',
-				'value'	  	=> sanitize_text_field($type),
+				'value'	  	=> $type,
 				'compare'   => 'LIKE'
 			)
 		)
 	);
 
+	if($orderby == 'featured'){
+		$args['orderby'] = 'meta_value';
+		$args['meta_key'] = 'featured';
+	}
+
+	// Free Text Search
 	if($search){
 		$args['s'] = sanitize_text_field($search);
 	}
 
+	// Conditions Taxonomy
 	if($conditions){
 		$args['tax_query'] = array(
 			array(
@@ -246,6 +295,31 @@ function get_articles( $type = null, $search = null, $conditions = null ){
 				'terms'    => $conditions,
 			)
 		);
+	}
+
+	// Additional meta filters
+	if($filters){
+		$args['meta_query']['relation'] = 'AND';
+		foreach($filters as $k => $v){
+
+			$values = '';
+			if(count($v) > 1){
+				$values = array();
+				foreach($v as $value){
+					array_push($values, $value);
+				}
+				$compare = 'LIKE';
+			} else {
+				$values = $v[0][0];
+				$compare = 'LIKE';
+			}
+
+			$args['meta_query'][] = array(
+				'key'	 	=> $k,
+				'value'	  	=> $values,
+				'compare' 	=> $compare
+			);
+		}
 	}
 
 	$loop = new WP_Query($args);
@@ -261,7 +335,44 @@ function get_articles( $type = null, $search = null, $conditions = null ){
 				$html .= '<span class="title-image image block"><strong class="text-red caps">'.get_the_title().'</strong></span>';
 				$html .= '<span class="inner-text block">';
 			}
-			$html .= '<span class="text-gray excerpt block pb-5">'.get_the_excerpt().'</span>'; 
+
+			// Custom Excerpts
+			switch($type){
+
+				case 'provider':	
+					
+					// Location
+					$location = get_field('area_served');
+					$location_display = '';
+					foreach($location as $loc){
+						if($loc == 'local'){
+
+						} else {
+							$location_display = ucfirst($loc);
+						}
+					}
+
+					// Services
+					$services_check = get_field('service_type');	
+					$services = [];
+					if($services_check){						
+						foreach($services_check as $service){
+							$services[] = $service['label'];
+						}
+					}
+					$html .= '<span class="text-gray excerpt block pb-5">';
+					$html .= '<span class="excerpt-text block mb-3">'.short_excerpt().'</span>';
+					$html .= '<span class="block mb-3"><strong>Location:</strong> '.$location_display.'</span>'; 
+					$html .= '<strong>Service Type:</strong> '.implode(', ',$services); 
+					$html .= '</span>'; 
+					break;
+
+				default:
+					$html .= '<span class="text-gray excerpt block pb-5">'.short_excerpt().'</span>'; 
+					break;
+
+			}
+
 			$html .= '<strong class="text-red caps block learn-more">Learn More</strong>';
 			$html .= '<div style="display:none"></div>';
 			$html .= '</span>';
@@ -336,3 +447,36 @@ function update_article( $post_id ){
 
 }
 
+function attach_remote_image_to_post($image_url, $parent_id, $alt = ''){
+
+    $image = $image_url;
+
+    $get = wp_remote_get( $image );
+
+    $type = wp_remote_retrieve_header( $get, 'content-type' );
+
+    if (!$type) {
+		return false;
+	}
+
+    $mirror = wp_upload_bits( basename( $image ), '', wp_remote_retrieve_body( $get ) );
+
+    $attachment = array(
+        'post_title'=> basename( $image ),
+        'post_mime_type' => $type
+    );
+
+    $attach_id = wp_insert_attachment( $attachment, $mirror['file'], $parent_id );
+
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
+
+    $attach_data = wp_generate_attachment_metadata( $attach_id, $mirror['file'] );
+
+	wp_update_attachment_metadata( $attach_id, $attach_data );
+	if($alt){
+		update_post_meta($attach_id, '_wp_attachment_image_alt', $alt);
+	}
+
+    return $attach_id;
+
+}

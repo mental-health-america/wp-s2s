@@ -57,7 +57,7 @@ function short_excerpt($limit = 50, $separator = '...') {
         $excerpt = implode(" ",$excerpt);
     }   
     $excerpt = preg_replace('`\[[^\]]*\]`','',$excerpt);
-    echo $excerpt;
+    return $excerpt;
 }
 
 

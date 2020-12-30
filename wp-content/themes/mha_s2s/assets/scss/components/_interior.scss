@@ -80,8 +80,17 @@
         }
     }
 
-    // Articles
+}
 
+// Articles
+.mce-content-body,
+.type-article .page-content {
+    h2 {
+        margin: 0 0 .75em 0;
+        color: $gray;
+        font-size: 1.3em;
+        line-height: 1.3em;
+    }
 }
 
 
@@ -581,7 +590,7 @@ button.icon.like-button {
     @include transitions(opacity 250ms ease);
 
     &.loading {
-        opacity: .5;
+        opacity: .25;
     }
 
     .filter-bubble {
@@ -609,10 +618,11 @@ button.icon.like-button {
         box-shadow: 0 3px 5px #EDEDED;
         transform: scale(1);
 
-        @include transitions(transform 150ms ease);
+        @include transitions(transform 150ms ease, box-shadow 150ms ease);
 
         &:hover {
             transform: scale(1.05);
+            box-shadow: 0 0px 3px $grayMedium;
         }
 
         .inner-text {
@@ -647,28 +657,38 @@ button.icon.like-button {
         }
 
         .title-image {
+            display: table;
+            width: 100%;
             font-size: 1.6em;
             line-height: 1.2em;
-            padding: 30px;
             height: 160px;
             overflow: hidden;
             @media only screen and (max-width: 540px){
                 height: 120px;
-                padding: 15px;
                 font-size: 1.2em;
                 line-height: 1.2em;
+            }
+            strong {
+                display: table-cell;
+                vertical-align: middle;
+                padding: 30px;
+                @media only screen and (max-width: 540px){
+                    padding: 15px;
+                }
             }
         }
 
     }    
 
     .pagination {
-        flex: 1 1 100%;
+        display: block;
+        width: 100%;
         position: relative;
         
         .page-numbers { display: none; }
 
         a.next {
+            display: block;
             float: right;
             @extend .button;
             @extend .round-tl;
@@ -678,10 +698,28 @@ button.icon.like-button {
             }
         }
         a.prev {
+            display: block;
             float: left;
             @extend .button;
             @extend .round-tr;
             background-color: $grayLight;
+        }
+    }
+}
+
+
+.navigation.pagination {
+    text-align: center;
+    width: 100%;
+    .nav-links {
+        display: block;
+        width: 100%;
+        span,
+        a {
+            display: inline-block;
+            padding: 5px;
+            @include montserrat(700);
+            color: $blue;
         }
     }
 }

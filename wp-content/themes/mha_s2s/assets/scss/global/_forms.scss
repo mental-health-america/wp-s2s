@@ -95,6 +95,7 @@ label {
             @include montserrat(600);
         }
 
+        textarea,
         input {
             border: 0;
             padding: 5px 0;
@@ -292,6 +293,7 @@ label {
             .gfield_checkbox label {
                 color: $gray;
             }
+            textarea,
             input {
                 color: $blue;
                 border-bottom: 4px solid $blue;

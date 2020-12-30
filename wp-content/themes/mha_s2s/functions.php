@@ -210,6 +210,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'usid';
     $qvars[] = 'login_error';
     $qvars[] = 'pathway';
+    $qvars[] = 'filter_order';
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );
@@ -401,3 +402,58 @@ return $query;
 }
  
 add_filter('pre_get_posts','searchfilter');
+
+
+/**
+ * Custom Admin Columns
+ */
+// Column Set
+add_filter( 'manage_article_posts_columns', 'mha_s2s_filter_posts_columns' );
+function mha_s2s_filter_posts_columns( $columns ) {
+	$columns['type'] = __( 'Type' );
+	return $columns;
+}
+
+// Column Content
+add_action( 'manage_article_posts_custom_column', 'mha_s2s_realestate_column', 10, 2);
+function mha_s2s_realestate_column( $column, $post_id ) {
+
+	// Article Type
+	if ( 'type' === $column ) {
+		$types = get_field('type', $post_id);
+		$type_string = ucfirst( implode(', ', $types) );
+		echo str_replace('Diy','DIY', $type_string);
+	}
+	
+}
+
+// Column Order
+/*
+add_filter( 'manage_article_posts_columns', 'mha_s2s_realestate_columns' );
+function mha_s2s_realestate_columns( $columns ) {  
+	$columns = array(
+		'cb' => $columns['cb'],
+		'title' => __( 'Title' ),
+		'type' => __( 'Type' ),
+	);
+ 	 return $columns;
+}
+*/
+
+// Column orderby
+add_filter( 'manage_edit-article_sortable_columns', 'mha_s2s_article_sortable_columns');
+function mha_s2s_article_sortable_columns( $columns ) {
+	$columns['type'] = 'type';
+	return $columns;
+}
+
+add_action( 'pre_get_posts', 'mha_s2s_posts_orderby' );
+function mha_s2s_posts_orderby( $query ) {
+	if( ! is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+	if ( 'type' === $query->get( 'orderby') ) {
+		$query->set( 'orderby', 'meta_value' );
+		$query->set( 'meta_key', 'type' );
+	}
+}

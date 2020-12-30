@@ -18,7 +18,9 @@ get_header();
 
     <div id="filters-container">
 
-        <div id="filters">
+        <?php get_template_part( 'templates/blocks/filter-order' ); ?>
+        
+        <div id="filters" class="clear">
         <div class="inner">
 
             <button id="filter-toggle" class="bold text-gray caps accordion-button mb-4" type="button" data-toggle="collapse" data-target="#connect-filter" aria-expanded="true" aria-controls="connect-filter">Filters</button>
@@ -36,7 +38,7 @@ get_header();
                         // Condition Filters
                         $query = get_terms(array(
                             'taxonomy' => 'condition',
-                            'hide_empty' => false,
+                            'hide_empty' => true,
                             'parent' => 0
                         ));
                         
@@ -55,6 +57,7 @@ get_header();
                     ?>
                 </div>
 
+                <input type="hidden" name="type" value="connect" />
                 <button class="button red round block thin mt-4" style="width: 100%;">Search</button>
 
             </form>

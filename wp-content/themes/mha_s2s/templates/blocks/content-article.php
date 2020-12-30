@@ -54,7 +54,7 @@ if($type == 'article'){
                 <aside class="article-right col-12 col-md-4 pl-0 pr-0 pl-md-5">
 
                     <?php 
-                    $terms_conditions = get_the_terms( $article_id, 'condition');
+                    $terms_conditions = get_the_terms( $article_id, 'condition', );
                     if(count(array_intersect($article_type, $resources)) > 0){
                         $categoryColor = 'raspberry';
                     } else {
@@ -70,8 +70,10 @@ if($type == 'article'){
                                 $article_terms = [];
                                 echo '<ol class="plain ml-5 mb-0">'; 
                                 foreach($terms_conditions as $c){
-                                    echo '<li><a class="plain bold caps" href="'.get_term_link($c->term_id).'">'.$c->name.'</a></li>';
-                                    $article_terms[] = $c->term_id; // Used later
+                                    if ($c->parent == 0){
+                                        echo '<li><a class="plain bold caps" href="'.get_term_link($c->term_id).'">'.$c->name.'</a></li>';
+                                        $article_terms[] = $c->term_id; // Used later
+                                    }
                                 }
                                 echo '</ol>';
                             ?>

@@ -241,6 +241,9 @@
             margin: 0;
             padding: 0;
             list-style-type: none;
+            &.wide {
+                display: block;
+            }
             a {
                 display: block;
                 position: relative;
@@ -279,7 +282,7 @@
             }
         }
 
-        // Dropdowns Essential Styles - Remove if unused
+        // Dropdowns Essential Styles
         &.sf-menu li {
             position: relative;
         }
@@ -295,6 +298,21 @@
             background: $white;
             box-shadow: 0px 0px 20px rgba(0,0,0,.15);
             @extend .round-tl;
+
+            // Second Level Links
+            li {
+                font-weight: 400;
+                &.bold {
+                    font-weight: 700;
+                }
+                a {
+                    padding: 10px 15px;
+                    @include transitions(color 150ms ease);
+                    &:hover {
+                        color: $orange;
+                    }
+                }
+            }
         }
         &.sf-menu > li {
             float: left;

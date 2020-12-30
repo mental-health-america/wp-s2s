@@ -31,6 +31,9 @@
 		// Search Toggle
 		$('#search-toggle').on('click', function(event){
 			event.preventDefault();
+
+			$("input#mha-search-form").focus();
+
 			$(this).attr('aria-expanded', function (i, attr) {
 				return attr == 'true' ? 'false' : 'true'
 			});

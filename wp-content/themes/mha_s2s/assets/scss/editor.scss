@@ -2,6 +2,9 @@
  * Custom styles for the WP editor
  **/
 
+// Start with vendor styles to be used later
+@import 'vendor/bootstrap';
+
 // General Stuff
 @import 'global/variables';
 @import 'global/mixins';
@@ -9,6 +12,12 @@
 
 // Content
 @import 'global/styles';
+@import 'components/accessibility';
+@import 'global/styles';
+@import 'global/bubbles';
+@import 'global/forms';
+@import 'components/interior';
+@import 'components/articles';
 
 body {
     &.mce-content-body {
@@ -16,7 +25,12 @@ body {
         font-size: 16px;
         line-height: 27px;
         background: $white;
-        color: $black;
+        color: $gray;
         margin: 30px;
+        @include noto(400);
     }
+}
+
+a {
+    font-weight: 700;
 }

@@ -18,14 +18,16 @@ get_header();
 
     <div id="filters-container">
 
-        <div id="filters">
+        <?php get_template_part( 'templates/blocks/filter-order' ); ?>
+
+        <div id="filters" class="clear">
         <div class="inner">
 
             <button id="filter-toggle" class="bold text-gray caps accordion-button mb-4" type="button" data-toggle="collapse" data-target="#provider-filter" aria-expanded="true" aria-controls="provider-filter">Filters</button>
 
             <form action="#" method="POST" id="provider-filter" class="search-filters form-container collapse show">
 
-                <a href="/connect" class="right plain pt-1 red small bold">Clear All</a>
+                <a href="/get-help" class="right plain pt-1 red small bold">Clear All</a>
                 <p class="bold text-dark-blue caps nb-3 intro-label">Filters</p>
 
                 <p><input type="text" name="search" class="gray" placeholder="Search" /></p>
@@ -37,8 +39,8 @@ get_header();
                         if( $area_served['choices'] ): ?>
                             <?php foreach( $area_served['choices'] as $value => $label ): ?>
                                 <div class="form-item">
-                                    <input id="condition-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="area_served[]" />
-                                    <label for="condition-<?php echo $value; ?>"><?php echo $label; ?></label>
+                                    <input id="area-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="area_served[]" />
+                                    <label for="area-<?php echo $value; ?>"><?php echo $label; ?></label>
                                 </div>
                             <?php endforeach; ?>
                         <?php 
@@ -53,8 +55,8 @@ get_header();
                         if( $treatment_type['choices'] ): ?>
                             <?php foreach( $treatment_type['choices'] as $value => $label ): ?>
                                 <div class="form-item">
-                                    <input id="condition-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="service_type[]" />
-                                    <label for="condition-<?php echo $value; ?>"><?php echo $label; ?></label>
+                                    <input id="service-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="service_type[]" />
+                                    <label for="service-<?php echo $value; ?>"><?php echo $label; ?></label>
                                 </div>
                             <?php endforeach; ?>
                         <?php 
@@ -62,6 +64,7 @@ get_header();
                     ?>
                 </div>
 
+                <input type="hidden" name="type" value="provider" />
                 <button class="button red round block thin mt-4" style="width: 100%;">Search</button>
 
             </form>
