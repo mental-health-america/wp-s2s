@@ -33,9 +33,10 @@ get_header();
 
 
 		// Reading Path
-		$more_links = get_field('more_links');
+		$resources = array('diy','connect','treatment','provider');
+		$article_type = get_field('type');
 
-		if(get_query_var('pathway') || have_rows('more_links')):
+		if(get_query_var('pathway') || have_rows('more_links') && count(array_intersect($article_type, $resources)) == 0):
 
 			$path_id = get_query_var('pathway');
 			$current = get_the_ID();
@@ -56,16 +57,23 @@ get_header();
 					}
 				}
 			}
+
+			$bubble_color = 'cerulean';
+			$button_color = 'cerulean';
+			if(count(array_intersect($article_type, $resources)) > 0){ 
+				$bubble_color = 'red';
+				$button_color = 'red';
+			}
 			?>  
 				<div class="wrap normal">
 
 					<?php if($next_id): ?>
 					<p class="text-right mt-3 pt-3 mb-5">
-						<a class="button round-small-tl cerulean next" href="<?php echo add_query_arg('pathway', $path_id, get_the_permalink($next_id)); ?>">Next Article</a>
+						<a class="button round-small-tl <?php echo $button_color; ?> next" href="<?php echo add_query_arg('pathway', $path_id, get_the_permalink($next_id)); ?>">Next Article</a>
 					</p>
 					<?php endif; ?>
 
-					<div class="bubble round-tl cerulean mb-5 bubble-border path-container">
+					<div class="bubble round-tl <?php echo $bubble_color; ?> mb-5 bubble-border path-container">
 					<div class="inner">
 
 						<?php if($path_id): ?>
@@ -81,7 +89,7 @@ get_header();
 										if($current == $article){
 											$current_class = ' current';
 										}
-										echo '<li class="path-item"><a class="button round thin cerulean block'.$current_class.'" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'">'.get_the_title($article).'</a></li>';
+										echo '<li class="path-item"><a class="button round thin '.$button_color.' block'.$current_class.'" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'">'.get_the_title($article).'</a></li>';
 										$counter++;
 										if($counter < $max){
 											echo '<li class="path-spacer"></li>';
@@ -104,7 +112,7 @@ get_header();
 								while( have_rows('more_links', $current) ) : the_row();
 
 									$page = get_sub_field('page');
-									echo '<a class="button cerulean thin round blue mr-3 mb-3" href="'.get_the_permalink($page).'">';
+									echo '<a class="button '.$button_color.' thin round mr-3 mb-3" href="'.get_the_permalink($page).'">';
 										if(get_sub_field('custom_title')){
 											the_sub_field('custom_title');
 										} else {

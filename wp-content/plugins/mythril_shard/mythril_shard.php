@@ -23,4 +23,7 @@ include_once 'inc/plugin-overrides.php';
 // Content Specific Functions
 include_once 'inc/content.php';
 
+// Content Specific Functions
+include_once 'inc/widgets.php';
+
 ?>

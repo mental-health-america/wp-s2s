@@ -32,8 +32,9 @@ function mha_popular_articles( $atts ) {
 
 	$html = '';
 	$tag = $atts['tag'];
+	$tax = $atts['tax'];
 	$style = $atts['style'];
-
+	$month_range = date('Ym').','.date('Ym', strtotime("-1 months")).','.date('Ym', strtotime("-2 months")); // Last 3 months
 	
 	if($tag){	
 		// Add a tag to the mix	
@@ -47,7 +48,14 @@ function mha_popular_articles( $atts ) {
 			INNER JOIN '.$wpdb->prefix.'term_relationships AS meta
 			ON posts.ID = meta.object_id AND meta.term_taxonomy_id = "'.$tag.'"	
 
-			WHERE posts.post_status LIKE "publish" AND posts.post_type LIKE "article"
+			INNER JOIN '.$wpdb->prefix.'postmeta AS postmeta
+			ON posts.ID = postmeta.post_id
+
+			WHERE posts.post_status LIKE "publish" 
+			AND posts.post_type LIKE "article"		
+			AND postview.period IN ('.$month_range.') 
+			AND postmeta.meta_value LIKE "condition"
+
 			GROUP BY posts.ID
 			ORDER BY total DESC
 			LIMIT 8'
@@ -55,11 +63,20 @@ function mha_popular_articles( $atts ) {
 	} else {
 		// All articles
 		$articles = $wpdb->get_results('
-			SELECT DISTINCT posts.ID, postview.id, COUNT(postview.count) as total
+			SELECT DISTINCT posts.ID, postview.id, postmeta.post_id, COUNT(postview.count) as total
 			FROM '.$wpdb->prefix.'posts AS posts
+
 			INNER JOIN '.$wpdb->prefix.'post_views AS postview
 			ON posts.ID = postview.id
-			WHERE posts.post_status LIKE "publish" AND posts.post_type LIKE "article"
+
+			INNER JOIN '.$wpdb->prefix.'postmeta AS postmeta
+			ON posts.ID = postmeta.post_id
+
+			WHERE posts.post_status LIKE "publish"
+			AND posts.post_type LIKE "article" 
+			AND postview.period IN ('.$month_range.') 
+			AND postmeta.meta_value LIKE "condition"
+
 			GROUP BY posts.ID
 			ORDER BY total DESC
 			LIMIT 8'
@@ -77,6 +94,7 @@ function mha_popular_articles( $atts ) {
 		}
 		
 		foreach($articles as $a){
+			
 			$item_link = '<a class="plain gray" href="'.get_the_permalink($a->ID).'">'.get_the_title($a->ID).'</a>';
 
 			if($style == 'inline'){

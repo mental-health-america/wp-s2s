@@ -10,6 +10,7 @@
  * @version 1.0
  */
 
+ // General vars
 $type = get_post_type();
 $customClasses = '';
 $customContentClasses = '';
@@ -17,11 +18,16 @@ $article_id = get_the_ID();
 $resources = array('diy','connect','treatment','provider');
 $article_type = get_field('type');
 
-if($type == 'article'){
-    if(count(array_intersect($article_type, $resources)) > 0){
-        $customClasses = ' red';
-        $customContentClasses = ' content-red';
-	}
+// Related content triggers
+$article_conditions = [];
+$article_diy_issue = get_field('diy_type');
+$article_treatment_type = get_field('treatment_type');
+$article_service_type = get_field('service_type');
+
+// Custom styling for resources
+if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
+    $customClasses = ' red';
+    $customContentClasses = ' content-red';
 }
 
 ?>
@@ -122,12 +128,11 @@ if($type == 'article'){
                             <h4>Categories</h4>
                             <p class="mb-2">Tags associated with this article:</p>
                             <?php 
-                                $article_terms = [];
                                 echo '<ol class="plain ml-5 mb-0">'; 
                                 foreach($terms_conditions as $c){
                                     if ($c->parent == 0){
                                         echo '<li><a class="plain bold caps" href="'.get_term_link($c->term_id).'">'.$c->name.'</a></li>';
-                                        $article_terms[] = $c->term_id; // Used later
+                                        $article_conditions[] = $c->term_id; // Used later for related content 
                                     }
                                 }
                                 echo '</ol>';
@@ -193,7 +198,7 @@ if($type == 'article'){
                                             'taxonomy'          => 'condition',
                                             'include_children'  => false,
                                             'field'             => 'term_id',
-                                            'terms'             => $article_terms
+                                            'terms'             => $article_conditions
                                         ),
                                     )
                                 );
@@ -218,9 +223,74 @@ if($type == 'article'){
 
                     ?>
 
+                    <?php
+                        /**
+                         * Related Articles
+                         */
+                        if(count(array_intersect($article_type, $resources)) > 0){   
+                            
+                            $more_links = get_field('more_links');
+                            $args = array(
+                                "post_type"      => 'article',
+                                "orderby"        => 'rand',
+                                "post_status"    => 'publish',
+                                "posts_per_page" => 5,
+                                'tax_query'      => array(
+                                    array(
+                                        'taxonomy'          => 'condition',
+                                        'include_children'  => false,
+                                        'field'             => 'term_id',
+                                        'terms'             => $article_conditions
+                                    ),
+                                )
+                            );
+                            $loop = new WP_Query($args);
+                            
+
+                            if($loop->have_posts() || $more_links):                     
+                            ?>
+
+                                <div class="bubble coral thin round-big-tl mb-4">
+                                <div class="inner">
+                                    <h4>Related Articles</h4>
+                                    <?php 
+                                        echo '<ol class="plain ml-5 mb-0">';                                             
+
+                                            // Manual Related Links
+                                            if( have_rows('more_links') ):
+                                            while( have_rows('more_links') ) : the_row();                                        
+                                                $page = get_sub_field('page');
+                                                echo '<li><a class="plain white bold caps" href="'.get_the_permalink($page).'">';
+                                                    if(get_sub_field('custom_title')){
+                                                        the_sub_field('custom_title');
+                                                    } else {
+                                                        echo get_the_title($page);
+                                                    }
+                                                echo '</a></li>';
+                                            endwhile;
+                                            endif;
+
+                                            // Automatic Related
+                                            while($loop->have_posts()) : $loop->the_post();
+                                                echo '<li><a class="plain white bold caps" href="'.get_the_permalink().'">'.get_the_title().'</a></li>';
+                                            endwhile;
+
+                                        echo '</ol>';
+                                    ?>
+                                </div>
+                                </div>
+
+                            <?php
+                            endif;
+                            wp_reset_query();
+                        }
+                    ?>
+
                     <div class="article-actions">
                         <?php 
-                            // Like
+                            /**
+                             * Article actions
+                             */
                             $uid = get_current_user_id();
                             $like_class = '';
                             $like_check = checkArticleLikes( $article_id, $uid );

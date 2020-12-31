@@ -207,12 +207,15 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
  * Allowed additional query vars
  */
 function mha_s2s_query_vars( $qvars ) {
-    $qvars[] = 'sid';
-    $qvars[] = 'usid';
-    $qvars[] = 'ref';
-    $qvars[] = 'login_error';
-    $qvars[] = 'pathway';
-    $qvars[] = 'filter_order';
+    $qvars[] = 'sid'; // Test/Screen var
+    $qvars[] = 'usid'; // Test/Screen var
+    $qvars[] = 'search'; // Archive page search
+    $qvars[] = 'search_tag'; // Archive page search
+    $qvars[] = 'search_term'; // Archive page search
+    $qvars[] = 'ref'; // Archive referral links for breadcrumbs
+    $qvars[] = 'login_error'; // User log in error
+    $qvars[] = 'pathway'; // Articl reading paths
+    $qvars[] = 'filter_order'; // Filter ordering pages
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );
@@ -459,3 +462,46 @@ function mha_s2s_posts_orderby( $query ) {
 		$query->set( 'meta_key', 'type' );
 	}
 }
+
+
+/**
+ * Include custom post types in tag pages
+ */
+function wpa82763_custom_type_in_categories( $query ) {
+    if ( $query->is_main_query()
+    && ( $query->is_category() || $query->is_tag() ) ) {
+        $query->set( 'post_type', array( 'page','article','screen','thought_activity' ) );
+    }
+}
+add_action( 'pre_get_posts', 'wpa82763_custom_type_in_categories' );
+
+
+/**
+ * Filter condition and tag pages to only the proper articles
+ */
+function archive_meta_query( $query ) {
+    if ( $query->is_archive ){
+
+		// Limit to just articles tagged condition
+		$query->query_vars["meta_key"] = 'type';
+		$query->query_vars["meta_value"] = 'condition';
+
+		// Filter - Keyword
+		if(get_query_var('search')){
+			$query->query_vars["s"] = get_query_var('search');
+		}
+		// Anchor tags to search for condition pages
+		if(get_query_var('search_tax') && get_query_var('search_term')){
+			$taxquery = array(
+				array(
+					'taxonomy' => 'post_tag',
+					'field' => 'id',
+					'terms' => get_query_var('search_term')
+				)
+			);		
+			$query->query_vars["tax_query"] = $taxquery;			
+		}
+
+    }
+}
+add_action( 'pre_get_posts', 'archive_meta_query', 1 );

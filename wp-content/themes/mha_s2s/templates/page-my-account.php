@@ -407,7 +407,7 @@ get_header();
             $liked_articles = [];
             $liked_resources = [];
             $resources = array('diy','connect','treatment','provider');
-            $likes = $wpdb->get_results("SELECT pid FROM article_likes WHERE uid = $uid AND unliked = 0");	
+            $likes = $wpdb->get_results("SELECT pid FROM article_likes WHERE uid = $uid AND unliked = 0 ORDER BY id DESC");	
 
             foreach($likes as $like){
                 $article_type = get_field('type', $like->pid);                    

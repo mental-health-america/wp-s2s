@@ -102,6 +102,13 @@
 // Articles
 .mce-content-body,
 .type-article .page-content {
+    a {
+        font-weight: 700;
+        @include transitions(color 100ms ease);
+        &:hover {
+            color: $orange;
+        }
+    }
     h2 {
         margin: 0 0 .75em 0;
         color: $gray;
@@ -163,15 +170,15 @@
             h1 { color: $red; }
             #breadcrumbs,
             #breadcrumbs .crumb {
-                color: $red;
+                color: $raz;
                 &:after {
-                    color: $red;
+                    color: $raz;
                 }
             }
             #breadcrumbs a.crumb:hover {
                 color: $blueDark;
                 &:after {
-                    color: $red;
+                    color: $raz;
                 }
             }
         }

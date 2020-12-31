@@ -49,9 +49,6 @@ function acf_field_array_conversion( $string ){
         } else {
             //echo 'Skipped<br />';;
         }
-
-        
-        
     endwhile;
 
 

@@ -7,9 +7,11 @@
 .form-item.pre-seed {
     button {
         margin: 0 5px 10px 0;
+        padding-left: 20px;
+        padding-right: 20px;
         &:hover {
-            background-color: $blueLight;
-            color: $blueDark;
+            background-color: $orange;
+            color: $white;
         }
     }
 }

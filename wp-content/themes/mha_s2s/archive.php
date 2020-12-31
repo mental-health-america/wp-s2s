@@ -5,6 +5,9 @@
 
 get_header();
 $term = get_queried_object();
+$search_query = get_query_var('search');
+$search_tax = get_query_var('search_tax');
+$search_term = get_query_var('search_term');
 wp_reset_query();
 ?>
 
@@ -12,16 +15,14 @@ wp_reset_query();
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
 	<div class="page-heading bar<?php echo $customClasses; ?>">	
-	<div class="wrap normal">		
-		
+	<div class="wrap normal">	
 		<?php
 			if(get_field('custom_title', $term)){
 				echo '<h1 class="page-title">'.get_field('custom_title', $term).'</h1>';
 			} else {
 				the_archive_title( '<h1 class="page-title">', '</h1>' ); 
 			}
-		?>
-		
+		?>		
 	</div>
 	</div>
 
@@ -36,13 +37,15 @@ wp_reset_query();
 
 				<div class="bubble cerulean round-bl mb-5">
 				<div class="inner">
-					<form role="search" method="get" id="searchform" action="<?php echo site_url(); ?>" class="form-container line-form blue">
+                	<form method="GET" action="<?php echo get_term_link($term); ?>" class="form-container line-form blue">
 						<div class="container-fluid">
 						<div class="row">
 							<div class="col-8">
-								<p class="mb-0 wide block"><input id="search-archive" name="s" value="" placeholder="Enter search terms here" type="text" /></p>
+								<p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Enter search terms here" type="text" /></p>
 							</div>
 							<div class="col-4">
+								<input type="hidden" name="search_tag" value="<?php echo $term->term_id; ?>" />
+								<input type="hidden" name="search_taxonomy" value="<?php echo $term->taxonomy; ?>" />
 								<p class="mb-0 wide block"><input type="submit" class="button gform_button white block" value="Search" /></p>
 							</div>
 						</div>
@@ -52,16 +55,18 @@ wp_reset_query();
 				</div>
 
 
-				<?php
+				<?php					
 					if ( have_posts() ) :	
+						$resources = array('condition');
 						echo '<ol class="plain mb-0">';
-						while ( have_posts() ) : the_post();
-						
+						while ( have_posts() ) : the_post();						
 							$type = get_field('type');
+							
+							$article_type = get_field('type');
 						?>
 
 							<li class="mb-4">
-								<p class="mb-0">									
+								<p class="mb-2">									
 									<a class="dark-gray plain" href="<?php echo add_query_arg('ref',$term->term_id, get_the_permalink()); ?>"><?php the_title(); ?></a>
 								</p>
 								<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>

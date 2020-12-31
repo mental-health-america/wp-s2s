@@ -205,6 +205,24 @@
         }
     }
 
+    // Red
+    &.coral {
+        background: $coral;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $white;
+        }
+        &.bubble-border {
+            border-color: $raz;
+        }
+        a {
+            color: $white;
+        }
+    }
+
     // Gray
     &.gray {
         background: $grayLight;

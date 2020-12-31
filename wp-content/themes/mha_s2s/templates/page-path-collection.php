@@ -15,8 +15,16 @@ get_header();
 		
 		<?php
 			// Popular Articles
-			$condition = get_field('condition');
-			$popular = do_shortcode("[mha_popular_articles tag='$condition' style='inline']");
+			$tag = get_field('condition');
+			$term_con = get_term_by('term_id', $tag, 'condition');
+			$term_tag = get_term_by('term_id', $tag, 'post_tag');
+			if($term_con){
+				$tax = $term_con->taxonomy;
+			};
+			if($term_tag){
+				$tax = $term_tag->taxonomy;
+			};
+			$popular = do_shortcode("[mha_popular_articles tag='$tag' tax='$tax' style='inline']");
 			if($popular):
 		?>
 			<div class="wrap normal mb-5">
@@ -41,7 +49,7 @@ get_header();
 						array(
 							'taxonomy' => 'condition',
 							'field'    => 'term_id',
-							'terms'    => $condition,
+							'terms'    => $tag,
 						)
 					)
 				);
