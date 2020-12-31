@@ -53,7 +53,57 @@ if($type == 'article'){
             <div class="row <?php echo $customContentClasses; ?>">
 
                 <div class="page-content article-left col-12 col-md-8 pl-0 pr-0 pr-md-4">
-                    <?php the_content(); ?>		
+
+                    <?php 
+                        if(get_field('featured_link')){
+                            
+                            if(get_field('featured_link')){
+                                $featured_text = get_field('featured_link_text');
+                            } else {
+                                $featured_text = get_field('featured_link');
+                            }
+                            echo '<div class="mb-4 text-center">';                            
+                                echo '<a class="button round" href="'.get_field('featured_link').'">'.$featured_text.'</a>';
+                            echo '</div>';
+                        }
+                    
+                        the_content();
+                    
+                        if(get_field('pricing_information')){
+                            echo '<div class="mb-4">';
+                                echo '<h2>Pricing Information</h2>';
+                                the_field('pricing_information');
+                            echo '</div>';
+                        }
+
+                        $accolades = get_field('accolades');                        
+                        if( $accolades ) {
+                            echo '<h2>What People Are Saying</h2>';
+                            foreach( $accolades as $row ) {
+                                echo '<blockquote>';
+                                    echo $row['text'];
+                                    if($row['source']){
+                                        echo '<cite>'.$row['source'].'</cite>';
+                                    }
+                                echo '</blockquote>';
+                            }
+                            echo '</ul>';
+                        }
+
+                        if(get_field('privacy_information')){
+                            echo '<div class="mb-4">';
+                                echo '<h2>Privacy Information</h2>';
+                                the_field('privacy_information');
+                            echo '</div>';
+                        }
+
+                        if(get_field('disclaimer')){
+                            echo '<div class="mb-4">';
+                                echo '<h2>Disclaimer</h2>';
+                                the_field('disclaimer');
+                            echo '</div>';
+                        }
+                    ?>
                 </div>      
 
                 <aside class="article-right col-12 col-md-4 pl-0 pr-0 pl-md-5">
@@ -87,39 +137,85 @@ if($type == 'article'){
                     <?php endif; ?>
                 
                     <?php
-                        // Test Callout
-                        if(count(array_intersect($article_type, $resources)) == 0){
-                            $args = array(
-                                "post_type"      => 'screen',
-                                "orderby"        => 'title',
-                                "order"	         => 'DESC',
-                                "post_status"    => 'publish',
-                                "posts_per_page" => 5,
-                                'tax_query'      => array(
-                                    array(
-                                        'taxonomy'          => 'condition',
-                                        'include_children'  => false,
-                                        'field'             => 'term_id',
-                                        'terms'             => $article_terms
-                                    ),
-                                )
-                            );
-                            $loop = new WP_Query($args);
-                            if($loop->have_posts()):
-                            ?>
-                                <div class="bubble orange thin round-big-tl mb-4">
-                                <div class="inner">
-                                <?php while($loop->have_posts()) : $loop->the_post(); ?>                              
-                                    <?php the_title('<h4>Take a ','</h4>'); ?>   
-                                    <div class="excerpt"><?php the_excerpt(); ?></div>
-                                    <div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a <?php the_title(); ?></a></div>
-                                <?php endwhile; ?>
-                                </div>
-                                </div>
-                            <?php
-                            endif;
-                            wp_reset_query();
+                        /**
+                         * Test CTA
+                         */
+
+                        $primary_condition = get_field('primary_condition');
+
+                        if($primary_condition){
+
+                            // Show Specific Related Test
+                            if(count(array_intersect($article_type, $resources)) == 0){
+                                $args = array(
+                                    "post_type"         => 'screen',
+                                    "order"	            => 'DESC',
+                                    "post_status"       => 'publish',
+                                    "posts_per_page"    => 1,
+                                    'tax_query'      => array(
+                                        array(
+                                            'taxonomy'          => 'condition',
+                                            'include_children'  => false,
+                                            'field'             => 'term_id',
+                                            'terms'             => $primary_condition
+                                        ),
+                                    )
+                                );
+                                $loop = new WP_Query($args);
+                                if($loop->have_posts()):
+                                ?>
+                                    <div class="bubble orange thin round-big-tl mb-4">
+                                    <div class="inner">
+                                    <?php while($loop->have_posts()) : $loop->the_post(); ?>                              
+                                        <?php the_title('<h4>Take a ','</h4>'); ?>   
+                                        <div class="excerpt"><?php the_excerpt(); ?></div>
+                                        <div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a <?php the_title(); ?></a></div>
+                                    <?php endwhile; ?>
+                                    </div>
+                                    </div>
+                                <?php
+                                endif;
+                                wp_reset_query();
+                            }
+
+                        } else {
+
+                            // Show Random Related Test
+                            if(count(array_intersect($article_type, $resources)) == 0){
+                                $args = array(
+                                    "post_type"      => 'screen',
+                                    "orderby"        => 'rand',
+                                    "order"	         => 'DESC',
+                                    "post_status"    => 'publish',
+                                    "posts_per_page" => 1,
+                                    'tax_query'      => array(
+                                        array(
+                                            'taxonomy'          => 'condition',
+                                            'include_children'  => false,
+                                            'field'             => 'term_id',
+                                            'terms'             => $article_terms
+                                        ),
+                                    )
+                                );
+                                $loop = new WP_Query($args);
+                                if($loop->have_posts()):
+                                ?>
+                                    <div class="bubble orange thin round-big-tl mb-4">
+                                    <div class="inner">
+                                    <?php while($loop->have_posts()) : $loop->the_post(); ?>                              
+                                        <?php the_title('<h4>Take a ','</h4>'); ?>   
+                                        <div class="excerpt"><?php the_excerpt(); ?></div>
+                                        <div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a <?php the_title(); ?></a></div>
+                                    <?php endwhile; ?>
+                                    </div>
+                                    </div>
+                                <?php
+                                endif;
+                                wp_reset_query();
+                            }
+
                         }
+
                     ?>
 
                     <div class="article-actions">

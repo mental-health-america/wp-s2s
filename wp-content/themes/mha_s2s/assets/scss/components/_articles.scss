@@ -64,3 +64,15 @@
     }
 
 }
+
+
+.content-red {
+    a.button {
+        background-color: $red;
+        color: $white;
+        &:hover {
+            background: $raz;
+            color: $white;
+        }
+    }
+}

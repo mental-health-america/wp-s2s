@@ -76,7 +76,7 @@
                 }
                 ?>
                     <div class="grid-item">
-                        <a class="text-button <?php echo $button_color; ?>" href="<?php echo get_sub_field('link'); ?>">
+                        <a class="text-button <?php echo $button_color; ?>" href="<?php echo $link['url']; ?>">
                             <?php the_sub_field('text'); ?>
                         </a>
                     </div>

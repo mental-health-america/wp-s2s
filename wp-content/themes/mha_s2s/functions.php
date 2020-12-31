@@ -63,8 +63,9 @@ add_action( 'after_setup_theme', 'mha_s2s_setup' );
  */
 add_editor_style( 
 	array( 
-		'assets/css/editor.css', // Site specific styles
-		//esc_url_raw('https://use.typekit.net/###.css') // Add additional webfonts to the editor
+		'assets/css/editor.css', // Site specific styles		
+		'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&display=swap',
+		'https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap'
 	) 
 );
 
@@ -150,7 +151,7 @@ function my_mce_before_init_insert_formats( $init_array ) {
         array(  
             'title' => 'Button',  
             'selector' => 'a',  
-            'classes' => 'button'             
+            'classes' => 'button round'             
         )
     );  
     // Insert the array, JSON ENCODED, into 'style_formats'
@@ -208,6 +209,7 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
 function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'sid';
     $qvars[] = 'usid';
+    $qvars[] = 'ref';
     $qvars[] = 'login_error';
     $qvars[] = 'pathway';
     $qvars[] = 'filter_order';

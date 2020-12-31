@@ -55,12 +55,14 @@ wp_reset_query();
 				<?php
 					if ( have_posts() ) :	
 						echo '<ol class="plain mb-0">';
-						while ( have_posts() ) : the_post();	
+						while ( have_posts() ) : the_post();
+						
+							$type = get_field('type');
 						?>
 
 							<li class="mb-4">
 								<p class="mb-0">									
-									<a class="dark-gray plain" href="<?php echo get_the_permalink(); ?>"><?php the_title(); ?></a>
+									<a class="dark-gray plain" href="<?php echo add_query_arg('ref',$term->term_id, get_the_permalink()); ?>"><?php the_title(); ?></a>
 								</p>
 								<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>
 							</li>

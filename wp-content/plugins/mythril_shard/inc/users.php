@@ -49,12 +49,17 @@ add_action('admin_menu', 'mythril_hide_admin_pages', 999);
 /* Hide problematic duplicated taxonomy term boxes */
 add_action('admin_head', 'my_custom_fonts');
 function my_custom_fonts() {
-	echo '<style>
-		#age_groupdiv,
-		#conditiondiv {
-		display: none !important;
-		} 
-	</style>';
+
+    // Hide condition fields entirely on articles to avoid the non-saving ACF field bug
+    echo '<style>
+        #acf-group_5feded5e680d2 p.description,
+        .post-type-article #age_groupdiv,
+        .post-type-article #conditiondiv {
+            display: none !important;
+        } 
+    </style>';
+
+
 }
 
 ?>

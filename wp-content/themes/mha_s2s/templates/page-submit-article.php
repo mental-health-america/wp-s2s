@@ -41,6 +41,7 @@ get_header();
 
                 'field_5fea2f6663cdd', // Featured Image
                 'field_5fea2f7063cde', // Link
+                'field_5fedf6b5b7dc2', // Link Text
 
                 'pricing_information', // Pricing
                 'field_5fea3372584f9', // Privacy
