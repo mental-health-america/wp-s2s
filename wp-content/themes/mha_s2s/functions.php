@@ -390,7 +390,7 @@ function mha_s2s_term_permalink( $url, $term, $taxonomy ){
 */
 
 /**
- * Search Search
+ * Search Post Type Filter
  */
 function searchfilter($query) {
  

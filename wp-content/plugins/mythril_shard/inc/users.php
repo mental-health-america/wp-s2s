@@ -45,4 +45,17 @@ function mythril_hide_admin_pages() {
 }
 add_action('admin_menu', 'mythril_hide_admin_pages', 999);
 
+
+/* Hide problematic duplicated taxonomy term boxes */
+add_action('admin_head', 'my_custom_fonts');
+function my_custom_fonts() {
+	echo '<style>
+		#age_groupdiv,
+		#conditiondiv {
+		display: none !important;
+		} 
+	</style>';
+}
+
 ?>
+

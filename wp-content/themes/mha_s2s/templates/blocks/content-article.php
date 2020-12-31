@@ -12,6 +12,7 @@
 
 $type = get_post_type();
 $customClasses = '';
+$customContentClasses = '';
 $article_id = get_the_ID();
 $resources = array('diy','connect','treatment','provider');
 $article_type = get_field('type');
@@ -19,6 +20,7 @@ $article_type = get_field('type');
 if($type == 'article'){
     if(count(array_intersect($article_type, $resources)) > 0){
         $customClasses = ' red';
+        $customContentClasses = ' content-red';
 	}
 }
 
@@ -32,10 +34,13 @@ if($type == 'article'){
 			<div class="page-heading bar<?php echo $customClasses; ?>">	
 			<div class="wrap normal">		
 				
-				<?php
+                <?php
+                    /*
 					if ( function_exists('yoast_breadcrumb') ) {
 						yoast_breadcrumb( '<p id="breadcrumbs">','</p>' );
-					}
+                    }
+                    */
+                    get_template_part( 'templates/blocks/breadcrumbs' );
 				?>
 				<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
 				
@@ -45,7 +50,7 @@ if($type == 'article'){
 
 		<div class="wrap normal clearfix">	
             <div class="container-fluid">
-            <div class="row">
+            <div class="row <?php echo $customContentClasses; ?>">
 
                 <div class="page-content article-left col-12 col-md-8 pl-0 pr-0 pr-md-4">
                     <?php the_content(); ?>		

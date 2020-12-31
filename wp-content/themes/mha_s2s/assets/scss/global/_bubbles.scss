@@ -14,6 +14,7 @@
 
     // Default Additional Styles
     &.bubble-border { border: 1px solid $blueDark; }
+    &.bubble-border-blue { border: 1px solid $brightBlue; }
     &.short { max-width: 740px; }
 
     // Widths
@@ -130,6 +131,9 @@
         &.bubble-border {
             border-color: $cerulean;
         }
+        &.bubble-border-blue { 
+            border-color: #B8D7FE; 
+        }
     }
 
     // Cerulean
@@ -162,6 +166,7 @@
     &.orange {
         background: $orange;
         color: $white;
+        font-weight: 600;
         h1,
         h2,
         h3,

@@ -5,6 +5,7 @@
 
 get_header();
 $term = get_queried_object();
+wp_reset_query();
 ?>
 
 
@@ -32,13 +33,37 @@ $term = get_queried_object();
 
 			<div class="bubble pale-blue bubble-border round-small">
 			<div class="inner">	
+
+				<div class="bubble cerulean round-bl mb-5">
+				<div class="inner">
+					<form role="search" method="get" id="searchform" action="<?php echo site_url(); ?>" class="form-container line-form blue">
+						<div class="container-fluid">
+						<div class="row">
+							<div class="col-8">
+								<p class="mb-0 wide block"><input id="search-archive" name="s" value="" placeholder="Enter search terms here" type="text" /></p>
+							</div>
+							<div class="col-4">
+								<p class="mb-0 wide block"><input type="submit" class="button gform_button white block" value="Search" /></p>
+							</div>
+						</div>
+						</div>
+					</form>
+				</div>
+				</div>
+
+
 				<?php
 					if ( have_posts() ) :	
 						echo '<ol class="plain mb-0">';
 						while ( have_posts() ) : the_post();	
 						?>
 
-							<li class="mb-4"><a class="dark-gray plain" href="<?php echo get_the_permalink(); ?>"><?php the_title(); ?></a></li>
+							<li class="mb-4">
+								<p class="mb-0">									
+									<a class="dark-gray plain" href="<?php echo get_the_permalink(); ?>"><?php the_title(); ?></a>
+								</p>
+								<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>
+							</li>
 
 						<?php			
 						endwhile;

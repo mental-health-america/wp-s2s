@@ -21,10 +21,108 @@ function acf_field_array_conversion( $string ){
 <div class="wrap medium">
 
 <?php
+
+    /**
+     * Find broken media
+     */
+
+    $args = array(
+        'posts_per_page'	=> -1,
+        'post_type'		    => 'article'
+    );
+    $query = new WP_Query( $args );
+    while($query->have_posts()) : $query->the_post();
+        
+        $post_id = get_the_ID();
+        $old_content = get_the_content();
+
+        //the_content();
+
+        // Find all links with node/####
+        preg_match_all('/src="\/sites\/default\/files\/(.*?)\"/', $old_content, $matches, PREG_PATTERN_ORDER);
+        
+        if($matches[0]){            
+            the_title('<h4>','</h4>');
+            pre($matches[0]);
+            echo '<a href="'.get_edit_post_link().'">Edit</a>';
+            echo '<hr />';
+        } else {
+            //echo 'Skipped<br />';;
+        }
+
+        
+        
+    endwhile;
+
+
+    /**
+     * Fix Broken Drupal Links
+     */
+    /*
+    $args = array(
+        'posts_per_page'	=> 10,
+        'post_type'		    => 'article'
+    );
+    $query = new WP_Query( $args );
+    while($query->have_posts()) : $query->the_post();
+        
+        the_title('<h4>','</h4>');
+        $post_id = get_the_ID();
+        $old_content = get_the_content();
+        $new_links = [];
+
+        // Find all links with node/####
+        preg_match_all('(\/node\/\d+)', $old_content, $matches, PREG_PATTERN_ORDER);
+
+        if(count($matches[0]) > 0){
+            foreach($matches[0] as $match){
+
+                // Get new URLs
+                $drupal_id = str_replace('/node/', '', $match);
+                $article_args = array(
+                    'posts_per_page'	=> 1,
+                    'post_type'		    => 'article',
+                    'meta_query'        => array(
+                        array(
+                            'key' => 'drupal_id',
+                            'value' => $drupal_id
+                        )
+                    )
+                );
+                $article_query = new WP_Query( $article_args );
+                while($article_query->have_posts()) : $article_query->the_post();
+                    $new_links[] = get_the_permalink();  
+                    echo $drupal_id .' '.get_the_permalink().'<br />';              
+                endwhile;
+                
+            }
+            
+            $new_content = str_replace($matches[0], $new_links, $old_content);
+            
+            // Update content    
+            $updateArgs = array(
+                'ID'           => $post_id,
+                'post_content' => $new_content,
+            );
+            wp_update_post( $updateArgs );
+            echo 'Updated '.$post_id.'<br />';  
+        } else {
+            echo 'Skipped '.$post_id.'<br />';  
+        }
+
+        echo '<hr />';
+        
+        
+    endwhile;
+    */
+
+
+    /*
     $request  = wp_remote_get( 'https://mhascreening.wpengine.com/content-export.json?c='.rand(0,10000) );
     $response = wp_remote_retrieve_body( $request );
 
     $data = json_decode( $response, true );
+    */
 
     /*
     // Dupe checker
@@ -47,7 +145,6 @@ function acf_field_array_conversion( $string ){
     foreach($diff as $k => $v){        
         echo $k . ' / ' . $v . ' / ' . get_post_status($k).'<br />';
     }
-    */
 
     foreach($data as $item){
 
@@ -86,10 +183,8 @@ function acf_field_array_conversion( $string ){
                 wp_update_post( $updateArgs );
                 echo 'Updated '.get_the_ID().'<br />';
             }
-            */
         endwhile;
 
-        /*
         if( $total == 0 ){
 
             // Article Type
@@ -228,9 +323,9 @@ function acf_field_array_conversion( $string ){
             echo 'Skipped '.$item['nid'].' / --<br />';
 
         }
-        */
 
     }
+        */
 ?>
 
 </div>

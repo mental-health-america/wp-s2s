@@ -46,16 +46,33 @@
     margin: 0 0 .5em 0;
     padding: 0;
     @include montserrat(600);
-    color: $blue;
+    color: $brightBlue;
     font-size: 14px;
     line-height: 1.1em;
-    a {
-        color: $blue;
+
+    .crumb {
         text-decoration: none;
-        &:hover {
-            text-decoration: underline;
+        color: $brightBlue;
+        &:after {
+            content: " > ";
+            color: $brightBlue;
+        }
+        &:last-child {
+            &:after {
+                display: none;
+            }
         }
     }
+    a.crumb {
+        @include transitions(color 150ms ease);
+        &:hover {
+            &:hover {
+                color: $blueDark;
+                text-decoration: none;
+            }
+        }
+    }
+
 }
 
 
@@ -123,18 +140,17 @@
             background: $pink;
             h1 { color: $red; }
             #breadcrumbs,
-            #breadcrumbs a {
+            #breadcrumbs .crumb {
                 color: $red;
+                &:after {
+                    color: $red;
+                }
             }
-        }
-
-        // Colors
-        &.blue {
-            background: $lightBlue;
-            h1 { color: $blue; }
-            #breadcrumbs,
-            #breadcrumbs a {
-                color: $blue;
+            #breadcrumbs a.crumb:hover {
+                color: $blueDark;
+                &:after {
+                    color: $red;
+                }
             }
         }
         
@@ -275,7 +291,16 @@ ol.next-steps {
     h3 {
         padding-left: 10px;
     }
+    .button {
+        font-size: .9em;
+        line-height: 1.4em;
+        &.block,
+        &.block.wide {
+            width: auto;
+        }
+    }
 }
+
 .path-list {
     margin: 30px 0 0 0;
     padding: 0;

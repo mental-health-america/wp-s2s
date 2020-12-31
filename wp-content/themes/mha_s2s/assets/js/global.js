@@ -55,7 +55,7 @@
 		// External links open in a new tab
 		$('#content a').each(function() {
 			var a = new RegExp('/' + window.location.host + '/');
-			if(!a.test(this.href) && $(this).hasClass('social-share')){
+			if(!a.test(this.href) && !$(this).hasClass('social-share')){
 				$(this).click(function(event) {
 					event.preventDefault();
 					event.stopPropagation();

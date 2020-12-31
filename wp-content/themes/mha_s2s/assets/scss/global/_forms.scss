@@ -119,6 +119,10 @@ label {
                 background: $coral;
                 color: $white;
             }
+            &.block {
+                display: block;
+                width: 100%;
+            }
         }
         .button.gform_button {
             background: $white;
@@ -322,6 +326,14 @@ label {
             &:hover {
                 background: $white;
                 color: $blue;
+            }
+            &.white {
+                background: $white;
+                color: $blue;
+                &:hover {
+                    background: $orange;
+                    color: $white;
+                }
             }
         }
 
