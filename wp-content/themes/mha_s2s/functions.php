@@ -468,8 +468,7 @@ function mha_s2s_posts_orderby( $query ) {
  * Include custom post types in tag pages
  */
 function wpa82763_custom_type_in_categories( $query ) {
-    if ( $query->is_main_query()
-    && ( $query->is_category() || $query->is_tag() ) ) {
+    if ( $query->is_main_query() && ( $query->is_category() || $query->is_tag() ) ) {
         $query->set( 'post_type', array( 'page','article','screen','thought_activity' ) );
     }
 }
@@ -480,7 +479,9 @@ add_action( 'pre_get_posts', 'wpa82763_custom_type_in_categories' );
  * Filter condition and tag pages to only the proper articles
  */
 function archive_meta_query( $query ) {
-    if ( $query->is_archive ){
+	
+	// For only archive pages
+    if ( !is_admin() && $query->is_main_query() && $query->is_archive() ){
 
 		// Limit to just articles tagged condition
 		$query->query_vars["meta_key"] = 'type';
@@ -490,6 +491,7 @@ function archive_meta_query( $query ) {
 		if(get_query_var('search')){
 			$query->query_vars["s"] = get_query_var('search');
 		}
+	
 		// Anchor tags to search for condition pages
 		if(get_query_var('search_tax') && get_query_var('search_term')){
 			$taxquery = array(
@@ -501,7 +503,8 @@ function archive_meta_query( $query ) {
 			);		
 			$query->query_vars["tax_query"] = $taxquery;			
 		}
+		
 
-    }
+	}
 }
 add_action( 'pre_get_posts', 'archive_meta_query', 1 );

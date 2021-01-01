@@ -19,9 +19,11 @@ get_header();
 			$term_con = get_term_by('term_id', $tag, 'condition');
 			$term_tag = get_term_by('term_id', $tag, 'post_tag');
 			if($term_con){
+				$tag = $term_con->term_id;
 				$tax = $term_con->taxonomy;
 			};
 			if($term_tag){
+				$tag = $term_tag->term_id;
 				$tax = $term_tag->taxonomy;
 			};
 			$popular = do_shortcode("[mha_popular_articles tag='$tag' tax='$tax' style='inline']");
@@ -40,16 +42,16 @@ get_header();
 		<div class="wrap normal">
 			<?php
 				$args = array(
-					"post_type" => 'reading_path',
-					"orderby" => 'menu_order',
-					"order"	=> 'ASC',
-					"post_status" => 'publish',
-					"posts_per_page" => 200,
-					"tax_query" => array(
+					"post_type" 		=> 'reading_path',
+					"orderby" 			=> 'menu_order',
+					"order"				=> 'ASC',
+					"post_status" 		=> 'publish',
+					"posts_per_page" 	=> 200,
+					"tax_query" 		=> array(
 						array(
-							'taxonomy' => 'condition',
-							'field'    => 'term_id',
-							'terms'    => $tag,
+							'taxonomy' => $tax,
+							'field'    => 'id',
+							'terms'    => $tag
 						)
 					)
 				);

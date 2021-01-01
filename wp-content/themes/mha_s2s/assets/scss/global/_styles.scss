@@ -79,7 +79,7 @@ input[type="button"] {
     background: $blue;
     color: $white;
     font-size: .9em;
-    line-height: 1.4em;
+    line-height: 1.2em;
     text-decoration: none;
     text-align: center;
     text-transform: uppercase;
@@ -523,8 +523,9 @@ h3 {
     line-height: 1.15em;
     @include montserrat(700);
     @media only screen and (max-width: 767px){
-        font-size: 1.8em;
+        font-size: 2em;
         line-height: 1.15em;
+        margin-bottom: .5em;
     }
 
     &.blue {

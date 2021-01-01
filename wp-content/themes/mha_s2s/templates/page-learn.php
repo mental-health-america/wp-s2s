@@ -29,10 +29,10 @@ $search_query = get_query_var('search');
                 <form method="GET" action="<?php echo get_the_permalink(get_the_ID()); ?>" class="form-container line-form blue">
                     <div class="container-fluid">
                     <div class="row">
-                        <div class="col-8">
+                        <div class="col-12 col-md-8">
                             <p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Enter search terms here" type="text" /></p>
                         </div>
-                        <div class="col-4">
+                        <div class="col-12 col-md-4 mt-3 mt-md-0">
                             <p class="mb-0 wide block"><input type="submit" class="button gform_button white block" value="Search" /></p>
                         </div>
                     </div>
@@ -51,8 +51,7 @@ $search_query = get_query_var('search');
                     "meta_query" => array(
                         array(
                             'key' => 'type',
-                            'value' => 'condition',
-                            'compare' => 'LIKE'
+                            'value' => 'condition'
                         )
                     )
                 );
@@ -75,8 +74,28 @@ $search_query = get_query_var('search');
                         </li>
                         <?php			
                     endwhile;
-                    echo '</ol>';	
+                    echo '</ol>';
+
+                    echo '<div class="navigation pagination pt-5">';
+                    echo paginate_links( array(
+                        'base'         => str_replace( 999999999, '%#%', esc_url( get_pagenum_link( 999999999 ) ) ),
+                        'total'        => $loop->max_num_pages,
+                        'current'      => max( 1, get_query_var( 'paged' ) ),
+                        'format'       => '?paged=%#%',
+                        'show_all'     => false,
+                        'type'         => 'plain',
+                        'end_size'     => 2,
+                        'mid_size'     => 1,
+                        'prev_next'    => true,
+                        'prev_text'    => sprintf( '<i></i> %1$s', __( 'Previous', 'text-domain' ) ),
+                        'next_text'    => sprintf( '%1$s <i></i>', __( 'Next', 'text-domain' ) ),
+                        'add_args'     => false,
+                        'add_fragment' => '',
+                    ) );
+                    echo '</div>';
+                    
                 endif; 
+                wp_reset_query();
             ?>
             
         </div>

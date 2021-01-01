@@ -5,6 +5,9 @@
     
     // General
     margin-bottom: 50px;
+    @media only screen and (max-width: 767px){
+        margin-bottom: 20px;
+    }
 
     &:last-of-type {
         margin-bottom: 0;
@@ -17,7 +20,12 @@
     // Layout Overrides
     .bubble {
         &.thick {
-            .inner { padding: 80px; }
+            .inner { 
+                padding: 80px;
+                @media only screen and (max-width: 679px){
+                    padding: 30px 40px;
+                }
+            }
         }
     }
 
@@ -36,15 +44,25 @@
             padding-top: 20px;
             .grid-item {
                 flex: 1 1 40%;
+                @media only screen and (max-width: 480px){
+                    flex: 0 1 100%;
+                }
                 .grid-item-inner {
                     display: flex;
                     .grid-item-content {
                         flex: 0 1 60%;
                         padding: 0;
+                        @media only screen and (max-width: 767px){
+                            flex: 0 1 100%;
+                        }
 
                         h4 {
                             display: block;
                             max-width: 80%;
+                            @media only screen and (max-width: 480px){
+                                max-width: 100%;
+                                br { display: none; }
+                            }
                         }
                         
                         a {
@@ -53,8 +71,10 @@
                             @include radius(30px);
                             background: rgba(255,255,255,0);
                             @include transitions(background-color 200ms ease);
-                            &:hover {
-                                background: rgba(255,255,255,1);
+                            @media only screen and (min-width: 767px){
+                                &:hover {
+                                    background: rgba(255,255,255,1);
+                                }
                             }
                         }
                         .content-inner {
@@ -62,6 +82,10 @@
                             position: relative;
                             padding: 30px 15px 30px 30px;
                             left: -30px;
+                            @media only screen and (max-width: 767px){
+                                left: auto;
+                                padding: 0 0 30px 0;
+                            }
                         }
 
                         p:last-of-type {
@@ -94,6 +118,9 @@
         display: flex;
         flex-wrap: nowrap;
         justify-content: space-between;
+        @media only screen and (max-width: 767px){
+            display: block;
+        }
         
         &.offset {
             .left-col {
@@ -102,6 +129,9 @@
             .right-col {
                 padding-top: 150px;
                 align-self: flex-end;
+                @media only screen and (max-width: 767px){
+                    padding-top: 0;
+                }
             }
         }
 
@@ -117,6 +147,10 @@
         .left-col,
         .right-col {
             flex: 0 1 calc(50% - 20px);
+            @media only screen and (max-width: 767px){
+                max-width: 480px;
+                margin: 0 auto 30px auto;
+            }
         }
 
         &.cols-40 {
@@ -130,10 +164,10 @@
         
         &.cols-60 {
             .left-col {
-                flex: 0 1 calc(40% - 20px);
+                flex: 0 1 calc(60% - 20px);
             }
             .right-col {
-                flex: 0 1 calc(60% - 20px);
+                flex: 0 1 calc(40% - 20px);
             }
         }
      }
@@ -227,6 +261,13 @@
         flex: 0 1 calc(33.333% - 10px);
         margin: 10px 5px;
         text-align: center;
+        @media only screen and (max-width: 679px){
+            flex: 0 1 calc(50% - 10px);            
+        }
+        @media only screen and (max-width: 480px){
+            flex: 0 1 100%;     
+            margin: 0 0 10px 0; 
+        }
     }
 }
 
@@ -239,13 +280,31 @@
         flex: 0 1 calc(25% - 5px);
         margin: 5px 0 10px 0;
         text-align: center;
+        @media only screen and (max-width: 679px){
+            flex: 0 1 50%;            
+        }
+        @media only screen and (max-width: 480px){
+            flex: 0 1 100%;  
+            margin: 5px 0 5px 0;          
+        }
     }
 }
 
 // Condition List
 .conditions-list {
     @include montserrat(700);
+    line-height: 1.8em;
+    /*
+    @media only screen and (max-width: 480px){
+        color: $cerulean;
+        a {
+            display: block;
+            line-height: normal;
+        }
+    }
+    */
+
     a {
-        margin: 0 2px;
+        margin: 0 4px;
     }
 }

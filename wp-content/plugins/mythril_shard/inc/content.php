@@ -180,7 +180,7 @@ function mha_show_tests() {
 					aria-controls="<?php echo $screen_id; ?>>">+</button>
 				<a class="button round block text-left large <?php echo $screen_color; ?>"
 					href="<?php echo get_the_permalink(); ?>">
-					<?php the_title(); ?>
+					<span class="excerpt-title"><?php the_title(); ?></span>
 					<span class="excerpt block" style="display: none;" id="<?php echo $screen_id; ?>">
 						<?php echo get_the_excerpt(); ?><br />
 						<strong class="caps">Take <?php the_title(); ?></strong>

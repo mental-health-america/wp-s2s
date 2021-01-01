@@ -7,6 +7,10 @@
     .bubble {
         .inner {
             padding: 150px 60px;
+            @include transitions(padding 200ms ease);
+            @media only screen and (max-width: 767px){
+                padding: 40px 30px;
+            }
         }
     }
 
@@ -15,6 +19,10 @@
         font-size: 4.5em;
         @media only screen and (max-width: 1120px){
             font-size: 6.5vw;
+        }
+        @media only screen and (max-width: 767px){
+            font-size: 3em;
+            line-height: 1.15em;
         }
     }
 
@@ -63,7 +71,11 @@
             }
         }
     }
+
+    a,
     a.crumb {
+        text-decoration: none;
+        color: $brightBlue;
         @include transitions(color 150ms ease);
         &:hover {
             &:hover {
@@ -147,7 +159,10 @@
     &.bar {
         background: $ceruleanLight;
         padding: 70px 0;
-        margin: 0 0 40px 0;        
+        margin: 0 0 40px 0;       
+        @media only screen and (max-width: 767px){
+            padding: 30px 0;
+        } 
         h1 { 
             margin: 0; 
             font-size: 4.5em;
@@ -237,6 +252,9 @@
         flex: 0 1 calc(50% - 10px);
         margin: 0 0 10px 0;
         text-align: center;
+        @media only screen and (max-width: 767px){
+            flex: 0 1 100%;
+        }
     }
 }
 
@@ -245,6 +263,10 @@ ol.next-steps {
     padding: 0;
     column-count: 2;
     column-gap: 40px;
+    @media only screen and (max-width: 767px){
+        column-count: 1;
+        column-gap: 0;
+    }
     li {
         list-style-type: none;
         margin: 0 0 1em 0;
@@ -264,6 +286,13 @@ ol.next-steps {
     .screen-item {
         flex: 0 1 calc(33.333% - 20px);
         margin: 0 10px 20px 10px;
+        @media only screen and (max-width: 840px){
+            flex: 0 1 calc(50% - 20px);
+        }
+        @media only screen and (max-width: 580px){
+            flex: 0 1 100%;
+            margin: 0 0 15px 0;
+        }
     }
 
     .reveal-excerpt {
@@ -274,7 +303,7 @@ ol.next-steps {
         height: 40px;
         position: absolute;
         right: 9px;
-        top: 7px;
+        top: 4px;
         z-index: 20;
         font-size: 22px;
         line-height: 40px;
@@ -285,14 +314,23 @@ ol.next-steps {
             background: $mint;
             color: $teal;
         }
+        &.revealed,
+        &.revealed:hover {
+            background: rgba(255,255,255,0);
+        }
     }
 
     .button {
         @include transitions(all 200ms ease);
+        @include radius(20px);
         &.revealed {
             background-color: $mint;
             color: $blueDark;
-            @include radius(30px);
+        }
+
+        .excerpt-title {
+            display: inline-block;
+            padding-right: 5px;
         }
 
         .excerpt {
@@ -733,38 +771,13 @@ button.icon.like-button {
         }
 
     }    
-
-    .pagination {
-        display: block;
-        width: 100%;
-        position: relative;
-        
-        .page-numbers { display: none; }
-
-        a.next {
-            display: block;
-            float: right;
-            @extend .button;
-            @extend .round-tl;
-            background-color: $red;
-            &:hover {
-                background-color: $blueDark;
-            }
-        }
-        a.prev {
-            display: block;
-            float: left;
-            @extend .button;
-            @extend .round-tr;
-            background-color: $grayLight;
-        }
-    }
 }
 
 
 .navigation.pagination {
     text-align: center;
     width: 100%;
+    &,
     .nav-links {
         display: block;
         width: 100%;

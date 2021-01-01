@@ -15,13 +15,13 @@
         // Open Wrappers
         switch($style){
             case 'bubble':
-                echo '<div class="wrap normal">';
-                echo '<div class="bubble '.$rounded.' '.$color.' '.$padding.'">';
+                echo '<div class="wrap normal mobile-wide">';
+                echo '<div class="bubble mobile-wide'.$rounded.' '.$color.' '.$padding.'">';
                 echo '<div class="inner">';
                 break;
             case 'wide':
-                echo '<div class="wide-block">';
-                echo '<div class="bubble '.$rounded.' '.$color.' '.$padding.'">';
+                echo '<div class="wide-block mobile-wide">';
+                echo '<div class="bubble  mobile-wide'.$rounded.' '.$color.' '.$padding.'">';
                 echo '<div class="inner">';
                 break;
             default:

@@ -40,10 +40,10 @@ wp_reset_query();
                 	<form method="GET" action="<?php echo get_term_link($term); ?>" class="form-container line-form blue">
 						<div class="container-fluid">
 						<div class="row">
-							<div class="col-8">
+                        	<div class="col-12 col-md-8">
 								<p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Enter search terms here" type="text" /></p>
 							</div>
-							<div class="col-4">
+							<div class="col-12 col-md-4 mt-3 mt-md-0">
 								<input type="hidden" name="search_tag" value="<?php echo $term->term_id; ?>" />
 								<input type="hidden" name="search_taxonomy" value="<?php echo $term->taxonomy; ?>" />
 								<p class="mb-0 wide block"><input type="submit" class="button gform_button white block" value="Search" /></p>
