@@ -126,6 +126,7 @@ get_header();
                         $graph_data = [];
                         $pre_data = [];
                         $your_results_display = [];
+                        $advanced_conditions_data = []; 
                         
                         if($total_results > 0):
                             foreach($info->entries as $data){
@@ -147,7 +148,11 @@ get_header();
 
                                     //Screening Questions
                                     if (strpos($field->cssClass, 'question') !== false) {                               
-                                        $total_score = $total_score + $v; // Add to total score
+                                        $total_score = $total_score + $v; // Add to total score                                        
+                                        // Advanced Conditions Check
+                                        if(count(get_sub_field('advanced_condition', $screen_id)) > 0){
+                                            $advanced_conditions_data[$field->id] = $v; 
+                                        };
                                     }                            
                                 endforeach;
 
@@ -168,7 +173,7 @@ get_header();
                                     $graph_data[$test_title]['labels'][] = date('M', strtotime($data->date_created));
                                     $graph_data[$test_title]['scores'][] = $total_score;
                                     $graph_data[$test_title]['max'] = $max_score;
-                                    $graph_data[$test_title]['step'] = get_field('chart_steps', $screen_id);
+                                    $graph_data[$test_title]['steps'] = get_field('chart_steps', $screen_id);
                                 //}
 
                                 $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
@@ -188,18 +193,54 @@ get_header();
                                     }
                                 }
                     
+
+                                $has_advanced_conditions = 0;
+                                $advanced_condition_row = '';                                
                                 if( have_rows('results', $screen_id) ):
-                                while( have_rows('results', $screen_id) ) : the_row();                                    
-                                    $min = get_sub_field('score_range_minimum');
-                                    $max = get_sub_field('score_range_max');                                                    
-                                    if($total_score >= $min && $total_score <= $max){                                                    
-                                        if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
-                                            continue;
-                                        } else {
+                                    
+                                    // Advanced Conditions
+                                    while( have_rows('results', $screen_id) ) : the_row();   
+                                    $advanced_conditions = get_sub_field('advanced_conditions');
+                                    if(count($advanced_conditions) > 1){
+                                        foreach($advanced_conditions as $ac){
+                                            $advanced_min = $ac['score_range_minimum'];
+                                            $advanced_max = $ac['score_range_max'];
+                                            $advanced_id = $ac['question_id'];   
+                                            if($advanced_conditions_data[$advanced_id]){
+                                                if($advanced_max){
+                                                    if($advanced_conditions_data[$advanced_id] >= $advanced_min && $advanced_conditions_data[$advanced_id] <= $advanced_max ){
+                                                        $advanced_condition_row = get_row_index();
+                                                    }
+                                                } else if($advanced_min) {
+                                                    if($advanced_conditions_data[$advanced_id] == $advanced_min){
+                                                        $advanced_condition_row = get_row_index();
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        $has_advanced_conditions++;
+                                    }
+                                    endwhile;
+                                    
+                                    while( have_rows('results', $screen_id) ) : the_row();                                    
+                                        $min = get_sub_field('score_range_minimum');
+                                        $max = get_sub_field('score_range_max');            
+
+                                        if($total_score >= $min && $total_score <= $max || $has_advanced_conditions > 0 && $advanced_condition_row == get_row_index()){  
+                                                                           
+                                            if($has_advanced_conditions > 0){
+                                                if($advanced_condition_row != get_row_index()){ 
+                                                    continue;
+                                                }
+                                            }
+                                                                                    
+                                            if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
+                                                continue;
+                                            }
+                                            
                                             $your_results_display[$test_title][$count_results]['result_title'] = get_sub_field('result_title');
                                         }
-                                    }
-                                endwhile;
+                                    endwhile;
                                 endif;
 
                                 $count_results++;

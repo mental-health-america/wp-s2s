@@ -17,6 +17,9 @@ article.screen {
         font-weight: 400;
         color: $gray;
     }
+    .gfield_description {
+        margin-bottom: .5em;
+    }
 
     // Headings
     .gform_fields li.section-title {
@@ -31,6 +34,12 @@ article.screen {
             list-style-type: none;
             margin: 0 0 35px 0;
             padding: 0;
+            &.question.indent {
+                margin-left: 40px;
+                @media only screen and (max-width: 767px){
+                    margin-left: 20px;
+                }
+            }
         }
     }
 

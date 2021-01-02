@@ -93,7 +93,8 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 		$label = '';
 		$value_label = '';
 		$alert = 0;
-		$i = 0;          
+		$i = 0;         
+		$advanced_conditions_data = [];  
 
 		$html .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';              
 		foreach($data as $k => $v){
@@ -109,11 +110,18 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 						$value_label = $choice['text'];
 					}
 				}                   
-				$total_score = $total_score + $v; // Add to total score				
-				$html .= '<p>';
-					$html .= '<strong>'.$label.'</strong><br />';
-					$html .= $value_label.' ('.$v.')';
-				$html .= '</p>';
+				$total_score = $total_score + $v; // Add to total score	
+				if($v != ''){			
+					$html .= '<p>';
+						$html .= '<strong>'.$label.'</strong><br />';
+						$html .= $value_label.' ('.$v.')';
+					$html .= '</p>';
+
+                    // Advanced Conditions Check
+                    if(count(get_sub_field('advanced_condition', $screen_id)) > 0){
+                        $advanced_conditions_data[$field->id] = $v; 
+                    };
+				}
 			}
 
 			// Warning message counter
@@ -142,21 +150,53 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 
 		// Title (based on score)
 		$header = '';
-        if( have_rows('results', $screen_id) ):
-		while( have_rows('results', $screen_id) ) : the_row();
-			$min = get_sub_field('score_range_minimum');
-			$max = get_sub_field('score_range_max');				
-			if($total_score >= $min && $total_score <= $max){		
-
-				// Result Header
-				$header .= '<div>Your score was</div><h1 style="margin-top: 0; padding-top: 0;"><strong>'.get_sub_field('result_title').'</strong></h1>';
-				$header .= get_sub_field('result_content');
-
-				// Link back to results page
-				$header .= '<p><a href="'.get_site_url().'/screening-results/?sid='.$user_screen_id.'">View your results online and see next steps</a></p>';
-		
+		if( have_rows('results', $screen_id) ):
+			
+			// Advanced Conditions
+			while( have_rows('results', $screen_id) ) : the_row();   
+			$advanced_conditions = get_sub_field('advanced_conditions');
+			if(count($advanced_conditions) > 1){
+				foreach($advanced_conditions as $ac){
+					$advanced_min = $ac['score_range_minimum'];
+					$advanced_max = $ac['score_range_max'];
+					$advanced_id = $ac['question_id'];   
+					if($advanced_conditions_data[$advanced_id]){
+						if($advanced_max){
+							if($advanced_conditions_data[$advanced_id] >= $advanced_min && $advanced_conditions_data[$advanced_id] <= $advanced_max ){
+								$advanced_condition_row = get_row_index();
+							}
+						} else if($advanced_min) {
+							if($advanced_conditions_data[$advanced_id] == $advanced_min){
+								$advanced_condition_row = get_row_index();
+							}
+						}
+					}
+				}
+				$has_advanced_conditions++;
 			}
-		endwhile;
+			endwhile;
+
+			while( have_rows('results', $screen_id) ) : the_row();
+				$min = get_sub_field('score_range_minimum');
+				$max = get_sub_field('score_range_max');			
+                if($total_score >= $min && $total_score <= $max || $has_advanced_conditions > 0 && $advanced_condition_row == get_row_index()){
+
+                    if($has_advanced_conditions > 0){
+                        if($advanced_condition_row != get_row_index()){ 
+                            continue;
+                        }
+                    }	
+
+					// Result Header
+					$header .= '<div>Your score was</div><h1 style="margin-top: 0; padding-top: 0;"><strong>'.get_sub_field('result_title').'</strong></h1>';
+					$header .= get_sub_field('result_content');
+
+					// Link back to results page
+					$header .= '<p><a href="'.get_site_url().'/screening-results/?sid='.$user_screen_id.'">View your results online and see next steps</a></p>';
+			
+				}
+			endwhile;
+
 		endif;
 		return $header.''.$html;
 
