@@ -766,6 +766,7 @@ img.alignright {
 .inline-block { display: inline-block; }
 .inline { display: inline; }
 
+.hidden { visibility: hidden; position: absolute; left: -999em; }
 
 /* Video */
 

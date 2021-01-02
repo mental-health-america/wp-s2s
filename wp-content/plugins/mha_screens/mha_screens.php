@@ -30,7 +30,7 @@ function mhaScreenEmail(){
 	// Cleaned Up Data
 	$email = sanitize_email($data['email']);
     $screen_id = intval($data['screen_id']);
-    $screen_user_id = intval($data['screen_user_id']);
+    $screen_user_id = sanitize_text_field($data['screen_user_id']);
     
     $isAuthentic = wp_verify_nonce( $data['nonce'], 'mhaScreenEmail');
 	
@@ -102,13 +102,17 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 			$field = GFFormsModel::get_field( $data->form_id, $k );
 			
 			//Screening Questions
-			if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {                    
-				$label = $field->label; // Field label                    
-				$value_label = $field['choices'][$v]['text']; // Selection Label                    
-				$total_score = $total_score + $v; // Add to total score
+			if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {  
+				$label = $field->label; // Field label  
+				foreach($field['choices'] as $choice){
+					if($choice['value'] == $v){
+						$value_label = $choice['text'];
+					}
+				}                   
+				$total_score = $total_score + $v; // Add to total score				
 				$html .= '<p>';
 					$html .= '<strong>'.$label.'</strong><br />';
-					$html .= $value_label;
+					$html .= $value_label.' ('.$v.')';
 				$html .= '</p>';
 			}
 
@@ -129,7 +133,8 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 
 		// Warning Message
 		if($alert > 0){
-			$html .= '<div>'.get_field('warning_message', $screen_id).'</div>';
+			$html .= $alert;
+			$html .= '<div style="background: #FA6767; color: #FFF !important; padding: 5px 10px;"><strong>'.get_field('warning_message', $screen_id).'</strong></div>';
 		}
 
 		// Intepretation

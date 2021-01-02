@@ -80,6 +80,21 @@
     }
 }
 
+#dashboard-test-results {
+    position: relative;
+    .heading {
+        padding-right: 200px;
+    }
+    #test-selection-dropdown {
+        position: absolute;
+        right: 0;
+        top: 75px;
+        @media only screen and (max-width: 767px){
+            top: 55px;
+        }
+    }
+}
+
 
 // Submit Content
 .page-template-page-submit-article {

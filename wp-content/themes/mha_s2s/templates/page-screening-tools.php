@@ -20,7 +20,6 @@ get_header();
     <a href="<?php echo get_the_permalink(); ?>">
         <?php the_title('<h2>','</h2>'); ?>
     </a>
-         
 
 <?php endwhile; ?>
 

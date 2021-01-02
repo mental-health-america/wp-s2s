@@ -3,6 +3,61 @@
 get_header(); 
 ?>
 
+<script>
+    const loadLineChart = (cdata) => {
+        new Chart(document.getElementById(cdata.id).getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: cdata.labels,
+                datasets: cdata.data
+            },
+            options: {
+                title: { display: false	},
+                elements: {
+                    line: { tension: 0 },
+                    point: { radius: 0 }
+                },
+                legend: { display: false },
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    xAxes: [{
+                        lineWidth: 4,
+                        minBarLength: 1,
+                        gridLines: {
+                            display: false,
+                            color:  '#aec7dc'
+                        },
+                        ticks: {
+                            fontFamily: "Montserrat",
+                            fontColor: "#055596",
+                            fontStyle: "bold",
+                        }
+                    }],
+                    yAxes: [{
+                        lineWidth: 4,
+                        gridLines: {
+                            color:  '#aec7dc',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            fontColor: "#055596",
+                            fontFamily: "Montserrat",
+                            fontWeight: 'bold',
+                            fontStyle: "bold",
+                            padding: 10,
+                            min: 0,
+                            max: cdata.ymax,
+                            stepSize: cdata.steps
+                        }
+                    }]
+                }
+            }
+        });
+    }
+</script>
+
+
 <article id="my-account" <?php post_class(); ?>>
 
 	<div class="page-heading bar blue">	
@@ -41,7 +96,7 @@ get_header();
 
         <div id="dashboard-test-results" class="pt-5 mt-5">
 
-            <h2 class="pt-3 mb-4">Recent Test Results</h2>
+            <h2 class="pt-3 mb-4 heading">Recent Test Results</h2>
 
             <div class="container-fluid">
             <div class="row">
@@ -70,10 +125,12 @@ get_header();
                         $count_results = 1;
                         $graph_data = [];
                         $pre_data = [];
+                        $your_results_display = [];
                         
                         if($total_results > 0):
                             foreach($info->entries as $data){
                                 $total_score = 0;
+                                $test_id = '';
                                 foreach($data as $k => $v):
                                     // Get field object
                                     $field = GFFormsModel::get_field( $data->form_id, $k );
@@ -82,9 +139,15 @@ get_header();
                                     if (strpos($field->label, 'Screen ID') !== false) {     
                                         $screen_id = $v;
                                     }
+
+                                    // Get referring screen ID                    
+                                    if (strpos($field->label, 'Token') !== false) {     
+                                        $test_id = $v;
+                                    }
+
                                     //Screening Questions
                                     if (strpos($field->cssClass, 'question') !== false) {                               
-                                        $total_score = $total_score + $field['choices'][$v]['value']; // Add to total score
+                                        $total_score = $total_score + $v; // Add to total score
                                     }                            
                                 endforeach;
 
@@ -99,210 +162,201 @@ get_header();
                                 if($total_score >= $max_score){
                                     $total_score = $max_score;
                                 }
-                                if(count($graph_data[$test_title]['labels']) < 21){
+
+                                // Limit results
+                                //if(count($graph_data[$test_title]['labels']) < 21){
                                     $graph_data[$test_title]['labels'][] = date('M', strtotime($data->date_created));
                                     $graph_data[$test_title]['scores'][] = $total_score;
-                                }
+                                    $graph_data[$test_title]['max'] = $max_score;
+                                    $graph_data[$test_title]['step'] = get_field('chart_steps', $screen_id);
+                                //}
 
-                                if($total_results > 3 && $count_results == 4){
-                                    echo '</div>';
-                                    echo '<div class="row collapse" id="allScreenResults">';
+                                $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
+                                $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
+                                $your_results_display[$test_title][$count_results]['total_score'] = $total_score;
+                                $your_results_display[$test_title][$count_results]['max_score'] = $max_score;
+                                $your_results_display[$test_title][$count_results]['test_link'] = $test_id;     
+
+                                if($total_score >= $min && $total_score <= $max){
+                                    if(get_sub_field('required_tags')){
+                                        $req = get_sub_field('required_tags');
+                                        foreach($req as $t){
+                                            if(in_multiarray($t, $result_terms)){
+                                                $required_result_tags[] = $t;
+                                            }
+                                        }
+                                    }
                                 }
-                                ?>
-                                    <div class="col-4 mb-4 pl-2 pr-2">
-                                        <div class="bubble teal thinner filled round-small-bl mb-2">
-                                        <div class="inner montserrat medium">
-                                            <div class="type-date small"><?php echo $test_title.' &ndash; '. $test_date; ?></div>
-                                            <div class="caps small">Your test score was:</div>
-                                            <div class="result bold large">
-                                                <?php                          
-                                                    if($total_score >= $min && $total_score <= $max){
-                                                        if(get_sub_field('required_tags')){
-                                                            $req = get_sub_field('required_tags');
-                                                            foreach($req as $t){
-                                                                if(in_multiarray($t, $result_terms)){
-                                                                    $required_result_tags[] = $t;
-                                                                }
-                                                            }
-                                                        }
-                                                    }
                     
-                                                    if( have_rows('results', $screen_id) ):
-                                                    while( have_rows('results', $screen_id) ) : the_row();                                    
-                                                        $min = get_sub_field('score_range_minimum');
-                                                        $max = get_sub_field('score_range_max');                                                    
-                                                        if($total_score >= $min && $total_score <= $max){                                                    
-                                                            if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
-                                                                continue;
-                                                            } else {
-                                                                the_sub_field('result_title');
-                                                            }
-                                                        }
-                                                    endwhile;
-                                                    endif;
-                                                ?>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <a href="/screening-results/?sid=<?php echo $data->id; ?>" class="bubble mint thinner round-small bubble-link text-dark-blue">
-                                            <span class="inner result caps text-center bold montserrat block">
-                                                About your Score: <?php echo $total_score; ?> / <?php echo $max_score; ?>
-                                            </span>
-                                        </a>
-                                    </div>
-                                <?php
+                                if( have_rows('results', $screen_id) ):
+                                while( have_rows('results', $screen_id) ) : the_row();                                    
+                                    $min = get_sub_field('score_range_minimum');
+                                    $max = get_sub_field('score_range_max');                                                    
+                                    if($total_score >= $min && $total_score <= $max){                                                    
+                                        if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
+                                            continue;
+                                        } else {
+                                            $your_results_display[$test_title][$count_results]['result_title'] = get_sub_field('result_title');
+                                        }
+                                    }
+                                endwhile;
+                                endif;
+
                                 $count_results++;
                             }
-                        else: 
-                            echo '<p>You have not taken any mental health tests. <a href="/screening-tools">Explore mental health tests</a></p>';
                         endif;
-                        
-                        // Better chronological data
-                        $reverse_labels = array_reverse($graph_data[$test_title]['labels']);
-                        $reverse_scores = array_reverse($graph_data[$test_title]['scores']);
-
-                        $pre_data[] = [
-                            'borderWidth' => 3,
-                            'fill' => false,
-                            'backgroundColor' => '#1CA4AB',
-                            'borderColor' => '#1CA4AB',
-                            'pointRadius' => 4,
-                            'data' => $reverse_scores
-                        ];
                     }
                 ?>
                 </div>
 
-                <?php 
-                    // More results button
-                    if($total_results > 3): 
-                ?>
-                    <div class="row">
-                        <div class="col-12">
-                            <p class="text-right mb-0">
-                                <button class="plain teal caps large bold" type="button" data-toggle="collapse" data-target="#allScreenResults" aria-expanded="false" aria-controls="allScreenResults">Show More Results</button>
-                            </p>
-                        </div>
-                    </div>
-                <?php endif; ?>
+                <div id="test-results-container">
+                    <?php 
+                        if($your_results_display):
+                            $group_counter = 1; 
+                            foreach($your_results_display as $k => $v): 
+                            $total_test_results = count($v);
+                            $group_slug = 'test-results-group-'.sanitize_title($k);
+                            ?>
+
+                            <div id="group-<?php echo sanitize_title($k); ?>" data-test-group="<?php echo sanitize_title($k); ?>" class="loading-container container-fluid<?php if($group_counter > 1){ echo ' hidden'; } ?>">
+
+                                <div class="row">
+                                    <?php
+                                        $test_counter = 1; 
+                                        foreach($v as $result):
+                                            if($total_test_results > 3 && $test_counter == 4){
+                                                echo '</div>';
+                                                echo '<div class="row collapse" id="'.$group_slug.'">';
+                                            }
+                                        ?>                            
+                                            <div class="col-lg-4 col-12 mb-4 pl-2 pr-2">
+                                                <div class="bubble teal thinner filled round-small-bl mb-2">
+                                                <div class="inner montserrat medium">
+                                                    <div class="type-date small mb-2"><?php echo $result['test_date'].'<br />'. $result['test_title']; ?></div>
+                                                    <div class="caps small">Your test score was:</div>
+                                                    <div class="result bold large"><?php echo $result['result_title']; ?></div>
+                                                </div>
+                                                </div>
+                                                <a href="/screening-results/?sid=<?php echo $result['test_link']; ?>" class="bubble mint thinner round-small bubble-link text-dark-blue">
+                                                    <span class="inner result caps text-center bold montserrat block">
+                                                        About your Score: <?php echo $result['total_score']; ?> / <?php echo $result['max_score']; ?>
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        <?php 
+                                        $test_counter++;
+                                        endforeach; 
+                                    ?>                            
+                                </div>
+                                
+                                <?php 
+                                    // More results button
+                                    if($total_test_results > 3): 
+                                ?>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <p class="text-right mb-0">
+                                                <button class="plain teal caps large bold" 
+                                                    type="button" 
+                                                    data-toggle="collapse" 
+                                                    data-target="#<?php echo $group_slug; ?>" 
+                                                    aria-expanded="false" 
+                                                    aria-controls="<?php echo $group_slug; ?>">Show More Results</button>
+                                            </p>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                                
+                            </div>
+                            
+                            <?php 
+                            $group_counter++;
+                            endforeach; 
+                        else:
+                            echo '<p>You have not taken any mental health tests. <a href="/screening-tools">Explore mental health tests</a></p>';
+                        endif;
+                    ?>
+                </div>
+
 
             </div>
 
             <?php if($graph_data): ?>
-            <div class="dropdown">
+            <div id="test-selection-dropdown" class="dropdown dropdown-menu-right">
                 <button class="button gray round-br dropdown-toggle" type="button" id="testSelection" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Select Test
                 </button>
-                <div class="dropdown-menu" aria-labelledby="testSelection">
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="testSelection">
                     <?php foreach($graph_data as $key => $value): ?>
-                        <button class="dropdown-item" type="button"><?php echo $key; ?></button>
+                        <button class="dropdown-item show-test-group" type="button" data-group-control="<?php echo sanitize_title($key); ?>"><?php echo $key; ?></button>
                     <?php endforeach; ?>
                 </div>
             </div>
             <?php endif; ?>
 
 
-            <?php foreach($graph_data as $key => $value): ?>
-            <div class="container-fluid pt-4">
-            <div class="row">
+            <?php 
+                $chart_counter = 0;
+                foreach($graph_data as $k => $v): 
+                ?>
+                <div class="container-fluid loading-container pt-4<?php if($chart_counter > 0){ echo ' hidden'; } ?>" data-test-group="<?php echo sanitize_title($k); ?>">
+                <div class="row">
 
-                <div class="col-12">
-                    <h3 class="text-dark-teal mb-4"><?php echo $key; ?> Results Over Time</h3>
-                </div>
+                    <div class="col-12">
+                        <h3 class="text-dark-teal mb-4"><?php echo $k; ?> Results Over Time</h3>
+                    </div>
 
-                <div class="col-12 col-md-8">
+                    <div class="col-12 col-md-8">
 
-                    <div class="bubble bubble-border round-tl results-graph">
-                    <div class="inner">
-                    <?php
-
-                        $chart_counter = 0;
-                        foreach($graph_data as $k => $v){
+                        <div class="bubble bubble-border round-tl results-graph">
+                        <div class="inner">
+                        <?php
+                            // Better chronological data
+                            $reverse_labels = array_reverse($v['labels']);
+                            $reverse_scores = array_reverse($v['scores']);
+                            $pre_data = [
+                                'borderWidth' => 3,
+                                'fill' => false,
+                                'backgroundColor' => '#1CA4AB',
+                                'borderColor' => '#1CA4AB',
+                                'pointRadius' => 4,
+                                'data' => $reverse_scores
+                            ];
+                            
                             echo '<div class="chart-container"><canvas id="canvas-'.$chart_counter.'"></canvas></div>';
                             $chartData = [
                                 'id' => 'canvas-'.$chart_counter,
                                 'labels' => $reverse_labels,
-                                'data' => $pre_data,
-                                'ymax' => $max_score
+                                'data' => [$pre_data],
+                                'ymax' => $v['max'],
+                                'steps' => $v['steps'] 
                             ];
                             $cdata = json_encode($chartData,JSON_NUMERIC_CHECK);
                             ?>
 
-                            <script>                        
-                                const loadLineChart = (cdata) => {
-                                    new Chart(document.getElementById(cdata.id).getContext('2d'), {
-                                        type: 'line',
-                                        data: {
-                                            labels: cdata.labels,
-                                            datasets: cdata.data
-                                        },
-                                        options: {
-                                            title: { display: false	},
-                                            elements: {
-                                                line: { tension: 0 },
-                                                point: { radius: 0 }
-                                            },
-                                            legend: { display: false },
-                                            responsive: true,
-                                            maintainAspectRatio: false,
-                                            scales: {
-                                                xAxes: [{
-                                                    lineWidth: 4,
-                                                    minBarLength: 1,
-                                                    gridLines: {
-                                                        display: false,
-                                                        color:  '#aec7dc'
-                                                    },
-                                                    ticks: {
-                                                        fontFamily: "Montserrat",
-                                                        fontColor: "#055596",
-                                                        fontStyle: "bold",
-                                                    }
-                                                }],
-                                                yAxes: [{
-                                                    lineWidth: 4,
-                                                    gridLines: {
-                                                        color:  '#aec7dc',
-                                                        drawBorder: false
-                                                    },
-                                                    ticks: {
-                                                        fontColor: "#055596",
-                                                        fontFamily: "Montserrat",
-                                                        fontWeight: 'bold',
-                                                        fontStyle: "bold",
-                                                        padding: 10,
-                                                        min: 0,
-                                                        max: cdata.ymax,
-                                                        stepSize: <?php echo get_field('chart_steps', $screen_id); ?>
-                                                    }
-                                                }]
-                                            }
-                                        }
-                                    });
-                                }
-                                loadLineChart(<?=$cdata?>);
-                            </script>
+                            <script>loadLineChart(<?=$cdata?>);</script>
                             <?php
                             $chart_counter++;
-                        }
-                    ?>
+                        ?>
+                        </div>
+                        </div>
+
                     </div>
+
+                    <div class="col-12 col-md-4">
+                        <div class="bubble round-tl mint">
+                        <div class="inner">
+                            <h3 class="text-green mb-4">Explore more mental health tests</h3>
+                            <p class="text-center mb-0"><a class="button teal round" href="/screening-tools">Take a mental health&nbsp;test</a></p>
+                        </div>
+                        </div>
                     </div>
 
                 </div>
-
-                <div class="col-12 col-md-4">
-                    <div class="bubble round-tl mint">
-                    <div class="inner">
-                        <h3 class="text-green mb-4">Explore more mental health tests</h3>
-                        <p class="text-center mb-0"><a class="button teal round" href="/screening-tools">Take a mental health&nbsp;test</a></p>
-                    </div>
-                    </div>
-                </div>
-
-            </div>
-            </div>   
-            <?php endforeach; ?>         
+                </div>   
+                <?php 
+                endforeach; 
+            ?>         
 
         </div>
 
@@ -465,7 +519,6 @@ get_header();
                     
     </div>
     </div>
-    
 
 </article>
 

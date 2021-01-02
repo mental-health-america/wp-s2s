@@ -272,9 +272,19 @@ ol.next-steps {
         margin: 0 0 1em 0;
         padding: 0;
         @include montserrat(600);
+        -webkit-column-break-inside: avoid;
+                  page-break-inside: avoid;
+                       break-inside: avoid;
     }
 }
 
+.loading-container {
+    opacity: 1;
+    @include transitions(opacity 400ms ease);
+    &.loading {
+        opacity: .4;
+    }
+}
 
 // Screening List 
 

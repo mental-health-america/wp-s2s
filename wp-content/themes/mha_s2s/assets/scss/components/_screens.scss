@@ -41,7 +41,7 @@ article.screen {
             margin: 0;
             padding: 0;
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             justify-content: space-evenly;
             flex-direction: row;
             align-items: stretch;
@@ -60,7 +60,8 @@ article.screen {
 
             li {
                 position: relative;
-                flex: 1 1 calc(25% - 10px);
+                //flex: 1 1 calc(25% - 10px);
+                flex: 1 1 auto;
                 margin: 0 5px 5px 5px;
                 padding: 0;
                 opacity: 1;
@@ -274,6 +275,9 @@ article.screen {
         line-height: 1.4em;
         font-weight: 700;
         @include radius(20px);
+        a {
+            color: $white;
+        }
     }
     
     // Submit buttons

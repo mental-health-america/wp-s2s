@@ -13,6 +13,24 @@
         if(get_query_var('pathway')){
             
             $ref_id = get_query_var('pathway');
+
+            $args = array(
+                'post_type'  => 'page', 
+                "post_status" => 'publish',
+                "posts_per_page" => 1,
+                'meta_query' => array( 
+                    'relation' => 'AND',
+                    array(
+                        'key'   => '_wp_page_template', 
+                        'value' => 'templates/page-path-collection.php'
+                    ),
+                    array(
+                        'key'   => 'condition', 
+                        'value' => ''
+                    )
+                )
+            );
+            
             echo '<span class="crumb">'.get_the_title($ref_id).'</span>';
                         
         }

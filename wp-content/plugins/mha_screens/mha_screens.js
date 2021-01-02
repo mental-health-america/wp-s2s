@@ -40,8 +40,6 @@ jQuery(function ($) {
 					},
 					success: function( results ) {
 						
-						console.log(results);
-
 						$(form).addClass('success');
 						$('.form-message',form).html('<h3 class="section-title dark-teal">Your test results have been sent!</h3>').show();
 						$('.form-content',form).slideUp();

@@ -148,6 +148,12 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
 
                         $primary_condition = get_field('primary_condition');
 
+                        // Pathway override
+                        if(get_query_var('pathway')){
+                            $path_terms = get_the_terms(get_query_var('pathway'), 'condition');
+                            $primary_condition = $path_terms[0]->term_id;
+                        }
+
                         if($primary_condition){
 
                             // Show Specific Related Test

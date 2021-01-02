@@ -192,6 +192,19 @@
 		// Filter Display
 		showFilters();
 
+		// User test results display toggler
+		$('.show-test-group').on('click', function(event){
+			event.preventDefault();
+			var group = $(this).attr('data-group-control');
+			console.log(group);
+			$('div[data-test-group]').addClass('loading');
+			setTimeout(() => {
+				$('div[data-test-group]').addClass('hidden');
+				$('div[data-test-group]').removeClass('loading');	
+				$('div[data-test-group="'+group+'"]').removeClass('hidden');			
+			}, 400);
+		});
+
 	});
 
 	/**

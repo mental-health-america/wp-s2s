@@ -65,38 +65,43 @@ get_header();
             $alert = 0;
             $i = 0;          
 
-            $your_answers .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';      
+            $your_answers .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';     
+
             foreach($data as $k => $v){
                 
                 // Get field object
-                $field = GFFormsModel::get_field( $data->form_id, $k );
+                $field = GFFormsModel::get_field( $data->form_id, $k );  
 
-                // Get referring screen ID
-                
+                // Get referring screen ID                
                 if (strpos($field->label, 'Screen ID') !== false) {     
                     $screen_id = $v;
                 }
 
                 //Screening Questions
-                if (strpos($field->cssClass, 'question') !== false) {                    
-                    $label = $field->label; // Field label 
-                    $value_label = $field['choices'][$v]['text']; // Selection Label                    
-                    $total_score = $total_score + $field['choices'][$v]['value']; // Add to total score
+			    if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {  
+                    $label = $field->label; // Field label             
+                    $total_score = $total_score + $v; // Add to total score
+                    // Get label for selected choice
+                    foreach($field['choices'] as $choice){
+                        if($choice['value'] == $v){
+                            $value_label = $choice['text'];
+                        }
+                    }
                     $your_answers .= '<div class="row pb-4">';
                         $your_answers .= '<div class="col-7 text-gray">'.$label.'</div>';
-                        $your_answers .= '<div class="col-5 bold caps text-dark-blue pl-4">'.$value_label.'</div>';
+                        $your_answers .= '<div class="col-5 bold caps text-dark-blue pl-4">'.$value_label.' ('.$v.')</div>';
                     $your_answers .= '</div>';
                 }
 
-                // Warning message counter
-                if (strpos($field->cssClass, 'alert') !== false) {    
+                // Warning message counter  
+                    if (isset($field->cssClass) && strpos($field->cssClass, 'alert') !== false) {    
                     if($v > 0){
                         $alert++;
                     }  
                 }
 
                 // Taxonomy grabber
-                if (strpos($field->cssClass, 'taxonomy') !== false) { 
+                    if (isset($field->cssClass) && strpos($field->cssClass, 'taxonomy') !== false) {  
                     $term = get_term_by('slug', esc_attr($v), $field->adminLabel);
                     if($term){
                         $result_terms[$i]['id'] = $term->term_id;
@@ -169,14 +174,6 @@ get_header();
 
                 $min = get_sub_field('score_range_minimum');
                 $max = get_sub_field('score_range_max');
-
-                /*
-                echo '<hr />';
-                echo get_row_index();
-                echo "Min: $min<br />";
-                echo "Max: $max<br />";
-                echo "Total: $total_score<br />";
-                */
                 
                 if($total_score >= $min && $total_score <= $max){
                     
@@ -202,7 +199,7 @@ get_header();
 
                         <div class="bubble thin teal round-small-bl mb-4">
                         <div class="inner">
-                            <div class="subtitle thin caps block pb-1">Your score was</div>
+                            <div class="subtitle thin caps block pb-1">Your <?php echo get_the_title($screen_id); ?> score was</div>
                             <h2 class="white small m-0">
                                 <strong><?php the_sub_field('result_title'); ?></strong>
                             </h2>
@@ -270,7 +267,9 @@ get_header();
                         
                             <?php
                                 if($alert > 0){
-                                    the_field('warning_message', $screen_id);
+                                    echo '<div class="bubble coral round-tl mb-4 narrow"><div class="inner bold">';
+                                    echo get_field('warning_message', $screen_id);
+                                    echo '</div></div>';
                                 }
                                 the_sub_field('result_content');
                             ?>
@@ -296,38 +295,94 @@ get_header();
 <div class="wrap narrow mb-5">
     <ol class="next-steps">        
         <?php
+            $exclude_ids = [];
+
             // Result based manual steps
             foreach($next_step_manual as $step){
-                echo "<li><strong>Manual step from result: </strong>".get_the_title($step).'</li>';
+                echo '<li><a class="dark-gray plain rec-result-manual" href="'.get_the_permalink($step).'">'.get_the_title($step).'</a></li>';
+                $exclude_id[] = $step;
             }
 
             // Manual steps
             if( have_rows('featured_next_steps', $screen_id) ):
             while( have_rows('featured_next_steps', $screen_id) ) : the_row();
-                $step = get_sub_field('link');
-                echo '<li><strong>Manual step from screen:</strong> '. get_the_title($step->ID).'</li>'; // Simply print the manual selection
+                if(!in_array($step->id, $exclude_ids)){
+                    $step = get_sub_field('link');
+                    echo '<li><a class="dark-gray plain rec-screen-manual" href="'.get_the_permalink($step->ID).'">'.$step->post_title.'</a></li>';
+                    $exclude_id[] = $step->ID;
+                }
             endwhile;        
             endif;
 
+
+            // Automatic query args
+            $total_recs = 20 - count($exclude_id);
+            $args = array(
+                "post_type" => 'article',
+                "order"	=> 'ASC',
+                "orderby" => 'date',
+                "post_status" => 'publish',
+                "posts_per_page" => $total_recs,
+                "meta_query" => array(
+                    array(
+                        "key" => 'type',
+                        "value" => 'condition'
+                    )
+                )
+            );
+
             // Result based related tag steps
             $next_step_terms = array_unique($next_step_terms);
+            $taxonomy_query = [];
             foreach($next_step_terms as $step){
-                echo "<li><strong>Relevant tag from result: </strong>".get_term($step)->name.'</li>';
+                $step = get_term($next);
+                if($step->taxonomy == 'condition' || $step->taxonomy == 'age_group' || $step->taxonomy == 'post_tag'){
+                    $taxonomy_query[$step->taxonomy][] = $step->term_id;
+                }
             }
 
             // Demographic based steps
             if(!empty($result_terms)){
-                foreach($result_terms as $step){         
-                    echo "<li><strong>Optional answers tag: </strong>".get_term_by('id', $step['id'], $step['taxonomy'])->name.'</li>';            
+                foreach($result_terms as $step){ 
+                    if($step['taxonomy'] == 'condition' || $step['taxonomy'] == 'age_group' || $step['taxonomy'] == 'post_tag'){
+                        $taxonomy_query[$step['taxonomy']][] = $step['id'];    
+                    }   
                 }
             }
 
             // Overall screen based steps
             $tags = get_field('related_tags', $screen_id);
-            foreach($tags as $t){
-                echo "<li><strong>Related tag from screen: </strong>".get_term($t)->name.'</li>';
+            foreach($tags as $step){
+                if($step->taxonomy == 'condition' || $step->taxonomy == 'age_group' || $step->taxonomy == 'post_tag'){
+                    $taxonomy_query[$step->taxonomy][] = $step->term_id;
+                }
             }
 
+            // Excluded previous manual 
+            $args['post__not_in'] = $exclude_id; 
+
+            // Set up taxonomy query filters
+            foreach($taxonomy_query as $k => $v){
+                $args['tax_query'][] = array(
+                    'taxonomy' => $k,
+                    'field'    => 'term_id',
+                    'terms'    => $v
+                );
+            }
+
+            // Make all tags required for multiple taxonomies (e.g. avoid eating disorder articles on depression results 
+            // if someone answered 18-25 demographic questions)
+            if(count($taxonomy_query) > 1){
+                $args['tax_query']['relation'] = 'AND';
+            }
+
+            // Automatic Related Article Query
+            $loop = new WP_Query($args);
+            while($loop->have_posts()) : $loop->the_post();
+                echo '<li><a class="dark-gray plain rec-auto" href="'.get_the_permalink().'">'.get_the_title().'</a></li>';
+            endwhile;
+
+            // See All Link
             if(get_field('see_all_link', $screen_id)){
                 $see_all_text = 'See All';
                 if(get_field('see_all_link_text', $screen_id)){
@@ -335,6 +390,8 @@ get_header();
                 }
                 echo '<li><a class="caps cerulean plain" href="'.get_field('see_all_link', $screen_id).'">'.$see_all_text.'</a></li>';
             }
+
+
         ?>
     </ol>
 </div>
