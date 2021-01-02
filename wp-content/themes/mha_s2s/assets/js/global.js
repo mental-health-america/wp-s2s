@@ -196,13 +196,20 @@
 		$('.show-test-group').on('click', function(event){
 			event.preventDefault();
 			var group = $(this).attr('data-group-control');
-			console.log(group);
+			var text = $(this).text();
+			
 			$('div[data-test-group]').addClass('loading');
+			$('#testSelection span').text(text);
 			setTimeout(() => {
 				$('div[data-test-group]').addClass('hidden');
 				$('div[data-test-group]').removeClass('loading');	
 				$('div[data-test-group="'+group+'"]').removeClass('hidden');			
 			}, 400);
+		});
+
+		// Bootstrap tooltips
+		$('[data-toggle="tooltip"]').tooltip({
+			options: 'click hover'
 		});
 
 	});

@@ -92,6 +92,7 @@
 .page-content {
 
     // Pages
+    /*
     .type-page & {
         h2 {
             margin: 0 0 .25em 0;
@@ -108,13 +109,15 @@
             font-weight: 600;            
         }
     }
+    */
 
 }
 
 // Articles
 .mce-content-body,
+.type-page .page-content,
 .type-article .page-content {
-    a {
+    a:not(.button) {
         font-weight: 700;
         @include transitions(color 100ms ease);
         &:hover {
@@ -418,6 +421,9 @@ ol.next-steps {
             top: 0;
             bottom: 0;
             margin: auto 0;
+            .red & {
+                background: $raz;
+            }
             @media only screen and (max-width: 679px){
                 display: none;
             }
@@ -434,9 +440,15 @@ ol.next-steps {
             }
             &.current {
                 background: $blueDark;
+                .red & {
+                    background: $purple;
+                }
             }
             &:hover {
                 background: $blueDark;
+                .red & {
+                    background: $purple;
+                }
             }
         }
     }
@@ -463,6 +475,9 @@ ol.next-steps {
                 height: 50px;
                 background: url('../images/path.png') 0px 0px no-repeat;
                 background-size: 100% 100%;
+                .red & {
+                    background-image: url('../images/path-red.png');
+                }
             }
             &:nth-of-type(3n+6){
                 display: none;
@@ -477,6 +492,9 @@ ol.next-steps {
                 height: 50px;
                 background: url('../images/path.png') 0px 0px no-repeat;
                 background-size: 100% 100%;
+                .red & {
+                    background-image: url('../images/path-red.png');
+                }
             }
         }
         @media only screen and (max-width: 679px){
@@ -493,6 +511,9 @@ ol.next-steps {
                 height: calc(100% + 20px);
                 width: 4px;
                 background: $brightBlue;
+                .red & {
+                    background: $raz;
+                }
             }
         }
 
@@ -555,6 +576,9 @@ button.icon.like-button {
     }
 }
 
+#orderSelection {
+    padding-right: 30px;
+}
 
 // Filter Pages
 #filter-toggle {
@@ -563,7 +587,7 @@ button.icon.like-button {
     z-index: 10;
     @extend .round;
     color: $blueDark;
-    padding: 10px 50px 10px 30px;
+    padding: 15px 50px 15px 30px;
     background: url('../images/filter.png') 90% center no-repeat $grayLight;
     background-size: auto 15px;
     width: auto;
@@ -577,6 +601,8 @@ button.icon.like-button {
 
     @media only screen and (max-width: 767px){
         display: inline-block;
+        padding-left: 20px;
+        padding-right: 45px;
     }
 }
 
@@ -598,12 +624,23 @@ button.icon.like-button {
 
 #filters-container {
     
+    @media only screen and (max-width: 440px){
+        .dropdown label {
+            display: none;
+        }
+        .dropdown .button {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+    }
+    
     #filters {
         float: left;
         width: 25%;
         @media only screen and (max-width: 767px){
             float: none;
             width: auto;
+            margin-top: -70px;
         }
         .inner {
             padding-right: 20px;
@@ -689,6 +726,7 @@ button.icon.like-button {
     display: flex;
     flex-wrap: wrap;
     opacity: 1;
+    justify-content: space-between;
     @include transitions(opacity 250ms ease);
 
     &.loading {
@@ -704,8 +742,12 @@ button.icon.like-button {
             flex: 0 1 calc(50% - 20px);
             margin: 0 10px 20px 10px;
         }
-        @media only screen and (max-width: 440px){
-            flex: 0 1 calc(100%);
+        @media only screen and (max-width: 640px){
+            flex: 0 1 calc(50% - 10px);
+            margin: 0 0 20px 0;
+        }
+        @media only screen and (max-width: 400px){
+            flex: 0 1 100%;
             margin: 0 0 20px 0;
         }
 

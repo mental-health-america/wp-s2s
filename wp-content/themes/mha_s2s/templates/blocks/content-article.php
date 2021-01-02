@@ -115,7 +115,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                 <aside class="article-right col-12 col-md-4 pl-0 pr-0 pl-md-5">
 
                     <?php 
-                    $terms_conditions = get_the_terms( $article_id, 'condition', );
+                    $terms_conditions = get_the_terms( $article_id, 'condition' );
                     if(count(array_intersect($article_type, $resources)) > 0){
                         $categoryColor = 'raspberry';
                     } else {
@@ -131,7 +131,35 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                                 echo '<ol class="plain ml-5 mb-0">'; 
                                 foreach($terms_conditions as $c){
                                     if ($c->parent == 0){
-                                        echo '<li><a class="plain bold caps" href="'.get_term_link($c->term_id).'">'.$c->name.'</a></li>';
+
+                                        $args = array(
+                                            'post_type'  => 'page', 
+                                            "post_status" => 'publish',
+                                            "posts_per_page" => 1,
+                                            'meta_query' => array( 
+                                                'relation' => 'AND',
+                                                array(
+                                                    'key'   => '_wp_page_template', 
+                                                    'value' => 'templates/page-path-collection.php'
+                                                ),
+                                                array(
+                                                    'key'   => 'condition', 
+                                                    'value' => $c->term_id
+                                                )
+                                            )
+                                        );
+                                        $loop = new WP_Query($args);
+                                        if($loop->have_posts()):
+                                            while($loop->have_posts()) : $loop->the_post();  
+                                                // Link to path collection page if applicable
+                                                echo '<li><a class="plain bold caps" href="'.get_the_permalink().'">'.$c->name.'</a></li>';
+                                            endwhile;
+                                        else:   
+                                            // Otherwise just go to the archive                                     
+                                            echo '<li><a class="plain bold caps" href="'.get_term_link($c->term_id).'">'.$c->name.'</a></li>';
+                                        endif;
+                                        wp_reset_query();
+
                                         $article_conditions[] = $c->term_id; // Used later for related content 
                                     }
                                 }
@@ -301,6 +329,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                             $like_class = '';
                             $like_check = checkArticleLikes( $article_id, $uid );
                             $like_prefix = 'Save ';
+                            $like_tooltip = '';
                             if($like_check){
                                 $like_class .= ' liked';
                                 $like_prefix = 'Unsave ';
@@ -310,10 +339,11 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                                 $like_class .= ' article-like';
                             } else {
                                 $like_class .= ' logged-out';
+                                $like_tooltip = 'data-toggle="tooltip" data-placement="top" title="You must be logged in to save this page."';
                             }
                         ?>
                         <p>
-                            <button class="icon caps like-button<?php echo $like_class; ?>" data-pid="<?php echo get_the_ID(); ?>" data-nonce="<?php echo wp_create_nonce('articleLike'); ?>">
+                            <button class="icon caps like-button<?php echo $like_class; ?>" <?php echo $like_tooltip; ?>data-pid="<?php echo get_the_ID(); ?>" data-nonce="<?php echo wp_create_nonce('articleLike'); ?>">
                                 <span class="image"><?php include get_theme_file_path("assets/images/save.svg"); ?></span>                        
                                 <span class="text blue caps light"><?php echo $like_prefix; ?>This Page</span>
                             </button>

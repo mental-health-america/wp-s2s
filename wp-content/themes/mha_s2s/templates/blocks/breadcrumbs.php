@@ -13,6 +13,7 @@
         if(get_query_var('pathway')){
             
             $ref_id = get_query_var('pathway');
+            $path_terms = get_the_terms($ref_id, 'condition');
 
             $args = array(
                 'post_type'  => 'page', 
@@ -26,10 +27,17 @@
                     ),
                     array(
                         'key'   => 'condition', 
-                        'value' => ''
+                        'value' => $path_terms[0]->term_id
                     )
                 )
             );
+            $loop = new WP_Query($args);
+            if($loop->have_posts()):
+            while($loop->have_posts()) : $loop->the_post();  
+                echo '<a class="crumb crumb-primary" href="'.get_the_permalink().'">'.get_the_title().'</a>';
+            endwhile;
+            endif;
+            wp_reset_query();
             
             echo '<span class="crumb">'.get_the_title($ref_id).'</span>';
                         

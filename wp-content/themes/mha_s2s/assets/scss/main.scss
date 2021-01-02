@@ -1,15 +1,14 @@
 // Normalize CSS
 @import 'vendor/normalize';
 
-// Start with vendor styles to be used later
-@import 'vendor/vendor';
-@import 'vendor/bootstrap';
-
-
 // General Settings
 @import 'global/variables';
 @import 'global/mixins';
 @import 'global/fonts';
+
+// Start with vendor styles to be used later
+@import 'vendor/vendor';
+@import 'vendor/bootstrap';
 
 // Main Global Styles
 @import 'components/accessibility';

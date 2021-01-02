@@ -267,9 +267,11 @@ get_header();
                         
                             <?php
                                 if($alert > 0){
-                                    echo '<div class="bubble coral round-tl mb-4 narrow"><div class="inner bold">';
+                                    //echo '<div class="bubble coral round-tl mb-4 narrow"><div class="inner bold">';
+                                    echo '<div class="bold">';
                                     echo get_field('warning_message', $screen_id);
-                                    echo '</div></div>';
+                                    echo '</div>';
+                                    //echo '</div></div>';
                                 }
                                 the_sub_field('result_content');
                             ?>

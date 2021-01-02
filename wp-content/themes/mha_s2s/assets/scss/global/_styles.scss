@@ -11,7 +11,7 @@ body {
     background: $grayLight;
     color: $gray;
     font-size: 62.5%;
-    @include noto;
+    @include noto(400);
 }
 
 
@@ -100,6 +100,17 @@ input[type="button"] {
     }
     &.bold {
         font-weight: 900;
+    }
+
+    // Text special cases
+    .not-upper {
+        text-transform: none;
+    }
+    .truncate {
+        display: inline-block;
+        max-width: 125px;
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
 
     // Color Options
@@ -221,6 +232,11 @@ input[type="button"] {
         &:hover {
             background-color: $teal;
             background-position: 85% center;
+        }
+        &.red {
+            &:hover {
+                background-color: $raz;
+            }
         }
     }
 

@@ -30,7 +30,7 @@
             <div class="grid-item-content">
 
                 <?php if($link['url']): ?>
-                    <a class="content-inner" href="<?php echo get_sub_field('link'); ?>">
+                    <a class="content-inner" href="<?php echo $link['url']; ?>">
                 <?php else: ?>
                     <span class="content-inner">
                 <?php endif; ?>

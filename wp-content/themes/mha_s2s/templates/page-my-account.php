@@ -284,7 +284,7 @@ get_header();
             <?php if($graph_data): ?>
             <div id="test-selection-dropdown" class="dropdown dropdown-menu-right">
                 <button class="button gray round-br dropdown-toggle" type="button" id="testSelection" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Select Test
+                    <span class="truncate not-upper medium"><?php echo array_key_first($graph_data); ?></span>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="testSelection">
                     <?php foreach($graph_data as $key => $value): ?>

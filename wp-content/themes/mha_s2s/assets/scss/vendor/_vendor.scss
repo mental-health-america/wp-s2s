@@ -3,5 +3,16 @@
 @import 'font-awesome/font-awesome';
 
 .wow {
-    visibility: hidden;
-  }
+  visibility: hidden;
+}
+
+.tooltip.show {
+  opacity: 1 !important;
+}
+.bs-tooltip-auto[x-placement^=top] .arrow::before, 
+.bs-tooltip-top .arrow::before {
+  border-top-color: $blueDark !important;
+}
+.tooltip .tooltip-inner {
+  background: $blueDark;
+}

@@ -23,7 +23,7 @@ get_header();
         <div id="filters" class="clear">
         <div class="inner">
 
-            <button id="filter-toggle" class="bold text-gray caps accordion-button mb-4" type="button" data-toggle="collapse" data-target="#treatment-filter" aria-expanded="true" aria-controls="treatment-filter">Filters</button>
+            <button id="filter-toggle" class="bold text-gray caps accordion-button mb-5 mb-md-4" type="button" data-toggle="collapse" data-target="#treatment-filter" aria-expanded="true" aria-controls="treatment-filter">Filters</button>
 
             <form action="#" method="POST" id="treatment-filter" class="search-filters form-container collapse show">
 
