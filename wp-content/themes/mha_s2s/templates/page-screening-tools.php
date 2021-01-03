@@ -10,8 +10,8 @@ get_header();
         "post_type" => 'screen',
         "order"	=> 'ASC',
         "post_status" => 'publish',
-        "orderby" => 'date',
-        "posts_per_page" => 25
+        "orderby" => 'menu_order',
+        "posts_per_page" => 100
     );
     $loop = new WP_Query($args);
     while($loop->have_posts()) : $loop->the_post();

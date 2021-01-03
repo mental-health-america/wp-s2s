@@ -183,6 +183,16 @@ input[type="button"] {
         }
     }
 
+    &.purple {
+        color: $white;
+        background: $purple;
+        &.active,
+        &:hover {
+            color: $white;
+            background-color: $tealDark;
+        }
+    }
+
     // Color OVerrides   
     &.text-orange {
         color: $orange;

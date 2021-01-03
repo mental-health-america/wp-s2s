@@ -95,6 +95,7 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 		$alert = 0;
 		$i = 0;         
 		$advanced_conditions_data = [];  
+		$general_score_data = [];  
 
 		$html .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';              
 		foreach($data as $k => $v){
@@ -110,7 +111,11 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 						$value_label = $choice['text'];
 					}
 				}                   
-				$total_score = $total_score + $v; // Add to total score	
+				
+				if(strpos($field->cssClass, 'exclude') === false){     
+					$total_score = $total_score + $v; // Add to total score	
+				}
+				
 				if($v != ''){			
 					$html .= '<p>';
 						$html .= '<strong>'.$label.'</strong><br />';
@@ -121,6 +126,7 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
                     if(count(get_sub_field('advanced_condition', $screen_id)) > 0){
                         $advanced_conditions_data[$field->id] = $v; 
                     };
+                    $general_score_data[$field->id] = $v; 
 				}
 			}
 
@@ -133,6 +139,15 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 			
 		}   
 		
+		// Custom Logic Override
+		$custom_results_logic = get_field('custom_results_logic', $screen_id);
+		$custom_result_row = '';
+		if($custom_results_logic){
+			$custom_result_logic_data = custom_logic_checker($general_score_data, $custom_results_logic);
+			$total_score = $custom_result_logic_data['total_score'];
+			$custom_result_row = $custom_result_logic_data['custom_result_row'];
+		}
+
 		// Update total score to be the max possible score if its over
 		$max_score = get_field('overall_max_score', $screen_id);
 		if($total_score >= $max_score){
@@ -146,7 +161,8 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 		}
 
 		// Intepretation
-		$html .= '<div><h2>Interpretation of Scores</h2>'.get_field('interpretation_of_scores', $screen_id).'</div>';
+		//$html .= '<div><h2>Interpretation of Scores</h2>'.get_field('interpretation_of_scores', $screen_id).'</div>';
+		$html .= '<div>'.get_field('interpretation_of_scores', $screen_id).'</div>';
 
 		// Title (based on score)
 		$header = '';
@@ -178,18 +194,42 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 
 			while( have_rows('results', $screen_id) ) : the_row();
 				$min = get_sub_field('score_range_minimum');
-				$max = get_sub_field('score_range_max');			
-                if($total_score >= $min && $total_score <= $max || $has_advanced_conditions > 0 && $advanced_condition_row == get_row_index()){
+				$max = get_sub_field('score_range_max');
+				$custom_logic_condition_row = get_sub_field('custom_logic_condition');
 
-                    if($has_advanced_conditions > 0){
-                        if($advanced_condition_row != get_row_index()){ 
-                            continue;
-                        }
-                    }	
+				if($total_score >= $min && $total_score <= $max || $has_advanced_conditions > 0 && $advanced_condition_row == get_row_index() || $custom_results_logic != '' && $custom_result_row == $custom_logic_condition_row ){
+
+					// Advanced Condition Double Check (in case score condition passes)
+					if($has_advanced_conditions > 0){
+						if($advanced_condition_row != get_row_index()){ 
+							continue;
+						}
+					}
+
+					// Custom Condition Double Check (in case score condition passes)
+					if($custom_results_logic != ''){
+						if($custom_result_row != $custom_logic_condition_row){ 
+							continue;
+						}
+					}
 
 					// Result Header
 					$header .= '<div>Your score was</div><h1 style="margin-top: 0; padding-top: 0;"><strong>'.get_sub_field('result_title').'</strong></h1>';
 					$header .= get_sub_field('result_content');
+					
+					if(have_rows('additional_results', $screen_id)):
+						$header .= '<p><strong>Overall Score:</strong> '.$total_score.'<br />';
+							while( have_rows('additional_results', $screen_id) ) : the_row();  
+								$add_scores = get_sub_field('scores');
+								$add_score_total = 0;
+								foreach($add_scores as $score){
+									$add_score_total = $general_score_data[$score['question_id']] + $add_score_total;
+								}
+
+								$header .= '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.'<br />';
+							endwhile;
+							$header .= '</p>';
+						endif;
 
 					// Link back to results page
 					$header .= '<p><a href="'.get_site_url().'/screening-results/?sid='.$user_screen_id.'">View your results online and see next steps</a></p>';
@@ -203,5 +243,60 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 	}
 	
 	return false;
+
+}
+
+
+/**
+ * Custom Logic Overrides
+ */
+function custom_logic_checker($general_score_data, $custom_results_logic) {
+
+	$results = false;
+
+	// Eating Disorder
+	if($custom_results_logic == 'eating_disorder'):
+
+		$results = [];
+
+		$total_score = ($general_score_data[49] + $general_score_data[47] + $general_score_data[48] + $general_score_data[50] + $general_score_data[51]) / 5;
+		$total_score = round($total_score, 2);
+		$results['total_score'] = $total_score;
+
+		if($general_score_data[49] > 0){
+			$bmi = $general_score_data[67] / $general_score_data[68] / $general_score_data[68] * 703;
+		} else {
+			$bmi = 0;
+		}
+		$results['bmi'] = $total_score;
+		
+		if (($bmi < 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+			$custom_result_row = 1; // At Risk for Eating Disorder
+		} elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+			$custom_result_row = 1; // At Risk for Eating Disorder
+		} elseif (($general_score_data[53] > 1) && (($general_score_data[70] + $general_score_data[71] + $general_score_data[72] + $general_score_data[73] + $general_score_data[74]) >= 3) && ($general_score_data[75] >= 4) && (($general_score_data[53] >= 12) && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 3)) {
+			$custom_result_row = 1; // At Risk for Eating Disorder
+		} elseif (($bmi >= 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+			$custom_result_row = 1; // At Risk for Eating Disorder
+		} elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 3 && $general_score_data[53] < 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 3 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+			$custom_result_row = 1; // At Risk for Eating Disorder
+		} elseif (($general_score_data[53] > 1) && (($general_score_data[70] + $general_score_data[71] + $general_score_data[72] + $general_score_data[73] + $general_score_data[74]) >= 3) && ($general_score_data[75] >= 4) && (($general_score_data[53] >= 3 && $general_score_data[53] < 12) && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 3)) {
+			$custom_result_row = 1; // At Risk for Eating Disorder
+		} elseif (($general_score_data[53] == 0) && (($general_score_data[55] + $general_score_data[57]) >= 12)) {
+			$custom_result_row = 1; // At Risk for Eating Disorder
+		} elseif (($general_score_data[53] >= 3) || (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 3)) {
+			$custom_result_row = 1; // At Risk for Eating Disorder
+		} elseif ($total_score >= 47 || $general_score_data[50] >= 66.7 || $general_score_data[47] >= 75) {
+			$custom_result_row = 1; // At Risk for Eating Disorder
+		} elseif ($general_score_data[61] == 1 || $general_score_data[62] == 1 || $general_score_data[63] == 1) {
+			$custom_result_row = 2; // At Risk for Avoidant/Restrictive Food Intake Disorder (ARFID)
+		} else {
+			$custom_result_row = 3; // Low Risk
+		}         
+		$results['custom_result_row'] = $custom_result_row;         
+
+	endif;
+
+	return $results;
 
 }

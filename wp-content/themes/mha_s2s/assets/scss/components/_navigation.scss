@@ -333,6 +333,10 @@
         padding: 0;
         float: right;
         text-align: right;
+
+        .single-screen & {
+            display: none !important;
+        }
         
         @media only screen and (max-width: 940px){
             display: block;

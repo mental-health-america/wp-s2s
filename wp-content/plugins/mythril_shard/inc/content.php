@@ -159,9 +159,9 @@ function mha_show_tests() {
     $args = array(
         "post_type" => 'screen',
         "orderby" => 'menu_order',
-        "order"	=> 'DESC',
+        "order"	=> 'ASC',
         "post_status" => 'publish',
-        "posts_per_page" => 999
+        "posts_per_page" => 200
     );
 	$loop = new WP_Query($args);
 	if($loop->have_posts()):

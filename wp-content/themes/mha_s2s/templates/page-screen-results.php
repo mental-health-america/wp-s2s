@@ -65,6 +65,7 @@ get_header();
             $alert = 0;
             $i = 0;         
             $advanced_conditions_data = []; 
+            $general_score_data = []; 
 
             $your_answers .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';     
 
@@ -85,9 +86,12 @@ get_header();
                     if(count(get_sub_field('advanced_condition', $screen_id)) > 0){
                         $advanced_conditions_data[$field->id] = $v; 
                     };
+                    $general_score_data[$field->id] = $v; 
 
-                    $label = $field->label; // Field label             
-                    $total_score = $total_score + $v; // Add to total score
+                    $label = $field->label; // Field label    
+                    if(strpos($field->cssClass, 'exclude') === false){         
+                        $total_score = $total_score + $v; // Add to total score
+                    }
                     // Get label for selected choice
                     foreach($field['choices'] as $choice){
                         if($choice['value'] == $v){
@@ -121,6 +125,15 @@ get_header();
                 
             }   
             
+            // Custom Logic Override
+            $custom_results_logic = get_field('custom_results_logic', $screen_id);
+            $custom_result_row = '';
+            if($custom_results_logic){
+                $custom_result_logic_data = custom_logic_checker($general_score_data, $custom_results_logic);
+                $total_score = $custom_result_logic_data['total_score'];
+                $custom_result_row = $custom_result_logic_data['custom_result_row'];
+            }
+                        
             // Update total score to be the max possible score if its over
             $max_score = get_field('overall_max_score', $screen_id);
             if($total_score >= $max_score){
@@ -174,7 +187,7 @@ get_header();
                             continue;
                         }
                     }
-                    
+
                     if(get_sub_field('required_tags')){
                         $req = get_sub_field('required_tags');
                         foreach($req as $t){
@@ -216,11 +229,20 @@ get_header();
                 while( have_rows('results', $screen_id) ) : the_row();
                     $min = get_sub_field('score_range_minimum');
                     $max = get_sub_field('score_range_max');
+                    $custom_logic_condition_row = get_sub_field('custom_logic_condition');
 
-                    if($total_score >= $min && $total_score <= $max || $has_advanced_conditions > 0 && $advanced_condition_row == get_row_index()){
+                    if($total_score >= $min && $total_score <= $max || $has_advanced_conditions > 0 && $advanced_condition_row == get_row_index() || $custom_results_logic != '' && $custom_result_row == $custom_logic_condition_row ){
 
+                        // Advanced Condition Double Check (in case score condition passes)
                         if($has_advanced_conditions > 0){
                             if($advanced_condition_row != get_row_index()){ 
+                                continue;
+                            }
+                        }
+
+                        // Custom Condition Double Check (in case score condition passes)
+                        if($custom_results_logic != ''){
+                            if($custom_result_row != $custom_logic_condition_row){ 
                                 continue;
                             }
                         }
@@ -307,7 +329,7 @@ get_header();
                                 <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="score-interpretation">
                                 <div class="inner small">
                                     <div class="container-fluid">
-                                    <h3 class="section-title dark-teal mb-4">Interpretation of Scores</h3>
+                                        <!--<h3 class="section-title dark-teal mb-4">Interpretation of Scores</h3>-->
                                         <?php the_field('interpretation_of_scores', $screen_id); ?>
                                     </div>
                                 </div>
@@ -322,6 +344,21 @@ get_header();
                                         //echo '</div></div>';
                                     }
                                     the_sub_field('result_content');
+
+                                    if(have_rows('additional_results', $screen_id)):
+                                    echo '<p>';
+                                        echo '<strong>Overall Score:</strong> '.$total_score.'<br />';
+                                        while( have_rows('additional_results', $screen_id) ) : the_row();  
+                                            $add_scores = get_sub_field('scores');
+                                            $add_score_total = 0;
+                                            foreach($add_scores as $score){
+                                                $add_score_total = $general_score_data[$score['question_id']] + $add_score_total;
+                                            }
+
+                                            echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.'<br />';
+                                        endwhile;
+                                        echo '</p>';
+                                    endif;
                                 ?>
                             </div>
 

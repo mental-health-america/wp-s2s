@@ -273,14 +273,17 @@
 
 .secondary-buttons {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: center;
+    @media only screen and (max-width: 740px){
+        flex-wrap: wrap;
+    }
     .grid-item {
-        flex: 0 1 calc(25% - 5px);
+        flex: 1 1 auto;
         margin: 5px 0 10px 0;
         text-align: center;
-        @media only screen and (max-width: 679px){
+        @media only screen and (max-width: 740px){
             flex: 0 1 50%;            
         }
         @media only screen and (max-width: 480px){

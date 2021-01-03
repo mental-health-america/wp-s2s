@@ -334,8 +334,8 @@ ol.next-steps {
     }
 
     .button {
+        @include radius(40px);
         @include transitions(all 200ms ease);
-        @include radius(20px);
         &.revealed {
             background-color: $mint;
             color: $blueDark;
