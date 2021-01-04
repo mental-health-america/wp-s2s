@@ -208,9 +208,18 @@
 		});
 
 		// Bootstrap tooltips
+		/*
 		$('[data-toggle="tooltip"]').tooltip({
 			options: 'click hover'
 		});
+		*/
+		$('body').tooltip({
+			selector: '[data-toggle=tooltip]',
+			options: 'click hover'
+		});
+
+		// Sticky Sidebars		
+		$("aside.article-right .sticky").stick_in_parent();
 
 	});
 

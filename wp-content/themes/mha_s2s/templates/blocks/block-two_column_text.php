@@ -11,11 +11,11 @@
     $alignment = get_sub_field('alignment');
 ?>
 
-<div class="content-block block-two-column-text <?php echo $custom; ?>">
+<div class="content-block block-two-column-text">
 <div class="wrap normal">
 
 <div class="two-cols <?php echo $alignment; ?> <?php echo $widths; ?>">
-    <div class="left-col">
+    <div class="left-col <?php echo $custom; ?>">
         <?php
             /**
              * Left Column
@@ -54,7 +54,7 @@
         ?>
     </div>
 
-    <div class="right-col">
+    <div class="right-col<?php if(get_sub_field('custom_classes_2')){ echo ' '.get_sub_field('custom_classes_2'); } ?>">
         <?php
             /**
              * Right Column
@@ -63,7 +63,6 @@
             $color_2 = get_sub_field('color_2');
             $rounded_2 = get_sub_field('corner_2');
             $padding_2 = get_sub_field('padding_2');
-            $custom_2 = get_sub_field('custom_classes_2');
             // Open Wrappers
             switch($style_2){
                 case 'bubble':

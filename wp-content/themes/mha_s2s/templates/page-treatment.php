@@ -14,7 +14,7 @@ get_header();
     </article>
 </div>
 
-<div class="wrap wide clearfix pt-4">
+<div class="wrap normal clearfix pt-4">
 
     <div id="filters-container">
 

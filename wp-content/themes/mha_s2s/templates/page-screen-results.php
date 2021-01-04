@@ -67,8 +67,7 @@ get_header();
             $advanced_conditions_data = []; 
             $general_score_data = []; 
 
-            $your_answers .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';     
-
+            $your_answers .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';    
             foreach($data as $k => $v){
                 
                 // Get field object
@@ -198,6 +197,8 @@ get_header();
                     }
                 }
             endwhile;
+        else:
+            echo '<p class="text-center bold">This screening result does not exist. <a href="/screening-tools">Try taking a screen!</a>';
         endif;
         
         if(get_field('survey', $screen_id)){

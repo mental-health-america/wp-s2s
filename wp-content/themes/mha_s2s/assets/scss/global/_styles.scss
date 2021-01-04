@@ -30,6 +30,41 @@ a {
         &:hover {
             text-decoration: underline;
         } 
+
+        h2 &,
+        h3 &,
+        h4 & {
+            display: block;
+            &:after {
+                content: "";
+                display: block;
+                width: 0%;
+                height: 7px;
+                margin-top: 10px;
+                background: $white; 
+                @include transitions(width 150ms ease);
+            }
+            &:hover {
+                text-decoration: none;
+                &:hover {
+                    text-decoration: none;
+                    &:after {
+                        width: 35%;
+                    }
+                }
+            }
+        }
+
+        &.cerulean {            
+            h2 &,
+            h3 &,
+            h4 & {
+                &:after {
+                    content: "";
+                    background: $cerulean; 
+                }
+            }
+        }
     }
 
     &.bubble-link {
@@ -196,6 +231,21 @@ input[type="button"] {
     // Color OVerrides   
     &.text-orange {
         color: $orange;
+        &.white {
+            background-color: $white;
+            &:hover {
+                color: $white;
+                background: $blueDark;
+            }
+        }
+
+        &.text-orange {
+            color: $orange;
+            &:hover {
+                color: $white;
+                background: $blueDark;
+            }
+        }
     }
 
     // Sizes
@@ -247,6 +297,15 @@ input[type="button"] {
             &:hover {
                 background-color: $raz;
             }
+        }
+    }
+
+    &.next.next-article {
+        @media only screen and (max-width: 767px){
+            display: block;
+            width: 240px;
+            margin-right: auto;
+            margin-left: auto;
         }
     }
 
@@ -332,12 +391,18 @@ button.accordion-button {
         color: $grayMedium;
         &:hover {
             color: $blueDark;
+        }        
+        &:after {
+            background-color: $grayMedium;
         }
     }
     &.blue {
         color: $blue;
         &:hover {
             color: $blueDark;
+        }    
+        &:after {
+            background-color: $blueDark;
         }
     }
 
@@ -601,11 +666,17 @@ em { font-style: italic; }
 .bold,
 strong { font-weight: 700; }
 
+.lh-normal {
+    line-height: normal;
+}
 .medium { 
     font-weight: 600;
     &.wrap {
         font-weight: inherit;
     }
+}
+.semi { 
+    font-weight: 600;
 }
 
 .thin { font-weight: 400; }
@@ -677,6 +748,18 @@ table td {
     border: 0;
 }
 
+.table {
+    display: table;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    color: inherit;
+    .cell {
+        display: table-cell;
+        vertical-align: middle;
+    }
+}
+
 tr.even,
 .even { background: none; border: 0; padding: 0; }
 tr.odd,
@@ -705,7 +788,7 @@ ul {
         margin: .25em 0 1.5em 0;
         li {
             padding: 0;
-            margin: 0 0 .75em 0;
+            margin: 0 0 1em 0;
             list-style-type: none;
             font-weight: 600;
             line-height: 1.2em;
@@ -793,6 +876,18 @@ img.alignright {
 .inline { display: inline; }
 
 .hidden { visibility: hidden; position: absolute; left: -999em; }
+
+.hide-mobile {
+    @media only screen and (max-width: 767px){
+        display: none;
+    }
+}
+.show-mobile {
+    display: none;
+    @media only screen and (max-width: 768px){
+        display: block;
+    }
+}
 
 /* Video */
 

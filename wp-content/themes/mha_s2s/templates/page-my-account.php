@@ -1,6 +1,11 @@
 <?php 
 /* Template Name: My Account */
 get_header(); 
+
+$current_user = wp_get_current_user();
+if ( 0 == $current_user->ID ) {
+    wp_redirect( site_url() );
+}
 ?>
 
 <script>

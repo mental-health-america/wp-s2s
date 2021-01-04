@@ -32,8 +32,8 @@ get_header();
 			<div class="inner">
 				<?php the_title('<h3><a class="plain cerulean" href="'.get_the_permalink().'">','</a></h3>'); ?>
 				<div class="text-gray mb-0">
-					<?php echo get_the_excerpt(); ?> 
-					<!--<strong><a class="cerulean" href="<?php echo get_the_permalink(); ?>">Read More &raquo;</a></strong>-->
+					<?php echo short_excerpt(); ?> 
+					<<div class="mt-4"><strong><a class="cerulean button round" href="<?php echo get_the_permalink(); ?>">Continue reading <?php the_title(); ?> &raquo;</a></strong></div>
 				</div>				
 			</div>
 			</article>

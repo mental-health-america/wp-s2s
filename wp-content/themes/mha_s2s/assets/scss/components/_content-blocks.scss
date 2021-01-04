@@ -6,7 +6,7 @@
     // General
     margin-bottom: 50px;
     @media only screen and (max-width: 767px){
-        margin-bottom: 20px;
+        margin-bottom: 0;
     }
 
     &:last-of-type {
@@ -114,7 +114,55 @@
     /**
      * Two Column Text
      */
-     .two-cols {
+    &.block-two-column-text {                
+        .wrap { 
+            &.narrow {                               
+                .bubble {
+                    @media only screen and (max-width: 860px){
+                        position: relative;
+                        width: calc(100% + 40px);
+                        left: -20px;
+                        @include radius(0px);
+                    }
+                }
+            }
+
+            &.medium {                           
+                .bubble {
+                    @media only screen and (max-width: 880px){
+                        position: relative;
+                        width: calc(100% + 40px);
+                        left: -20px;
+                        @include radius(0px);
+                    }
+                }
+            }
+
+            &.normal {                      
+                .bubble {
+                    @media only screen and (max-width: 1120px){
+                        position: relative;
+                        width: calc(100% + 40px);
+                        left: -20px;
+                        @include radius(0px);
+                    }
+                }
+            }
+            
+            &.wide {                  
+                .bubble {
+                    @media only screen and (max-width: 1240px){
+                        position: relative;
+                        width: calc(100% + 40px);
+                        left: -20px;
+                        @include radius(0px);
+                    }
+                }
+            }
+        }
+    }
+
+    .two-cols {
         display: flex;
         flex-wrap: nowrap;
         justify-content: space-between;
@@ -127,7 +175,7 @@
                 align-self: flex-start;
             }
             .right-col {
-                padding-top: 150px;
+                padding-top: 200px;
                 align-self: flex-end;
                 @media only screen and (max-width: 767px){
                     padding-top: 0;
@@ -309,5 +357,6 @@
 
     a {
         margin: 0 4px;
+        white-space: nowrap;
     }
 }

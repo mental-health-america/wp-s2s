@@ -284,6 +284,8 @@ label {
         background: $white;
         border: 1px solid $blueLight;
         @include radius(20px);
+        text-align: center;
+        @include montserrat(600);
     }
 
     // Color Alternatives
@@ -360,9 +362,11 @@ label {
         margin-bottom: 1.5em;
         @extend .bubble;
         @include radius(20px);
-        background: $orange;
-        color: $black !important;
+        background: $pink;
+        border: 1px solid $red;
+        color: $red !important;
         @include montserrat(700);
+        text-transform: none;
         line-height: 1.2em;
     }
     label.error {
@@ -373,13 +377,14 @@ label {
     // Validation
     .gfield_description.validation_message {
         clear: both;
-        background: $orange;
-        color: $black;
+        background: $pink;
+        color: $red;
         padding: 5px 25px;
         margin: 10px 0 30px 0;
         font-size: .85em;
         font-weight: 700;
-        text-transform: uppercase;
+        border: 1px solid $red;
+        text-transform: none;
         @include radius(20px);
     }
 

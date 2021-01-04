@@ -95,7 +95,7 @@ function mha_popular_articles( $atts ) {
 		
 		foreach($articles as $a){
 			
-			$item_link = '<a class="plain gray" href="'.get_the_permalink($a->ID).'">'.get_the_title($a->ID).'</a>';
+			$item_link = '<a class="plain gray-dark montserrat semi" href="'.get_the_permalink($a->ID).'">'.get_the_title($a->ID).'</a>';
 
 			if($style == 'inline'){
 				$inline_list[] = $item_link;
@@ -183,7 +183,7 @@ function mha_show_tests() {
 					<span class="excerpt-title"><?php the_title(); ?></span>
 					<span class="excerpt block" style="display: none;" id="<?php echo $screen_id; ?>">
 						<?php echo get_the_excerpt(); ?><br />
-						<strong class="caps">Take <?php the_title(); ?></strong>
+						<strong class="caps lh-normal">Take <?php the_title(); ?></strong>
 					</span>
 				</a>
 			</div>		
@@ -398,7 +398,7 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 
 		endwhile; 
 
-		$html .= '<div class="pagination pt-5">';
+		$html .= '<div class="navigation pagination pt-5">';
 		$html .= paginate_links( array(
 			'base'         => str_replace( 999999999, '%#%', esc_url( get_pagenum_link( 999999999 ) ) ),
 			'total'        => $loop->max_num_pages,

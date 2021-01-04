@@ -12,6 +12,10 @@ button:focus {
     box-shadow: none;
 }
 
+*,*:focus,*:hover{
+    outline:none;
+}
+
 /* Skip Link Helper */
 
 a.skip-link {    
@@ -49,22 +53,66 @@ a.skip-link {
     word-wrap: normal !important;
 }
 
-a:not(.button) {
+.page-content a:not(.button) {
 
     /* These are technically the same, but use both */
     overflow-wrap: break-word;
     word-wrap: break-word;
-  
+
     -ms-word-break: break-all;
     /* This is the dangerous one in WebKit, as it breaks things wherever */
     word-break: break-all;
     /* Instead use this non-standard one: */
     word-break: break-word;
-  
+
     /* Adds a hyphen where the word breaks, if supported (No Blink) */
     -ms-hyphens: auto;
     -moz-hyphens: auto;
     -webkit-hyphens: auto;
     hyphens: auto;
   
+}
+
+.blue {
+    ::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+        color:    #FFF;
+    }
+    :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+        color:    #FFF;
+    }
+    ::-moz-placeholder { /* Mozilla Firefox 19+ */
+        color:    #FFF;
+    }
+    :-ms-input-placeholder { /* Internet Explorer 10-11 */
+        color:    #FFF;
+    }
+    ::-ms-input-placeholder { /* Microsoft Edge */
+        color:    #FFF;
+    }
+
+    ::placeholder { /* Most modern browsers support this now. */
+        color:    #FFF;
+    }
+}
+
+.light-blue {
+    ::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+        color:    #055596;
+    }
+    :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+        color:    #055596;
+    }
+    ::-moz-placeholder { /* Mozilla Firefox 19+ */
+        color:    #055596;
+    }
+    :-ms-input-placeholder { /* Internet Explorer 10-11 */
+        color:    #055596;
+    }
+    ::-ms-input-placeholder { /* Microsoft Edge */
+        color:    #055596;
+    }
+
+    ::placeholder { /* Most modern browsers support this now. */
+        color:    #055596;
+    }
 }

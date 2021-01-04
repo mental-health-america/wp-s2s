@@ -12,6 +12,15 @@ jQuery(function ($) {
 	}
 	sortThoughts();
 
+	if($('.cache-bust a').length){
+		$('.cache-bust a').each(function(){
+			var time = new Date().getTime();
+			$(this).attr('href', function() {
+				return this.href + '?cb='+time;
+			});
+		});
+	}
+
 	
 	// Thought Form Actions
 	if($('#form-activity').length){
@@ -68,6 +77,10 @@ jQuery(function ($) {
 							$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').slideDown().addClass('fade-in');		
 							$('.further-actions').slideDown().addClass('fade-in');			
 						}, 400);
+							
+						$('html, body').animate({
+							scrollTop: $("#content").offset().top - 30
+						}, 2000);
 
 					},
 					error: function(xhr, ajaxOptions, thrownError){
@@ -128,6 +141,10 @@ jQuery(function ($) {
 
 					$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
 
+					$('html, body').animate({
+						scrollTop: $("#content").offset().top - 30
+					}, 1000);
+
 				},
 				error: function(xhr, ajaxOptions, thrownError){
 					console.error('Error');
@@ -178,6 +195,10 @@ jQuery(function ($) {
 					$('article.thought_activity, #other-responses').slideUp();
 
 					$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
+					
+					$('html, body').animate({
+						scrollTop: $("#content").offset().top - 30
+					}, 1000);
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){
@@ -328,7 +349,7 @@ jQuery(function ($) {
 						$thisButton.next('.continue-thought').fadeIn();
 						
 						// Display thought in the submitted area
-						var newThought = '<li class="round-bl bubble thin submitted-by-user new-thought" style="display: none;"><div class="inner clearfix"><div class="thought-text">'+thoughtCheck+'</div><div class="thought-actions"><span class="explore-container"><button class="bar submit continue-thought-preview">Continue working &raquo;</button></span></div></div></li>';		
+						var newThought = '<li class="round-small-bl bubble thin submitted-by-user new-thought" style="display: none;"><div class="inner clearfix"><div class="thought-text">'+thoughtCheck+'</div><div class="thought-actions"><span class="explore-container"><button class="bar submit continue-thought-preview">Continue working &raquo;</button></span></div></div></li>';		
 						$('#thoughts-submitted').prepend(newThought);	
 						$('.new-thought').slideDown();
 						setTimeout(() => {

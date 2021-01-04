@@ -31,6 +31,16 @@ get_header();
 		endwhile;
 		endif;
 
+		// Mobile Article Actions 
+		if($post_type == 'article') :
+		while ( have_posts() ) : the_post();
+		?>
+			<div class="wrap normal show-mobile mt-4">
+				<?php get_template_part( 'templates/blocks/article', 'actions' ); ?>
+			</div>
+		<?php 
+		endwhile;
+		endif; 
 
 		// Reading Path
 		$resources = array('diy','connect','treatment','provider');
@@ -69,7 +79,7 @@ get_header();
 
 					<?php if($next_id): ?>
 					<p class="text-right mt-3 pt-3 mb-5">
-						<a class="button round-small-tl <?php echo $button_color; ?> next" href="<?php echo add_query_arg('pathway', $path_id, get_the_permalink($next_id)); ?>">Next Article</a>
+						<a class="button round-small-tl <?php echo $button_color; ?> next next-article" href="<?php echo add_query_arg('pathway', $path_id, get_the_permalink($next_id)); ?>">Next Article</a>
 					</p>
 					<?php endif; ?>
 
@@ -89,7 +99,7 @@ get_header();
 										if($current == $article){
 											$current_class = ' current';
 										}
-										echo '<li class="path-item"><a class="button round thin '.$button_color.' block'.$current_class.'" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'">'.get_the_title($article).'</a></li>';
+										echo '<li class="path-item"><a class="button round thin '.$button_color.' block'.$current_class.'" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'"><span class="table"><span class="cell">'.get_the_title($article).'</span></span></a></li>';
 										$counter++;
 										if($counter < $max){
 											echo '<li class="path-spacer"></li>';
@@ -99,7 +109,6 @@ get_header();
 								?>
 							</ol>
 						<?php endif; ?>
-
 
 						<?php 
 							if(have_rows('more_links', $current)): 
@@ -131,6 +140,21 @@ get_header();
 
 			<?php 
 		endif;
+	?>
+
+	<?php 
+		// Mobile Article Sidebar 
+		if($post_type == 'article') :
+		while ( have_posts() ) : the_post();
+		?>
+			<div class="wrap normal">
+				<div class="article-right col-12 col-md-4 pl-0 pr-0 pl-md-5 pt-3 mt-3 show-mobile">
+					<?php get_template_part( 'templates/blocks/article', 'sidebar' ); ?>
+				</div>	
+			</div>
+		<?php 
+		endwhile;
+		endif; 
 	?>
 
 <?php

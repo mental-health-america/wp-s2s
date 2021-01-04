@@ -164,7 +164,7 @@
         padding: 70px 0;
         margin: 0 0 40px 0;       
         @media only screen and (max-width: 767px){
-            padding: 30px 0;
+            padding: 40px 0;
         } 
         h1 { 
             margin: 0; 
@@ -178,7 +178,7 @@
                 max-width: 100%;
             }
             @media only screen and (max-width: 540px){
-                font-size: 2em;
+                font-size: 2.4em;
             }
         }
 
@@ -219,6 +219,14 @@
             }
             @media only screen and (max-width: 540px){
                 font-size: 2em;
+            }
+        }
+
+        .page-template-page-screen-results &,
+        .type-screen & {
+            h1 {
+                text-align: left;
+                color: $teal;
             }
         }
 
@@ -315,13 +323,13 @@ ol.next-steps {
         width: 40px;
         height: 40px;
         position: absolute;
-        right: 9px;
+        right: 4px;
         top: 4px;
         z-index: 20;
         font-size: 22px;
         line-height: 40px;
         @include radius(50%);
-        @include transitions( background-color 200ms ease, color 200ms ease);
+        @include transitions( background-color 400ms ease, color 400ms ease, top 400ms ease);
         &.revealed,
         &:hover {
             background: $mint;
@@ -330,15 +338,21 @@ ol.next-steps {
         &.revealed,
         &.revealed:hover {
             background: rgba(255,255,255,0);
+            top: 20px;
         }
     }
 
     .button {
-        @include radius(40px);
-        @include transitions(all 200ms ease);
+        @include radius(25px);
+        @include transitions(all 400ms ease,border-radius 400ms ease);
         &.revealed {
             background-color: $mint;
             color: $blueDark;
+            padding-top: 30px;
+            padding-bottom: 30px;
+            .excerpt {
+                color: $blueDark;
+            }
         }
 
         .excerpt-title {
@@ -352,6 +366,8 @@ ol.next-steps {
             color: $gray;
             font-weight: 400;
             line-height: 1.7em;
+            color: $teal;
+            @include transitions(color 400ms ease);
             .caps {
                 display: block;
                 padding-top: 10px;
@@ -433,7 +449,7 @@ ol.next-steps {
             height: 100%;
             position: relative;
             z-index: 2;
-            line-height: 1.4em;
+            line-height: 1.25em;
             @media only screen and (max-width: 679px){
                 display: inline-block;
                 margin: 0;
@@ -489,7 +505,7 @@ ol.next-steps {
                 position: relative;
                 left: auto;
                 margin: 0 10%;
-                height: 50px;
+                height: 30px;
                 background: url('../images/path.png') 0px 0px no-repeat;
                 background-size: 100% 100%;
                 .red & {
@@ -758,7 +774,6 @@ button.icon.like-button {
         border: 1px solid $red;
         overflow: hidden;
         @include radius(30px);
-        line-height: 1.4em;
         box-shadow: 0 3px 5px #EDEDED;
         transform: scale(1);
 
@@ -770,7 +785,9 @@ button.icon.like-button {
         }
 
         .inner-text {
-            padding: 30px;
+            padding: 20px;
+            font-size: .9em;
+            line-height: 1.4em;
             @media only screen and (max-width: 540px){
                 padding: 15px;
             }
@@ -824,7 +841,6 @@ button.icon.like-button {
 
     }    
 }
-
 
 .navigation.pagination {
     text-align: center;

@@ -44,7 +44,7 @@
         $link = get_sub_field('url');
         ?>
             <div class="grid-item">
-                <a class="button block round teal large" href="<?php echo get_sub_field('link'); ?>">
+                <a class="button block round teal large" href="<?php echo $link['url']; ?>">
                     <?php the_sub_field('text'); ?>
                 </a>                
             </div>

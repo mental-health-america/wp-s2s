@@ -88,6 +88,18 @@
         &.plain { background: none; color: $gray; }
     }
 
+    // Birhgt blue
+    &.bright-blue {
+        background: $white;
+        color: $brightBlue;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $brightBlue;
+        }
+    }
+
     // Dark Blue
     &.dark-blue {
         background: $cerulean;

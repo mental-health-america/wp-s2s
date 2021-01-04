@@ -418,7 +418,7 @@ function likeChecker($pid, $row){
 
 					$like_count = getThoughtLikes($pid, 0);
 				
-					echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'">';
+					echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'">';
 					echo '<div class="inner clearfix">';
 
 						// Thought Display
@@ -439,7 +439,7 @@ function likeChecker($pid, $row){
 							echo '</button>';
 
 							// Flag
-							echo '<button class="icon thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0">';
+							echo '<button class="icon thought-flag"  data-toggle="tooltip" data-placement="top" title="Flag this thought for review if you feel it is inappropriate." data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0">';
 								echo '<span class="image">';
 									include("assets/flag.svg");
 								echo '</span>';
@@ -470,7 +470,7 @@ function likeChecker($pid, $row){
 
 					$like_count = getThoughtLikes($pid, $admin_thought_row);
 				
-					echo '<li class="round-bl bubble thin submitted-by-admin wow fadeIn" data-count="'.$like_count.'">';
+					echo '<li class="round-small-bl bubble thin submitted-by-admin wow fadeIn" data-count="'.$like_count.'">';
 					echo '<div class="inner clearfix">';
 
 						// Thought Display
@@ -491,7 +491,7 @@ function likeChecker($pid, $row){
 							echo '</button>';
 
 							// Flag
-							echo '<button class="icon thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">';
+							echo '<button class="icon thought-flag"  data-toggle="tooltip" data-placement="top" title="Flag this thought for review if you feel it is inappropriate." data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">';
 								echo '<span class="image">';
 									include("assets/flag.svg");
 								echo '</span>';
@@ -520,7 +520,7 @@ function likeChecker($pid, $row){
 
 			endwhile; 
 		else:
-			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn">';
+			echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn">';
 				echo '<div class="inner clearfix">There are no other thoughts to display.</div>';
 			echo '</li>';
 		endif;
@@ -630,14 +630,14 @@ function likeChecker($pid, $row){
 
 			endwhile;
 		else:
-			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn no-thought">';
+			echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn no-thought">';
 				echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
 			echo '</li>';
 			$if_check = 1;
 		endif;
 
 		if($counter == 0 && $if_check == 0){			
-			echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn no-thought">';
+			echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn no-thought">';
 				echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
 			echo '</li>';
 		}
@@ -660,7 +660,7 @@ function thoughtRow($pid, $thoughts, $index) {
 	
 	$like_count = getThoughtLikes($pid, $index);
 
-	echo '<li class="round-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'">';
+	echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'">';
 	echo '<div class="inner clearfix">';
 		
 		// Thought Display
@@ -681,7 +681,7 @@ function thoughtRow($pid, $thoughts, $index) {
 			echo '</button>';
 
 			// Flag
-			echo '<button class="icon thought-flag" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'">';
+			echo '<button class="icon thought-flag" data-toggle="tooltip" data-placement="top" title="Flag this thought for review if you feel it is inappropriate." data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'">';
 				echo '<span class="image">';
 					include("assets/flag.svg");
 				echo '</span>';
@@ -773,7 +773,7 @@ function abandonThought(){
 		update_field('abandoned', date('Y-m-d H:i:s'), $post_id);
 
 		// Set a redirect to start from scratch
-		$result['page_redirect'] = get_the_permalink($page);
+		$result['page_redirect'] = add_query_arg('cb', time() + $post_id, get_the_permalink($page));
 
     } else {
 

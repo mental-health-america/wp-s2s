@@ -26,9 +26,9 @@ wp_reset_query();
 	</div>
 	</div>
 
-	<div class="page-content">
+	<div class="page-content-archive">
 			
-		<div class="wrap medium">	
+		<div class="wrap medium" id="ac">	
 
 			<?php the_archive_description(); ?>		
 
@@ -37,11 +37,11 @@ wp_reset_query();
 
 				<div class="bubble cerulean round-bl mb-5">
 				<div class="inner">
-                	<form method="GET" action="<?php echo get_term_link($term); ?>" class="form-container line-form blue">
+                	<form method="GET" action="<?php echo get_term_link($term); ?>#ac" class="form-container line-form blue">
 						<div class="container-fluid">
 						<div class="row">
                         	<div class="col-12 col-md-8">
-								<p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Enter search terms here" type="text" /></p>
+								<p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Search <?php echo $term->name; ?> Articles" type="text" /></p>
 							</div>
 							<div class="col-12 col-md-4 mt-3 mt-md-0">
 								<input type="hidden" name="search_tag" value="<?php echo $term->term_id; ?>" />
@@ -66,7 +66,7 @@ wp_reset_query();
 									<p class="mb-2">									
 										<a class="dark-gray plain" href="<?php echo add_query_arg('ref',$term->term_id, get_the_permalink()); ?>"><?php the_title(); ?></a>
 									</p>
-									<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>
+									<!--<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>-->
 								</li>
 							<?php			
 						endwhile;
@@ -83,6 +83,77 @@ wp_reset_query();
 			</div>
 			</div>
 
+		</div>
+
+		
+		<div class="content-block block-two-column-text mt-5">
+		<div class="wrap normal">
+				
+			<div class="two-cols top cols-40">
+				<div class="left-col ">
+				<div class="bubble round-br dark-blue normal">
+					<div class="inner">			
+						<h3>Learn About Mental Health Conditions</h3>
+						<?php echo do_shortcode('[mha_conditions]'); ?>
+					</div>
+				</div>    
+				</div>
+
+				<div class="right-col">
+					<?php 
+						$args = array(
+							"post_type"         => 'screen',
+							"order"	            => 'DESC',
+							"post_status"       => 'publish',
+							"posts_per_page"    => 1,
+							'tax_query'      => array(
+								array(
+									'taxonomy'          => $term->taxonomy,
+									'field'             => 'term_id',
+									'terms'             => $term->term_id
+								),
+							),
+							'meta_query' => array( 
+								'relation' => 'OR',
+								array(
+									'key' => 'espanol',
+									'value' => '1',
+									'compare' => '!='
+								),
+								array(
+									'key' => 'espanol',
+									'value' => '1',
+									'compare' => 'NOT EXISTS'
+								)
+							)
+						);
+						$loop = new WP_Query($args);
+						if($loop->have_posts()):
+						?>
+							<div class="bubble round-tl orange normal">
+							<div class="inner">
+							<?php while($loop->have_posts()) : $loop->the_post(); ?>   
+								<?php
+									$an_a = ' '; 
+									$title = get_the_title();
+									if($title[0] == 'A'){
+										$an_a = 'n ';
+									}
+								?>
+								<?php the_title('<h3>Take a'.$an_a,'</h3>'); ?>   
+								<div class="excerpt"><?php the_excerpt(); ?></div>
+								<div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
+							<?php endwhile; ?>
+							</div>
+							</div>
+						<?php
+						endif;
+						wp_reset_query();
+					?>
+				</div>
+			</div>
+
+		</div>
 		</div>
 
 		<?php 

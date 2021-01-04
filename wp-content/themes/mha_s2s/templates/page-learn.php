@@ -30,7 +30,7 @@ $search_query = get_query_var('search');
                     <div class="container-fluid">
                     <div class="row">
                         <div class="col-12 col-md-8">
-                            <p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Enter search terms here" type="text" /></p>
+                            <p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Search all articles" type="text" /></p>
                         </div>
                         <div class="col-12 col-md-4 mt-3 mt-md-0">
                             <p class="mb-0 wide block"><input type="submit" class="button gform_button white block" value="Search" /></p>
@@ -70,7 +70,7 @@ $search_query = get_query_var('search');
                             <p class="mb-2">	
                                 <a class="dark-gray plain" href="<?php echo add_query_arg('ref',$term->term_id, get_the_permalink()); ?>"><?php the_title(); ?></a>
                             </p>
-                            <div class="medium small pl-5"><?php echo short_excerpt(); ?></div>
+                            <!--<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>-->
                         </li>
                         <?php			
                     endwhile;

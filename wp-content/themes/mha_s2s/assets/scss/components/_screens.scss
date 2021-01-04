@@ -45,6 +45,7 @@ article.screen {
 
     // Text fields
     .ginput_container_number {
+        margin: 0 5px 15px 5px;
         input {
             display: block;
             text-align: left;
@@ -59,6 +60,7 @@ article.screen {
             @include radius(40px);
             -webkit-appearance: none;
             -moz-appearance: textfield;
+            width: calc(100% - 30px);
         }
     }
 
@@ -111,6 +113,7 @@ article.screen {
                 position: relative;
                 //flex: 1 1 calc(25% - 10px);
                 flex: 1 1 auto;
+                
                 margin: 0 5px 5px 5px;
                 padding: 0;
                 opacity: 1;
@@ -120,7 +123,7 @@ article.screen {
                     label { background-color: $mint; }
                 }
                 @media only screen and (max-width: 767px){
-                    flex: 1 1 calc(50% - 10px);
+                    flex: 0 1 calc(50% - 10px);
                 }
                 @media only screen and (max-width: 480px){
                     flex: 1 1 calc(100% - 30px);
@@ -133,18 +136,17 @@ article.screen {
                 text-align: center;
                 background: $grayLight2;
                 color: $darkTeal;
-                padding: 12px 10px;
+                padding: 15px 10px 12px 10px;
                 height: calc(100% - 5px);
                 text-transform: uppercase;
                 font-size: .85em;
-                line-height: 1.3em;
+                line-height: 1.2em;
                 border: 1px solid $silver;
                 @include montserrat(600);
                 @include radius(40px);
                 @include transitions(color 100ms ease, background-color 100ms ease);
-
-            }    
-
+            }  
+            
             input[type="checkbox"],
             input[type="radio"] {
                 position: absolute;
@@ -162,6 +164,16 @@ article.screen {
             }
 
         }
+        
+        &.gfield_error {
+            .gfield_checkbox,
+            .gfield_radio {
+                label {
+                    border-color: $red;
+                }
+            }
+        }
+        
     }
 
     // Checkbox Overrides
@@ -202,8 +214,11 @@ article.screen {
             align-items: stretch;
             li {
                 flex: 0 1 auto;
+                @media only screen and (max-width: 480px){
+                    flex: 1 1 calc(100% - 30px);
+                }
                 label {
-                    padding: 12px 35px;
+                    padding: 15px 35px 12px 35px;
                 }
             }
         }
@@ -370,14 +385,27 @@ article.screen {
 
     // Validation
     .gfield_description.validation_message {
-        background: $orange;
-        color: $black;
-        padding: 10px 25px;
+        background: $pink;
+        color: $red;
+        border: 1px solid $red;
+        padding: 15px 35px;
         margin: 0 5px 30px 5px;
-        font-size: .85em;
-        font-weight: 700;
-        text-transform: uppercase;
+        font-size: .9em;
+        line-height: 1.5em;
+        @include montserrat(600);
+        text-transform: normal;
         @include radius(40px);
+        @media only screen and (max-width: 480px){
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+        &:before {
+            display: block;
+            content: "Error: "; 
+            @include montserrat(700);
+        }
+
+
     }
 
 }
@@ -391,6 +419,7 @@ ol.screen-progress-bar {
     width: 100%;
     margin: 0 auto 40px auto;
     padding: 0;
+    @include montserrat(500);
     
     li {
         display: block;
@@ -486,3 +515,11 @@ ol.screen-progress-bar {
 
 }
 
+
+
+#screen-result-buttons {
+    .button[aria-expanded="true"] {
+        background: $blueDark;
+        color: $white;
+    }
+}
