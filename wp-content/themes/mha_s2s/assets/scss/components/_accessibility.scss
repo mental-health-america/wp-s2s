@@ -39,6 +39,11 @@ a.skip-link {
     left: -999em;
 }
 
+input[type="number"]{
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+}
+
 /* Text meant only for screen readers. */
 .screen-reader-text {
     border: 0;
@@ -95,24 +100,48 @@ a.skip-link {
     }
 }
 
+.line-form.blue,
 .light-blue {
     ::-webkit-input-placeholder { /* WebKit, Blink, Edge */
-        color:    #055596;
+        color:    $blueDark;
     }
     :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-        color:    #055596;
+        color:    $blueDark;
     }
     ::-moz-placeholder { /* Mozilla Firefox 19+ */
-        color:    #055596;
+        color:    $blueDark;
     }
     :-ms-input-placeholder { /* Internet Explorer 10-11 */
-        color:    #055596;
+        color:    $blueDark;
     }
     ::-ms-input-placeholder { /* Microsoft Edge */
-        color:    #055596;
+        color:    $blueDark;
     }
 
     ::placeholder { /* Most modern browsers support this now. */
-        color:    #055596;
+        color:    $blueDark;
+    }
+}
+
+.line-form.red,
+.red {
+    ::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+        color:    $rasberry;
+    }
+    :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+        color:   $rasberry;
+    }
+    ::-moz-placeholder { /* Mozilla Firefox 19+ */
+        color:   $rasberry;
+    }
+    :-ms-input-placeholder { /* Internet Explorer 10-11 */
+        color:   $rasberry;
+    }
+    ::-ms-input-placeholder { /* Microsoft Edge */
+        color:   $rasberry;
+    }
+
+    ::placeholder { /* Most modern browsers support this now. */
+        color:   $rasberry;
     }
 }

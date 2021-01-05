@@ -25,7 +25,7 @@ jQuery(function ($) {
 				data: args
 			},
 			success: function( results ) {
-				
+				console.log(results);
 				$('#filters-content').removeClass('loading').html( results );	
 				$('#filters-content button, #filters-content input', $(this)).prop('disabled', false);
 			},

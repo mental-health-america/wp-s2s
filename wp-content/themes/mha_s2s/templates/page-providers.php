@@ -30,7 +30,10 @@ get_header();
                 <a href="/get-help" class="right plain pt-1 red small bold">Clear All</a>
                 <p class="bold text-dark-blue caps nb-3 intro-label">Filters</p>
 
-                <p><input type="text" name="search" class="gray" placeholder="Search" /></p>
+                <p><input type="text" name="search" class="gray" placeholder="Keyword Search" /></p>
+                
+                <label for="zip" class="text-blue-dark">Location Search</label>
+                <p><input type="number" id="zip" name="zip" class="gray" placeholder="Enter your zip code" value="<?php echo get_query_var('geo'); ?>" /></p>
                 
                 <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#locationList" aria-expanded="true" aria-controls="locationList">Area Served</button>
                 <div id="locationList" class="collapse show filter-checkboxes">
@@ -75,7 +78,7 @@ get_header();
         <div id="filters-content-container">
         <div id="filters-content">
 
-            <?php echo get_articles( 'provider' ); ?>
+            <?php echo get_articles( 'provider', '', '', '', 'DESC', 'featured', get_geo(get_query_var('geo')) ); ?>
 
         </div>
         </div>

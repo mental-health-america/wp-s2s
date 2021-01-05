@@ -217,6 +217,8 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'login_error'; // User log in error
     $qvars[] = 'pathway'; // Articl reading paths
     $qvars[] = 'filter_order'; // Filter ordering pages
+    $qvars[] = 'type'; // Admin column filter
+    $qvars[] = 'geo'; // Zip search
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );
@@ -402,10 +404,17 @@ function searchfilter($query) {
  
     if ($query->is_search && !is_admin() ) {
         $query->set('post_type',array('page','article','screen','thought_activity'));
+	}
+	
+    if ( $query->query_vars['type'] ) {
+        $query->set( 'meta_key', 'type' );
+        $query->set( 'meta_value', $query->query_vars['type'] );
     }
  
-return $query;
+	return $query;
 }
+
+add_action( 'pre_get_posts', 'wpse331647_alter_query' );
  
 add_filter('pre_get_posts','searchfilter');
 
@@ -427,24 +436,16 @@ function mha_s2s_realestate_column( $column, $post_id ) {
 	// Article Type
 	if ( 'type' === $column ) {
 		$types = get_field('type', $post_id);
-		$type_string = ucfirst( implode(', ', $types) );
-		echo str_replace('Diy','DIY', $type_string);
+		foreach($types as $type){
+			$type_name = ucfirst($type);
+			$html = '<a href="'.admin_url( 'edit.php?post_type=article&type=' . urlencode( $type ) ).'">';
+			$html .= str_replace('Diy','DIY', $type_name);
+			$html .= '</a>';
+		}
+		echo $html;
 	}
 	
 }
-
-// Column Order
-/*
-add_filter( 'manage_article_posts_columns', 'mha_s2s_realestate_columns' );
-function mha_s2s_realestate_columns( $columns ) {  
-	$columns = array(
-		'cb' => $columns['cb'],
-		'title' => __( 'Title' ),
-		'type' => __( 'Type' ),
-	);
- 	 return $columns;
-}
-*/
 
 // Column orderby
 add_filter( 'manage_edit-article_sortable_columns', 'mha_s2s_article_sortable_columns');

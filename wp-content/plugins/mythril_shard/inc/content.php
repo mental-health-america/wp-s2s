@@ -149,6 +149,29 @@ function mha_conditions() {
 } 
 add_shortcode('mha_conditions', 'mha_conditions'); 
 
+/**
+ * Shortcode - Provider Search
+ * Display search form for providers
+ */
+function mha_provider_search() { 
+
+	$html = '<div class="form-container line-form red mt-5">
+		<form action="/get-help" method="GET">
+			<p class="form-group float-label wide">
+				<label class="form-label caps" for="email">Enter your zip code</label>
+				<input type="number" name="geo" value="" placeholder="" />
+			</p>
+			<div class="text-center">
+				<input type="submit" class="button gform_button round red" value="Find Support" />
+			</div>
+		</form>
+	</div>';
+
+	return $html;
+	
+} 
+add_shortcode('mha_provider_search', 'mha_provider_search'); 
+
 
 /**
  * Shortcode - Screenings
@@ -256,6 +279,12 @@ function getArticlesAjax(){
 		}	
 	}
 
+	// Geo Search
+	$geo = null;
+	if(isset($data['zip'])){
+		$geo = get_geo($data['zip']);
+	}
+
 	// Ordering
 	$order = '';
 	$orderby = '';
@@ -266,7 +295,7 @@ function getArticlesAjax(){
 		$orderby = sanitize_text_field($data['orderby']);
 	}
 
-	echo get_articles($type, $search, $conditions, $filters, $order, $orderby);
+	echo get_articles($type, $search, $conditions, $filters, $order, $orderby, $geo);
 	exit();
 
 }
@@ -274,7 +303,60 @@ add_action("wp_ajax_nopriv_getArticlesAjax", "getArticlesAjax");
 add_action("wp_ajax_getArticlesAjax", "getArticlesAjax");
 
 
-function get_articles( $type = null, $search = null, $conditions = null, $filters = null , $order = 'DESC' , $orderby = 'featured' ){
+function get_geo( $zip ){
+
+	global $wpdb;
+	$zip_check = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT * FROM zips
+			WHERE zip = %d LIMIT 1",
+			$zip
+		)
+	);
+
+	$geo = '';
+
+	if ( count($zip_check) > 0 ){
+
+		// Already have the lat/long, just spit those back out
+		$geo = [];
+		$geo['lat'] = $zip_check[0]->lat;
+		$geo['lng'] = $zip_check[0]->lng;
+
+	} else {
+
+		// Get lat/long from Google
+		$address_url = urlencode( $zip );		
+		$handle = curl_init(); 
+		$url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address_url&key=AIzaSyAi7OToMkshpA4zFYbj_MsWh3QOREESaxc";
+		curl_setopt($handle, CURLOPT_URL, $url);
+		curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+		$output = json_decode(curl_exec($handle), true);
+		curl_close($handle);
+
+		if(count($output['results']) > 0){
+			$geo = [];
+			$geo['lat'] = $output['results'][0]['geometry']['location']['lat'];
+			$geo['lng'] = $output['results'][0]['geometry']['location']['lng'];
+			$insert_zips = $wpdb->insert("zips", array(
+					'zip' => $zip,
+					'lat' => $geo['lat'],
+					'lng' => $geo['lng']
+				), array(
+					'%d',
+					'%f',
+					'%f'
+				)
+			);
+		}
+
+	}
+	
+	return $geo;
+
+}
+
+function get_articles( $type = null, $search = null, $conditions = null, $filters = null , $order = 'DESC' , $orderby = 'featured', $geo = null ){
 	
 	$html = '';
     $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
@@ -302,6 +384,15 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 	// Free Text Search
 	if($search){
 		$args['s'] = sanitize_text_field($search);
+	}
+
+	// Geolocation Search
+	if($geo){
+        $args["geo_query"] = array(
+			"latitude" => $geo['lat'],
+			"longitude" => $geo['lng'],
+			"radius" => 50
+		);
 	}
 
 	// Conditions Taxonomy
@@ -339,7 +430,7 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 			);
 		}
 	}
-
+	
 	$loop = new WP_Query($args);
 	if($loop->have_posts()):
 		while($loop->have_posts()) : $loop->the_post();
@@ -417,7 +508,12 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 		$html .= '</div>';
 		
 	else:
-		$html .= '<div class="bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>No items matched your filter selections. Please try another search.</strong></div></div>';
+		// No result messages
+		if($geo){
+			$html .= '<div class="bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>No locations were within 50 miles of your search. Please try another search.</strong></div></div>';
+		} else {
+			$html .= '<div class="bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>No locations matched your search. Please try another search.</strong></div></div>';
+		}
 	endif;
 
 

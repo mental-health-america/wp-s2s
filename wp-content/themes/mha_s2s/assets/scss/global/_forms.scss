@@ -333,12 +333,61 @@ label {
                 background: $white;
                 color: $blue;
                 &:hover {
-                    background: $orange;
+                    background: $blueDark;
                     color: $white;
                 }
             }
         }
 
+    }
+
+    &.red  {
+        
+        p,
+        .gform_wrapper {
+            label {
+                color: $red;
+            }
+            .gfield_checkbox label {
+                color: $raz;
+            }
+            textarea,
+            input {
+                color: $raz;
+                border-bottom: 4px solid $red;
+            }
+            label {
+                &:before {
+                    border-color: $red;
+                }
+            }    
+    
+            input[type="checkbox"]:checked+label,
+            input[type="radio"]:checked+label {
+                &:before {
+                    background: $red;
+                    border-color: $red;
+                }
+            }
+        }
+
+        
+        .button.gform_button {
+            background: $red;
+            color: $white;
+            &:hover {
+                background: $blueDark;
+                color: $white;
+            }
+            &.white {
+                background: $white;
+                color: $red;
+                &:hover {
+                    background: $red;
+                    color: $white;
+                }
+            }
+        }
 
     }
 

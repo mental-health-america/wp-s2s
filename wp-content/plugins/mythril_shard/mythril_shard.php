@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Mythril Shard
- * Plugin URI: http://
+ * Plugin URI: http://mhascreening.org
  * Version: 1.0.0
- * Author: Mythril Web Team
- * Author URI: http://
- * Description: A companion plugin for the Mythril base theme.
+ * Author: MHA Screening Web Team
+ * Author URI: http://mhascreening.org
+ * Description: A companion plugin for the MHA theme.
  */
 
 // General Wordpress Options
@@ -23,7 +23,10 @@ include_once 'inc/plugin-overrides.php';
 // Content Specific Functions
 include_once 'inc/content.php';
 
-// Content Specific Functions
+// Custom Admin Widgets
 include_once 'inc/widgets.php';
+
+// Geo Search for WP Query
+include_once 'inc/geo-search.php';
 
 ?>

@@ -217,6 +217,23 @@
         &.bubble-border {
             border-color: $red;
         }
+
+        // Variant
+        &.dark-red,
+        .dark-red & {
+            background: #FDEFEF;
+            color: $red;
+            h1,
+            h2,
+            h3,
+            h4 {
+                color: $red;
+            }
+            &.bubble-border {
+                border-color: $red;
+            }
+
+        }
     }
 
     // Red
@@ -255,6 +272,27 @@
             color: $blueDark;
         }
         &.plain { background: none; }
+
+        .bright-mint &,
+        &.bright-mint {            
+            background: $mint;
+            color: $teal;
+            h1,
+            h2,
+            h3,
+            h4 {
+                color: $teal;
+            }
+            &.plain { background: none; }
+            &.button { 
+                background: $teal; 
+                color: $white;
+                &:hover {
+                    background: $darkBlue;
+                    color: $white;
+                }
+            }
+        }
     }
 
     // Purple
