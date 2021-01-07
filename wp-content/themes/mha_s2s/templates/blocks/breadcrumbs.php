@@ -1,6 +1,6 @@
 <p id="breadcrumbs">
 
-    <a class="crumb crumb-home" href="<?php site_url(); ?>">Home</a>
+    <a class="crumb crumb-home" href="<?php echo site_url(); ?>">Home</a>
 
     <?php
         $post_id = get_the_ID();

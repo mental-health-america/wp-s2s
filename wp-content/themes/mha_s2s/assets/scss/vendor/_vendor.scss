@@ -15,4 +15,7 @@
 }
 .tooltip .tooltip-inner {
   background: $blueDark;
+  a {
+    color: $white;
+  }
 }

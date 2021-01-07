@@ -22,10 +22,28 @@ function acf_field_array_conversion( $string ){
 
 <?php
 
+    global $wpdb;
+    $querystr = "SELECT * FROM $wpdb->posts WHERE $wpdb->posts.post_excerpt = 'Find a life-changing therapist.'";     
+    $posts = $wpdb->get_results($querystr);
+
+    foreach($posts as $p){
+        
+        $updateArgs = array(
+            'ID'           => $p->ID,
+            'post_excerpt' => '',
+        );
+        wp_update_post( $updateArgs );
+        echo 'Updated '.$p->ID.'<br />';
+        
+
+    }
+
+
+
     /**
      * Find broken media
      */
-
+    /*
     $args = array(
         'posts_per_page'	=> -1,
         'post_type'		    => 'article'
@@ -50,6 +68,7 @@ function acf_field_array_conversion( $string ){
             //echo 'Skipped<br />';;
         }
     endwhile;
+    */
 
 
     /**

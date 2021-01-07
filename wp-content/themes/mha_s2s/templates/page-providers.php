@@ -66,6 +66,31 @@ get_header();
                         endif; 
                     ?>
                 </div>
+                
+                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Condition Treated</button>
+                <div id="conditionsList" class="collapse show filter-checkboxes">
+                    <?php
+                        // Condition Filters
+                        $query = get_terms(array(
+                            'taxonomy' => 'condition',
+                            'hide_empty' => true,
+                            'parent' => 0
+                        ));
+                        
+                        $conditions = [];
+                        if($query){
+                            foreach($query as $c){
+                            ?>
+                                <div class="form-item">
+                                    <input id="condition-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="condition[]" />
+                                    <label for="condition-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
+                                </div>
+                            <?php
+                            }
+                            echo $html;
+                        }
+                    ?>
+                </div>
 
                 <input type="hidden" name="type" value="provider" />
                 <button class="button red round block thin mt-4" style="width: 100%;">Search</button>

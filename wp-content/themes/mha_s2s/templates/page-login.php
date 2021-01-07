@@ -28,9 +28,15 @@ get_header();
             <?php endif; ?>
 
             <?php 
+                if(get_query_var('redirect_to')){
+                    $redirect = get_query_var('redirect_to');
+                } else {
+                    $redirect = site_url();
+                }
                 $args = array( 
                     'label_username' => 'Email Address',
-                    'remember' => false
+                    'remember' => false,
+                    'redirect' => $redirect
                 );
                 wp_login_form($args); 
             ?>

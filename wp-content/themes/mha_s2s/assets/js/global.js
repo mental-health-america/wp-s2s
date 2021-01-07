@@ -63,6 +63,11 @@
 				});
 			}
 		});
+
+		// Disable "heading" links in the menu
+		$('li.heading > a').on('click', function(event) {
+			event.preventDefault();
+		});
 		
 		// Dropdown Menus
 		$('.sf-menu').superfish({
@@ -200,7 +205,7 @@
 			
 			$('div[data-test-group]').addClass('loading');
 			$('#testSelection span').text(text);
-			setTimeout(() => {
+			setTimeout(function() {
 				$('div[data-test-group]').addClass('hidden');
 				$('div[data-test-group]').removeClass('loading');	
 				$('div[data-test-group="'+group+'"]').removeClass('hidden');			

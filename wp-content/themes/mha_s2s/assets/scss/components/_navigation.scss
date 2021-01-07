@@ -370,7 +370,7 @@
                 @include radius(0px);
             }
             &:hover {
-                background: $cerulean;
+                background: $teal;
             }
         }
     }
@@ -561,6 +561,7 @@ button.menu-toggle {
             margin: 0 auto;
             padding: 30px 0 0 0;
             max-width: 280px;
+            @include montserrat();
 
             li {
                 display: block;

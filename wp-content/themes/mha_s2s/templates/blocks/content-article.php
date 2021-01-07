@@ -54,6 +54,13 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                 <div class="page-content article-left col-12 col-md-8 pl-0 pr-0 pr-md-4">
 
                     <?php 
+
+                        /*if(has_post_thumbnail()){
+                            echo '<div class="featured-image mb-4 show-mobile">';
+                                the_post_thumbnail();
+                            echo '</div>';
+                        }*/
+
                         if(get_field('featured_link')){
                             
                             if(get_field('featured_link')){
@@ -67,7 +74,23 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                         }
                     
                         the_content();
-                    
+                        
+                        if(!get_field('hide_locations')){
+                            $location = get_field('location');                        
+                            if( $location && $location[0]['address'] != '') {
+                                if(count($location) > 1){ 
+                                    echo '<h2>Locations</h2>';
+                                } else {
+                                    echo '<h2>Location</h2>';
+                                }
+                                echo '<p>';
+                                foreach( $location as $row ) {
+                                    echo ''.$row['address'].'<br />';
+                                }
+                                echo '</p>';
+                            }
+                        }
+
                         if(get_field('pricing_information')){
                             echo '<div class="mb-4">';
                                 echo '<h2>Pricing Information</h2>';

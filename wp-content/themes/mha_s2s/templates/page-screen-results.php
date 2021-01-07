@@ -99,8 +99,8 @@ get_header();
                     }
                     if($v != ''){			
                         $your_answers .= '<div class="row pb-4">';
-                            $your_answers .= '<div class="col-7 text-gray">'.$label.'</div>';
-                            $your_answers .= '<div class="col-5 bold caps text-dark-blue pl-4">'.$value_label.' ('.$v.')</div>';
+                            $your_answers .= '<div class="col-sm-7 col-12 text-gray">'.$label.'</div>';
+                            $your_answers .= '<div class="col-sm-5 col-12 bold caps text-dark-blue">'.$value_label.' ('.$v.')</div>';
                         $your_answers .= '</div>';
                     }
                 }
@@ -281,7 +281,7 @@ get_header();
                                 <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">About your Score: <?php echo $total_score; ?></button>
                                 <button id="screen-email" class="button mint round thin" type="button" data-toggle="collapse" data-target="#email-results" aria-expanded="false" aria-controls="email-results">Email Results</button>
                                 <button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">Your Answers</button>
-                                <a class="button mint round thin" id="screen-take" href="/screening-tools/">Take a Mental Health Test</a>
+                                <a class="button mint round thin" id="screen-take" href="/screening-tools/" target="_blank">Take a Mental Health Test</a>
                             </div>
 
                             <div class="pt-4">
@@ -318,14 +318,6 @@ get_header();
                                     </div>
                                 </div>
                                 </div>
-
-                                <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="your-answers">
-                                <div class="inner small">
-                                    <div class="container-fluid">
-                                        <?php echo $your_answers; ?>
-                                    </div>
-                                </div>
-                                </div>
                                 
                                 <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="score-interpretation">
                                 <div class="inner small">
@@ -334,7 +326,15 @@ get_header();
                                         <?php the_field('interpretation_of_scores', $screen_id); ?>
                                     </div>
                                 </div>
-                                </div>                        
+                                </div>     
+
+                                <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="your-answers">
+                                <div class="inner small">
+                                    <div class="container-fluid p-0">
+                                        <?php echo $your_answers; ?>
+                                    </div>
+                                </div>
+                                </div>                   
                             
                                 <?php
                                     if($alert > 0){

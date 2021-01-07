@@ -10,13 +10,21 @@
     $article_treatment_type = get_field('treatment_type');
     $article_service_type = get_field('service_type');
     $article_conditions = [];
-
-    $terms_conditions = get_the_terms( $article_id, 'condition' );
     if(count(array_intersect($article_type, $resources)) > 0){
         $categoryColor = 'raspberry';
     } else {
         $categoryColor = 'dark-blue';
     }
+?>
+
+<?php /*if(has_post_thumbnail()): ?>
+    <div class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4 hide-mobile hidden">
+        <?php the_post_thumbnail(); ?>
+    </div>
+<?php endif; */ ?>
+
+<?php
+    $terms_conditions = get_the_terms( $article_id, 'condition' );
     if($terms_conditions):
     ?>
         <div class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4">
@@ -28,6 +36,12 @@
                 foreach($terms_conditions as $c){
                     if ($c->parent == 0){
 
+                        if(get_field('custom_category_name', $c->taxonomy.'_'.$c->term_id)){
+                            $term_name = get_field('custom_category_name', $c->taxonomy.'_'.$c->term_id);
+                        } else {
+                            $term_name = $c->name;
+                        }
+                        
                         $args = array(
                             'post_type'  => 'page', 
                             "post_status" => 'publish',
@@ -47,12 +61,12 @@
                         $loop = new WP_Query($args);
                         if($loop->have_posts()):
                             while($loop->have_posts()) : $loop->the_post();  
-                                // Link to path collection page if applicable
-                                echo '<li><a class="plain bold caps" href="'.get_the_permalink().'">'.$c->name.'</a></li>';
+                                // Link to path collection page if applicable   
+                                echo '<li><a class="plain bold caps montserrat bold" href="'.get_the_permalink().'">'.$term_name.'</a></li>';
                             endwhile;
                         else:   
-                            // Otherwise just go to the archive                                     
-                            echo '<li><a class="plain bold caps" href="'.get_term_link($c->term_id).'">'.$c->name.'</a></li>';
+                            // Otherwise just go to the archive   
+                            echo '<li><a class="plain bold caps montserrat bold" href="'.get_term_link($c->term_id).'">'.$term_name.'</a></li>';
                         endif;
                         wp_reset_query();
 
@@ -168,7 +182,7 @@
                 $loop = new WP_Query($args);
                 if($loop->have_posts()):
                 ?>
-                    <div class="bubble orange thin round-big-tl mb-4">
+                    <div class="bubble orange thin round-big-tl mb-4 hide-mobile">
                     <div class="inner">
                     <?php while($loop->have_posts()) : $loop->the_post(); ?>    
                         <?php
@@ -212,10 +226,16 @@
                         'field'             => 'term_id',
                         'terms'             => $article_conditions
                     ),
+                ),
+                'meta_query'    => array(
+                    array(
+                        'key' => 'type',
+                        'value' => array('condition', 'diy'),
+                        'compare' => 'LIKE'
+                    )
                 )
             );
-            $loop = new WP_Query($args);
-            
+            $loop = new WP_Query($args);            
 
             if($loop->have_posts() || $more_links):                     
             ?>
@@ -230,7 +250,7 @@
                             if( have_rows('more_links') ):
                             while( have_rows('more_links') ) : the_row();                                        
                                 $page = get_sub_field('page');
-                                echo '<li><a class="plain white bold caps" href="'.get_the_permalink($page).'">';
+                                echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink($page).'">';
                                     if(get_sub_field('custom_title')){
                                         the_sub_field('custom_title');
                                     } else {
@@ -242,7 +262,7 @@
 
                             // Automatic Related
                             while($loop->have_posts()) : $loop->the_post();
-                                echo '<li><a class="plain white bold caps" href="'.get_the_permalink().'">'.get_the_title().'</a></li>';
+                                echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink().'">'.get_the_title().'</a></li>';
                             endwhile;
 
                         echo '</ol>';

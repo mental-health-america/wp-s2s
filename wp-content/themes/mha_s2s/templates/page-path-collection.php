@@ -83,10 +83,13 @@ get_header();
 									if( have_rows('path') ):
 									while( have_rows('path') ) : the_row();
 										$article = get_sub_field('article');
-										echo '<li class="path-item wow fadeIn" data-wow-delay="'.($delay).'s"><a class="button round thin cerulean block" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'"><span class="table"><span class="cell">'.get_the_title($article).'</span></span></a></li>';
+										echo '<li class="path-item wow fadeIn" data-wow-delay="'.($delay).'s"><a class="button round-tiny thin cerulean block" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'"><span class="table"><span class="cell">'.get_the_title($article).'</span></span></a></li>';
 										$counter++;
 										if($counter < $max){
-											echo '<li class="path-spacer wow fadeIn" data-wow-delay="'.($delay).'s"></li>';
+											echo '<li class="path-spacer wow fadeIn" data-wow-delay="'.($delay).'s">';
+											get_template_part( 'templates/blocks/block', 'path.svg' );
+											//echo '<img src="'.esc_url( get_template_directory_uri() ).'/assets/images/path.svg" alt ="" />';
+											echo '</li>';
 										}
 										$delay = $delay + .1;
 									endwhile;
@@ -206,7 +209,14 @@ get_header();
 				<div class="bubble round-br dark-blue normal">
 					<div class="inner">			
 						<h3>
-							<a class="plain white" href="<?php echo get_term_link($tag, $tax); ?>">See All Articles Related to <?php echo get_term($tag, $tax)->name; ?> &raquo;</a>
+							<?php 
+								if(get_field('custom_category_name', $tax.'_'.$tag)){
+									$term_name = get_field('custom_category_name', $tax.'_'.$tag);
+								} else {
+									$term_name = get_term($tag, $tax)->name;
+								}
+							?>
+							<a class="plain white" href="<?php echo get_term_link($tag, $tax); ?>">See All Articles Related to <?php echo $term_name; ?> &raquo;</a>
 						</h3>
 					</div>
 				</div>    

@@ -1,5 +1,5 @@
 <?php if(get_field('hero_headline') || get_field('hero_introduction')): ?>
-    <div id="hero" class="wrap wide mobile-wide">
+    <div id="hero" class="wrap wide mobile-wide <?php echo get_field('hero_custom_classes'); ?>">
         <div class="bubble round-tl mobile-wide <?php echo get_field('hero_style'); ?>">
             <div class="inner">
 

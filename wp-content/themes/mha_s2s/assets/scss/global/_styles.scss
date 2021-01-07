@@ -111,7 +111,7 @@ input[type="button"] {
     display: inline-block;
     padding: 15px 35px; 
     border: 0; 
-    background: $blue;
+    background: $cerulean;
     color: $white;
     font-size: .9em;
     line-height: 1.2em;
@@ -258,6 +258,9 @@ input[type="button"] {
     &.wide {
         padding: 15px 40px; 
     }
+    &.thick {
+        padding: 25px 35px; 
+    }
     
     // Alternative Buttons
     &.hover-bar {
@@ -285,13 +288,13 @@ input[type="button"] {
         padding-right: 80px;
         padding-left: 40px;
         background-image: url('../images/arrow-right-white.png');
-        background-size: auto 50%;
-        background-position: 80% center;
+        background-size: auto 40%;
+        background-position: 85% center;
         background-repeat: no-repeat;
         @include transitions(background-position 150ms ease, background-color 150ms ease);
         &:hover {
             background-color: $teal;
-            background-position: 85% center;
+            background-position: 92% center;
         }
         &.red {
             &:hover {
@@ -523,6 +526,12 @@ button.bar {
 .round-small-br { @include radius(30px 30px 0px 30px); }
 .round-small-bl { @include radius(30px 30px 30px 0px); }
 
+.round-tiny { @include radius(20px); }
+.round-tiny-tl { @include radius(0px 20px 20px 20px); }
+.round-tiny-tr { @include radius(20px 0px 20px 20px); }
+.round-tiny-br { @include radius(20px 20px 0px 20px); }
+.round-tiny-bl { @include radius(20px 20px 20px 0px); }
+
 .round-big { @include radius(60px); }
 .round-big-tl { @include radius(0px 60px 60px 60px); }
 .round-big-tr { @include radius(60px 0px 60px 60px); }
@@ -735,6 +744,9 @@ table {
     width: 100%; 
     border: 0;
     margin: 0 0 1.5em 0;
+    &.table {
+        margin-bottom: 1.5em;
+    }
 }
 tbody { border: 0; padding: 0; }
 table th { 
@@ -771,6 +783,12 @@ tr.odd,
 .content-red {
     .table-striped tbody tr:nth-of-type(2n+1) { background-color: $redLight; }
     .table-bordered td, .table-bordered th { border-color: $redLight; }
+}
+
+.table-responsive-lg {
+    @media(max-width: 991.98px) {
+        border-right: 1px solid $gray;
+    }
 }
 
 /* Lists */

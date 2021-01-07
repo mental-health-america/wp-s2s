@@ -20,6 +20,7 @@
         width: 45%;
         font-size: 1.4em;
         line-height: normal;
+        @include montserrat();
         @media only screen and (max-width: 767px){
             float: none;
             width: auto;
@@ -217,7 +218,7 @@
 #disclaimer {
     padding: 25px 0;
     text-align: center;
-    @include montserrat();
+    @include noto();
     @media only screen and (max-width: 940px){
         padding-bottom: 60px;
     }

@@ -15,8 +15,6 @@ jQuery(function ($) {
 		$('#filters-content').addClass('loading');			
 		$('#filters-content button, #filters-content input', $(this)).prop('disabled', true);
 
-		console.log(args);
-
 		$.ajax({
 			type: "POST",
 			url: do_mhaContent.ajaxurl,
@@ -25,20 +23,23 @@ jQuery(function ($) {
 				data: args
 			},
 			success: function( results ) {
-				console.log(results);
 				$('#filters-content').removeClass('loading').html( results );	
 				$('#filters-content button, #filters-content input', $(this)).prop('disabled', false);
 			},
-			error: function(xhr, ajaxOptions, thrownError){
-				
+			error: function(xhr, ajaxOptions, thrownError){				
 				$('#filters-content').removeClass('loading');
-				console.error(xhr,thrownError);
 				$('#filters-content button, #filters-content input', $(this)).prop('disabled', false);
-
 			}
 		});	
 
 	}
+
+	$('.filter-checkboxes input[type="checkbox"]').change(function() {
+		// Submit on checkbox change
+		var orderby = $('#orderSelection').val(),
+		order = $('#orderSelection').attr('data-order');
+		submitFilterForm( order, orderby );	
+	});
 
 	$('.search-filters').on('submit', function(event){
 		// Get selected ordering

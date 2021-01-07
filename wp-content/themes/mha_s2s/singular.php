@@ -78,8 +78,8 @@ get_header();
 				<div class="wrap normal">
 
 					<?php if($next_id): ?>
-					<p class="text-right mt-3 pt-3 mb-5">
-						<a class="button round-small-tl <?php echo $button_color; ?> next next-article" href="<?php echo add_query_arg('pathway', $path_id, get_the_permalink($next_id)); ?>">Next Article</a>
+					<p class="text-right mt-3 pt-5 mb-5">
+						<a class="button round-small-tl thick <?php echo $button_color; ?> next next-article" href="<?php echo add_query_arg('pathway', $path_id, get_the_permalink($next_id)); ?>">Next Article</a>
 					</p>
 					<?php endif; ?>
 
@@ -99,11 +99,15 @@ get_header();
 										if($current == $article){
 											$current_class = ' current';
 										}
-										echo '<li class="path-item"><a class="button round thin '.$button_color.' block'.$current_class.'" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'"><span class="table"><span class="cell">'.get_the_title($article).'</span></span></a></li>';
+										echo '<li class="path-item"><a class="button round-tiny thin '.$button_color.' block'.$current_class.'" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'"><span class="table"><span class="cell">'.get_the_title($article).'</span></span></a></li>';
 										$counter++;
 										if($counter < $max){
-											echo '<li class="path-spacer"></li>';
+											echo '<li class="path-spacer wow fadeIn" data-wow-delay="'.($delay).'s">';
+											get_template_part( 'templates/blocks/block', 'path.svg' );
+											//echo '<img src="'.esc_url( get_template_directory_uri() ).'/assets/images/path.svg" alt ="" />';
+											echo '</li>';
 										}
+										$delay = $delay + .1;
 									endwhile;
 									endif;
 								?>

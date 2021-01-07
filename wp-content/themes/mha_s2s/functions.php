@@ -219,6 +219,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'filter_order'; // Filter ordering pages
     $qvars[] = 'type'; // Admin column filter
     $qvars[] = 'geo'; // Zip search
+    $qvars[] = 'redirect_to'; // Redirect for logins
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );

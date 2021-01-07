@@ -106,7 +106,7 @@ function mha_popular_articles( $atts ) {
 
 		if($style == 'inline'){
 			
-			$html .= implode(' | ', $inline_list);
+			$html .= implode('&nbsp;<span class="noto">|</span>&nbsp; ', $inline_list);
 			$html .= '</div>';
 		} else {
 			$html .= '</ol>';
@@ -139,7 +139,7 @@ function mha_conditions() {
 			$conditions[] = '<a class="plain cerulean" href="'.get_term_link($c->term_id).'">'.$c->name.'</a>';
 		}
 		$html = '<div class="conditions-list">';
-		$html .= implode(' | ', $conditions);
+		$html .= implode('&nbsp;<span class="noto">|</span>&nbsp; ', $conditions);
 		$html .= '</div>';
 		return $html;
 	}
@@ -377,7 +377,10 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 	);
 
 	if($orderby == 'featured'){
-		$args['orderby'] = 'meta_value';
+		$args['orderby'] = array( 
+			'meta_value' => 'DESC',
+			'date'       => 'DESC', 
+		);
 		$args['meta_key'] = 'featured';
 	}
 
@@ -439,9 +442,9 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 			if(get_the_post_thumbnail_url()){
 				$html .= '<span class="block image" style="background-image: url(\''.get_the_post_thumbnail_url().'\');"></span>';
 				$html .= '<span class="inner-text block">';
-				$html .= '<strong class="text-red title caps block mb-3">'.get_the_title().'</strong>';
+				$html .= '<strong class="text-red title caps block mb-3 montserrat bold">'.get_the_title().'</strong>';
 			} else {
-				$html .= '<span class="title-image image block"><strong class="text-red caps">'.get_the_title().'</strong></span>';
+				$html .= '<span class="title-image image block"><span class="table"><span class="cell"><strong class="text-red caps">'.get_the_title().'</strong></span></span></span>';
 				$html .= '<span class="inner-text block">';
 			}
 
@@ -455,7 +458,20 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 					$location_display = '';
 					foreach($location as $loc){
 						if($loc == 'local'){
-
+							$loc_location = get_field('location');
+							$location_display = 'Local';
+							if(count($loc_location) > 0) {
+								$local_locations = [];
+								foreach($loc_location as $l){
+									if($l['city'] != '' && $l['state'] != ''){
+										$local_locations[] = $l['city'].', '.$l['state'];
+									}
+								};
+								if(count($local_locations) > 0){
+									$location_display = implode('; ', array_unique($local_locations));
+								}
+							}
+							
 						} else {
 							$location_display = ucfirst($loc);
 						}
@@ -477,7 +493,7 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 					break;
 
 				default:
-					$html .= '<span class="text-gray excerpt block pb-5">'.short_excerpt().'</span>'; 
+					$html .= '<span class="text-gray excerpt block pb-5">'.short_excerpt(30).'</span>'; 
 					break;
 
 			}

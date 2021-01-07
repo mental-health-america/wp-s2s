@@ -62,7 +62,7 @@ jQuery(function ($) {
 						var resultData = JSON.parse(results);	
 						console.log(resultData);
 				
-						setTimeout(() => {
+						setTimeout(function() {
 							// Hide initial thought
 							$('.activity-response, .form-item.pre-seed').slideUp();
 							
@@ -72,7 +72,7 @@ jQuery(function ($) {
 
 						// ID associated with the thought 
 						$('input[name="pid"]').val(resultData['pid']);
-						setTimeout(() => {
+						setTimeout(function() {
 							$('#start-over-container').slideDown();		
 							$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').slideDown().addClass('fade-in');		
 							$('.further-actions').slideDown().addClass('fade-in');			
@@ -222,11 +222,11 @@ jQuery(function ($) {
 
 			// Show selected path and first question
 			var path = $(this).val();
-			setTimeout(() => {
+			setTimeout(function() {
 				$('ol[data-path="'+path+'"]').slideDown().addClass('active');
 			}, 400);
 
-			setTimeout(() => {
+			setTimeout(function() {
 				$('ol[data-path="'+path+'"] li[data-question="0"]').slideDown().addClass('active');
 			}, 800);
 
@@ -246,7 +246,7 @@ jQuery(function ($) {
 					var resultData = JSON.parse(results);
 					console.log(resultData);
 
-					setTimeout(() => {
+					setTimeout(function() {
 						$('#other-responses').fadeIn();
 						$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();				
 					}, 1200);
@@ -352,7 +352,7 @@ jQuery(function ($) {
 						var newThought = '<li class="round-small-bl bubble thin submitted-by-user new-thought" style="display: none;"><div class="inner clearfix"><div class="thought-text">'+thoughtCheck+'</div><div class="thought-actions"><span class="explore-container"><button class="bar submit continue-thought-preview">Continue working &raquo;</button></span></div></div></li>';		
 						$('#thoughts-submitted').prepend(newThought);	
 						$('.new-thought').slideDown();
-						setTimeout(() => {
+						setTimeout(function() {
 							$('.new-thought').addClass('show-thought');		
 							if($('#thoughts-submitted .no-thought').length){
 								$('#thoughts-submitted .no-thought').slideUp();
@@ -448,7 +448,7 @@ jQuery(function ($) {
 
 				// Show ending
 				$('#other-responses, #thought-history, #start-over-container').slideUp();
-				setTimeout(() => {
+				setTimeout(function() {
 					$('#thought-end').slideDown();					
 				}, 400);
 
@@ -517,7 +517,8 @@ jQuery(function ($) {
 				},
 				success: function( results ) {
 
-					$(`.thought-like[data-pid="${pid}"][data-row="${row}"]`).toggleClass('liked').prop('disabled', false);
+					//$(`.thought-like[data-pid="${pid}"][data-row="${row}"]`).toggleClass('liked').prop('disabled', false);
+					$('.thought-flag[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('liked').prop('disabled', false);
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){
@@ -558,7 +559,8 @@ jQuery(function ($) {
 				},
 				success: function( results ) {
 
-					$(`.thought-flag[data-pid="${pid}"][data-row="${row}"]`).toggleClass('flagged').prop('disabled', false);
+					//$(`.thought-flag[data-pid="${pid}"][data-row="${row}"]`).toggleClass('flagged').prop('disabled', false);
+					$('.thought-flag[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('flagged').prop('disabled', false);
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){

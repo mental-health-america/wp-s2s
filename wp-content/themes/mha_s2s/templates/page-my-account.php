@@ -71,7 +71,7 @@ if ( 0 == $current_user->ID ) {
 			
 			<div class="bubble narrow round-small-bl blue width-50" id="account-settings">
 			<div class="inner">
-				<div class="caps large">DISPLAY NAME:</div>
+				<div class="caps montserrat">DISPLAY NAME:</div>
 				<?php
 					global $current_user;
 					get_currentuserinfo();
@@ -387,8 +387,8 @@ if ( 0 == $current_user->ID ) {
                             $pre_data = [
                                 'borderWidth' => 3,
                                 'fill' => false,
-                                'backgroundColor' => '#1CA4AB',
-                                'borderColor' => '#1CA4AB',
+                                'backgroundColor' => '#199aa0',
+                                'borderColor' => '#199aa0',
                                 'pointRadius' => 4,
                                 'data' => $reverse_scores
                             ];

@@ -6,13 +6,27 @@
 
     .bubble {
         .inner {
-            padding: 150px 60px;
+            padding: 100px 60px;
+            //padding: 150px 60px;
             @include transitions(padding 200ms ease);
             @media only screen and (max-width: 767px){
                 padding: 40px 30px;
             }
         }
     }
+
+    /*
+    &.short {
+        .bubble {
+            .inner {
+                padding: 80px 60px;
+                @media only screen and (max-width: 767px){
+                    padding: 40px 30px;
+                }
+            }
+        }
+    }
+    */
 
     h1 {
         margin: 0 0 .15em 0;
@@ -129,14 +143,14 @@
         color: $gray;
         font-size: 1.45em;
         line-height: 1.3em;
-        @include noto(700);
+        @include montserrat(700);
     }
     h3 {
         margin: 0 0 .75em 0;
         color: $gray;
         font-size: 1.2em;
         line-height: 1.3em;
-        @include noto(700);
+        @include montserrat(700);
     }
     h3 {
         margin: 0 0 .75em 0;
@@ -150,7 +164,7 @@
         color: $gray;
         font-size: 1em;
         line-height: 1.3em;
-        @include noto(700);
+        @include montserrat(700);
     }
 }
 
@@ -168,17 +182,17 @@
         } 
         h1 { 
             margin: 0; 
-            font-size: 4.5em;
+            font-size: 3.5em;
             color: $cerulean;
             max-width: 85%;
             @media only screen and (max-width: 1120px){
-                font-size: 6.5vw;
+                font-size: 5vw;
             }
             @media only screen and (max-width: 767px){
                 max-width: 100%;
             }
             @media only screen and (max-width: 540px){
-                font-size: 2.4em;
+                font-size: 2em;
             }
         }
 
@@ -208,11 +222,11 @@
         margin: 0 0 40px 0;        
         h1 { 
             margin: 0 0 15px 0; 
-            font-size: 4.5em;
+            font-size: 3.5em;
             color: $cerulean;
             text-align: center;
             @media only screen and (max-width: 1120px){
-                font-size: 6.5vw;
+                font-size: 5vw;
             }
             @media only screen and (max-width: 767px){
                 max-width: 100%;
@@ -407,7 +421,7 @@ ol.next-steps {
     flex-direction: row;
     align-items: flex-start;
     align-items: flex-end;
-    //background: url('../images/path.png') 0px 30px repeat-y;
+    //background: url('../images/path.svg') 0px 30px repeat-y;
     //background-size: 100% auto;
 
     .path-item {
@@ -453,6 +467,7 @@ ol.next-steps {
             @media only screen and (max-width: 679px){
                 display: inline-block;
                 margin: 0;
+                text-align: left;
             }
             &.current {
                 background: $blueDark;
@@ -488,28 +503,44 @@ ol.next-steps {
                 position: relative;
                 left: auto;
                 margin: 0 7.5%;
-                height: 50px;
-                background: url('../images/path.png') 0px 0px no-repeat;
-                background-size: 100% 100%;
+                svg {
+                    display: block;
+                    width: 100%;  
+                    height: 100%;
+                    stroke-width: 4px;                    
+                    fill: none;
+                    stroke: #438FEF;
+                    stroke-width: 4;
+                }
                 .red & {
-                    background-image: url('../images/path-red.png');
+                    //background-image: url('../images/path-red.png');
+                    fill: $red;
                 }
             }
             &:nth-of-type(3n+6){
                 display: none;
+                svg {
+                    display: none;
+                }
             }
         }
-        @media only screen and (min-width: 680px){
+        @media only screen and (min-width: 679px){
             &:nth-of-type(3n+6){
                 flex: 0 1 80%;
                 position: relative;
                 left: auto;
                 margin: 0 10%;
-                height: 30px;
-                background: url('../images/path.png') 0px 0px no-repeat;
-                background-size: 100% 100%;
+                svg {
+                    display: block;
+                    width: 100%;   
+                    height: 100%;              
+                    fill: none;
+                    stroke: #438FEF;
+                    stroke-width: 3;
+                }
                 .red & {
-                    background-image: url('../images/path-red.png');
+                    //background-image: url('../images/path-red.png');
+                    fill: $red;
                 }
             }
         }
@@ -530,6 +561,10 @@ ol.next-steps {
                 .red & {
                     background: $raz;
                 }
+            }
+            img,
+            svg {
+                display: none;
             }
         }
 
@@ -744,6 +779,9 @@ button.icon.like-button {
     opacity: 1;
     justify-content: flex-start;
     @include transitions(opacity 250ms ease);
+    @media only screen and (max-width: 640px){
+        justify-content: space-between;
+    }
 
     &.loading {
         opacity: .25;
@@ -795,7 +833,8 @@ button.icon.like-button {
             .learn-more {
                 position: absolute;
                 bottom: 30px;
-                left: 30px;
+                left: 20px;
+                @include montserrat(700);
                 @media only screen and (max-width: 540px){
                     bottom: 15px;
                     left: 15px;
@@ -804,7 +843,7 @@ button.icon.like-button {
         }
 
         .image {
-            background-size: cover;
+            background-size: contain;
             background-position: center center;
             background-repeat: no-repeat;
             background-color: $white;
@@ -818,21 +857,35 @@ button.icon.like-button {
         }
 
         .title-image {
-            display: table;
             width: 100%;
             font-size: 1.6em;
-            line-height: 1.2em;
+            line-height: 1.15em;
             height: 160px;
             overflow: hidden;
+            position: relative;
             @media only screen and (max-width: 540px){
                 height: 120px;
                 font-size: 1.2em;
                 line-height: 1.2em;
             }
+
+            &:after {
+                content: "";
+                display: block;
+                width: calc(100% - 2px);
+                height: 35px;
+                background: linear-gradient(0deg, rgba(254,246,246,1) 0%, rgba(254,246,246,0) 100%);
+                position: absolute;
+                bottom: 0;
+                left: 1px;
+            }
+            .table {
+                height: 100%;
+            }
             strong {
                 display: table-cell;
                 vertical-align: middle;
-                padding: 30px;
+                padding: 20px;
                 @media only screen and (max-width: 540px){
                     padding: 15px;
                 }

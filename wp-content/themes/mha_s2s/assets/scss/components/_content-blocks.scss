@@ -5,9 +5,6 @@
     
     // General
     margin-bottom: 50px;
-    @media only screen and (max-width: 767px){
-        margin-bottom: 0;
-    }
 
     &:last-of-type {
         margin-bottom: 0;
@@ -140,12 +137,14 @@
 
             &.normal {                      
                 .bubble {
+                    /*
                     @media only screen and (max-width: 1120px){
                         position: relative;
                         width: calc(100% + 40px);
                         left: -20px;
                         @include radius(0px);
                     }
+                    */
                 }
             }
             
@@ -204,18 +203,30 @@
         &.cols-40 {
             .left-col {
                 flex: 0 1 calc(40% - 20px);
+                @media only screen and (max-width: 990px){
+                    flex: 0 1 calc(50% - 20px);
+                }
             }
             .right-col {
                 flex: 0 1 calc(60% - 20px);
+                @media only screen and (max-width: 990px){
+                    flex: 0 1 calc(50% - 20px);
+                }
             }
         }
         
         &.cols-60 {
             .left-col {
                 flex: 0 1 calc(60% - 20px);
+                @media only screen and (max-width: 990px){
+                    flex: 0 1 calc(50% - 20px);
+                }
             }
             .right-col {
                 flex: 0 1 calc(40% - 20px);
+                @media only screen and (max-width: 990px){
+                    flex: 0 1 calc(50% - 20px);
+                }
             }
         }
      }
@@ -343,7 +354,7 @@
 
 // Condition List
 .conditions-list {
-    @include montserrat(700);
+    @include montserrat(600);
     line-height: 1.8em;
     /*
     @media only screen and (max-width: 480px){
