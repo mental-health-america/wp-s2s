@@ -49,7 +49,7 @@ get_header();
                 </div>
 
                 <input type="hidden" name="type" value="treatment" />
-                <button class="button red round block thin mt-4" style="width: 100%;">Search</button>
+                <!--<button class="button red round block thin mt-4" style="width: 100%;">Search</button>-->
 
             </form>
 

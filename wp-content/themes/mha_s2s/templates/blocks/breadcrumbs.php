@@ -96,8 +96,8 @@
                         } else {
                             if(get_query_var('ref')){
                                 $term = get_term( get_query_var('ref') );
-                                if(get_field('custom_title', $term->taxonomy.'_'.$term->term_id)){
-                                    $term_name = get_field('custom_title', $term->taxonomy.'_'.$term->term_id);
+                                if(get_field('custom_category_name', $term->taxonomy.'_'.$term->term_id)){
+                                    $term_name = get_field('custom_category_name', $term->taxonomy.'_'.$term->term_id);
                                 } else {
                                     $term_name = $term->name;
                                 }

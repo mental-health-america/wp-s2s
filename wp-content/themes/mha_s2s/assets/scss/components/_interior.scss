@@ -817,6 +817,7 @@ button.icon.like-button {
 
         @include transitions(transform 150ms ease, box-shadow 150ms ease);
 
+        &:focus,
         &:hover {
             transform: scale(1.05);
             box-shadow: 0 0px 3px $grayMedium;
@@ -848,28 +849,36 @@ button.icon.like-button {
             background-repeat: no-repeat;
             background-color: $white;
             height: 160px;
+            overflow: hidden;
+            text-align: center;
             @media only screen and (max-width: 540px){
                 height: 120px;
             }
             &.title-image {
                 background: none;
             }
+
+            img {
+                width: calc(100% - 40px);
+                margin: 20px 0;
+                @include radius(20px);
+            }
         }
 
         .title-image {
             width: 100%;
-            font-size: 1.6em;
-            line-height: 1.15em;
+            font-size: 1.1em;
+            line-height: 1.1em;
             height: 160px;
-            overflow: hidden;
+            //overflow: hidden;
             position: relative;
+            text-align: left;
+            @include montserrat(700);
             @media only screen and (max-width: 540px){
                 height: 120px;
-                font-size: 1.2em;
-                line-height: 1.2em;
             }
 
-            &:after {
+            /*&:after {
                 content: "";
                 display: block;
                 width: calc(100% - 2px);
@@ -878,7 +887,7 @@ button.icon.like-button {
                 position: absolute;
                 bottom: 0;
                 left: 1px;
-            }
+            }*/
             .table {
                 height: 100%;
             }
@@ -893,6 +902,25 @@ button.icon.like-button {
         }
 
     }    
+}
+
+.button.load-more-articles {
+    &.red {
+        &.loading {
+            position: relative;
+            overflow: hidden;
+            &:after {
+                content: "";
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                left: 0;
+                top: 0;
+                background: url('../images/loading-red.gif') center center $red no-repeat;
+                background-size: auto;
+            }
+        }
+    }
 }
 
 .navigation.pagination {

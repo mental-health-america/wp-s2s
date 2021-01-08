@@ -119,13 +119,14 @@ input[type="button"] {
     text-align: center;
     text-transform: uppercase;
     @include montserrat(700);
-    @include transitions(color 100ms ease, background-color 100ms ease);
-    
+    @include transitions(color 100ms ease, background-color 100ms ease, opacity 100ms ease);
+
     &:hover {
         background-color: $orange;
     }
 
     // States
+    &:focus,
     &.active {
         background: $blueDark;
     }
@@ -135,6 +136,14 @@ input[type="button"] {
     }
     &.bold {
         font-weight: 900;
+    }
+    &.mobile-wide {
+        padding-left: 10px;
+        padding-right: 10px;
+        @media only screen and (max-width: 767px){
+            display: block;
+            width: 100%;
+        }
     }
 
     // Text special cases
@@ -151,6 +160,7 @@ input[type="button"] {
     // Color Options
     &.white {
         background: $white;
+        &:focus,
         &:hover {
             background: $cerulean;
             color: $white;
@@ -175,6 +185,7 @@ input[type="button"] {
     &.cerulean {
         background: $cerulean;
         color: $white;
+        &:focus,
         &:hover {
             background-color: $orange;
         }
@@ -182,6 +193,8 @@ input[type="button"] {
     &.red {
         background: $red;
         color: $white;
+        &.active,
+        &:focus,
         &:hover {
             background-color: $blueDark;
         }
@@ -191,6 +204,7 @@ input[type="button"] {
         color: $blueDark;
         background: $mint;
         &.active,
+        &:focus,
         &:hover {
             color: $white;
             background-color: $blueDark;
@@ -201,6 +215,7 @@ input[type="button"] {
         color: $blueDark;
         background: $grayLight;
         &.active,
+        &:focus,
         &:hover {
             color: $white;
             background-color: $blueDark;
@@ -212,6 +227,7 @@ input[type="button"] {
         color: $white;
         background: $teal;
         &.active,
+        &:focus,
         &:hover {
             color: $white;
             background-color: $blueDark;
@@ -222,6 +238,7 @@ input[type="button"] {
         color: $white;
         background: $purple;
         &.active,
+        &:focus,
         &:hover {
             color: $white;
             background-color: $tealDark;
@@ -233,6 +250,8 @@ input[type="button"] {
         color: $orange;
         &.white {
             background-color: $white;
+            &.active,
+            &:focus,
             &:hover {
                 color: $white;
                 background: $blueDark;
@@ -241,6 +260,8 @@ input[type="button"] {
 
         &.text-orange {
             color: $orange;
+            &.active,
+            &:focus,
             &:hover {
                 color: $white;
                 background: $blueDark;
@@ -274,6 +295,12 @@ input[type="button"] {
             bottom: -2px;
             background: $coral; 
             @include transitions(width 150ms ease);
+        }
+        &.active,
+        &:focus{
+            &:after {
+                width: 10%;
+            }
         }
         &:hover {
             text-decoration: none;

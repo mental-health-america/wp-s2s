@@ -124,10 +124,10 @@
 				}, 1000, 'easeInOutQuad');		
 			}
 
-			if($(event.target).attr('id') == 'allScreenResults'){
+			if($(event.target).hasClass('all-screen-results')){
 				var id = $(event.target).attr('id'),
 					text = $('button[aria-controls="'+id+'"]').text();
-				$('button[aria-controls="'+id+'"]').text(text == 'Show More Results' ? 'Show Less Results' : 'Show More Results');
+				$('button[aria-controls="'+id+'"]').text(text == 'Show More Results' ? 'Show Fewer Results' : 'Show More Results');
 			}
 
 

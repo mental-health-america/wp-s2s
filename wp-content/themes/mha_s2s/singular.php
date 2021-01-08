@@ -78,12 +78,12 @@ get_header();
 				<div class="wrap normal">
 
 					<?php if($next_id): ?>
-					<p class="text-right mt-3 pt-5 mb-5">
+					<p class="text-left mt-3 pt-5 mb-5">
 						<a class="button round-small-tl thick <?php echo $button_color; ?> next next-article" href="<?php echo add_query_arg('pathway', $path_id, get_the_permalink($next_id)); ?>">Next Article</a>
 					</p>
 					<?php endif; ?>
 
-					<div class="bubble round-tl <?php echo $bubble_color; ?> mb-5 bubble-border path-container">
+					<div class="bubble round-tl <?php echo $bubble_color; ?> mb-5 bubble-border path-container mt-5">
 					<div class="inner">
 
 						<?php if($path_id): ?>

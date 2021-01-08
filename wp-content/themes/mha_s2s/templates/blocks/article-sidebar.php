@@ -1,4 +1,6 @@
 <div class="sticky">
+<div class="inner-sidebar pb-4">
+
 <?php   
     // Future vars
     $article_id = get_the_ID();
@@ -18,10 +20,12 @@
 ?>
 
 <?php /*if(has_post_thumbnail()): ?>
-    <div class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4 hide-mobile hidden">
+    <div class="bubble white thin round-big-tl mb-4 hide-mobile sidebar-featured-image">
+    <div class="inner">
         <?php the_post_thumbnail(); ?>
     </div>
-<?php endif; */ ?>
+    </div>
+<?php endif; */?>
 
 <?php
     $terms_conditions = get_the_terms( $article_id, 'condition' );
@@ -281,4 +285,5 @@
         <?php get_template_part( 'templates/blocks/article', 'actions' ); ?>
     </div>
     
+</div>
 </div>

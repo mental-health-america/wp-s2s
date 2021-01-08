@@ -261,6 +261,13 @@
         &.plain { background: none; }
     }
 
+    // White
+    &.white {
+        background: $white;
+        color: $blue;
+        &.plain { background: none; }
+    }
+
     // Mint
     &.mint {
         background: $mint;

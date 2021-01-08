@@ -121,7 +121,7 @@
 			<li class="menu-item"><a href="/my-account">My Account</a></li>
 			<li class="menu-item"><a href="<?php echo wp_logout_url(); ?>">Log Out</a></li>
 		<?php else: ?>						
-			<li class="menu-item"><a href="/my-account">Log In</a></li>
+			<li class="menu-item"><a href="/log-in">Log In</a></li>
 		<?php endif; ?>
 	</ul>
 	

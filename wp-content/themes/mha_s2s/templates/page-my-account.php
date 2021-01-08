@@ -296,7 +296,7 @@ if ( 0 == $current_user->ID ) {
                                         foreach($v as $result):
                                             if($total_test_results > 3 && $test_counter == 4){
                                                 echo '</div>';
-                                                echo '<div class="row collapse" id="'.$group_slug.'">';
+                                                echo '<div class="row collapse all-screen-results" id="'.$group_slug.'">';
                                             }
                                         ?>                            
                                             <div class="col-lg-4 col-12 mb-4 pl-2 pr-2">

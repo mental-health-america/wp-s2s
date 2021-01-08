@@ -3,14 +3,26 @@
     aside {
         font-size: .95em;
         line-height: 1.5em;
+
+        .sidebar-featured-image {
+            position: relative;
+            margin-top: -80px;
+        }
     }
 
 }
 
 // Old drupal style buttons
 #download-here,
+.btn-blue a,
 .btn-download a {
     @extend .button;
+    @extend .round;
+    @include transitions(background-color 150ms ease, color 150ms ease);
+}
+.btn-blue,
+.btn-download {
+    margin-bottom: 1.5em;
 }
 
 

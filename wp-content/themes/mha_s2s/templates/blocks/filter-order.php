@@ -11,7 +11,7 @@
         ?>
     </button>
     <div class="dropdown-menu" aria-labelledby="orderSelection">
-        <button class="dropdown-item normal-case filter-order" type="button" data-order="ASC" value="featured">Featured</button>
+        <button class="dropdown-item normal-case filter-order" type="button" data-order="DESC" value="featured">Default</button>
         <button class="dropdown-item normal-case filter-order" type="button" data-order="ASC" value="title">Title A-Z</button>
         <button class="dropdown-item normal-case filter-order" type="button" data-order="DESC" value="title">Title Z-A</button>
         <button class="dropdown-item normal-case filter-order" type="button" data-order="DESC" value="date">Newest First</button>

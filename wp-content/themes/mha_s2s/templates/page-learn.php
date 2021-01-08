@@ -2,6 +2,7 @@
 /* Template Name: Learn */
 get_header(); 
 $search_query = get_query_var('search');
+$post_id = get_the_ID();
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
@@ -24,55 +25,170 @@ $search_query = get_query_var('search');
         <div class="bubble pale-blue bubble-border round-small">
         <div class="inner">	
             
-            <div class="bubble cerulean round-bl mb-5">
+            <div class="bubble cerulean thin round-bl mb-5">
             <div class="inner">
-                <form method="GET" action="<?php echo get_the_permalink(get_the_ID()); ?>" class="form-container line-form blue">
-                    <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-12 col-md-8">
-                            <p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Search all articles" type="text" /></p>
-                        </div>
-                        <div class="col-12 col-md-4 mt-3 mt-md-0">
-                            <p class="mb-0 wide block"><input type="submit" class="button gform_button white block" value="Search" /></p>
+            <form method="GET" action="<?php echo get_the_permalink(get_the_ID()); ?>#ac" class="form-container line-form blue">
+                <div class="container-fluid">
+                <div class="row">
+
+                    <div class="col-12 col-md-5">
+                        <p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Search all articles" type="text" /></p>
+                    </div>
+
+                    <div class="col-12 col-md-3 mt-3 mt-md-0">
+                        <input type="hidden" name="search_tag" value="<?php echo get_query_var('search_tag'); ?>" />
+                        <input type="hidden" name="search_tax" value="<?php echo get_query_var('search_tax'); ?>" />
+                        <input type="hidden" name="order" value="<?php echo get_query_var('order'); ?>" />
+                        <input type="hidden" name="orderby" value="<?php echo get_query_var('orderby'); ?>" />
+                        <p class="m-0 wide block"><input type="submit" class="button gform_button white block pl-0 pr-0" value="Search" /></p>
+                    </div>
+
+                    <div class="col-12 col-md-2 mt-3 mt-md-0 pl-1 pr-1">								
+                        <div class="dropdown text-right pr-0">
+                            <button class="button cerulean round dropdown-toggle normal-case mobile-wide block" type="button" id="archiveOrder" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
+                                Sort 
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="orderSelection">
+                                <a href="<?php echo add_query_arg(
+                                    array( 
+                                        'search' => get_query_var('search'), 
+                                        'search_tag' => get_query_var('search_tag'), 
+                                        'search_tax' => get_query_var('search_tax'), 
+                                        'order' => 'ASC',  
+                                        'orderby' => 'title'
+                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="" value="">Default</a>
+                                <a href="<?php echo add_query_arg(
+                                    array( 
+                                        'search' => get_query_var('search'), 
+                                        'search_tag' => get_query_var('search_tag'), 
+                                        'search_tax' => get_query_var('search_tax'), 
+                                        'order' => 'ASC',  
+                                        'orderby' => 'title'
+                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="ASC" value="title">A-Z</a>
+                                <a href="<?php echo add_query_arg(
+                                    array( 
+                                        'search' => get_query_var('search'), 
+                                        'search_tag' => get_query_var('search_tag'), 
+                                        'search_tax' => get_query_var('search_tax'), 
+                                        'order' => 'DESC', 
+                                        'orderby' => 'title'
+                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="DESC" value="title">Z-A</a>
+                                <a href="<?php echo add_query_arg(
+                                    array( 
+                                        'search' => get_query_var('search'), 
+                                        'search_tag' => get_query_var('search_tag'), 
+                                        'search_tax' => get_query_var('search_tax'), 
+                                        'order' => 'DESC', 
+                                        'orderby' => 'date')
+                                    , get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="DESC" value="date">Newest</a>
+                                <a href="<?php echo add_query_arg(
+                                    array( 
+                                        'search' => get_query_var('search'), 
+                                        'search_tag' => get_query_var('search_tag'), 
+                                        'search_tax' => get_query_var('search_tax'), 
+                                        'order' => 'ASC',  
+                                        'orderby' => 'date')
+                                    , get_the_permalink($post_id)); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="ASC" value="date">Oldest</a>
+                            </div>
                         </div>
                     </div>
+                    
+                    <div class="col-12 col-md-2 mt-3 mt-md-0 pl-1 pr-1">								
+                        <div class="dropdown text-right pr-0">
+                            <button class="button cerulean round dropdown-toggle normal-case mobile-wide block" type="button" id="archiveOrder" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
+                                Tag
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="orderSelection">
+
+                            <a href="<?php echo add_query_arg(
+                                    array( 
+                                        'search' => get_query_var('search'), 
+                                        'search_tag' => '', 
+                                        'search_tax' => '', 
+                                        'order' => 'ASC',  
+                                        'orderby' => 'title'
+                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="" value="">None</a>
+
+                                <?php
+                                    // Condition Filters
+                                    $query = get_terms(array(
+                                        'taxonomy' => 'condition',
+                                        'hide_empty' => true,
+                                        'parent' => 0
+                                    ));
+                                    if($query){
+                                        foreach($query as $term){
+                                        ?>
+                                            <a href="<?php echo add_query_arg(
+                                                array( 
+                                                    'search' => get_query_var('search'), 
+                                                    'search_tag' => $term->term_id, 
+                                                    'search_tax' => $term->taxonomy, 
+                                                    'order' => 'ASC',  
+                                                    'orderby' => 'title'
+                                                ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button"><?php echo $term->name; ?></a>
+                                        <?php
+                                        }
+                                    }
+                                ?>                                
+                            </div>
+                        </div>
                     </div>
-                </form>
+
+                </div>
+                </div>
+            </form>	
             </div>
             </div>
             
             <?php		
+                if(get_query_var('order')){
+                    $order = get_query_var('order');
+                } else {
+                    $order = 'DESC';
+                }
+
+                if(get_query_var('orderby')){
+                    $orderby = get_query_var('orderby');
+                } else {
+                    $orderby = array('meta_value' => 'DESC', 'date' => 'DESC');
+                }
+
                 $args = array(
                     "post_type" => 'article',
-                    "orderby" => 'date',
-                    "order"	=> 'ASC',
+                    "orderby" => $orderby,
+                    "order"	=> $order,
                     "post_status" => 'publish',
                     "posts_per_page" => 25,
                     "meta_query" => array(
                         array(
                             'key' => 'type',
-                            'value' => 'condition'
+                            'value' => array('condition', 'treatment', 'connect', 'diy'),
+                            'compare' => 'LIKE'
                         )
                     )
                 );
+
                 if($search_query){
                     $args['s'] = $search_query;
                 }
+
+                if(get_query_var('search_tax') && get_query_var('search_tag')){
+                    $args['tax_query'] = array(
+                        array(
+                            'taxonomy' => get_query_var('search_tax'),
+                            'field'    => 'term_id',
+                            'terms'    => get_query_var('search_tag'),
+                        )
+                    );
+                }
+
                 $loop = new WP_Query($args);
                 if ( $loop->have_posts() ) :	
                     $resources = array('condition');
                     echo '<ol class="plain mb-0">';
-                    while($loop->have_posts()) : $loop->the_post();						
-                        $type = get_field('type');                        
-                        $article_type = get_field('type');
-                        ?>
-                        <li class="mb-4">
-                            <p class="mb-2">	
-                                <a class="dark-gray plain" href="<?php echo add_query_arg('ref',$term->term_id, get_the_permalink()); ?>"><?php the_title(); ?></a>
-                            </p>
-                            <!--<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>-->
-                        </li>
-                        <?php			
+                    while($loop->have_posts()) : $loop->the_post();		
+                        get_template_part( 'templates/blocks/archive', 'list' );		
                     endwhile;
                     echo '</ol>';
 
@@ -93,7 +209,8 @@ $search_query = get_query_var('search');
                         'add_fragment' => '',
                     ) );
                     echo '</div>';
-                    
+                else:
+                    echo '<p>There are no results for your search criteria. Please try another search.';
                 endif; 
                 wp_reset_query();
             ?>
@@ -103,6 +220,23 @@ $search_query = get_query_var('search');
         
     </div>
     </div>
+    
+    
+    <?php
+		// Content Blocks
+		wp_reset_query();
+		if( have_rows('block') ):
+        echo '<div class="mt-5">';
+		while ( have_rows('block') ) : the_row();
+			$layout = get_row_layout();
+			if( get_template_part( 'templates/blocks/block', $layout ) ):
+				get_template_part( 'templates/blocks/block', $layout );
+			endif;
+        endwhile;
+        echo '</div>';
+		endif;
+    ?>
+    
 
 </article>
 

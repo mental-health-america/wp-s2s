@@ -240,6 +240,12 @@ function getArticlesAjax(){
 		$search = sanitize_text_field($data['search']);
 	}
 
+	// Page
+	$paged = 1;
+	if($data['paged'] != ''){
+		$paged = intval($data['paged']);
+	}
+
 	// Additional Filters
 	$filters = [];	
 	$conditions = '';
@@ -295,7 +301,7 @@ function getArticlesAjax(){
 		$orderby = sanitize_text_field($data['orderby']);
 	}
 
-	echo get_articles($type, $search, $conditions, $filters, $order, $orderby, $geo);
+	echo get_articles($type, $search, $conditions, $filters, $order, $orderby, $geo, $paged);
 	exit();
 
 }
@@ -356,10 +362,17 @@ function get_geo( $zip ){
 
 }
 
-function get_articles( $type = null, $search = null, $conditions = null, $filters = null , $order = 'DESC' , $orderby = 'featured', $geo = null ){
+function get_articles( $type = null, $search = null, $conditions = null, $filters = null , $order = 'DESC' , $orderby = 'featured', $geo = null, $paged = 1 ){
 	
 	$html = '';
-    $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+	/*
+	if($query_page != null) {
+		$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
+	} else {
+		$paged = $query_page;
+	}
+	*/
+
 	$args = array(
 		"post_type"      => 'article',
 		"orderby"        => $orderby,
@@ -440,7 +453,8 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 
 			$html .= '<a href="'.get_the_permalink().'" class="filter-bubble red">';
 			if(get_the_post_thumbnail_url()){
-				$html .= '<span class="block image" style="background-image: url(\''.get_the_post_thumbnail_url().'\');"></span>';
+				//$html .= '<span class="block image" style="background-image: url(\''.get_the_post_thumbnail_url().'\');"></span>';
+				$html .= '<span class="block image"><span class="table"><span class="cell"><img src="'.get_the_post_thumbnail_url().'" alt="" /></span></span></span>';
 				$html .= '<span class="inner-text block">';
 				$html .= '<strong class="text-red title caps block mb-3 montserrat bold">'.get_the_title().'</strong>';
 			} else {
@@ -493,7 +507,7 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 					break;
 
 				default:
-					$html .= '<span class="text-gray excerpt block pb-5">'.short_excerpt(30).'</span>'; 
+					$html .= '<span class="text-gray excerpt block pb-5">'.short_excerpt(35).'</span>'; 
 					break;
 
 			}
@@ -505,23 +519,32 @@ function get_articles( $type = null, $search = null, $conditions = null, $filter
 
 		endwhile; 
 
-		$html .= '<div class="navigation pagination pt-5">';
-		$html .= paginate_links( array(
-			'base'         => str_replace( 999999999, '%#%', esc_url( get_pagenum_link( 999999999 ) ) ),
-			'total'        => $loop->max_num_pages,
-			'current'      => max( 1, get_query_var( 'paged' ) ),
-			'format'       => '?paged=%#%',
-			'show_all'     => false,
-			'type'         => 'plain',
-			'end_size'     => 2,
-			'mid_size'     => 1,
-			'prev_next'    => true,
-			'prev_text'    => sprintf( '<i></i> %1$s', __( 'Previous', 'text-domain' ) ),
-			'next_text'    => sprintf( '%1$s <i></i>', __( 'Next', 'text-domain' ) ),
-			'add_args'     => false,
-			'add_fragment' => '',
-		) );
+		$html .= '<div class="navigation pagination pt-5 mr-2 mr-md-3">';
+			/*
+			$html .= paginate_links( array(
+				'base'         => str_replace( 999999999, '%#%', esc_url( get_pagenum_link( 999999999 ) ) ),
+				'total'        => $loop->max_num_pages,
+				'current'      => max( 1, $paged ),
+				'format'       => '?paged=%#%',
+				'show_all'     => false,
+				'type'         => 'plain',
+				'end_size'     => 2,
+				'mid_size'     => 1,
+				'prev_next'    => true,
+				'prev_text'    => sprintf( '<i></i> %1$s', __( 'Previous', 'text-domain' ) ),
+				'next_text'    => sprintf( '%1$s <i></i>', __( 'Next', 'text-domain' ) ),
+				'add_args'     => false,
+				'add_fragment' => '',
+			) );
+			*/
+
+			$paged_next = ($paged + 1);
+			if( $loop->max_num_pages > 1 && $paged_next < $loop->max_num_pages ){
+				$html .= '<button class="load-more-articles button round red" data-paged="'.$paged_next.'">Load More</button>';
+			}
+
 		$html .= '</div>';
+			
 		
 	else:
 		// No result messages

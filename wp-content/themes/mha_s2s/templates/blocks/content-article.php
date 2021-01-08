@@ -55,11 +55,11 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
 
                     <?php 
 
-                        /*if(has_post_thumbnail()){
-                            echo '<div class="featured-image mb-4 show-mobile">';
+                        if(has_post_thumbnail()){
+                            echo '<div class="featured-image mb-5">';
                                 the_post_thumbnail();
                             echo '</div>';
-                        }*/
+                        }
 
                         if(get_field('featured_link')){
                             

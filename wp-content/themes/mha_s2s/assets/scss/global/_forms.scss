@@ -1,6 +1,12 @@
 
 /* Forms */
 
+// Hide Honeypot
+.gform_validation_container {
+    position: absolute !important;
+    left: -999em !important;
+}
+
 // Global
 .gform_fields {
     margin: 0;
@@ -109,9 +115,9 @@ label {
         .button.gform_button {
             background: $white;
             border: 0;
-            padding: 10px 40px;
+            padding: 15px 40px;
             color: $teal;
-            font-size: 1em;
+            font-size: .9em;
             width: auto;
             @include radius(50px);
             @include montserrat(700);

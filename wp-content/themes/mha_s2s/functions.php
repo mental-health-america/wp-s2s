@@ -213,10 +213,12 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'search'; // Archive page search
     $qvars[] = 'search_tag'; // Archive page search
     $qvars[] = 'search_term'; // Archive page search
+    $qvars[] = 'search_tax'; // Archive page search
     $qvars[] = 'ref'; // Archive referral links for breadcrumbs
     $qvars[] = 'login_error'; // User log in error
     $qvars[] = 'pathway'; // Articl reading paths
     $qvars[] = 'filter_order'; // Filter ordering pages
+    $qvars[] = 'filter_orderby'; // Filter ordering pages
     $qvars[] = 'type'; // Admin column filter
     $qvars[] = 'geo'; // Zip search
     $qvars[] = 'redirect_to'; // Redirect for logins
@@ -402,16 +404,27 @@ function mha_s2s_term_permalink( $url, $term, $taxonomy ){
  * Search Post Type Filter
  */
 function searchfilter($query) {
- 
+	
+	// Search result overrides
     if ($query->is_search && !is_admin() ) {
         $query->set('post_type',array('page','article','screen','thought_activity'));
 	}
 	
+	// Type page overrides
     if ( $query->query_vars['type'] ) {
         $query->set( 'meta_key', 'type' );
         $query->set( 'meta_value', $query->query_vars['type'] );
-    }
- 
+	}
+
+	if ( !is_admin() && $query->is_main_query() ) {
+		if(get_query_var('filter_order')){
+			$query->set( 'order', get_query_var('filter_order') );
+		}
+		if(get_query_var('filter_orderby')){
+			$query->set( 'orderby', get_query_var('filter_orderby') );
+		}
+	}
+	 
 	return $query;
 }
 
