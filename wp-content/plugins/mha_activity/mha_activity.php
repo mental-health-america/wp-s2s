@@ -48,6 +48,7 @@ function thoughtSubmission(){
 				'post_type' => 'thought'
 			);
 			$post_id = wp_insert_post($new_thought);
+			$result['pid'] = $post_id;
 
 			// Update Activity reference
 			update_field('activity', intval($data['page']), $post_id);
@@ -123,6 +124,7 @@ function thoughtSubmission(){
 			$loop = new WP_Query($args);
 			while($loop->have_posts()) : $loop->the_post();
 				$post_id = get_the_ID();
+				$result['pid'] = $post_id;
 			endwhile;
 			
 			$response_row = array(
@@ -875,3 +877,145 @@ function articleLike(){
 }
 add_action("wp_ajax_nopriv_articleLike", "articleLike");
 add_action("wp_ajax_articleLike", "articleLike");
+
+
+/**
+ * Hide Thoughts
+ */
+
+function hideThought(){
+	
+	// General variables
+	global $wpdb;
+    $result = array();
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);  
+    $isAuthentic = wp_verify_nonce( $data['nonce'], 'hideThought');
+	
+	// Submission is good, proceed
+	if($isAuthentic && is_user_logged_in()){
+			
+		// Organize our data
+		$result['response'] = $data;
+		$uid = get_current_user_id();
+		$pid = $data['pid'];	
+
+		// Vars
+		$table = 'thoughts_hidden';	
+
+		// Check if liked previously
+		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");			
+		
+		
+		if($db_hidden && $db_hidden[0]->unliked == 0){
+
+			// Result found, let's unlike it!
+			$db_update = $wpdb->update(
+				$table, 
+				array('unhidden' => 1), 
+				array('id' => $db_hidden[0]->id)
+			);			
+			$result['unhidden'] = 0;
+
+		} else if($db_hidden && $db_hidden[0]->unliked == 1){
+
+			// Thought was previously hidden, so lets hide it again!
+			$db_update = $wpdb->update(
+				$table, 
+				array('unhidden' => 0), 
+				array('id' => $db_hidden[0]->id)
+			);			
+			$result['unhidden'] = 2;
+
+		} else {
+
+			// No results, hide it for the first time!
+			$response =	array( 
+				'uid' => $uid,
+				'pid' => $pid
+			);	
+			$db_insert = $wpdb->insert($table, $response);
+			$result['unhidden'] = 1;
+
+		}
+
+		// Abandon the thought at the same time
+		$result['updated'] = update_field('abandoned', date('Y-m-d H:i:s'), $pid);
+
+    }
+
+    echo json_encode($result);
+    exit();
+}
+add_action("wp_ajax_nopriv_hideThought", "hideThought");
+add_action("wp_ajax_hideThought", "hideThought");
+
+
+/**
+ * Hide Screens
+ */
+
+function hideScreen(){
+	
+	// General variables
+	global $wpdb;
+    $result = array();
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);  
+    $isAuthentic = wp_verify_nonce( $data['nonce'], 'hideScreen');
+	
+	// Submission is good, proceed
+	if($isAuthentic && is_user_logged_in()){
+			
+		// Organize our data
+		$result['response'] = $data;
+		$uid = get_current_user_id();
+		$pid = $data['pid'];	
+
+		// Vars
+		$table = 'screens_hidden';	
+
+		// Check if liked previously
+		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");			
+		
+		if($db_hidden && $db_hidden[0]->unliked == 0){
+
+			// Result found, let's unlike it!
+			$db_update = $wpdb->update(
+				$table, 
+				array('unhidden' => 1), 
+				array('id' => $db_hidden[0]->id)
+			);			
+			$result['unhidden'] = 0;
+
+		} else if($db_hidden && $db_hidden[0]->unliked == 1){
+
+			// Thought was previously hidden, so lets hide it again!
+			$db_update = $wpdb->update(
+				$table, 
+				array('unhidden' => 0), 
+				array('id' => $db_hidden[0]->id)
+			);			
+			$result['unhidden'] = 2;
+
+		} else {
+
+			// No results, hide it for the first time!
+			$response =	array( 
+				'uid' => $uid,
+				'pid' => $pid
+			);	
+			$db_insert = $wpdb->insert($table, $response);
+			$result['unhidden'] = 1;
+
+		}
+
+    }
+
+    echo json_encode($result);
+    exit();
+}
+add_action("wp_ajax_nopriv_hideScreen", "hideScreen");
+add_action("wp_ajax_hideScreen", "hideScreen");

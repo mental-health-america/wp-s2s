@@ -227,11 +227,13 @@ jQuery(function ($) {
 			}, 400);
 
 			setTimeout(function() {
-				$('ol[data-path="'+path+'"] li[data-question="0"]').slideDown().addClass('active');
+				$('ol[data-path="'+path+'"] li').first().slideDown().addClass('active');
 			}, 800);
 
 			// Prep the data
-			var args = $('#form-activity').serialize() + '&continue=0';
+			var args = $('#form-activity').serialize() + '&continue=0&path=' + path;
+
+			console.log(args);
 
 			$.ajax({
 				type: "POST",
@@ -404,9 +406,7 @@ jQuery(function ($) {
 			$('#temp-result-data').html('');
 			
 			// Prep the data
-			var ref = $(this).parents('li').attr('data-reference'),
-				ref_2 = $(this).parents('li').attr('data-additional-reference'),
-				question = parseInt($(this).parents('li').attr('data-question')),
+			var question = parseInt($(this).parents('li').attr('data-question')),
 				path = parseInt($('ol.path.active').attr('data-path'));
 
 			// Hide other questions
@@ -414,6 +414,9 @@ jQuery(function ($) {
 			
 			if($('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').length){
 
+				var ref = $('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').attr('data-reference'),
+					ref_2 = $('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').attr('data-additional-reference');
+				
 				// Show next question
 				$('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').fadeIn().addClass('active');
 
@@ -429,9 +432,18 @@ jQuery(function ($) {
 					thoughtHistory += '<p>'+resultData.response['thought_'+path+'_'+ref_2]+'</p>'; // Additional referred thought	
 				}		
 							
-				$('#thought-history .inner').html(thoughtHistory);	
+				$('#thought-history .inner').html(thoughtHistory.replace(/\\/g, ""));	
 
 			} else {
+				
+				// Append the post id to the links
+				$('.append-thought-id').each(function(){
+					var href = $(this).attr('href'),
+						pid = $('input[name="pid"]').val();
+					console.log(href+''+pid);
+					console.log('wtf!');
+					$(this).attr('href', href+''+pid);
+				});
 				
 				// Question Log
 				var thoughtSummary = '<h2>Your Responses</h2>';
@@ -448,6 +460,7 @@ jQuery(function ($) {
 
 				// Show ending
 				$('#other-responses, #thought-history, #start-over-container').slideUp();
+
 				setTimeout(function() {
 					$('#thought-end').slideDown();					
 				}, 400);
@@ -460,7 +473,7 @@ jQuery(function ($) {
 			 */
 			var index = parseInt(resultData.add_row);
 			if(!$('ol[data-path="'+path+'"] li[data-question="'+index+'"]').length){
-				index = index - 1;
+				// index = index - 1;
 			}
 			var admin_seed = $('input[name="admin_seed').val(),
 				user_seed = $('input[name="user_seed').val(),
@@ -559,7 +572,7 @@ jQuery(function ($) {
 				},
 				success: function( results ) {
 
-					//$(`.thought-flag[data-pid="${pid}"][data-row="${row}"]`).toggleClass('flagged').prop('disabled', false);
+					//$(`.thought-flag[data-pid="${pid}"][data-row="${row}"]`).toggleClass('flagged').prop('disabled', false); // IE doesn't like the `
 					$('.thought-flag[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('flagged').prop('disabled', false);
 
 				},
@@ -584,8 +597,8 @@ jQuery(function ($) {
 				ref = $('.question-item.continue').attr('data-reference'),
 				ref_2 = $('.question-item.continue').attr('data-additional-reference'),
 				refText0 = $('textarea[name="thought_0"]').val(),
-				refText1 = $('textarea[data-path="'+path+'"][data-question="'+(ref - 1)+'"]').val(), // 0 based index adjustment
-				refText2 = $('ol[data-path="'+path+'"] li[data-question="'+(ref_2 - 1)+'"] textarea').val(); // 0 based index adjustment				
+				refText1 = $('textarea[data-path="'+path+'"][data-question="'+(ref)+'"]').val(), // 0 based index adjustment
+				refText2 = $('ol[data-path="'+path+'"] li[data-question="'+(ref_2)+'"] textarea').val(); // 0 based index adjustment				
 				
 			var thoughtHistory = '';
 			if(ref == 0){
@@ -598,7 +611,7 @@ jQuery(function ($) {
 				thoughtHistory += '<p>'+refText2+'</p>'; // Additional referred thought	
 			}	
 			
-			$('#thought-history .inner').html(thoughtHistory).slideDown();	
+			$('#thought-history .inner').html(thoughtHistory.replace(/\\/g, "")).slideDown();	
 		}
 
 		// User has yet to choose a path
@@ -692,6 +705,113 @@ jQuery(function ($) {
 		});	
 
 	});
-	
+
+	/**
+	 * Hide Thoughts
+	 */
+	$(document).on('click', '.hide-thought', function(event){
+		event.preventDefault();
+		var id = $(this).attr('aria-controls');
+		$(this).hide();
+		$('#'+id).removeClass('hidden');
+	});
+
+	$(document).on('click', '.cancel-hide-thought', function(event){
+		event.preventDefault();
+		var id = $(this).parents('.hide-thought-confirm-container').attr('id');
+		$('button[aria-controls="'+id+'"]').show();
+		$(this).parents('.hide-thought-confirm-container').addClass('hidden');
+	});
+
+	$(document).on('click', '.hide-thought-confirm', function(event){
+
+		// Disable default form submit
+		event.preventDefault();
+
+		// Vars
+		var nonce = $(this).attr('data-nonce'),
+			pid = $(this).attr('data-pid'),
+			$this = $(this);
+			
+		// Prep the data
+		var args = 'nonce='+nonce+'&pid='+pid;
+		
+		// Disable like button
+		$(this).prop('disabled', true);			
+		
+		$.ajax({
+			type: "POST",
+			url: do_mhaActivity.ajaxurl,
+			data: { 
+				action: 'hideThought',
+				data: args
+			},
+			success: function( results ) {
+				$this.parents('.bubble').slideUp();			
+				setTimeout(function() {
+					$this.parents('.bubble').remove();	
+				}, 400);
+			},
+			error: function(xhr, ajaxOptions, thrownError){				
+				console.error(xhr,thrownError);
+			}
+		});	
+
+	});
+
+	/**
+	 * Hide Screen
+	 */
+	$(document).on('click', '.hide-screen', function(event){
+		event.preventDefault();
+		var id = $(this).attr('aria-controls');
+		$(this).hide();
+		$('#'+id).removeClass('hidden');
+	});
+
+	$(document).on('click', '.cancel-hide-screen', function(event){
+		event.preventDefault();
+		var id = $(this).parents('.hide-screen-confirm-container').attr('id');
+		$('button[aria-controls="'+id+'"]').show();
+		$(this).parents('.hide-screen-confirm-container').addClass('hidden');
+	});
+
+	$(document).on('click', '.hide-screen-confirm', function(event){
+
+		// Disable default form submit
+		event.preventDefault();
+
+		// Vars
+		var nonce = $(this).attr('data-nonce'),
+			pid = $(this).attr('data-pid'),
+			$this = $(this);
+			
+		// Prep the data
+		var args = 'nonce='+nonce+'&pid='+pid;
+		
+		// Disable like button
+		$(this).prop('disabled', true);			
+		
+		$.ajax({
+			type: "POST",
+			url: do_mhaActivity.ajaxurl,
+			data: { 
+				action: 'hideScreen',
+				data: args
+			},
+			success: function( results ) {
+				console.log(results);
+				$this.parents('.screen-result-item').slideUp();			
+				setTimeout(function() {
+					$this.parents('.screen-result-item').remove();	
+				}, 400);
+			},
+			error: function(xhr, ajaxOptions, thrownError){				
+				console.error(xhr,thrownError);
+			}
+		});	
+
+	});
+
 
 });

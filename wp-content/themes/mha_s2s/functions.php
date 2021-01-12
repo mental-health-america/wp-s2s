@@ -221,6 +221,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'filter_orderby'; // Filter ordering pages
     $qvars[] = 'type'; // Admin column filter
     $qvars[] = 'geo'; // Zip search
+    $qvars[] = 'action'; // Special my-account actions
     $qvars[] = 'redirect_to'; // Redirect for logins
     return $qvars;
 }
@@ -524,3 +525,31 @@ function archive_meta_query( $query ) {
 	}
 }
 add_action( 'pre_get_posts', 'archive_meta_query', 1 );
+
+/**
+ * Hide toolbar for non-admins
+ */
+add_action('after_setup_theme', 'remove_admin_bar');
+function remove_admin_bar() {
+	if (!current_user_can('edit_posts') && !is_admin()) {
+		show_admin_bar(false);
+	}
+}
+
+/**
+ * Auto login after registration.
+ */
+add_action( 'gform_user_registered', 'wpc_gravity_registration_autologin',  10, 4 );
+function wpc_gravity_registration_autologin( $user_id, $user_config, $entry, $password ) {
+	$user = get_userdata( $user_id );
+	$user_login = $user->user_login;
+	$user_password = $password;
+       $user->set_role(get_option('default_role', 'subscriber'));
+
+    wp_signon( array(
+		'user_login' => $user_login,
+		'user_password' =>  $user_password,
+		'remember' => false
+
+    ) );
+}

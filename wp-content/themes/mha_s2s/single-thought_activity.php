@@ -11,7 +11,8 @@ get_header();
 	<?php
 		// General Vars
 		$activity_id = get_the_ID();
-		$uid = get_current_user_id();
+		$uid = get_current_user_id();		
+		$path_questions = get_field('paths');
 		if(!$uid){
 			$uid = 4; // Default "Anonymous" User
 		}
@@ -57,14 +58,24 @@ get_header();
 				$last_question = $previous_responses[$last_response]['question'];
 				$last_admin_seed = $previous_responses[0]['admin_pre_seeded_thought'];
 				$last_user_seed = $previous_responses[0]['user_pre_seeded_thought'];
+
+				$return_ref_1 = $path_questions[$last_path]['questions'][$last_question + 1]['reference'];
+				$return_ref_2 = $path_questions[$last_path]['questions'][$last_question + 1]['additional_reference'];
+
+
 			}
 		}
+
+		// Get thought history if coming back to this page unfinished
+		
 
 		// Debugging
 		/*
 		echo '<pre>';
 		print_r($previous_responses);
 		echo "<br />";
+		print_r($path_questions);
+		echo "<br />";		
 		print_r('Last Response '.$last_response);
 		echo '<br />';
 		print_r('Last Path '.$last_path);
@@ -74,6 +85,11 @@ get_header();
 		print_r('Last Admin Seed '.$last_admin_seed);
 		echo '<br />';
 		print_r('Last User Seed '.$last_user_seed);
+
+		echo '<br />';
+		print_r('Return Ref 1: '.$return_ref_1);
+		echo '<br />';
+		print_r('Return Ref 1: '.$return_ref_2);
 		echo '</pre>';
 		*/
 		wp_reset_query();
@@ -117,7 +133,7 @@ get_header();
 			<div class="question-item form-item initial">
 				<label><?php the_field('question'); ?></label>
 				<p class="text-entry">
-					<textarea name="thought_0" data-question="0" class="required" required placeholder="I think..."><?php 
+					<textarea name="thought_0" data-question="0" class="required" required placeholder="Your answer"><?php 
 						if($previous_responses[0]['response'] != ''){
 							// Previously submitted thought
 							echo $previous_responses[0]['response'];
@@ -134,7 +150,7 @@ get_header();
 					<div class="validation"></div>
 				</p>
 				<div class="text-actions">
-					<button class="submit bar submit-initial-thought self-thought" value="0">Submit this thought &raquo;</button>
+					<button class="submit bar submit-initial-thought self-thought" value="0">Submit &raquo;</button>
 				</div>
 			</div>
 
@@ -234,7 +250,7 @@ get_header();
 
 							while( have_rows('questions') ) : the_row();	
 
-								$row = get_row_index();
+								$row = get_row_index() + 1;
 								$thought_name = 'thought_'.$path.'_'.$row;
 
 								$display = 'none';
@@ -252,39 +268,39 @@ get_header();
 								echo 'Max '.$max.'<br />';
 								*/
 								$last = '';
-								if($max == $row + 1){ 
+								if($max == $row){ 
 									$row_class .= ' last'; 
 									$last = 1;
 								}
 							?>
 								<li 
 									data-question="<?php echo $row; ?>" 
-									data-reference="<?php the_sub_field('reference'); ?>" 
-									data-additional-reference="<?php the_sub_field('additional_reference'); ?>" 
+									data-reference="<?php echo get_sub_field('reference'); ?>" 
+									data-additional-reference="<?php echo get_sub_field('additional_reference'); ?>" 
 									class="question-item<?php echo $row_class; ?>" style="display: <?php echo $display; ?>;">
-									
+
 										<div><?php the_sub_field('introduction'); ?></div>
 
 										<div class="bubble blue round-bl">
 										<div class="inner">
-
+										
 											<p class="text-entry">
 												<label for="<?php echo $thought_name; ?>">
 													<?php the_sub_field('question'); ?>
 												</label>
-												<textarea name="<?php echo $thought_name; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" class="required" placeholder="I think..." required><?php 
-													if($previous_responses[$row + 1]['response']){
-														echo $previous_responses[$row + 1]['response'];
+												<textarea name="<?php echo $thought_name; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" class="required" placeholder="Your answer" required><?php 
+													if($previous_responses[$row]['response'] && $previous_responses[$row]['path'] == $path){
+														echo $previous_responses[$row]['response'];
 													}
 												?></textarea>
 												<span class="validation"></span>
 											</p>
 											<div class="text-actions">
 												<?php if($last == ''): ?>
-													<button class="submit bar submit-thought" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit this thought &raquo;</button>
+													<button class="submit bar submit-thought" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit &raquo;</button>
 													<button class="submit bar continue-thought" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" style="display: none;">Continue &raquo;</button>
 												<?php else: ?>
-													<button class="submit bar submit-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit this thought &raquo;</button>
+													<button class="submit bar submit-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit &raquo;</button>
 													<button class="submit bar continue-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" style="display: none;">View summary &raquo;</button>
 												<?php endif; ?>
 												</div>
@@ -304,8 +320,20 @@ get_header();
 		</div>
 
 		<div id="thought-end" style="display: none;">
+			<div id="thought-save">
+				<?php if(!is_user_logged_in()): ?>
+					<div class="bubble round blue thin mb-3">
+					<div class="inner bold text-center">
+						<a class="append-thought-id text-white" href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_thought_') ?>">Log in</a>
+						or
+						<a class="append-thought-id text-white" href="/sign-up/?action=save_thought_">register for an account</a>
+						to save this thought to your account.
+					</div>
+					</div>
+				<?php endif; ?>
+			</div>
 			<div id="thought-summary" class="mb-5"></div>
-			<p class="text-right"><a class="button round" href="<?php the_permalink(); ?>">Start a new thought &raquo;</a></p>
+			<p class="text-right"><a class="button round" href="<?php the_permalink(); ?>?cb=<?php echo date('U'); ?>">Start a new thought &raquo;</a></p>
 		</div>
 	
 	</form>

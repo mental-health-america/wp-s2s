@@ -149,3 +149,53 @@
     }
 
 }
+
+
+/* Hiding Thoughts and Screens */
+#test-results-container,
+.thought-activity {
+    
+    .button.hide-screen,
+    .button.hide-thought {
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        z-index: 5;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        text-align: center;
+        line-height: 30px;
+        @include montserrat();
+
+        &.gray { 
+            color: $gray; 
+            &:focus,
+            &:hover {
+                color: $white;
+            }
+        }
+        &.teal { 
+            top: -10px;
+            right: -15px;
+        }
+    }
+
+    .hide-screen-confirm-container,
+    .hide-thought-confirm-container {
+        background: $grayLight;
+        position: absolute;
+        z-index: 50;
+        top: -15px;
+        left: 0;
+        width: 100%;
+        height: calc(100% + 15px);
+    }
+    .hide-screen-confirm-container {
+        background: $teal;
+        height: calc(100% + 10px);
+        top: 0;
+    }
+    
+}
+

@@ -125,11 +125,28 @@
 			}
 
 			if($(event.target).hasClass('all-screen-results')){
-				var id = $(event.target).attr('id'),
-					text = $('button[aria-controls="'+id+'"]').text();
-				$('button[aria-controls="'+id+'"]').text(text == 'Show More Results' ? 'Show Fewer Results' : 'Show More Results');
+				var id = $(event.target).attr('id');
+				$('button[aria-controls="'+id+'"]').text('Show Fewer Results');
 			}
 
+			if($(event.target).attr('id') == 'allThoughts'){
+				var id = $(event.target).attr('id');
+				$('button[aria-controls="'+id+'"]').text('View Less Thoughts');
+			}
+
+		});
+
+		$(document).on('hidden.bs.collapse', function(event){
+
+			if($(event.target).hasClass('all-screen-results')){
+				var id = $(event.target).attr('id');
+				$('button[aria-controls="'+id+'"]').text('Show More Results');
+			}
+
+			if($(event.target).attr('id') == 'allThoughts'){
+				var id = $(event.target).attr('id');
+				$('button[aria-controls="'+id+'"]').text('View All Thoughts');
+			}
 
 		});
 

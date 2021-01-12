@@ -2,9 +2,41 @@
 /* Template Name: My Account */
 get_header(); 
 
+global $wpdb;
+$uid = get_current_user_id();
+
 $current_user = wp_get_current_user();
 if ( 0 == $current_user->ID ) {
     wp_redirect( site_url() );
+}
+
+/**
+ * Special action overrides
+ */
+$account_action = get_query_var('action');
+
+// Attribute a thought to this user
+if (strpos($account_action, 'save_thought_') !== false) {
+    $thought_id = str_replace('save_thought_', '', $account_action);
+    $thought_author_id = get_post_field( 'post_author', $thought_id );
+    $thought_ipiden = get_field('ipiden', $thought_id);
+    $ipiden = get_ipiden();	
+
+    pre($thought_ipiden);
+    echo $thought_id.'<br />';
+    echo 'User: '.$ipiden.'<br />Post User: '.$thought_ipiden;
+
+    if($thought_author_id == 4 && $ipiden == $thought_ipiden) {
+        // Only update this thought if its anonymous and matches the user's ipiden
+        $thought_args = array(
+            'ID' => $thought_id,
+            'post_author' => $uid
+        );
+        pre($thought_ipiden);
+        pre($thought_author_id);
+        pre($thought_args);
+        pre(wp_update_post( $thought_args ));
+    }
 }
 ?>
 
@@ -102,6 +134,13 @@ if ( 0 == $current_user->ID ) {
         <div id="dashboard-test-results" class="pt-5 mt-5">
 
             <h2 class="pt-3 mb-4 heading">Recent Test Results</h2>
+            <?php
+                $hidden_screens_check = $wpdb->get_results("SELECT pid FROM screens_hidden WHERE uid = $uid", ARRAY_N);
+                $hide_screens = [];
+                foreach($hidden_screens_check as $pid){
+                    $hide_screens[] = $pid[0];
+                }
+            ?>
 
             <div class="container-fluid">
             <div class="row">
@@ -111,7 +150,7 @@ if ( 0 == $current_user->ID ) {
                     $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
                     $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
                     $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-                    $response = wp_remote_get( 'https://mhascreening.wpengine.com/wp-json/gf/v2/entries/?paging[page_size]=100&search={"field_filters": [{"key":41,"value":"'.$current_user->email.'","operator":"contains"}]}', array( 'headers' => $headers ) );
+                    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?paging[page_size]=100&search={"field_filters": [{"key":41,"value":"'.$current_user->email.'","operator":"contains"}]}', array( 'headers' => $headers ) );
                     
                     // Check the response code.
                     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
@@ -136,6 +175,12 @@ if ( 0 == $current_user->ID ) {
                         
                         if($total_results > 0):
                             foreach($info->entries as $data){
+
+                                // Skip hidden screens
+                                if(in_array($data->id, $hide_screens)) {
+                                    continue;
+                                }
+
                                 $total_score = 0;
                                 $test_id = '';
                                 foreach($data as $k => $v):
@@ -147,7 +192,7 @@ if ( 0 == $current_user->ID ) {
                                         $screen_id = $v;
                                     }
 
-                                    // Get referring screen ID                    
+                                    // Get screen token                  
                                     if (strpos($field->label, 'Token') !== false) {     
                                         $test_id = $v;
                                     }
@@ -196,6 +241,7 @@ if ( 0 == $current_user->ID ) {
                                     $graph_data[$test_title]['steps'] = get_field('chart_steps', $screen_id);
                                 //}
 
+                                $your_results_display[$test_title][$count_results]['test_id'] = $data->id;     
                                 $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
                                 $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
                                 $your_results_display[$test_title][$count_results]['total_score'] = $total_score;
@@ -299,12 +345,35 @@ if ( 0 == $current_user->ID ) {
                                                 echo '<div class="row collapse all-screen-results" id="'.$group_slug.'">';
                                             }
                                         ?>                            
-                                            <div class="col-lg-4 col-12 mb-4 pl-2 pr-2">
+                                            <div class="col-lg-4 col-12 mb-4 pl-2 pr-2 screen-result-item">
                                                 <div class="bubble teal thinner filled round-small-bl mb-2">
                                                 <div class="inner montserrat medium">
+                                                <div class="relative">
+
                                                     <div class="type-date small mb-2"><?php echo $result['test_date'].'<br />'. $result['test_title']; ?></div>
                                                     <div class="caps small">Your test score was:</div>
                                                     <div class="result bold large"><?php echo $result['result_title']; ?></div>
+
+                                                    
+                                                    <button class="hide-screen button teal round" 
+                                                        id="button-<?php echo $result['test_id']; ?>"
+                                                        data-toggle="tooltip" 
+                                                        data-placement="top" 
+                                                        title="Hide this screening result from displaying on your account."
+                                                        aria-expanded="false" 
+                                                        aria-controls="screen-<?php echo $result['test_id']; ?>">X</button>
+
+                                                    <div class="hide-screen-confirm-container text-center hidden" id="screen-<?php echo $result['test_id']; ?>">
+                                                        <div class="pb-2">
+                                                            <button class="hide-screen-confirm thin button red round small" 
+                                                                data-toggle="tooltip" 
+                                                                data-pid="<?php echo $result['test_id']; ?>" 
+                                                                data-nonce="<?php echo wp_create_nonce('hideScreen'); ?>" >Are you sure you want to hide this result?</button>
+                                                        </div>
+                                                        <button class="cancel-hide-screen plain text-white round">Nevermind</button>
+                                                    </div>
+                                                    
+                                                </div>
                                                 </div>
                                                 </div>
                                                 <a href="/screening-results/?sid=<?php echo $result['test_link']; ?>" class="bubble mint thinner round-small bubble-link text-dark-blue">
@@ -434,13 +503,19 @@ if ( 0 == $current_user->ID ) {
         <div class="dashboard-block thought-activity pt-5 pb-5">
             <h2 class="bar">Overcoming Thoughts</h2>                
             <?php
+                $hidden_thoughts_check = $wpdb->get_results("SELECT pid FROM thoughts_hidden WHERE uid = $uid", ARRAY_N);
+                $hide_thoughts = [];
+                foreach($hidden_thoughts_check as $pid){
+                    $hide_thoughts[] = $pid[0];
+                }
                 $args = array(
-                    "author" => get_current_user_id(),
+                    "author" => $uid,
                     "post_type" => 'thought',
                     "orderby" => 'date',
                     "post_status" => array( 'draft', 'publish' ),
                     "order"	=> 'DESC',
-                    "posts_per_page" => 100
+                    "posts_per_page" => 100,
+                    'post__not_in' => $hide_thoughts,
                 );
                 $loop = new WP_Query($args);
                 $loop_total = $loop->found_posts;
@@ -477,21 +552,44 @@ if ( 0 == $current_user->ID ) {
                 <div class="bubble round-small-bl thin relative gray mb-4">
                 <div class="inner">
                     
-                    <div claass="container-fluid">
-                    <div class="row">
-                        <div class="coll-12 col-md-9 monsterrat medium text-blue-dark pb-2 pb-md-0">
-                            <?php echo $initial_thought; ?>
+                    <div class="relative">
+                        
+                        <div claass="container-fluid">
+                        <div class="row">
+                            <div class="coll-12 col-md-8
+                            monsterrat medium text-blue-dark pb-2 pb-md-0">
+                                <div class="mb-3"><?php echo $initial_thought; ?></div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <?php 
+                                    if($status != 'publish'){
+                                        echo '<a class="bar plain" href="'.get_the_permalink($activity_id).'">Continue this thought&nbsp;&raquo;</a>';
+                                    } else {
+                                        echo '<a class="bar plain" href="'.get_the_permalink(get_the_id()).'">Review your submission&nbsp;&raquo;</a>';
+                                    }
+                                ?>
+                            </div>
                         </div>
-                        <div class="col-12 col-md-3">
-                            <?php 
-                                if($status != 'publish'){
-                                    echo '<a class="bar plain" href="'.get_the_permalink($activity_id).'">Continue this thought&nbsp;&raquo;</a>';
-                                } else {
-                                    echo '<a class="bar plain" href="'.get_the_permalink(get_the_id()).'">Review your submission&nbsp;&raquo;</a>';
-                                }
-                            ?>
                         </div>
-                    </div>
+                        
+                        <button class="hide-thought button gray round" 
+                            id="button-<?php echo get_the_ID(); ?>"
+                            data-toggle="tooltip" 
+                            data-placement="top" 
+                            title="Hide this thought from displaying on your account."
+                            aria-expanded="false" 
+                            aria-controls="thought-<?php echo get_the_ID(); ?>">X</button>
+
+                        <div class="hide-thought-confirm-container text-center hidden" id="thought-<?php echo get_the_ID(); ?>">
+                            <div class="pb-2">
+                                <button class="hide-thought-confirm thin button red round small" 
+                                    data-toggle="tooltip" 
+                                    data-pid="<?php echo get_the_ID(); ?>"                                      
+                                    data-nonce="<?php echo wp_create_nonce('hideThought'); ?>" >Are you sure you want to hide this thought?</button>
+                            </div>
+                            <button class="cancel-hide-thought plain gray round text-gray">Nevermind</button>
+                        </div>
+
                     </div>
 
                 </div>
@@ -506,7 +604,18 @@ if ( 0 == $current_user->ID ) {
                 endif;
                 if($counter > 5 && $loop_total > 5){
                     echo '</div>';
-                    echo '<p class="text-right"><button class="button round-tl" type="button" data-toggle="collapse" data-target="#allThoughts" aria-expanded="false" aria-controls="allThoughts">View All Thoughts</button></p>';
+                    ?>
+                        <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12 col-sm-6 text-sm-left text-center pl-0 mb-3 mb-sm-0">
+                                <button class="button gray round-tl" type="button" data-toggle="collapse" data-target="#allThoughts" aria-expanded="false" aria-controls="allThoughts">View All Thoughts</button>
+                            </div>
+                            <div class="col-12 col-sm-6 text-sm-right text-center pr-0">
+                                <a href="/overcoming-thoughts" class="button round-br blue">Start a new thought</a>
+                            </div>
+                        </div>
+                        </div>
+                    <?php 
                 }
                 wp_reset_query();
             ?>
@@ -526,7 +635,6 @@ if ( 0 == $current_user->ID ) {
 
         <h2 class="mb-4">Saved Mental Health Information</h2>
         <?php
-            global $wpdb;
             $uid = get_current_user_id();
             $liked_articles = [];
             $liked_resources = [];

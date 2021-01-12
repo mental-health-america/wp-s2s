@@ -6,7 +6,10 @@
 get_header();
 
 if(get_the_author_meta('ID') != get_current_user_id()):
-    echo '<p class="text-center">You are not authorized to view this page. Please log in.</p>';
+    
+    // Only the owner should be able to view
+    echo '<p class="text-center">You are not authorized to view this page. Please <a href="/log-in">log in</a>.</p>';
+
 else:
     $activity_id = get_field('activity');
     ?>
@@ -31,46 +34,48 @@ else:
 
                     if( have_rows('responses') ):
                     while( have_rows('responses') ) : the_row();
-                    $path = get_sub_field('path');
-                    $question = get_sub_field('question');
-                ?>
+                        $path = get_sub_field('path');
+                        $question = get_sub_field('question') - 1;
+                        ?>
 
-                <p>
-                    <strong>
-                    <?php 
-                        if($counter == 0){
-                            the_field('question', $activity_id);
-                        } else {
-                            echo $questions[$path]['questions'][$question]['question'];
-                        }
-                    ?>
-                    </strong><br />
-                    <?php 
-                        if($counter == 0){
-                            $responses = get_field('responses');
-                                                    
-                            if(get_sub_field('response')){
-                                // User's thought
-                                the_sub_field('response'); 
-                            } else if(get_sub_field('admin_pre_seeded_thought') != '') {
-                                // Admin pre-seeded thought
-                                $initial_thought = get_field('pre_generated_responses', $activity_id);
-                                echo $initial_thought[get_sub_field('admin_pre_seeded_thought')]['response'];
-                            } else if(get_sub_field('user_pre_seeded_thought') != '') {
-                                // Other user pre-seeded thought
-                                $initial_thought = get_field('responses', get_sub_field('user_pre_seeded_thought'));
-                                echo $initial_thought[0]['response'];
-                            } else {
-                                continue;
-                            } 
-                        } else {
-                            the_sub_field('response'); 
-                        }
-                    ?>
-                </p>
+                        <p>
+                            <strong>
+                            <?php 
+                                if($counter == 0){
+                                    the_field('question', $activity_id);
+                                } else {
+                                    echo $questions[$path]['questions'][$question]['question'];
+                                }
+                            ?>
+                            </strong><br />
 
-                <?php   
-                $counter++;         
+                            <?php 
+                                if($counter == 0){
+                                    $responses = get_field('responses');
+                                                            
+                                    if(get_sub_field('response')){
+                                        // User's thought
+                                        the_sub_field('response'); 
+                                    } else if(get_sub_field('admin_pre_seeded_thought') != '') {
+                                        // Admin pre-seeded thought
+                                        $initial_thought = get_field('pre_generated_responses', $activity_id);
+                                        echo $initial_thought[get_sub_field('admin_pre_seeded_thought')]['response'];
+                                    } else if(get_sub_field('user_pre_seeded_thought') != '') {
+                                        // Other user pre-seeded thought
+                                        $initial_thought = get_field('responses', get_sub_field('user_pre_seeded_thought'));
+                                        echo $initial_thought[0]['response'];
+                                    } else {
+                                        continue;
+                                    } 
+
+                                } else {
+                                    the_sub_field('response'); 
+                                }
+                            ?>
+                        </p>
+
+                    <?php   
+                    $counter++;         
                 endwhile;
                 endif;
                 ?>

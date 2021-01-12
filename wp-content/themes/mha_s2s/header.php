@@ -59,7 +59,7 @@
 			
 			<span id="sign-in-container">	
 				<?php if(is_user_logged_in()): ?>						
-					<a class="my-account-link button" href="/my-account">My Account</a>
+					<a class="my-account-link button" href="/my-account?cb=<?php echo date('U'); ?>">My Account</a>
 					&nbsp;|
 					<a class="my-account-link button" href="<?php echo wp_logout_url(); ?>">Log Out</a>
 				<?php else: ?>						
