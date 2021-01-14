@@ -51,7 +51,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
             <div class="container-fluid">
             <div class="row <?php echo $customContentClasses; ?>">
 
-                <div class="page-content article-left col-12 col-md-8 pl-0 pr-0 pr-md-4">
+                <div class="page-content article-left col-12 col-md-7 col-lg-8 pl-0 pr-0 pr-md-4">
 
                     <?php 
 
@@ -128,7 +128,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                     ?>
                 </div>      
                 
-                <aside class="article-right col-12 col-md-4 pl-0 pr-0 pl-md-5 hide-mobile">
+                <aside class="article-right col-12 col-md-5 col-lg-4 pl-0 pr-0 pl-md-5 hide-mobile">
                     <?php get_template_part( 'templates/blocks/article', 'sidebar' ); ?>
                 </aside>
 

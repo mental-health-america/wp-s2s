@@ -446,7 +446,30 @@ label {
 }
 
 .single-screen .gform_page.demographics .gform_fields {
+
     li.optional {
-        padding: 10px 0 0 50px
+        padding: 0 0 0 50px;
+        margin-bottom: 25px;
+        &.traditional {
+            label {
+                margin-bottom:  5px;
+                line-height: 1.2em;
+                &:hover {
+                    color: $teal;
+                    &:before {
+                        background-color: $silver;
+                    }
+                }
+            }
+            
+            input[type="checkbox"]:checked+label,
+            input[type="radio"]:checked+label {
+                color: $blue;
+                &:before {
+                    background-color: $teal;
+                }            
+            }
+        }
     }
+
 }

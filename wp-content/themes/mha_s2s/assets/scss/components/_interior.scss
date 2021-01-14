@@ -494,38 +494,32 @@ ol.next-steps {
         margin: 0;
         padding: 0;
         list-style-type: none;
-        position: absolute;
-        left: -999em;
-        
-        @media only screen and (min-width: 900px){
-            &:nth-of-type(4n+8){
-                flex: 0 1 85%;
-                position: relative;
-                left: auto;
-                margin: 0 7.5%;
-                svg {
-                    display: block;
-                    width: 100%;  
-                    height: 100%;
-                    stroke-width: 4px;                    
-                    fill: none;
-                    stroke: #438FEF;
-                    stroke-width: 4;
-                }
-                .red & {
-                    //background-image: url('../images/path-red.png');
-                    fill: $red;
-                }
+    
+        &.path-spacer-wide {
+            flex: 0 1 85%;
+            position: relative;
+            left: auto;
+            margin: 0 7.5%;
+            svg {
+                display: block;
+                width: 100%;  
+                height: 100%;
+                stroke-width: 4px;                    
+                fill: none;
+                stroke: #438FEF;
+                stroke-width: 4;
             }
-            &:nth-of-type(3n+6){
-                display: none;
-                svg {
-                    display: none;
-                }
+            .red & {
+                //background-image: url('../images/path-red.png');
+                fill: $red;
             }
         }
-        @media only screen and (min-width: 679px){
-            &:nth-of-type(3n+6){
+        &.path-spacer-narrow { display: none; }
+        &.path-spacer-mobile { display: none; }
+            
+        @media only screen and (max-width: 900px){
+            &.path-spacer-narrow {
+                display: inherit;
                 flex: 0 1 80%;
                 position: relative;
                 left: auto;
@@ -543,29 +537,36 @@ ol.next-steps {
                     fill: $red;
                 }
             }
+            &.path-spacer-wide { display: none; }
+            &.path-spacer-mobile { display: none; }
         }
         @media only screen and (max-width: 679px){
-            flex: 0 1 100%;
-            position: relative;
-            left: auto;
-            height: 15px;
-            &:after {
-                content: "";
-                display: block;
-                position: absolute;
-                top: -10px;
-                left: 30px;
-                height: calc(100% + 20px);
-                width: 4px;
-                background: $brightBlue;
-                .red & {
-                    background: $raz;
+            &.path-spacer-mobile {
+                display: inherit;
+                flex: 0 1 100%;
+                position: relative;
+                left: auto;
+                height: 15px;
+                &:after {
+                    content: "";
+                    display: block;
+                    position: absolute;
+                    top: -10px;
+                    left: 30px;
+                    height: calc(100% + 20px);
+                    width: 4px;
+                    background: $brightBlue;
+                    .red & {
+                        background: $raz;
+                    }
+                }
+                img,
+                svg {
+                    display: none;
                 }
             }
-            img,
-            svg {
-                display: none;
-            }
+            &.path-spacer-wide,
+            &.path-spacer-narrow { display: none; }
         }
 
         &:last-child {

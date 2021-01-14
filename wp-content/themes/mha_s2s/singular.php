@@ -45,6 +45,7 @@ get_header();
 		// Reading Path
 		$resources = array('diy','connect','treatment','provider');
 		$article_type = get_field('type');
+		$link_skip = [];
 
 		if(get_query_var('pathway') || have_rows('more_links') && count(array_intersect($article_type, $resources)) == 0):
 
@@ -91,6 +92,9 @@ get_header();
 							<ol class="path-list">
 								<?php
 									$counter = 0;
+									$delay = 0;
+									$spacer_counter_wide = 0;
+									$spacer_counter_narrow = 0;
 									$max = count($path);
 									if( have_rows('path', $path_id) ):
 									while( have_rows('path', $path_id) ) : the_row();
@@ -99,14 +103,31 @@ get_header();
 										if($current == $article){
 											$current_class = ' current';
 										}
-										echo '<li class="path-item"><a class="button round-tiny thin '.$button_color.' block'.$current_class.'" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'"><span class="table"><span class="cell">'.get_the_title($article).'</span></span></a></li>';
+										echo '<li class="path-item wow fadeIn" data-wow-delay="'.($delay).'s"><a class="button round-tiny thin '.$button_color.' block'.$current_class.'" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'"><span class="table"><span class="cell">'.get_the_title($article).'</span></span></a></li>';
 										$counter++;
+										
+										// Spacers
 										if($counter < $max){
-											echo '<li class="path-spacer wow fadeIn" data-wow-delay="'.($delay).'s">';
+											echo '<li class="path-spacer path-spacer-mobile wow fadeIn" data-wow-delay="'.($delay).'s">';
 											get_template_part( 'templates/blocks/block', 'path.svg' );
-											//echo '<img src="'.esc_url( get_template_directory_uri() ).'/assets/images/path.svg" alt ="" />';
 											echo '</li>';
+
+											$spacer_counter_wide++;
+											$spacer_counter_narrow++;
+											if($spacer_counter_wide == 4){
+												echo '<li class="path-spacer path-spacer-wide wow fadeIn" data-wow-delay="'.($delay).'s">';
+												get_template_part( 'templates/blocks/block', 'path.svg' );
+												echo '</li>';
+												$spacer_counter_wide = 0;
+											}
+											if($spacer_counter_narrow == 3){
+												echo '<li class="path-spacer path-spacer-narrow wow fadeIn" data-wow-delay="'.($delay).'s">';
+												get_template_part( 'templates/blocks/block', 'path.svg' );
+												echo '</li>';
+												$spacer_counter_narrow = 0;
+											}
 										}
+										$link_skip[] = $article;
 										$delay = $delay + .1;
 									endwhile;
 									endif;
@@ -125,13 +146,15 @@ get_header();
 								while( have_rows('more_links', $current) ) : the_row();
 
 									$page = get_sub_field('page');
-									echo '<a class="button '.$button_color.' thin round mr-3 mb-3" href="'.get_the_permalink($page).'">';
-										if(get_sub_field('custom_title')){
-											the_sub_field('custom_title');
-										} else {
-											echo get_the_title($page);
-										}
-									echo '</a>';
+									if(!in_array($page->ID, $link_skip)){ // Skip pathway links to avoid duplicates
+										echo '<a class="button '.$button_color.' thin round mr-3 mb-3" href="'.get_the_permalink($page).'">';
+											if(get_sub_field('custom_title')){
+												the_sub_field('custom_title');
+											} else {
+												echo get_the_title($page);
+											}
+										echo '</a>';
+									}
 
 								endwhile;
 							endif; 
@@ -152,7 +175,7 @@ get_header();
 		while ( have_posts() ) : the_post();
 		?>
 			<div class="wrap normal">
-				<div class="article-right col-12 col-md-4 pl-0 pr-0 pl-md-5 pt-3 mt-3 show-mobile">
+				<div class="article-right col-12 col-md-5 col-lg-4 pl-0 pr-0 pl-md-5 pt-3 mt-3 show-mobile">
 					<?php get_template_part( 'templates/blocks/article', 'sidebar' ); ?>
 				</div>	
 			</div>

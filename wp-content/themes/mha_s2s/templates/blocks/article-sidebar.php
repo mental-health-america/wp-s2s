@@ -36,7 +36,7 @@
             <h4>Categories</h4>
             <p class="mb-2">Tags associated with this article:</p>
             <?php 
-                echo '<ol class="plain ml-5 mb-0">'; 
+                echo '<ol class="plain ml-2 ml-lg-5 mb-0">'; 
                 foreach($terms_conditions as $c){
                     if ($c->parent == 0){
 
@@ -248,7 +248,7 @@
                 <div class="inner">
                     <h4>Related Articles</h4>
                     <?php 
-                        echo '<ol class="plain ml-5 mb-0">';                                             
+                        echo '<ol class="plain ml-2 ml-lg-5 mb-0">';                                             
 
                             // Manual Related Links
                             if( have_rows('more_links') ):

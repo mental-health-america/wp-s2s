@@ -42,6 +42,7 @@ get_header();
         $next_step_terms = [];
         $next_step_manual = [];
         $required_result_tags = [];
+        $result_cta = [];
 
         // Check the response code.
         if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
@@ -203,7 +204,9 @@ get_header();
         
         if(get_field('survey', $screen_id)){
             
-            // Survey Results
+            /**
+             * Survey Results
+             */
             $result = get_field('results', $screen_id);
             ?>
 
@@ -223,7 +226,9 @@ get_header();
 
         } else {
 
-            // Screening Results                
+            /**
+             * Screening Results
+             */         
             if( have_rows('results', $screen_id) ):
                                 
                 // Result Display
@@ -265,6 +270,11 @@ get_header();
                         $next = get_sub_field('featured_next_steps');
                         foreach($next as $n){
                             $next_step_manual[] = $n['link']->ID;
+                        }
+                        
+                        $featured_cta = get_sub_field('featured_call_to_actions');
+                        foreach($featured_cta as $cta){
+                            $result_cta[] = $cta;
                         }
                         ?>
 
@@ -486,13 +496,25 @@ get_header();
     
 <?php
     // CTA
-    if( have_rows('global_call_to_actions', 'option') ):
-    while( have_rows('global_call_to_actions', 'option') ) : the_row();      
-        if(!get_sub_field('disabled')){    
-            get_template_part( 'templates/blocks/block', 'text' );        
-        }    
+    global $post;
+    foreach($result_cta as $cta){
+        $post = get_post($cta); 
+        get_template_part( 'templates/blocks/block', 'cta' );  
+    } 
+    wp_reset_postdata();
+
+    // Global CTAs
+    if( have_rows('actions', 'option') ):
+    while( have_rows('actions', 'option') ) : the_row();  
+        $post_id = get_sub_field('action');
+        $post = get_post($post_id); 
+        if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
+            setup_postdata($post);
+            get_template_part( 'templates/blocks/block', 'cta' );  
+        }
     endwhile;
     endif;
+    wp_reset_postdata();
     
     // Content Blocks
     wp_reset_query();

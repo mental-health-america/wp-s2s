@@ -623,15 +623,16 @@ if (strpos($account_action, 'save_thought_') !== false) {
 
         <?php
             // CTA
-            if( have_rows('global_call_to_actions', 'option') ):
-            while( have_rows('global_call_to_actions', 'option') ) : the_row();      
-                if(!get_sub_field('disabled')){    
-                    get_template_part( 'templates/blocks/block', 'text' );        
-                }    
+            global $post; 
+            if( have_rows('actions', 'option') ):
+            while( have_rows('actions', 'option') ) : the_row();  
+                $post = get_post(get_sub_field('action')); 
+                setup_postdata($post);
+                get_template_part( 'templates/blocks/block', 'cta' );  
             endwhile;
             endif;
+            wp_reset_query();
         ?>
-
 
         <h2 class="mb-4">Saved Mental Health Information</h2>
         <?php

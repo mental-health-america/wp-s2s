@@ -113,6 +113,7 @@ article.screen {
                 position: relative;
                 //flex: 1 1 calc(25% - 10px);
                 flex: 1 1 auto;
+                max-width: 50%;
                 
                 margin: 0 5px 5px 5px;
                 padding: 0;
@@ -263,6 +264,13 @@ article.screen {
                     background: none;
                     @include radius(50%);
                     @include transitions(border-color 100ms ease, background-color 100ms ease);
+                }
+                
+                &:hover {
+                    color: $teal;
+                    &:before {
+                        background-color: $silver;
+                    }
                 }
 
             }    
