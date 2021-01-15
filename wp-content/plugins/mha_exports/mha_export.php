@@ -19,9 +19,18 @@ function export_menu() {
 		'dashicons-list-view', 
 		26
 	);
+	add_menu_page(
+		'Flagged Thoughts', 
+		'Flagged Thoughts', 
+		'edit_posts', 
+		'mhaflaggedthoughtmod', 
+		'mhaflaggedthoughtmod', 
+		'dashicons-list-view', 
+		26
+	);
 
 }
 
 define('ROOTDIR', plugin_dir_path(__FILE__));
 require_once(ROOTDIR . 'page-thoughts.php');
-require_once(ROOTDIR . 'export-thoughts.php');
+require_once(ROOTDIR . 'flag-moderation.php');

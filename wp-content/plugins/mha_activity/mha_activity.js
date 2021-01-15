@@ -74,7 +74,7 @@ jQuery(function ($) {
 						$('input[name="pid"]').val(resultData['pid']);
 						setTimeout(function() {
 							$('#start-over-container').slideDown();		
-							$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').slideDown().addClass('fade-in');		
+							$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').slideDown().addClass('fade-in');		
 							$('.further-actions').slideDown().addClass('fade-in');			
 						}, 400);
 							
@@ -139,7 +139,7 @@ jQuery(function ($) {
 					$('#start-over-container').fadeIn();
 					$('article.thought_activity, #other-responses').slideUp();
 
-					$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
+					$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
 
 					$('html, body').animate({
 						scrollTop: $("#content").offset().top - 30
@@ -194,7 +194,7 @@ jQuery(function ($) {
 					$('#start-over-container').fadeIn();
 					$('article.thought_activity, #other-responses').slideUp();
 
-					$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
+					$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
 					
 					$('html, body').animate({
 						scrollTop: $("#content").offset().top - 30
@@ -250,7 +250,7 @@ jQuery(function ($) {
 
 					setTimeout(function() {
 						$('#other-responses').fadeIn();
-						$('#thought-history .inner').html('<p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();				
+						$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();				
 					}, 1200);
 									
 					/**
@@ -421,7 +421,7 @@ jQuery(function ($) {
 				$('ol[data-path="'+path+'"] li[data-question="'+(question + 1)+'"]').fadeIn().addClass('active');
 
 				// Update thought log
-				var thoughtHistory = '';
+				var thoughtHistory = '<p class="thought-label"><em class="medium small">What you said before:</em></p>';
 				if(ref == 0){
 					thoughtHistory += '<p>'+resultData.response['thought_'+ref]+'</p>'; // Initial thought
 				} else if(resultData.response['thought_'+path+'_'+ref]){	
@@ -602,7 +602,7 @@ jQuery(function ($) {
 				refText1 = $('textarea[data-path="'+path+'"][data-question="'+(ref)+'"]').val(), // 0 based index adjustment
 				refText2 = $('ol[data-path="'+path+'"] li[data-question="'+(ref_2)+'"] textarea').val(); // 0 based index adjustment				
 				
-			var thoughtHistory = '';
+			var thoughtHistory = '<p class="thought-label"><em class="medium small">What you said before:</em></p>';
 			if(ref == 0){
 				thoughtHistory += '<p>'+refText0+'</p>'; // Initial thought
 			} else if(refText1){	
@@ -621,7 +621,7 @@ jQuery(function ($) {
 			
 			// Show initial thought and the thought history for path selection
 			var refText0 = $('textarea[name="thought_0"]').val();
-			var thoughtHistory = '<p>'+refText0+'</p>'; // Initial thought
+			var thoughtHistory = '<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+refText0+'</p>'; // Initial thought
 			$('#thought-history .inner').html(thoughtHistory).slideDown();
 
 		}

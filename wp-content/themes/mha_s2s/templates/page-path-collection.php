@@ -85,7 +85,19 @@ get_header();
 									if( have_rows('path') ):
 									while( have_rows('path') ) : the_row();
 										$article = get_sub_field('article');
-										echo '<li class="path-item wow fadeIn" data-wow-delay="'.($delay).'s"><a class="button round-tiny thin cerulean block" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'"><span class="table"><span class="cell">'.get_the_title($article).'</span></span></a></li>';
+										echo '<li class="path-item wow fadeIn" data-wow-delay="'.($delay).'s">';
+											echo '<a class="button round-tiny thin cerulean block" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'">';
+												echo '<span class="table">';
+												echo '<span class="cell">';
+													if(get_sub_field('custom_title')){
+														echo get_sub_field('custom_title');
+													} else {
+														echo get_the_title($article);
+													}
+												echo '</span>';
+												echo '</span>';
+											echo '</a>';
+										echo '</li>';
 										$counter++;
 
 										// Spacers

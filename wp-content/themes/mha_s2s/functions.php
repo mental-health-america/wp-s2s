@@ -223,6 +223,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'geo'; // Zip search
     $qvars[] = 'action'; // Special my-account actions
     $qvars[] = 'redirect_to'; // Redirect for logins
+    $qvars[] = 'paged'; // Pagination
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );

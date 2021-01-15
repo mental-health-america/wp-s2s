@@ -97,9 +97,6 @@
 
         var res = JSON.parse(results);
             
-        console.log('test');
-        console.log(results);
-
         if(res.error){
             // Error
             $('#nonaggregate-error').html(res.error);            
@@ -109,7 +106,7 @@
 
                 console.log(res);
                 // Continue Paging
-                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename;
+                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&manual_users=' + res.manual_users;
                 console.log(args_2);
                 $.ajax({
                     type: "POST",

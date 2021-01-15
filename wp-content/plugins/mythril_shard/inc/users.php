@@ -2,14 +2,20 @@
 
 // Give editors the ability to see 'Menus' but hide the other items that appear with "edit_theme_options"
 function mythril_allow_editors_menu_access() {
-    /*
     if (current_user_can('editor')) {
         $role_object = get_role( 'editor' );
         $role_object->add_cap( 'edit_theme_options' );
     }
-    */
 }
 add_action('admin_head', 'mythril_allow_editors_menu_access');
+
+
+// Allow editors to access Gravity Forms
+function wd_gravity_forms_roles() {
+    $role = get_role( 'editor' );
+    $role->add_cap( 'gform_full_access' );
+}
+add_action( 'admin_init', 'wd_gravity_forms_roles' );
 
 // Hide Menu Items from Toolbar
 add_action( 'admin_bar_menu', 'mythril_override_menu_toolbar_buttons', 999 );

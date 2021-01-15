@@ -5,6 +5,13 @@ require_once __DIR__ . '/vendor/autoload.php';
 use League\Csv\CharsetConverter;
 use League\Csv\Writer;
 
+function char_fix( $input ){
+    $bad_chars  = array('’');
+    $good_chars = array('\'');
+    $output = str_replace($bad_chars,$good_chars,$input);
+    return $output;
+}
+
 /** 
  * Init Scripts
  */
@@ -27,8 +34,11 @@ function mhathoughtexport(){
     <div id="aggregate-error"></div>
     <form action="#" id="aggregate-data-export" method="POST">
     <fieldset>
-										
+        
         <p>
+            <label id="manual_users" >User Selection</label> 
+            <input type="text" name="manual_users" id="manual_users" value="" placeholder="e.g. 1, 2, 3" />
+            
             <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
             <button class="button button-primary" id="submit-aggregate-data-export">
                 Export
@@ -52,6 +62,9 @@ function mhathoughtexport(){
     <fieldset>
 
         <p>
+            <label id="manual_users" >User Selection</label> 
+            <input type="text" name="manual_users" id="manual_users" value="" placeholder="e.g. 4, 12, 67" />
+            
             <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
             <button class="button button-primary" id="submit-nonaggregate-data-export">
                 Export
@@ -110,6 +123,15 @@ function mha_aggregate_data_export(){
         "posts_per_page" => 200,
         'paged' => $paged
     );
+    
+    // Manual User Check
+    $manual_users = sanitize_text_field($data['manual_users']);
+    $result['manual_users'] = $manual_users;
+    if($manual_users != ''){
+        $manual_users = explode(',', $manual_users);
+        $args['author__in'] = $manual_users;
+    }
+
     $loop = new WP_Query($args);
     $max_pages = $loop->max_num_pages;
     
@@ -340,6 +362,7 @@ function mha_nonaggregate_data_export(){
     $user_list = [];
     $result = [];
     $i = 0;    
+
     
     // Get unique users and identifiers    
     $args = array(
@@ -350,6 +373,15 @@ function mha_nonaggregate_data_export(){
         "posts_per_page" => 10,
         'paged' => $paged
     );
+    
+    // Manual User Check
+    $manual_users = sanitize_text_field($data['manual_users']);
+    $result['manual_users'] = $manual_users;
+    if($manual_users != ''){
+        $manual_users = explode(',', $manual_users);
+        $args['author__in'] = $manual_users;
+    }
+
     $loop = new WP_Query($args);
     $max_pages = $loop->max_num_pages;
 
@@ -474,9 +506,9 @@ function mha_nonaggregate_data_export(){
         /**
          * Initial Thought
          */
-        $response_data['Initial Thought'] = $responses[0]['response'];
-        $response_data['Initial Thought - Admin'] = $initial_thought_admin;
-        $response_data['Initial Thought - User'] = $initial_thought_user;
+        $response_data['Initial Thought'] = char_fix($responses[0]['response']);
+        $response_data['Initial Thought - Admin'] = char_fix($initial_thought_admin);
+        $response_data['Initial Thought - User'] = char_fix($initial_thought_user);
         $response_data['Initial Thought - Time'] = $responses[0]['submitted'];
 
         /**

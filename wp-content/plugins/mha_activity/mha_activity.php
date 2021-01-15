@@ -739,14 +739,14 @@ function abandonThought(){
 			$uid = 4; // Default "Anonymous" User
 		}
 
-		// Do all this just to make sure someone isn't trying to game the system
+		// Abandon all unpublished thoughts
 		$args = array(
 			"post_type" 	 => 'thought',
 			"author"		 => $uid,
 			"orderby" 		 => 'date', // Get the most recent
 			"order"			 => 'DESC', // Get the most recent
 			"post_status" 	 => 'draft', // Incomplete thoughts only
-			"posts_per_page" => 1,
+			"posts_per_page" => -1,
 			"meta_query"	 => array(
 				'relation'	 	=> 'AND',
 				array(
@@ -767,15 +767,15 @@ function abandonThought(){
 		while($loop->have_posts()) : $loop->the_post();
 			$post_id = get_the_ID();
 			$result['post_id'] = $post_id;
+			// Update the post and abandon it
+			$publish = array(
+				'ID'           => $post_id,
+				'post_status'  => 'publish',
+			);
+			wp_update_post( $publish );
+			update_field('abandoned', date('Y-m-d H:i:s'), $post_id);
 		endwhile;
 		
-		// Update the post and abandon it
-		$publish = array(
-			'ID'           => $post_id,
-			'post_status'  => 'publish',
-		);
-		wp_update_post( $publish );
-		update_field('abandoned', date('Y-m-d H:i:s'), $post_id);
 
 		// Set a redirect to start from scratch
 		$result['page_redirect'] = add_query_arg('cb', time() + $post_id, get_the_permalink($page));

@@ -74,6 +74,21 @@ get_header();
         </div>
 
     </div>
+    
+    <div class="clear pt-4">
+        <?php 
+            // Content Blocks
+            wp_reset_query();
+            if( have_rows('block') ):
+            while ( have_rows('block') ) : the_row();
+                $layout = get_row_layout();
+                if( get_template_part( 'templates/blocks/block', $layout ) ):
+                    get_template_part( 'templates/blocks/block', $layout );
+                endif;
+            endwhile;
+            endif;
+        ?>
+    </div>
 
 </div>
 

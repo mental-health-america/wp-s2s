@@ -4,6 +4,7 @@
  */
 
 get_header();
+
 ?>
 
 <div class="wrap narrow">
