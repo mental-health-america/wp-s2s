@@ -176,8 +176,9 @@ function thoughtLike(){
 			
 		// Organize our data
 		$result['response'] = $data;
-		$row = $data['row'];
-		$pid = $data['pid'];	
+		$row = intval($data['row']);
+		$pid = intval( $data['pid']);	
+		$ref_pid = intval($data['ref_pid']);	
 
 		// Vars
 		$table = 'thoughts_likes';
@@ -225,6 +226,7 @@ function thoughtLike(){
 				'uid' => $uid,
 				'ipiden' => $ipiden,
 				'pid' => $pid,
+				'ref_pid' => $ref_pid,
 				'row' => $row
 			);	
 			$db_insert = $wpdb->insert($table, $response);
@@ -263,8 +265,9 @@ function thoughtFlag(){
 			
 		// Organize our data
 		$result['response'] = $data;
-		$row = $data['row'];
-		$pid = $data['pid'];	
+		$row = intval($data['row']);
+		$pid = intval($data['pid']);	
+		$ref_pid = intval($data['ref_pid']);	
 
 		// Vars
 		$table = 'thoughts_flags';
@@ -296,6 +299,7 @@ function thoughtFlag(){
 				'uid' => $uid,
 				'ipiden' => $ipiden,
 				'pid' => $pid,
+				'ref_pid' => $ref_pid,
 				'row' => $row
 			);	
 			$db_insert = $wpdb->insert($table, $response);
@@ -557,13 +561,11 @@ function likeChecker($pid, $row){
 				'relation'   => 'AND',
 				array(
 					'key' 	 	=> 'activity',
-					'value'  	=> intval($activity_id),
-					'compare'	=> '='
+					'value'  	=> intval($activity_id)
 				),
 				array(
 					'key'		=> 'responses_1_path', // Check for path on the second response entry
-					'value'  	=> intval($path),
-					'compare'	=> '=='
+					'value'  	=> intval($path)
 				)
 			),
 		);
@@ -573,8 +575,7 @@ function likeChecker($pid, $row){
 			// Add the admin connection 
 			$args['meta_query'][] = array(
 				'key'		=> 'responses_0_admin_pre_seeded_thought',
-				'value'  	=> intval($admin_seed),
-				'compare'	=> '=='
+				'value'  	=> intval($admin_seed)
 			);
 		}
 		
@@ -584,8 +585,7 @@ function likeChecker($pid, $row){
 
 			$args['meta_query'][] = array(
 				'key'		=> 'responses_0_user_pre_seeded_thought',
-				'value'  	=> intval($user_seed),
-				'compare'	=> '=='
+				'value'  	=> intval($user_seed)
 			);
 			
 			// Add the original thought to our list
@@ -612,6 +612,7 @@ function likeChecker($pid, $row){
 					
 					if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != ''){					
 						thoughtRow($pid, $thoughts, $index);
+						$counter++;
 					}
 
 				endwhile;
@@ -632,10 +633,12 @@ function likeChecker($pid, $row){
 
 			endwhile;
 		else:
-			echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn no-thought">';
-				echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
-			echo '</li>';
-			$if_check = 1;
+			if($counter == 0){
+				echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn no-thought">';
+					echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!...</div>';
+				echo '</li>';
+				$if_check = 1;
+			}
 		endif;
 
 		if($counter == 0 && $if_check == 0){			

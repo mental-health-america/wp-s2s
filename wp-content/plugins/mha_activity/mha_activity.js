@@ -351,7 +351,7 @@ jQuery(function ($) {
 						$thisButton.next('.continue-thought').fadeIn();
 						
 						// Display thought in the submitted area
-						var newThought = '<li class="round-small-bl bubble thin submitted-by-user new-thought" style="display: none;"><div class="inner clearfix"><div class="thought-text">'+thoughtCheck+'</div><div class="thought-actions"><span class="explore-container"><button class="bar submit continue-thought-preview">Continue working &raquo;</button></span></div></div></li>';		
+						var newThought = '<li class="round-small-bl bubble thin submitted-by-user new-thought" style="display: none;"><div class="inner clearfix"><div class="thought-text">'+thoughtCheck+'</div><div class="thought-actions"><span class="explore-container"><button class="bar submit continue-thought-preview">Continue &raquo;</button></span></div></div></li>';
 						$('#thoughts-submitted').prepend(newThought);	
 						$('.new-thought').slideDown();
 						setTimeout(function() {
@@ -513,10 +513,11 @@ jQuery(function ($) {
 			// Vars
 			var nonce = $(this).attr('data-nonce'),
 				pid = $(this).attr('data-pid'),
+				ref_pid = $('input[name="pid"]').val(),
 				row = $(this).attr('data-row');
 				
 			// Prep the data
-			var args = 'nonce='+nonce+'&pid='+pid+'&row='+row;
+			var args = 'nonce='+nonce+'&pid='+pid+'&row='+row+'&ref_pid='+ref_pid;
 			
 			// Disable like button
 			$(this).prop('disabled', true);			
@@ -529,9 +530,9 @@ jQuery(function ($) {
 					data: args
 				},
 				success: function( results ) {
-
+					console.log(results);
 					//$(`.thought-like[data-pid="${pid}"][data-row="${row}"]`).toggleClass('liked').prop('disabled', false);
-					$('.thought-flag[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('liked').prop('disabled', false);
+					$('.thought-like[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('liked').prop('disabled', false);
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){
@@ -555,10 +556,11 @@ jQuery(function ($) {
 			// Vars
 			var nonce = $(this).attr('data-nonce'),
 				pid = $(this).attr('data-pid'),
+				ref_pid = $('input[name="pid"]').val(),
 				row = $(this).attr('data-row');
 				
 			// Prep the data
-			var args = 'nonce='+nonce+'&pid='+pid+'&row='+row;
+			var args = 'nonce='+nonce+'&pid='+pid+'&row='+row+'&ref_pid='+ref_pid;
 			
 			// Disable flag button
 			$(this).prop('disabled', true);			
