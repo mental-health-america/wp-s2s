@@ -28,17 +28,47 @@
 <?php endif; */?>
 
 <?php
+
     $terms_conditions = get_the_terms( $article_id, 'condition' );
-    if($terms_conditions):
+    $terms_tags = get_the_terms( $article_id, 'post_tag' );
+    $terms_all = '';
+
+    //if(has_term('All Conditions', 'condition')){
+    if(get_field('all_conditions')){
+
+        // Display all tags
+        $terms_all = get_terms( array(
+            'taxonomy' => 'condition',
+            'hide_empty' => true
+        ));
+
+    } else {
+
+        // Use assigned tags 
+        if($terms_conditions && $terms_tags){
+            $terms_all = array_merge($terms_conditions, $terms_tags);
+        } else if($terms_conditions && !$terms_tags){
+            $terms_all = $terms_conditions;
+        } else if(!$terms_conditions && $terms_tags){
+            $terms_all = $terms_tags;
+        }
+        
+        // Sort alphabetically
+        usort($terms_all, "term_sort_name");
+
+    }
+    
+
+    if($terms_all):
     ?>
         <div class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4">
         <div class="inner">
             <h4>Categories</h4>
-            <p class="mb-2">Tags associated with this article:</p>
+            <p class="mb-4">Tags associated with this article:</p>
             <?php 
                 echo '<ol class="plain ml-2 ml-lg-5 mb-0">'; 
-                foreach($terms_conditions as $c){
-                    if ($c->parent == 0){
+                foreach($terms_all as $c){
+                    if ($c->parent == 0 && !get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
 
                         if(get_field('custom_category_name', $c->taxonomy.'_'.$c->term_id)){
                             $term_name = get_field('custom_category_name', $c->taxonomy.'_'.$c->term_id);

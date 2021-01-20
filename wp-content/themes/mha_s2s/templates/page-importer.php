@@ -16,33 +16,229 @@ function acf_field_array_conversion( $string ){
         return $return_array;
     }
 }
+
+function field_exploder($init_array, $object){
+    $data_array = [];
+    $data = explode(', ', $init_array);
+    foreach($data as $t){
+        foreach($object['choices'] as $k => $v){
+            if($t == $v){
+                $data_array[] = $k;
+            }
+        }
+    }
+    return $data_array;
+}
+
 ?>
 
 <div class="wrap medium">
 
-<?php
+<?php    
 
+/**
+ * Big Content Tag Update
+ */
+    $obj_diy_type = get_field_object('field_5fd3f1a935255');
+    $obj_diy_issue = get_field_object('field_5fea345c4d25c');
+    $obj_service_type = get_field_object('field_5fdc0a1448b13');
+    $obj_treatment_type = get_field_object('field_5fd3f7a3951ad');
+
+    $csv = ck_csv('https://mhascreening.wpengine.com/all-articles.csv?c=2'.rand(0,10000));
+    $csv_fix = array_shift($csv);
+    //pre($csv);
+    $updates = [];
+
+    foreach($csv as $c){
+
+        $article_args = array(
+            'posts_per_page' => 1,
+            'post_type' => 'article',
+            "post_status" => array('publish','draft'),
+            'meta_query' => array(
+                array(
+                    'key' => 'drupal_id',
+                    'value' => $c['ID']
+                )
+            )
+        );
+        $article_query = new WP_Query( $article_args );
+        while($article_query->have_posts()) : $article_query->the_post();
+
+            $post_id = get_the_ID();            
+        
+            if($c['All Conditions?'] != ''){ 
+                //$updates[$post_id]['conditions'] = wp_set_object_terms( $post_id, 119, 'condition', true ); 
+            }
+
+            // Update Post
+            /*
+            $data = array(
+                'ID' => $post_id,
+                'post_status' => $c['Published'],                
+                'post_name' => $c['Link'],
+            );               
+            wp_update_post( $data );
+
+            // Update Fields
+            $updates[$post_id]['type name'] = $c['type'];  
+            $updates[$post_id]['type'] = update_field('field_5fd3eec524b34', $c['type'], $post_id);  
+            
+            if($c['All Conditions?'] != ''){ 
+                $updates[$post_id]['all_conditions'] = update_field('all_conditions', 1, $post_id);
+                $updates[$post_id]['conditions'] = wp_set_object_terms( $post_id, $conditions, 'condition', false ); 
+            }
+
+            if($c['DIY Type'] != ''){                
+                $array_diy_type = field_exploder($c['DIY Type'], $obj_diy_type);
+                $updates[$post_id]['diy type'] = update_field('diy_type', $array_diy_type, $post_id); 
+            }
+
+            if($c['Issue'] != ''){                
+                $array_diy_issue = field_exploder($c['Issue'], $obj_diy_issue);
+                $updates[$post_id]['diy issue'] = update_field('diy_issue', $array_diy_issue, $post_id); 
+            }
+
+            if($c['Service Type'] != ''){                
+                $array_service_type = field_exploder($c['Service Type'], $obj_service_type);
+                $updates[$post_id]['service_type'] = update_field('service_type', $array_service_type, $post_id); 
+            }
+
+            if($c['Treatment Category'] != ''){                
+                $array_treatment_cat = field_exploder($c['Treatment Category'], $obj_treatment_type);
+                $updates[$post_id]['service_type'] = update_field('treatment_type', $array_treatment_cat, $post_id); 
+            }
+
+            // Update Taxonomy
+            if($c['Conditions'] != ''){
+                $conditions = explode(', ',$c['Conditions']);
+                $updates[$post_id]['conditions'] = wp_set_object_terms( $post_id, $conditions, 'condition', false );
+            } else {
+                $updates[$post_id]['conditions'] = wp_set_object_terms( $post_id, '', 'condition', false );
+            }
+            
+            if($c['Age'] != ''){
+                $age_group = explode(', ',$c['Age']);
+                $updates[$post_id]['age_group'] = wp_set_object_terms( $post_id, $age_group, 'age_group', false );
+            } else {
+                $updates[$post_id]['age_group'] = wp_set_object_terms( $post_id, '', 'age_group', false );
+            }
+            
+            if($c['Tags'] != ''){
+                $tags = explode(', ',$c['Tags']);
+                $updates[$post_id]['tags'] = wp_set_object_terms( $post_id, $tags, 'post_tag', false );
+            } else {
+                $updates[$post_id]['tags'] = wp_set_object_terms( $post_id, '', 'post_tag', false );
+            }
+            */
+
+        endwhile;
+
+    }
+
+    pre($updates);
+
+
+
+
+
+
+
+
+    /**
+     * Article Updater
+     */
+    /*
+    $obj_treatment = get_field_object('field_5fd3f7a3951ad');
+
+    $csv = ck_csv('https://mhascreening.wpengine.com/articles.csv?c='.rand(0,10000));
+    foreach($csv as $c){
+
+
+        $article_args = array(
+            'posts_per_page' => 1,
+            'post_type' => 'article',
+            'meta_query' => array(
+                array(
+                    'key' => 'drupal_id',
+                    'value' => $c['id']
+                )
+            )
+        );
+        $article_query = new WP_Query( $article_args );
+        $counter = 0;
+        while($article_query->have_posts()) : $article_query->the_post();
+
+            $post_id = get_the_ID();
+            $type = 'treatment';
+            $treatment = explode(', ', $c['treatment']);
+            $treatment_array = [];
+
+            echo '<p>';
+                echo 'Updated ID: '.$post_id.'<br />';
+
+                pre($treatment);
+
+                foreach($treatment as $t){
+                    foreach($obj_treatment['choices'] as $k => $v){
+                        if($t == $v){
+                            $treatment_array[] = $k;
+                        }
+                    }
+                }
+
+                pre($treatment_array);
+                echo "<hr />";
+
+                $update_type = update_field('type', $type, $post_id);        
+                $update_treatment = update_field('treatment_type', $treatment_array, $post_id);    
+
+            echo '</p>';
+
+        endwhile;  
+                
+    }
+    */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Clear excerpts
+     */
+
+    /*
     global $wpdb;
     $querystr = "SELECT * FROM $wpdb->posts WHERE $wpdb->posts.post_excerpt = 'Find a life-changing therapist.'";     
     $posts = $wpdb->get_results($querystr);
 
-    foreach($posts as $p){
-        
+    foreach($posts as $p){        
         $updateArgs = array(
             'ID'           => $p->ID,
             'post_excerpt' => '',
         );
         wp_update_post( $updateArgs );
-        echo 'Updated '.$p->ID.'<br />';
-        
-
+        echo 'Updated '.$p->ID.'<br />';    
     }
+    */
 
 
 
     /**
      * Find broken media
      */
+
     /*
     $args = array(
         'posts_per_page'	=> -1,
@@ -74,6 +270,7 @@ function acf_field_array_conversion( $string ){
     /**
      * Fix Broken Drupal Links
      */
+
     /*
     $args = array(
         'posts_per_page'	=> 10,
@@ -126,22 +323,21 @@ function acf_field_array_conversion( $string ){
             echo 'Skipped '.$post_id.'<br />';  
         }
 
-        echo '<hr />';
-        
+        echo '<hr />';       
         
     endwhile;
     */
 
 
+
+    /**
+     * Dupe Checker and General Importer
+     */
+
     /*
     $request  = wp_remote_get( 'https://mhascreening.wpengine.com/content-export.json?c='.rand(0,10000) );
     $response = wp_remote_retrieve_body( $request );
-
     $data = json_decode( $response, true );
-    */
-
-    /*
-    // Dupe checker
     wp_reset_query();
     $args = array(
         "post_type" => 'article',
@@ -341,7 +537,7 @@ function acf_field_array_conversion( $string ){
         }
 
     }
-        */
+    */
 ?>
 
 </div>

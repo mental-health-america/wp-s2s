@@ -1,0 +1,51 @@
+﻿type,id,title,treatment
+condition,353,Can an app help my mental health problems?,Lifestyle Changes
+condition,288,Can I go to AA if I don't believe in God?,Social Support
+condition,273,Do I have to stop drinking forever?,Lifestyle Changes
+condition,135,Do I have to take medication forever?,Medical
+condition,445,Do I have to take meds for bipolar?,Medical
+condition,496,How can I access a loved one's health care info?,Medical
+condition,460,How can I achieve better work-life balance?,Lifestyle Changes
+condition,283,How can I explain my eating disorder to other people?,Social Support
+condition,484,How can I find support as a caregiver?,Social Support
+condition,488,How can I help a loved one with a mental illness?,Social Support
+condition,266,How can I help a loved one with anxiety?,Social Support
+condition,229,How can I help a loved one with bipolar?,Social Support
+condition,296,How can I help a loved one with PTSD?,Social Support
+condition,420,How can I improve my mental health on my own?,"Lifestyle Changes, Social Support, Alternative Medicine, Online"
+condition,473,How can I manage my mental health while working from home?,"Lifestyle Changes, Social Support, Online"
+condition,464,How can I manage stress at work?,Lifestyle Changes
+condition,626,How can I set boundaries with my family?,Social Support
+condition,274,How can I stop drinking?,"Lifestyle Changes, Social Support, Therapy"
+condition,275,How can I stop using drugs?,"Lifestyle Changes, Social Support, Therapy"
+condition,630,How can I tell someone Iâ€™m harming myself?,Social Support
+condition,634,How can I tell someone Iâ€™m suicidal?,Social Support
+condition,487,How can I work with my loved one's mental health care providers?,"Social Support, Medical"
+condition,217,How do I ask my friends and family for help?,Social Support
+condition,463,How do I stay clean and sober while I'm stuck at home?,"Lifestyle Changes, Social Support, Online"
+condition,366,How do I stop cutting?,"Lifestyle Changes, Social Support, Therapy, Medical"
+condition,289,How do I tell someone I have a problem?,Social Support
+condition,306,How do you treat anxiety?,"Alternative Medicine, Community Support, Lifestyle Changes, Medical, Medical, Online, Therapy"
+condition,206,How do you treat bipolar?,"Alternative Medicine, Community Support, Lifestyle Changes, Medical, Medical, Online, Therapy"
+condition,141,How do you treat depression?,"Alternative Medicine, Community Support, Lifestyle Changes, Medical, Medical, Online, Therapy"
+condition,423,How do you treat mental illness?,"Alternative Medicine, Community Support, Lifestyle Changes, Medical, Medical, Online, Therapy"
+condition,294,How do you treat PTSD?,"Alternative Medicine, Community Support, Lifestyle Changes, Medical, Medical, Online, Therapy"
+condition,128,How fast do anxiety meds work?,Medical
+condition,506,How fast do bipolar meds work?,Medical
+condition,143,How fast do depression meds work?,Medical
+condition,500,How to help someone make decisions about their mental health,Social Support
+condition,500,How to help someone make decisions about their mental health,"Alternative Medicine, Community Support, Lifestyle Changes, Medical, Medical, Online, Therapy"
+condition,633,I feel better; should I go off my meds?,Medical
+condition,611,My coping skills aren't working anymore,Treatment Resistance
+condition,364,My depression won't go away,Treatment Resistance
+condition,166,Nothing is helping my depression,Treatment Resistance
+condition,384,Should I tell someone I have a mental Illness,Social Support
+condition,295,What can I do to recover from PTSD on my own?,"Lifestyle Changes, Social Support, Alternative Medicine, Online"
+condition,213,Where can I find people like me?,"Social Support, Online"
+condition,132,Who can I talk to about my anxiety?,Social Support
+condition,139,Who can I talk to about my bipolar?,Social Support
+condition,154,Who can I talk to about my depression?,Social Support
+condition,436,Who can I talk to about my mental illness?,Social Support
+condition,160,Who can I talk to about my psychosis?,Social Support
+diy_tool,497,Who makes mental health decisions for me if I canâ€™t?,"Social Support, Medical"
+condition,387,Will depression come back?,Treatment Resistance

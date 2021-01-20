@@ -707,8 +707,19 @@ button.icon.like-button {
             width: 100%;
             padding: 15px 20px 15px 20px;
             border: 0;
+            opacity: 1;
             @include montserrat(600);
             @include radius(40px 40px 40px 0);
+            @include transitions(opacity 150ms ease);            
+            &.searching {
+                background-image: url('../images/loading-gray.gif');
+                background-size: auto;
+                background-position: 90% center;
+                background-repeat: no-repeat;
+            }
+            &.disabled {
+                opacity: .5;
+            }
         }
     }
 
@@ -720,6 +731,7 @@ button.icon.like-button {
             width: auto;
         }
     }
+
 
     .filter-checkboxes {
         .form-item {

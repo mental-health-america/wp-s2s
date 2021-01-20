@@ -234,7 +234,7 @@ get_header();
 										"orderby" => $orderby,
 										"order"	=> $order,
 										"post_status" => 'publish',
-										"posts_per_page" => 25,
+										"posts_per_page" => 40,
 										"meta_query" => array(
 											array(
 												'key' => 'type',

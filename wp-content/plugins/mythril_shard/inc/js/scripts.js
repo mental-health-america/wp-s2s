@@ -52,6 +52,32 @@ jQuery(function ($) {
 	}
 
 	// Submit filter on checkbox changes
+	var intentDelay;
+	$('.search-filters input[type="text"], .search-filters input[type="number"]').on('input',function(event){
+		
+		var $this = $(this);
+		$this.addClass('searching');
+		
+		clearTimeout(intentDelay);
+
+		intentDelay = setTimeout(function() {
+
+			$this.prop('disabled',true);
+
+			var orderby = $('#orderSelection').val(),
+				order = $('#orderSelection').attr('data-order');
+			submitFilterForm( order, orderby );	
+			$this.addClass('disabled').removeClass('searching');
+				
+			setTimeout(function() {
+				$this.prop('disabled',false).removeClass('disabled');
+			}, 2000);
+			
+		}, 1000);
+
+	});
+	
+	// Submit filter on checkbox changes
 	$('.filter-checkboxes input[type="checkbox"]').change(function(event) {
 		event.preventDefault();
 		var orderby = $('#orderSelection').val(),

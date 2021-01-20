@@ -136,7 +136,9 @@ function mha_conditions() {
 	$conditions = [];
 	if($query){
 		foreach($query as $c){
-			$conditions[] = '<a class="plain cerulean" href="'.get_term_link($c->term_id).'">'.$c->name.'</a>';
+			if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
+				$conditions[] = '<a class="plain cerulean" href="'.get_term_link($c->term_id).'">'.$c->name.'</a>';
+			}
 		}
 		$html = '<div class="conditions-list">';
 		$html .= implode('&nbsp;<span class="noto">|</span>&nbsp; ', $conditions);
@@ -362,7 +364,7 @@ function get_geo( $zip ){
 
 }
 
-function get_articles( $type = null, $search = null, $conditions = null, $filters = null , $order = 'DESC' , $orderby = 'featured', $geo = null, $paged = 1 ){
+function get_articles( $type = null, $search = null, $conditions = null, $filters = null , $order = 'DESC' , $orderby = 'featured', $geo = null, $paged = 1, $allconditions = 1 ){
 	
 	$html = '';
 	/*
@@ -632,4 +634,9 @@ function attach_remote_image_to_post($image_url, $parent_id, $alt = ''){
 
     return $attach_id;
 
+}
+
+// Sort term arrays by name
+function term_sort_name($a, $b) {
+	return strcmp($a->name, $b->name);
 }

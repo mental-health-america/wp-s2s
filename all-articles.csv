@@ -1,0 +1,429 @@
+﻿test,type,ID,Title,Conditions,Age,All Conditions?,Tags,DIY Type,Issue,Service Type,Treatment Category,Published,Link
+,connect,169,#mentalillnessfeelslike,,"Under 11, 11-17, 18+",x,,,,,,publish,mentalillnessfeelslike
+,diy,535,3 Steps to Keep Your Mind Grounded,"ADHD, Anxiety, Borderline, Depression, PTSD, Addiction","Under 11, 11-17, 18+",,,Document,"Anger, Changing Thoughts, Fear, Life & Trauma, Stress",,,publish,3-steps-keep-your-mind-grounded
+,diy,532,7 tips for talking to a loved one about their mental health,,"Under 11, 11-17, 18+",x,Caregiver,Document,"Confidence, Life & Trauma",,,publish,7-tips-talking-loved-one-about-their-mental-health
+,diy,494,8 of the best meditation apps,"ADHD, Anxiety, Depression, Eating Disorder, PTSD, Sleep, Addiction","Under 11, 11-17, 18+",,,Mobile App,"Anger, Changing Thoughts, Fear, Life & Trauma, Sleep, Stress, The Brain",,,publish,8-best-meditation-apps
+,diy,533,8 Steps to Create a Healthy Routine,,"Under 11, 11-17, 18+",x,,Document,"Changing Thoughts, Confidence, Life & Trauma, Sleep, Stress",,,publish,8-steps-create-healthy-routine
+,treatment,303,About Peer Supporters,,"Under 11, 11-17, 18+",x,,,,,Social Support,publish,about-peer-supporters
+,connect,170,ADAA Online Peer-to-Peer Anxiety and Depression Support Group,"Anxiety, Depression, PTSD","Under 11, 11-17, 18+",,"Caregiver, Parent, Youth, LGBTQ+, BIPOC, Older Adults",,,,,publish,adaa-online-peer-peer-anxiety-and-depression-support-group
+,provider,337,Aging Services at MHA South Central Kansas,"Anxiety, Bipolar, Depression, Psychosis, PTSD, Addiction",18+,,Older Adults,,,Community Support,,publish,aging-services-mha-south-central-kansas
+,provider,332,Al-Anon,Addiction,"11-17, 18+",,Caregiver,,,"Community Support, Groups, Online, Peer-Run",,publish,al-anon
+,provider,333,Alateen,Addiction,"11-17,",,"Caregiver, Youth",,,"Community Support, Groups, Online, Peer-Run",,publish,alateen
+,provider,325,Alcoholics Anonymous,Addiction,"11-17, 18+",,,,,"Community Support, Groups, Peer-Run",,publish,alcoholics-anonymous
+,connect,606,Alternatives to calling the police in a crisis,,"Under 11, 11-17, 18+",x,Crisis,,,,,publish,alternatives-calling-police-crisis
+,condition,286,Am I addicted to pills?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,am-i-addicted-pills
+,condition,269,Am I bipolar or just moody?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,am-i-bipolar-or-just-moody
+,condition,382,Am I crazy?,,"Under 11, 11-17, 18+",x,,,,,,publish,am-i-crazy
+,condition,381,Am I depressed or just sad?,"Bipolar, Depression","Under 11, 11-17, 18+",,,,,,,publish,am-i-depressed-or-just-sad
+,diy,178,Antipsychotic Side-effects Checklist (ASC),"Bipolar, Depression, Psychosis, Sleep","Under 11, 11-17, 18+",,,Other,"Fear, The Brain",,,draft,antipsychotic-side-effects-checklist-asc
+,treatment,247,Antipsychotics,"Bipolar, Psychosis, Tardive Dyskinesia","Under 11, 11-17, 18+",,,,,,Medical,publish,antipsychotics
+,diy,550,Apoyando a los demÃ¡s,,"Under 11, 11-17, 18+",,"Caregiver, Español/Spanish",Document,"Confidence, Life & Trauma",,,publish,apoyando-los-demas
+,provider,578,Appalachian Mountain Project Access,,"Under 11, 11-17, 18+",x,,,,"Community Support, Groups, Medical, Online, Peer-Run, Therapy",,publish,appalachian-mountain-project-access
+,condition,156,Are there different types of eating disorders?,Eating Disorder,"Under 11, 11-17, 18+",,,,,,,publish,are-there-different-types-eating-disorders
+,condition,204,Are there successful people who live with bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,are-there-successful-people-who-live-bipolar
+,condition,285,Are there types of anxiety?,"Anxiety, PTSD, OCD","Under 11, 11-17, 18+",,,,,,,publish,are-there-types-anxiety
+,condition,127,Are there types of bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,are-there-types-bipolar
+,condition,442,Are there types of depression?,"Depression, Postpartum Depression, Bipolar","Under 11, 11-17, 18+",,,,,,,publish,are-there-types-depression
+,diy,399,"Assess, Screen and Train Your Brain to Improve Mental Health",,"Under 11, 11-17, 18+",x,,"Website, Mobile App","Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress, The Brain",,,publish,assess-screen-and-train-your-brain-improve-mental-health
+,treatment,248,Atypical Antidepressants,"ADHD, Bipolar, Depression, Postpartum Depression, Sleep, PTSD","Under 11, 11-17, 18+",,,,,,Medical,publish,atypical-antidepressants
+,treatment,249,Atypical Antipsychotics,"Anxiety, Bipolar, Depression, Eating Disorder, Psychosis, Tardive Dyskinesia, PTSD","Under 11, 11-17, 18+",,,,,,Medical,publish,atypical-antipsychotics
+,diy,179,Back to School Checklist,,"Under 11, 11-17, 18+",,"Parent, Youth",Document,Confidence,,,draft,back-school-checklist
+,provider,579,Beersheba Springs Medical Clinic,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,beersheba-springs-medical-clinic
+,provider,580,Benton Family Healthcare Center,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,benton-family-healthcare-center
+,treatment,262,Benzodiazepines,"Anxiety, Sleep","Under 11, 11-17, 18+",,,,,,Medical,publish,benzodiazepines
+,provider,599,Bradford Health Services - Cordes Circle,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,bradford-health-services-cordes-circle
+,provider,581,Bradford Health Services - Donelson Pike,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,bradford-health-services-donelson-pike
+,provider,600,Bradford Health Services - Dunbar Cave Rd,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,bradford-health-services-dunbar-cave-rd
+,provider,582,Bradford Health Services - McArthur St,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,bradford-health-services-mcarthur-st
+,provider,597,Bradford Health Services - Neal St.,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,bradford-health-services-neal-st
+,provider,598,Bradford Health Services - Shallowford Rd.,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,bradford-health-services-shallowford-rd
+,provider,601,Bradford Health Services - South Gallaher View Rd,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,bradford-health-services-south-gallaher-view-rd
+,provider,529,BrainsWay Deep Transcranial Magnetic Stimulation (Deep TMS) Treatment,Depression,18+,,,,,Medical,,publish,brainsway-deep-transcranial-magnetic-stimulation-deep-tms-treatment
+,diy,177,Breaking up with an Addiction,Addiction,"11-17, 18+",,,Other,"Anger, Confidence, Fear, Life & Trauma, Sadness",,,publish,breaking-addiction
+,diy,180,Budgeting and Tracking Forms,"Anxiety, Bipolar, Depression, PTSD, Addiction","11-17, 18+",,,Other,"Changing Thoughts, Confidence, Sadness",,,draft,budgeting-and-tracking-forms
+,diy,546,Buscando lo bueno,,"Under 11, 11-17, 18+",x,Español/Spanish,Document,"Anger, Changing Thoughts, Fear, Life & Trauma, Sadness, Stress",,,publish,buscando-lo-bueno
+,condition,353,Can an app help my mental health problems?,,"Under 11, 11-17, 18+",x,,,,,,publish,can-app-help-my-mental-health-problems
+,treatment,250,Can chromium help treat depression?,"Anxiety, Bipolar, Depression, PTSD","Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,can-chromium-help-treat-depression
+,treatment,609,Can esketamine treat depression?,Depression,"Under 11, 11-17, 18+",,,,,,"Medical, Therapy, Treatment Resistance",publish,can-esketamine-treat-depression
+,condition,282,Can I be fired for my mental illness?,,"Under 11, 11-17, 18+",x,Workplace,,,,,publish,can-i-be-fired-my-mental-illness
+,condition,288,Can I go to AA if I don't believe in God?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,can-i-go-aa-if-i-dont-believe-god
+,condition,203,Can I live a good life with bipolar disorder?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,can-i-live-good-life-bipolar-disorder
+,condition,272,Can I smoke pot without being addicted?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,can-i-smoke-pot-without-being-addicted
+,condition,271,Can I use FMLA for mental health?,,"Under 11, 11-17, 18+",x,"Caregiver, Workplace",,,,,publish,can-i-use-fmla-mental-health
+,condition,538,Can I use my PTO to take care of a sick family member?,,"Under 11, 11-17, 18+",x,"Caregiver, Workplace",,,,,publish,can-i-use-my-pto-take-care-sick-family-member
+,treatment,608,Can ketamine treat depression?,Depression,"Under 11, 11-17, 18+",,,,,,"Medical, Therapy, Treatment Resistance",publish,can-ketamine-treat-depression
+,treatment,258,Can SAM-e help treat depression?,Depression,"Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,can-sam-e-help-treat-depression
+,treatment,261,Can yoga help improve my mental health?,"Anxiety, Depression, PTSD","Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,can-yoga-help-improve-my-mental-health
+,condition,437,Can you be addicted to a behavior?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,can-you-be-addicted-behavior
+,condition,158,Can you have an eating disorder if you arenâ€™t skinny?,Eating Disorder,"Under 11, 11-17, 18+",,,,,,,publish,can-you-have-eating-disorder-if-you-arent-skinny
+,provider,559,Center for Behavioral Health at Spalding University,"ADHD, Anxiety, Depression, Loneliness, Sleep","Under 11, 11-17, 18+",,"Parent, Youth",,,"Community Support, Groups, Online, Therapy",,publish,center-behavioral-health-spalding-university
+,provider,602,Centerstone,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,centerstone
+,provider,604,Charis Health Center,,"Under 11, 11-17, 18+",x,,,,Community Support,,publish,charis-health-center
+,provider,558,Cherokee Health Systems,,"Under 11, 11-17, 18+",x,,,,"Community Support, Groups, Online, Peer-Run, Therapy",,publish,cherokee-health-systems
+,provider,328,Children and Adults with Attention Deficit/ Hyperactivity Disorder (CHADD) Resource Directory,ADHD,"11-17, 18+",,Youth,,,"Community Support, Peer-Run",,publish,children-and-adults-attention-deficit-hyperactivity-disorder-chadd-resource-directory
+,provider,636,Choosing Therapy,,18+,x,,,,"Online, Therapy",,publish,choosing-therapy
+,treatment,431,Cognitive Behavioral Therapy (CBT),,"Under 11, 11-17, 18+",x,,,,,Therapy,publish,cognitive-behavioral-therapy-cbt
+,diy,544,Cope Notes,,"Under 11, 11-17, 18+",x,,"Mobile App, Other","Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress, The Brain",,,publish,cope-notes
+,provider,557,"Covenant Counseling Center, Inc.","Anxiety, Bipolar, Borderline, Depression, PTSD","Under 11, 11-17, 18+",,"Caregiver, Parent, Youth, Workplace",,,"Online, Therapy",,publish,covenant-counseling-center-inc
+,treatment,251,Cranial Electrotherapy Stimulation (CES),"Anxiety, Depression, PTSD","Under 11, 11-17, 18+",,,,,,"Alternative Medicine, Medical, Treatment Resistance",publish,cranial-electrotherapy-stimulation-ces
+,diy,549,Creando rutinas saludables,,"Under 11, 11-17, 18+",x,Español/Spanish,Document,"Changing Thoughts, Confidence, Life & Trauma, Sleep, Stress",,,publish,creando-rutinas-saludables
+,diy,181,Crisis Plan For Your Support System Worksheet,"Self-Harm, Suicide","Under 11, 11-17, 18+",x,"Caregiver, Crisis",Website,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, The Brain",,,publish,crisis-plan-your-support-system-worksheet
+,provider,622,CURESZ Foundation,"Psychosis, Tardive Dyskinesia","11-17, 18+",,Caregiver,,,"Community Support, Medical, Online",,publish,curesz-foundation
+,diy,182,Daily Wellness Chart Worksheet,,"Under 11, 11-17, 18+",x,,"Website, Other","Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, The Brain",,,publish,daily-wellness-chart-worksheet
+,treatment,311,Dealing with Trolls in Online Support Communities,,"Under 11, 11-17, 18+",x,,,,,"Online, Social Support",publish,dealing-trolls-online-support-communities
+,condition,393,Depression and anxiety after losing a pet,"Anxiety, Depression","Under 11, 11-17, 18+",,,,,,,publish,depression-and-anxiety-after-losing-pet
+,provider,389,Depression and Bipolar Support Alliance,"Bipolar, Depression","11-17, 18+",,,,,"Groups, Online, Peer-Run",,publish,depression-and-bipolar-support-alliance
+,diy,534,Detoxing Your Life,,"11-17, 18+",x,,Document,"Changing Thoughts, Confidence, Life & Trauma",,,publish,detoxing-your-life
+,treatment,263,Dialectical Behavioral Therapy (DBT),"Borderline, Eating Disorder, Addiction, PTSD, Self-Harm, Suicide","Under 11, 11-17, 18+",x,,,,,Therapy,publish,dialectical-behavioral-therapy-dbt
+,condition,419,Do I have borderline or bipolar?,"Bipolar, Borderline","Under 11, 11-17, 18+",,,,,,,publish,do-i-have-borderline-or-bipolar
+,condition,273,Do I have to stop drinking forever?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,do-i-have-stop-drinking-forever
+,condition,135,Do I have to take medication forever?,,"Under 11, 11-17, 18+",x,,,,,,publish,do-i-have-take-medication-forever
+,condition,445,Do I have to take meds for bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,do-i-have-take-meds-bipolar
+,treatment,299,Do I need to go to the hospital?,"Bipolar, Addiction, Psychosis, Self-Harm, Suicide","Under 11, 11-17, 18+",x,Crisis,,,,Medical,publish,do-i-need-go-hospital
+,condition,504,Do people with bipolar know they have it?,Bipolar,"Under 11, 11-17, 18+",,Caregiver ,,,,,publish,do-people-bipolar-know-they-have-it
+,condition,443,Does bipolar go away on its own?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,does-bipolar-go-away-its-own
+,condition,444,Does depression go away on its own?,Depression,"Under 11, 11-17, 18+",,,,,,,publish,does-depression-go-away-its-own
+,condition,512,Does mental illness go away on its own?,,"Under 11, 11-17, 18+",x,,,,,,publish,does-mental-illness-go-away-its-own
+,condition,505,Does my child have bipolar?,Bipolar,"Under 11, 11-17, 18+",,Parent,,,,,publish,does-my-child-have-bipolar
+,treatment,352,Donate Your Voice,"Anxiety, Bipolar, Depression, Psychosis, PTSD, Addiction","Under 11, 11-17, 18+",,,,,,Online,draft,donate-your-voice
+,diy,548,Eliminar las influencias tÃ³xicas,,"11-17, 18+",x,Español/Spanish,Document,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Stress",,,publish,eliminar-las-influencias-toxicas
+,diy,537,eM Life: Live Virtual Mindfulness,"ADHD, Anxiety, Depression, Eating Disorder, PTSD, Sleep, Addiction","11-17, 18+",,,"Website, Mobile App","Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress, The Brain",,,publish,em-life-live-virtual-mindfulness
+,provider,319,Emotions Anonymous,,"11-17, 18+",x,,,,"Community Support, Groups, Online, Peer-Run",,publish,emotions-anonymous
+,connect,545,Empower Work,"Anxiety, Loneliness",18+,,Workplace,,,,,publish,empower-work
+,provider,392,e-Psychiatry Telepsych,,18+,x,,,,"Online, Therapy",,publish,e-psychiatry-telepsych
+,diy,373,eQuoo the Emotional Fitness Game,,"11-17, 18+",x,,Mobile App,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Stress",,,publish,equoo-emotional-fitness-game
+,condition,612,Experiencing abuse in an LGBTQ+ relationship,"Relationships, Trauma","Under 11, 11-17, 18+",,LGBTQ+,,,,,publish,experiencing-abuse-lgbtq-relationship
+,provider,330,Family Care Navigator,,18+,x,Caregiver,,,Community Support,,publish,family-care-navigator
+,condition,466,Feeling lonely in a crowd,"Anxiety, Borderline, Depression, Loneliness, PTSD","Under 11, 11-17, 18+",,Youth,,,,,publish,feeling-lonely-crowd
+,diy,184,Financial Growth Guide,"Anxiety, Bipolar, Depression, Eating Disorder, Psychosis, PTSD, Addiction","11-17, 18+",,,Other,"Changing Thoughts, Confidence",,,draft,financial-growth-guide
+,provider,329,Find A Health Center,,"11-17, 18+",x,,,,Community Support,,publish,find-health-center
+,provider,317,Find Low Cost or No Cost Treatment,,"Under 11, 11-17, 18+",x,,,,"Community Support, Groups, Medical, Peer-Run, Therapy",,publish,find-low-cost-or-no-cost-treatment
+,treatment,300,Finding a Hospital,"Anxiety, Bipolar, Depression, Eating Disorder, Psychosis, PTSD, Addiction, Self-Harm","Under 11, 11-17, 18+",,,,,,Medical,publish,finding-hospital
+,treatment,252,Folate,Depression,"Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,folate
+,provider,320,Gamblers Anonymous,Addiction,18+,,,,,"Community Support, Groups, Peer-Run",,publish,gamblers-anonymous
+,treatment,305,Getting the Most out of Therapy,,"Under 11, 11-17, 18+",x,,,,,Therapy,publish,getting-most-out-therapy
+,treatment,253,Ginkgo Biloba,"Psychosis, ADHD, Depression","Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,ginkgo-biloba
+,provider,618,Glimmer,,18+,x,LGBTQ+,,,"Community Support, Online, Therapy",,publish,glimmer
+,diy,555,Gratitude Card,,"Under 11, 11-17, 18+",x,,Document,"Anger, Changing Thoughts, Life & Trauma, Sadness, Stress",,,publish,gratitude-card
+,diy,185,Guided Journal,,"Under 11, 11-17, 18+",x,,Document,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress",,,publish,guided-journal
+,provider,335,Happy - Talk to a Support Giver,,18+,x,,,,"Community Support, Online",,publish,happy-talk-support-giver
+,connect,489,Hearing Voices Research,Psychosis,18+,,,,,,,publish,hearing-voices-research
+,diy,186,Helpful vs. Harmful Ways to Manage Emotions,"Bipolar, Borderline, Addiction, Eating Disorder","Under 11, 11-17, 18+",x,Youth,Other,"Anger, Changing Thoughts, Fear, Sadness",,,publish,helpful-vs-harmful-ways-manage-emotions
+,provider,195,Helpline: Mental Health GPS (Guiding People to Services),Self-Harm,"11-17, 18+",x,,,,Community Support,,publish,helpline-mental-health-gps-guiding-people-services
+,diy,187,How Am I Doing Checklist,,"Under 11, 11-17, 18+",x,,Other,"Changing Thoughts, Confidence",,,draft,how-am-i-doing-checklist
+,condition,223,How are depression and bipolar different?,"Bipolar, Depression","Under 11, 11-17, 18+",,,,,,,publish,how-are-depression-and-bipolar-different
+,condition,496,How can I access a loved one's health care info?,,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-can-i-access-loved-ones-health-care-info
+,condition,460,How can I achieve better work-life balance?,,"Under 11, 11-17, 18+",,Workplace,,,,,publish,how-can-i-achieve-better-work-life-balance
+,condition,576,How can I be ok when the world is terrible?,"Anxiety, Depression, Loneliness, PTSD, Trauma","Under 11, 11-17, 18+",x,Youth,,,,,publish,how-can-i-be-ok-when-world-terrible
+,condition,283,How can I explain my eating disorder to other people?,Eating Disorder,"Under 11, 11-17, 18+",,,,,,,publish,how-can-i-explain-my-eating-disorder-other-people
+,treatment,310,How can I find accurate mental health information online?,,"Under 11, 11-17, 18+",x,,,,,Online,publish,how-can-i-find-accurate-mental-health-information-online
+,condition,484,How can I find support as a caregiver?,,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-can-i-find-support-caregiver
+,treatment,448,How can I get help without my family knowing?,"Relationships, Trauma","Under 11, 11-17, 18+",x,Youth,,,,"Social Support, Online",publish,how-can-i-get-help-without-my-family-knowing
+,treatment,459,How can I get mental health help in a small town?,,"Under 11, 11-17, 18+",x,,,,,"Social Support, Medical, Online, Therapy",publish,how-can-i-get-mental-health-help-small-town
+,condition,488,How can I help a loved one with a mental illness?,,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-can-i-help-loved-one-mental-illness
+,condition,266,How can I help a loved one with anxiety?,"Anxiety, PTSD","Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-can-i-help-loved-one-anxiety
+,condition,229,How can I help a loved one with bipolar?,Bipolar,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-can-i-help-loved-one-bipolar
+,condition,296,How can I help a loved one with PTSD?,PTSD,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-can-i-help-loved-one-ptsd
+,condition,420,How can I improve my mental health on my own?,,"Under 11, 11-17, 18+",x,,,,,,publish,how-can-i-improve-my-mental-health-my-own
+,treatment,456,How can I manage my emotions?,,"Under 11, 11-17, 18+",x,,,,,Lifestyle Changes,publish,how-can-i-manage-my-emotions
+,condition,473,How can I manage my mental health while working from home?,,"Under 11, 11-17, 18+",,Workplace,,,,,publish,how-can-i-manage-my-mental-health-while-working-home
+,condition,464,How can I manage stress at work?,,"Under 11, 11-17, 18+",,Workplace,,,,,publish,how-can-i-manage-stress-work
+,treatment,440,How can I recover from bipolar disorder on my own?,Bipolar,"Under 11, 11-17, 18+",,,,,,"Social Support, Lifestyle Changes, Online",publish,how-can-i-recover-bipolar-disorder-my-own
+,condition,626,How can I set boundaries with my family?,"Relationships, Trauma","Under 11, 11-17, 18+",,Youth,,,,,publish,how-can-i-set-boundaries-my-family
+,condition,274,How can I stop drinking?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,how-can-i-stop-drinking
+,condition,275,How can I stop using drugs?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,how-can-i-stop-using-drugs
+,condition,503,How can I take care of someone if I also have a mental illness?,,"Under 11, 11-17, 18+",x,Caregiver,,,,,publish,how-can-i-take-care-someone-if-i-also-have-mental-illness
+,treatment,458,How can I take charge of my own mental health?,,"Under 11, 11-17, 18+",x,,,,,"Alternative Medicine, Community Support, Lifestyle Changes, Medical, Medical, Online, Therapy",publish,how-can-i-take-charge-my-own-mental-health
+,condition,630,How can I tell someone Iâ€™m harming myself?,Self-Harm,"Under 11, 11-17, 18+",,,,,,,publish,how-can-i-tell-someone-im-harming-myself
+,condition,634,How can I tell someone Iâ€™m suicidal?,Suicide,"Under 11, 11-17, 18+",,,,,,,publish,how-can-i-tell-someone-im-suicidal
+,condition,487,How can I work with my loved one's mental health care providers?,,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-can-i-work-my-loved-ones-mental-health-care-providers
+,condition,593,How common is anxiety?,Anxiety,"Under 11, 11-17, 18+",,,,,,,publish,how-common-anxiety
+,condition,509,How common is bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,how-common-bipolar
+,condition,518,How common is mental illness?,,"Under 11, 11-17, 18+",x,,,,,,publish,how-common-mental-illness
+,condition,217,How do I ask my friends and family for help?,,"Under 11, 11-17, 18+",x,,,,,,publish,how-do-i-ask-my-friends-and-family-help
+,condition,374,How do I convince people my kid isnâ€™t dangerous?,,"Under 11, 11-17, 18+",,Parent,,,,,publish,how-do-i-convince-people-my-kid-isnt-dangerous
+,treatment,246,How do I find a therapist?,,"Under 11, 11-17, 18+",x,,,,,Therapy,publish,how-do-i-find-therapist
+,treatment,242,How do I find LGBTQ friendly therapy?,,"Under 11, 11-17, 18+",x,LGBTQ+,,,,Therapy,publish,how-do-i-find-lgbtq-friendly-therapy
+,treatment,243,How do I find religious focused therapy?,,"Under 11, 11-17, 18+",x,,,,,Therapy,publish,how-do-i-find-religious-focused-therapy
+,treatment,614,How do I find the right medication for my mental health?,,"Under 11, 11-17, 18+",x,,,,,Medical,publish,how-do-i-find-right-medication-my-mental-health
+,treatment,198,How do I get a service animal?,"OCD, PTSD, Psychosis, Depression, Anxiety, Bipolar, Self-Harm","Under 11, 11-17, 18+",x,,,,,"Alternative Medicine, Lifestyle Changes",publish,how-do-i-get-service-animal
+,treatment,455,How do I get an emotional support animal?,,"Under 11, 11-17, 18+",x,,,,,"Alternative Medicine, Lifestyle Changes",publish,how-do-i-get-emotional-support-animal
+,condition,405,How do I get special ed services for my child?,,"Under 11, 11-17, 18+",,Parent,,,,,publish,how-do-i-get-special-ed-services-my-child
+,condition,461,How do I handle a workplace bully?,,"Under 11, 11-17, 18+",,Workplace,,,,,publish,how-do-i-handle-workplace-bully
+,condition,133,How do I know if I am manic or depressed?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,how-do-i-know-if-i-am-manic-or-depressed
+,condition,383,How do I know if I have a mental Illness?,,"Under 11, 11-17, 18+",x,,,,,,publish,how-do-i-know-if-i-have-mental-illness
+,condition,491,How do I know if I'm enabling someone?,Relationships,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-do-i-know-if-im-enabling-someone
+,condition,463,How do I stay clean and sober while I'm stuck at home?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,how-do-i-stay-clean-and-sober-while-im-stuck-home
+,condition,366,How do I stop cutting?,Self-Harm,"Under 11, 11-17, 18+",,,,,,,publish,how-do-i-stop-cutting
+,condition,289,How do I tell someone I have a problem?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,how-do-i-tell-someone-i-have-problem
+,condition,306,How do you treat anxiety?,"Anxiety, PTSD","Under 11, 11-17, 18+",,,,,,,publish,how-do-you-treat-anxiety
+,condition,206,How do you treat bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,how-do-you-treat-bipolar
+,condition,141,How do you treat depression?,"Bipolar, Depression","Under 11, 11-17, 18+",,,,,,,publish,how-do-you-treat-depression
+,condition,423,How do you treat mental illness?,,"Under 11, 11-17, 18+",x,,,,,,publish,how-do-you-treat-mental-illness
+,condition,294,How do you treat PTSD?,"Anxiety, PTSD","Under 11, 11-17, 18+",,,,,,,publish,how-do-you-treat-ptsd
+,treatment,527,How do you treat tardive dyskinesia?,Tardive Dyskinesia,"Under 11, 11-17, 18+",,,,,,"Alternative Medicine, Medical",publish,how-do-you-treat-tardive-dyskinesia
+,treatment,312,How does online therapy work?,,"Under 11, 11-17, 18+",x,,,,,"Online, Therapy",publish,how-does-online-therapy-work
+,treatment,413,How does therapy work? What to expect,,"Under 11, 11-17, 18+",x,,,,,Therapy,publish,how-does-therapy-work-what-expect
+,condition,128,How fast do anxiety meds work?,"Anxiety, Bipolar, Borderline, Depression, OCD, Postpartum Depression, PTSD, Sleep","Under 11, 11-17, 18+",,,,,,,publish,how-fast-do-anxiety-meds-work
+,condition,506,How fast do bipolar meds work?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,how-fast-do-bipolar-meds-work
+,condition,143,How fast do depression meds work?,"Depression, Postpartum Depression, Anxiety, Bipolar, OCD, Sleep","Under 11, 11-17, 18+",,,,,,,publish,how-fast-do-depression-meds-work
+,treatment,615,How fast do mental health meds work?,,"Under 11, 11-17, 18+",x,,,,,Medical,publish,how-fast-do-mental-health-meds-work
+,treatment,297,How health insurance works,,"Under 11, 11-17, 18+",x,,,,,"Medical, Therapy, Medical",publish,how-health-insurance-works
+,diy,367,How to Calm Your Mind,"Anxiety, Bipolar, Psychosis, Addiction, PTSD, Sleep, Trauma","Under 11, 11-17, 18+",,,Document,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress",,,publish,how-calm-your-mind
+,treatment,591,How to find an anti-racist therapist,,"Under 11, 11-17, 18+",x,BIPOC,,,,Therapy,publish,how-find-anti-racist-therapist
+,condition,536,How to get out of a funk,"Bipolar, Depression","Under 11, 11-17, 18+",,,,,,,publish,how-get-out-funk
+,condition,486,How to help someone get motivated,,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-help-someone-get-motivated
+,condition,500,How to help someone make decisions about their mental health,,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,how-help-someone-make-decisions-about-their-mental-health
+,diy,239,How to Identify Feelings - So You Can Deal with Them,"ADHD, PTSD, Addiction, Eating Disorder, Depression, Anxiety, Trauma","Under 11, 11-17, 18+",x,,Other,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Stress",,,publish,how-identify-feelings-so-you-can-deal-them
+,treatment,480,How to keep a mental health journal,,"Under 11, 11-17, 18+",x,,,,,Lifestyle Changes,publish,how-keep-mental-health-journal
+,diy,237,How to Talk to Your Parents about Mental Health,,"Under 11, 11-17, 18+",x,Youth,Other,"Confidence, Fear, Stress",,,publish,how-talk-your-parents-about-mental-health
+,treatment,298,How to use your health insurance,,"Under 11, 11-17, 18+",x,,,,,"Medical, Therapy, Medical",publish,how-use-your-health-insurance
+,condition,613,I canâ€™t get over things that happened in the past,"Anxiety, Depression, PTSD, Addiction, Trauma","Under 11, 11-17, 18+",,,,,,,publish,i-cant-get-over-things-happened-past
+,condition,406,I canâ€™t get special education for my child,,"Under 11, 11-17, 18+",,Parent,,,,,publish,i-cant-get-special-education-my-child
+,treatment,454,I can't afford mental health meds!,,"Under 11, 11-17, 18+",x,,,,,Medical,publish,i-cant-afford-mental-health-meds
+,treatment,584,I can't afford therapy (Shape Magazine version),,"Under 11, 11-17, 18+",x,,,,,Therapy,draft,i-cant-afford-therapy-shape-magazine-version
+,treatment,507,I can't afford therapy!,,"Under 11, 11-17, 18+",x,,,,,Therapy,publish,i-cant-afford-therapy
+,condition,515,I can't deal with pressure and expectations!,"ADHD, Anxiety, Borderline, Depression, Eating Disorder, PTSD, Addiction","Under 11, 11-17, 18+",,"Youth, Workplace",,,,,publish,i-cant-deal-pressure-and-expectations
+,treatment,244,I can't deal with the side effects of my medications,,"Under 11, 11-17, 18+",x,,,,,"Medical, Treatment Resistance",publish,i-cant-deal-side-effects-my-medications
+,condition,514,I can't get motivated!,"ADHD, Depression","Under 11, 11-17, 18+",,Youth,,,,,publish,i-cant-get-motivated
+,condition,212,I can't get out of bed,"Anxiety, Bipolar, Depression, Sleep, PTSD","Under 11, 11-17, 18+",,Youth,,,,,publish,i-cant-get-out-bed
+,treatment,446,I can't sleep!,"Anxiety, Bipolar, Depression, Sleep, PTSD, Trauma","Under 11, 11-17, 18+",,Youth,,,,"Lifestyle Changes, Medication, Alternative Medicine, Medical",publish,i-cant-sleep
+,condition,287,I can't stop having sex!,"Bipolar, Addiction","Under 11, 11-17, 18+",,,,,,,publish,i-cant-stop-having-sex
+,condition,541,I can't stop moving my face or body,"Bipolar, Psychosis, Tardive Dyskinesia","Under 11, 11-17, 18+",,,,,,,publish,i-cant-stop-moving-my-face-or-body
+,condition,145,I can't stop sleeping,"Bipolar, Depression, Psychosis, Addiction, Sleep","Under 11, 11-17, 18+",,Youth,,,,,publish,i-cant-stop-sleeping
+,condition,402,I can't stop snapping at people!,"ADHD, Anxiety, Bipolar, Depression, Psychosis, PTSD, Addiction","Under 11, 11-17, 18+",,"Youth, Workplace",,,,,publish,i-cant-stop-snapping-people
+,condition,432,I can't stop stress eating!,"Anxiety, Bipolar, Depression, Eating Disorder","Under 11, 11-17, 18+",,,,,,,publish,i-cant-stop-stress-eating
+,condition,267,I can't stop thinking about bad things that could happen,"Anxiety, Bipolar, Depression, Psychosis, PTSD, Addiction, Trauma","Under 11, 11-17, 18+",,Youth,,,,,publish,i-cant-stop-thinking-about-bad-things-could-happen
+,condition,430,I destroy everything!,"ADHD, Bipolar, Depression, Loneliness","Under 11, 11-17, 18+",,Youth,,,,,publish,i-destroy-everything
+,condition,146,I donâ€™t want to leave my room,"Anxiety, Bipolar, Depression, Psychosis, PTSD, Trauma","Under 11, 11-17, 18+",,,,,,,publish,i-dont-want-leave-my-room
+,condition,218,I don't feel like I belong anywhere,"ADHD, Anxiety, Bipolar, Depression, Psychosis, PTSD, Addiction, Trauma, Loneliness","Under 11, 11-17, 18+",,Youth,,,,,publish,i-dont-feel-i-belong-anywhere
+,treatment,517,I don't like my therapist,,"Under 11, 11-17, 18+",x,,,,,"Therapy, Treatment Resistance",publish,i-dont-my-therapist
+,treatment,415,I don't want to go therapy!,,"Under 11, 11-17, 18+",x,,,,,Therapy,publish,i-dont-want-go-therapy
+,condition,632,"I don't want to live, but I don't want to die.","Anxiety, Depression, Bipolar, Eating Disorder, Self-Harm, Suicide","Under 11, 11-17, 18+",,Youth,,,,,publish,i-dont-want-live-i-dont-want-die
+,treatment,453,I don't want to take medication!,,"Under 11, 11-17, 18+",x,,,,,"Alternative Medicine, Medical",publish,i-dont-want-take-medication
+,condition,561,"I feel ""stuck"" at work",,"Under 11, 11-17, 18+",,Workplace,,,,,publish,i-feel-stuck-work
+,condition,471,I feel anxious about Coronavirus,Anxiety,"Under 11, 11-17, 18+",,,,,,,publish,i-feel-anxious-about-coronavirus
+,condition,633,I feel better; should I go off my meds?,"Bipolar, Psychosis, Self-Harm, Suicide","Under 11, 11-17, 18+",x,,,,,,publish,i-feel-better-should-i-go-my-meds
+,condition,208,I feel guilty about being depressed,"Anxiety, Depression, Postpartum Depression","Under 11, 11-17, 18+",,,,,,,publish,i-feel-guilty-about-being-depressed
+,condition,574,I feel like I can't breathe!,Anxiety,"Under 11, 11-17, 18+",,,,,,,publish,i-feel-i-cant-breathe
+,condition,418,I feel out of control!,"ADHD, Bipolar, Eating Disorder, Psychosis, Addiction","Under 11, 11-17, 18+",,Youth,,,,,publish,i-feel-out-control
+,condition,588,I feel unappreciated at work,,"Under 11, 11-17, 18+",,Workplace,,,,,publish,i-feel-unappreciated-work
+,condition,270,I hate my body,"Anxiety, Depression, Eating Disorder, Self-Harm","Under 11, 11-17, 18+",,Youth,,,,,publish,i-hate-my-body
+,condition,417,I hate myself,"ADHD, Anxiety, Bipolar, Depression, Eating Disorder, Psychosis, Addiction, Borderline","Under 11, 11-17, 18+",,Youth,,,,,publish,i-hate-myself
+,condition,219,I have nothing to be depressed about,"Anxiety, Bipolar, Depression, Postpartum Depression, PTSD","Under 11, 11-17, 18+",,,,,,,publish,i-have-nothing-be-depressed-about
+,condition,629,I have trauma from racism,"Anxiety, PTSD, Trauma","Under 11, 11-17, 18+",,BIPOC,,,,,publish,i-have-trauma-racism
+,condition,365,I hear voices,"Bipolar, Psychosis","Under 11, 11-17, 18+",,,,,,,publish,i-hear-voices
+,condition,468,I miss my friends.,"Anxiety, Borderline, Depression, Loneliness, Relationships","Under 11, 11-17, 18+",,Youth,,,,,publish,i-miss-my-friends
+,condition,422,I miss my mania.,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,i-miss-my-mania
+,condition,495,I need a break from caregiving!,,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,i-need-break-caregiving
+,condition,363,I see ghosts or shadows,"Bipolar, Psychosis","Under 11, 11-17, 18+",,,,,,,publish,i-see-ghosts-or-shadows
+,condition,508,I see or hear things that aren't there,"Bipolar, Psychosis","Under 11, 11-17, 18+",,,,,,,publish,i-see-or-hear-things-arent-there
+,condition,421,I think about death all the time,"Anxiety, Bipolar, Depression, Psychosis, PTSD, Trauma, Self-Harm, Suicide","Under 11, 11-17, 18+",,,,,,,publish,i-think-about-death-all-time
+,condition,510,I think I have schizophrenia,Psychosis,"Under 11, 11-17, 18+",,,,,,,draft,i-think-i-have-schizophrenia
+,treatment,452,I think my bipolar meds are making me feel worse,Bipolar,"Under 11, 11-17, 18+",,,,,,"Medical, Treatment Resistance",publish,i-think-my-bipolar-meds-are-making-me-feel-worse
+,condition,511,I think my family member is having a psychotic break,"Bipolar, Psychosis","Under 11, 11-17, 18+",,Caregiver,,,,,draft,i-think-my-family-member-having-psychotic-break
+,treatment,245,I think my medication is making me feel worse,,"Under 11, 11-17, 18+",x,,,,,"Medical, Treatment Resistance",publish,i-think-my-medication-making-me-feel-worse
+,condition,502,I think someone I care about has a mental illness,,"Under 11, 11-17, 18+",x,Caregiver,,,,,publish,i-think-someone-i-care-about-has-mental-illness
+,condition,220,I want to die,"Anxiety, Bipolar, Depression, Eating Disorder, Addiction, Suicide","Under 11, 11-17, 18+",,,,,,,publish,i-want-die
+,treatment,426,Iâ€™m afraid Iâ€™ll go to the hospital again,"Bipolar, Addiction, Psychosis, Self-Harm, Suicide","Under 11, 11-17, 18+",x,Crisis,,,,Medical,publish,im-afraid-ill-go-hospital-again
+,condition,513,Iâ€™m afraid to talk to anyone about my mental health,,"Under 11, 11-17, 18+",x,,,,,,publish,im-afraid-talk-anyone-about-my-mental-health
+,condition,150,Iâ€™m afraid to tell anyone I feel depressed,"Bipolar, Depression","Under 11, 11-17, 18+",,,,,,,publish,im-afraid-tell-anyone-i-feel-depressed
+,condition,610,Iâ€™m finding myself without support during coronavirus,Loneliness,"Under 11, 11-17, 18+",x,,,,,,publish,im-finding-myself-without-support-during-coronavirus
+,condition,152,Iâ€™m really angry at the world,"ADHD, Anxiety, Bipolar, Depression, Eating Disorder, Psychosis, PTSD, Addiction","Under 11, 11-17, 18+",,Youth,,,,,publish,im-really-angry-world
+,condition,276,"If I drink a lot, does that make me an alcoholic?",Addiction,"Under 11, 11-17, 18+",,,,,,,publish,if-i-drink-lot-does-make-me-alcoholic
+,condition,315,"If my parents are alcoholics, am I going to be an alcoholic?",Addiction,"Under 11, 11-17, 18+",,Youth,,,,,publish,if-my-parents-are-alcoholics-am-i-going-be-alcoholic
+,condition,209,I'm afraid I'm going to kill myself,"Anxiety, Bipolar, Depression, Psychosis, Borderline, Self-Harm, Suicide","Under 11, 11-17, 18+",,,,,,,publish,im-afraid-im-going-kill-myself
+,condition,470,I'm afraid I'm going to lose my job,Anxiety,"Under 11, 11-17, 18+",,Workplace,,,,,publish,im-afraid-im-going-lose-my-job
+,condition,607,I'm afraid of losing someone,"Anxiety, Loneliness, PTSD, Trauma, Relationships","Under 11, 11-17, 18+",,,,,,,publish,im-afraid-losing-someone
+,condition,587,I'm afraid to ask for time off work,,"Under 11, 11-17, 18+",,Workplace,,,,,publish,im-afraid-ask-time-work
+,condition,472,I'm afraid to get sick,Anxiety,"Under 11, 11-17, 18+",,,,,,,publish,im-afraid-get-sick
+,condition,595,I'm angry about the injustices I see around me,,"Under 11, 11-17, 18+",x,,,,,,publish,im-angry-about-injustices-i-see-around-me
+,condition,221,I'm ashamed of the way I am,"Eating Disorder, Addiction, Self-Harm","Under 11, 11-17, 18+",x,,,,,,publish,im-ashamed-way-i-am
+,condition,467,I'm feeling lonely.,"Borderline, Depression, Loneliness, Relationships","Under 11, 11-17, 18+",,Youth,,,,,publish,im-feeling-lonely
+,condition,498,I'm frustrated with my significant other's mental illness,,"Under 11, 11-17, 18+",,Caregiver,,,,,draft,im-frustrated-my-significant-others-mental-illness
+,condition,585,I'm nervous about a new job,,"Under 11, 11-17, 18+",,Workplace,,,,,publish,im-nervous-about-new-job
+,provider,323,In Crisis - Call Someone,"Self-Harm, Suicide","Under 11, 11-17, 18+",x,Crisis,,,Online,,publish,crisis-call-someone
+,provider,321,In Crisis - Text Someone,"Self-Harm, Suicide","Under 11, 11-17, 18+",x,Crisis,,,Online,,publish,crisis-text-someone
+,diy,476,In the Open Podcast,,"11-17, 18+",x,,Other,"Anger, Changing Thoughts, Confidence, Fear, Legal, Life & Trauma, Sadness, Sleep, Stress, The Brain",,,publish,open-podcast
+,treatment,254,Inositol,"Anxiety, Depression","Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,inositol
+,provider,556,Insight Counseling Centers,,"11-17, 18+",x,,,,Therapy,,publish,insight-counseling-centers
+,condition,621,Is all trauma the same?,"PTSD, Trauma","Under 11, 11-17, 18+",,,,,,,publish,all-trauma-same
+,condition,205,Is bipolar curable?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,bipolar-curable
+,condition,429,Is bipolar genetic?,Bipolar,"Under 11, 11-17, 18+",,"Parent, Youth",,,,,publish,bipolar-genetic
+,condition,386,Is depression curable?,"Bipolar, Depressio","Under 11, 11-17, 18+",,,,,,,publish,depression-curable
+,condition,277,Is it normal to black out when drinking?,Addiction,"Under 11, 11-17, 18+",,Youth,,,,,publish,it-normal-black-out-when-drinking
+,condition,278,Is it safe to stop drinking by myself?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,it-safe-stop-drinking-myself
+,condition,279,Is it safe to stop using heroin by myself?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,it-safe-stop-using-heroin-myself
+,condition,410,Is mental illness curable?,,"Under 11, 11-17, 18+",x,,,,,,publish,mental-illness-curable
+,condition,428,Is mental illness genetic?,,"Under 11, 11-17, 18+",x,"Parent, Youth",,,,,publish,mental-illness-genetic
+,condition,224,Is mental illness physical or mental?,,"Under 11, 11-17, 18+",x,,,,,,publish,mental-illness-physical-or-mental
+,condition,407,Is my child eligible for assistance if they can't work?,,"Under 11, 11-17, 18+",,Parent,,,,,publish,my-child-eligible-assistance-if-they-cant-work
+,condition,623,Is my family dysfunctional?,"Relationships, Trauma","Under 11, 11-17, 18+",,"Caregiver, Parent, Youth",,,,,publish,my-family-dysfunctional
+,treatment,590,Is my therapist being racist?,,"Under 11, 11-17, 18+",x,BIPOC,,,,Therapy,publish,my-therapist-being-racist
+,condition,168,Is this condition forever? Will I always feel this way?,,"Under 11, 11-17, 18+",x,,,,,,publish,condition-forever-will-i-always-feel-way
+,diy,465,Just Checking In on friends,"Relationships, Loneliness","Under 11, 11-17, 18+",x,"Caregiver, Youth","Document, Other","Fear, Life & Trauma, Sadness, Stress",,,publish,just-checking-friends
+,treatment,255,Kava,"Anxiety, Depression","Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,kava
+,connect,173,Koko,"Anxiety, Bipolar, Depression, PsychosisSelf-Harm","Under 11, 11-17, 18+",,Youth,,,,,draft,koko
+,diy,376,Letter to My Mental Illness,,"Under 11, 11-17, 18+",x,,"Website, Other","Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness",,,publish,letter-my-mental-illness
+,connect,388,Letters to Mental Illness,,18+,x,,,,,,publish,letters-mental-illness
+,provider,563,Locator tool for new postpartum depression treatment,Postpartum Depression,18+,,,,,Medical,,publish,locator-tool-new-postpartum-depression-treatment
+,diy,530,Looking for Good: 4 steps to find the positives in a bad situation,,"Under 11, 11-17, 18+",x,,Document,"Anger, Changing Thoughts, Fear, Life & Trauma, Sadness, Stress",,,publish,looking-good-4-steps-find-positives-bad-situation
+,diy,396,Lyf - You're Not Alone,,"Under 11, 11-17, 18+",x,,Mobile App,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress, The Brain",,,publish,lyf-youre-not-alone
+,diy,188,Medication Wallet Card,"Anxiety, Bipolar, Depression, Psychosis, PTSD, Addiction, Self-Harm",18+,,Parent,"Website, Other","Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, The Brain",,,draft,medication-wallet-card
+,provider,359,Mental Health America of Kentucky,,"Under 11, 11-17, 18+",x,,,,"Community Support, Online",,publish,mental-health-america-kentucky
+,provider,451,Mental Health America of Lancaster (PA) County,,"Under 11, 11-17, 18+",x,,,,"Community Support, Groups, Online, Peer-Run",,draft,mental-health-america-lancaster-pa-county
+,provider,553,Mental Health America of Lancaster County (Pennsylvania),,"Under 11, 11-17, 18+",x,,,,"Community Support, Groups, Online, Peer-Run",,publish,mental-health-america-lancaster-county-pennsylvania
+,provider,391,Mental Health America of North Central Indiana,,"Under 11, 11-17, 18+",x,,,,"Community Support, Groups, Online, Peer-Run",,publish,mental-health-america-north-central-indiana
+,connect,172,Mental Health America on Facebook,,"Under 11, 11-17, 18+",x,,,,,,publish,mental-health-america-facebook
+,connect,171,Mental Health America on Inspire,,"Under 11, 11-17, 18+",x,,,,,,publish,mental-health-america-inspire
+,provider,554,"Mental Health Association in Forsyth County -- Information, Referrals, Access to Services",,18+,x,,,,"Community Support, Groups",,publish,mental-health-association-forsyth-county-information-referrals-access-services
+,provider,478,Mental Health Association of Atlantic County,,"11-17, 18+",x,,,,"Community Support, Groups, Online, Peer-Run",,publish,mental-health-association-atlantic-county
+,diy,236,Mental Health Crisis Plan,"Bipolar, Addiction, Psychosis, Self-Harm, Suicide","11-17, 18+",x,Crisis,Document,"Anger, Fear, Life & Trauma, Sadness, Stress",,,publish,mental-health-crisis-plan
+,provider,342,Mental Health Minnesota Mental Health Helpline,,"11-17, 18+",x,,,,"Community Support, Online, Peer-Run",,publish,mental-health-minnesota-mental-health-helpline
+,provider,343,MHA in Orange County Helpline,Self-Harm,"Under 11, 11-17, 18+",x,,,,Community Support,,draft,mha-orange-county-helpline
+,provider,339,MHAFC Mental Health Ombudsman,Self-Harm,"Under 11, 11-17, 18+",x,,,,Community Support,,draft,mhafc-mental-health-ombudsman
+,provider,345,MHA-WI Strong Families Healthy Homes (SFHH),"Anxiety, Bipolar, Depression, PTSD","Under 11, 11-17, 18+",,Workplace,,,Community Support,,draft,mha-wi-strong-families-healthy-homes-sfhh
+,provider,346,Minnesota Crisis Phone Line Search,Suicide,"Under 11, 11-17, 18+",x,Crisis,,,Online,,draft,minnesota-crisis-phone-line-search
+,provider,347,Minnesota Warmline,,"Under 11, 11-17, 18+",x,Crisis,,,Peer-Run,,draft,minnesota-warmline
+,treatment,256,Monoamine Oxidase Inhibitors (MAOI'S),"Anxiety, Bipolar, Depression","Under 11, 11-17, 18+",,,,,,Medical,publish,monoamine-oxidase-inhibitors-maois
+,diy,375,My Brain is Freaking Out,"Anxiety, Bipolar, PTSD, Addiction","Under 11, 11-17, 18+",x,,"Video, Other","Anger, Changing Thoughts, Confidence, Stress, The Brain",,,publish,my-brain-freaking-out
+,condition,493,My child's behavior is scaring me,"Bipolar, Eating Disorder, Psychosis, Addiction, Self-Harm, Suicide","Under 11, 11-17, 18+",,Parent,,,,,draft,my-childs-behavior-scaring-me
+,condition,611,My coping skills aren't working anymore,,"Under 11, 11-17, 18+",x,,,,,,publish,my-coping-skills-arent-working-anymore
+,diy,189,My Crisis Plan Worksheet,"Bipolar, Addiction, Psychosis, Self-Harm, Suicide","11-17, 18+",x,Crisis,"Website, Other","Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, The Brain",,,draft,my-crisis-plan-worksheet
+,condition,364,My depression won't go away,Depression,"Under 11, 11-17, 18+",,,,,,,publish,my-depression-wont-go-away
+,condition,483,My family member refuses to go to the hospital,"Bipolar, Psychosis, Self-Harm, Suicide","Under 11, 11-17, 18+",,Caregiver,,,,,publish,my-family-member-refuses-go-hospital
+,condition,284,My family members are abusive,"Relationships, Trauma, PTSD, Abuse","Under 11, 11-17, 18+",x,"Youth, LGBTQ+",,,,,publish,my-family-members-are-abusive
+,condition,280,My friends drink as much as I do. Are they alcoholics too?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,my-friends-drink-much-i-do-are-they-alcoholics-too
+,condition,433,My life is over,"Anxiety, Bipolar, Depression, Addiction, PTSD, Trauma, Relationships, Suicide","Under 11, 11-17, 18+",,Youth,,,,,publish,my-life-over
+,treatment,499,My loved one doesnâ€™t want to take meds,,"Under 11, 11-17, 18+",x,Caregiver,,,,Medical,publish,my-loved-one-doesnt-want-take-meds
+,condition,542,My loved one has started moving strangely,Tardive Dyskinesia,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,my-loved-one-has-started-moving-strangely
+,condition,501,My loved one wonâ€™t talk to me about their mental health,,"Under 11, 11-17, 18+",x,Caregiver,,,,,publish,my-loved-one-wont-talk-me-about-their-mental-health
+,condition,492,My loved one's behavior is scaring me,"Bipolar, Eating Disorder, Psychosis, Addiction, Self-Harm, Suicide","Under 11, 11-17, 18+",,Caregiver,,,,,publish,my-loved-ones-behavior-scaring-me
+,condition,485,My mind is racing!,"ADHD, Anxiety, Bipolar, Psychosis, Addiction, Sleep, OCD","Under 11, 11-17, 18+",,,,,,,publish,my-mind-racing
+,diy,190,My Social Starting Point,"Anxiety, Bipolar, Depression, Psychosis, PTSD, Addiction","Under 11, 11-17, 18+",,,Other,"Changing Thoughts, Confidence, Sadness",,,draft,my-social-starting-point
+,provider,390,NAMI,,"11-17, 18+",x,"Caregiver, Parent",,,"Community Support, Groups, Online, Peer-Run",,publish,nami
+,provider,322,Narcotics Anonymous,Addiction,"11-17, 18+",,,,,"Community Support, Groups, Peer-Run",,publish,narcotics-anonymous
+,provider,560,National Youth Advocate Program (NYAP),"Addiction, Trauma, Abuse","Under 11, 11-17, 18+",x,"Parent, Youth",,,"Community Support, Groups, Online, Therapy",,publish,national-youth-advocate-program-nyap
+,connect,449,Need to Talk to Someone? (Warmlines),,"Under 11, 11-17, 18+",x,Crisis,,,,,publish,need-talk-someone-warmlines
+,provider,350,NJ Connect for Recovery,"Anxiety, Bipolar, Depression, Eating Disorder, PTSD, Addiction","Under 11, 11-17, 18+",,Parent,,,"Community Support, Peer-Run",,draft,nj-connect-recovery
+,provider,349,NJ Mental Health Cares,,"11-17, 18+",x,,,,"Community Support, Peer-Run",,publish,nj-mental-health-cares
+,condition,222,No one believes me when I ask for help or say I'm struggling,,"Under 11, 11-17, 18+",x,,,,,,publish,no-one-believes-me-when-i-ask-help-or-say-im-struggling
+,condition,586,Nobody likes me,"Anxiety, Bipolar, Borderline, Depression, Eating Disorder, Loneliness, Relationships, Self-Harm, Suicide","Under 11, 11-17, 18+",,Youth,,,,,publish,nobody-likes-me
+,condition,166,Nothing is helping my depression,Depression,"Under 11, 11-17, 18+",,,,,,,publish,nothing-helping-my-depression
+,condition,401,Now what?,,"Under 11, 11-17, 18+",x,,,,,,publish,now-what
+,connect,539,Osmind Online Community,"Anxiety, Bipolar, Depression, Loneliness, PTSD","11-17, 18+",,,,,,,publish,osmind-online-community
+,provider,318,Overeaters Anonymous,Eating Disorder,"11-17, 18+",,,,,"Community Support, Online, Peer-Run",,publish,overeaters-anonymous
+,connect,356,Participate in research for mental health equality,,18-24,x,,,,,,draft,participate-research-mental-health-equality
+,provider,331,Partnership for Prescription Assistance,,"11-17, 18+",x,,,,"Online, Medical",,publish,partnership-prescription-assistance
+,provider,348,Peer Led Support Groups for Recovery & Wellness,,"11-17, 18+",x,,,,"Groups, Peer-Run",,draft,peer-led-support-groups-recovery-wellness
+,provider,194,Peer Place Support Center,,"11-17, 18+",x,,,,"Community Support, Peer-Run",,publish,peer-place-support-center
+,diy,395,"Photograph Beauty, Feel Hopeful","Anxiety, Depression, PTSD","Under 11, 11-17, 18+",x,,"Mobile App, Other","Changing Thoughts, Life & Trauma, Sadness, Stress, The Brain",,,publish,photograph-beauty-feel-hopeful
+,provider,620,Prairie Health,"Anxiety, Depression, Eating Disorder, Loneliness, Postpartum Depression, Sleep",18+,,,,,"Medical, Online",,publish,prairie-health
+,connect,434,Q Chat Space,"Anxiety, Depression","11-17, 18-24",,"Youth, LGBTQ+",,,,,publish,q-chat-space
+,diy,435,Q Chat Space,"Anxiety, Depression","11-17, 18-24",,"Youth, LGBTQ+","Website, Other","Changing Thoughts, Confidence, Sadness, Stress",,,publish,q-chat-space-0
+,diy,202,Quarterly Goal Accomplishment Plan,,"11-17, 18-24",x,,Other,"Changing Thoughts, Confidence",,,draft,quarterly-goal-accomplishment-plan
+,diy,562,Questions to help QTBIPOC find affirming mental health providers,,"Under 11, 11-17, 18+",x,"LGBTQ+, BIPOC",Document,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Stress",,,publish,questions-help-qtbipoc-find-affirming-mental-health-providers
+,connect,355,Reachout- My Support Network,,"11-17, 18+",x,,,,,,draft,reachout-my-support-network
+,provider,334,Recovery International,,"Under 11, 11-17, 18+",x,,,,"Community Support, Groups, Online, Peer-Run",,publish,recovery-international
+,provider,338,"Residential Care, Inc at MHA South Central Kansas","Anxiety, Bipolar, Depression, Psychosis, PTSD, Addiction",18+,,,,,Community Support,,publish,residential-care-inc-mha-south-central-kansas
+,treatment,257,Rhodiola Rosea,Depression,"Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,rhodiola-rosea
+,provider,324,S-Anon International Family Groups,"Addiction, Relationships",18+,,Caregiver,,,"Community Support, Groups, Peer-Run",,publish,s-anon-international-family-groups
+,treatment,192,Selective Serotonin Reuptake Inhibitors (SSRIs),"Anxiety, Depression, Eating Disorder, Postpartum Depression, PTSD, OCD","Under 11, 11-17, 18+",,,,,,Medical,publish,selective-serotonin-reuptake-inhibitors-ssris
+,diy,231,Self Advocacy Wallet Card,"Anxiety, Bipolar, Depression, Eating Disorder, Psychosis, PTSD, Addiction","11-17, 18+",,"Parent, Workplace",Other,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress, The Brain",,,draft,self-advocacy-wallet-card
+,diy,547,Ser dueÃ±o de sus sentimientos,"ADHD, PTSD, Addiction, Eating Disorder, Depression, Anxiety, Trauma","Under 11, 11-17, 18+",x,Español/Spanish,Document,"Anger, Changing Thoughts, Confidence, Life & Trauma, Sadness, Stress",,,publish,ser-dueno-de-sus-sentimientos
+,treatment,264,Serotonin and Norepinephrine Reuptake Inhibitors (SNRIs),"Anxiety, Depression, Eating Disorder, Postpartum Depression, PTSD, OCD","Under 11, 11-17, 18+",,,,,,Medical,publish,serotonin-and-norepinephrine-reuptake-inhibitors-snris
+,condition,408,Should I kick out my adult child?,,"Under 11, 11-17, 18+",,Parent,,,,,publish,should-i-kick-out-my-adult-child
+,condition,384,Should I tell someone I have a mental Illness,,"Under 11, 11-17, 18+",x,,,,,,publish,should-i-tell-someone-i-have-mental-illness
+,diy,232,Social Assessment Evaluation,"Bipolar, Psychosis","Under 11, 11-17, 18+",,,Other,"Changing Thoughts, Confidence, Fear, Sadness",,,draft,social-assessment-evaluation
+,diy,233,Social Goal Establishment,"Anxiety, Depression, Psychosis, PTSD","Under 11, 11-17, 18+",,,Other,"Changing Thoughts, Confidence, Fear, Sadness",,,draft,social-goal-establishment
+,condition,589,Someone at work is gaslighting me,,"Under 11, 11-17, 18+",,Workplace,,,,,publish,someone-work-gaslighting-me
+,condition,475,Someone I care about is harming themselves,Self-Harm,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,someone-i-care-about-harming-themselves
+,condition,225,Someone I care about killed themselves,"Depression, PTSD, Addiction, Trauma, Loneliness, Suicide","Under 11, 11-17, 18+",,"Caregiver, Youth",,,,,publish,someone-i-care-about-killed-themselves
+,condition,482,Someone I love is in jail,"Trauma, Loneliness, Addiction","Under 11, 11-17, 18+",,Caregiver,,,,,publish,someone-i-love-jail
+,provider,474,Spectrum Healthcare,,"11-17, 18+",x,,,,"Community Support, Groups, Therapy",,publish,spectrum-healthcare
+,treatment,259,St. John's Wort,Depression,"Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,st-johns-wort
+,diy,234,Steps to Wellness Toolkit,,"Under 11, 11-17, 18+",x,,Other,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, The Brain",,,draft,steps-wellness-toolkit
+,treatment,265,Stimulant medications,"ADHD, Sleep","Under 11, 11-17, 18+",,,,,,Medical,publish,stimulant-medications
+,diy,235,Stopping Stupid Thoughts,"Anxiety, Depression, Eating Disorder, Addiction","11-17, 18+",x,Youth,Other,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress",,,publish,stopping-stupid-thoughts
+,connect,174,Strong Witness,"Anxiety, Bipolar, Depression, Eating Disorder, Psychosis, PTSD, Addiction, Self-Harm","Under 11, 11-17, 18+",,,,,,,draft,strong-witness
+,provider,341,Su Familia: The National Hispanic Family Health Helpline,,"Under 11, 11-17, 18+",x,Español/Spanish,,,Community Support,,draft,su-familia-national-hispanic-family-health-helpline
+,provider,605,Suicide Attempt Survivors Support Group (for ages 18+),Suicide,18+,,,,,"Community Support, Groups, Online, Peer-Run",,publish,suicide-attempt-survivors-support-group-ages-18
+,treatment,301,Support Groups,,"Under 11, 11-17, 18+",x,,,,,"Social Support, Therapy",publish,support-groups
+,connect,531,Supportiv - The Peer Support Network,,18+,x,,,,,,publish,supportiv-peer-support-network
+,provider,344,Survivors Helping Survivors,"Anxiety, Bipolar, Depression, PTSD","11-17, 18+",,,,,Community Support,,draft,survivors-helping-survivors
+,provider,327,Survivors of Suicide Support Groups,Suicide,"11-17, 18+",,Caregiver,,,"Community Support, Groups, Online, Peer-Run",,publish,survivors-suicide-support-groups
+,condition,481,Taking care of someone is too stressful!,,"Under 11, 11-17, 18+",x,Caregiver,,,,,publish,taking-care-someone-too-stressful
+,provider,594,Tempest,Addiction,18+,,,,,"Community Support, Groups, Online, Peer-Run",,publish,tempest
+,provider,340,Text 4 Teens,"Anxiety, Bipolar, Depression, Eating Disorder, Psychosis, PTSD, Addiction, Self-Harm","11-17,",,Youth,,,Community Support,,draft,text-4-teens
+,provider,361,The Alliance for Eating Disorders Awareness,Eating Disorder,"11-17, 18+",,,,,Online,,publish,alliance-eating-disorders-awareness
+,connect,175,The Invisible Illnesses - Share Your Story,,"Under 11, 11-17, 18+",x,,,,,,draft,invisible-illnesses-share-your-story
+,diy,238,Tips on Journaling and Feelings Guide,,"Under 11, 11-17, 18+",x,,Other,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress, The Brain",,,draft,tips-journaling-and-feelings-guide
+,treatment,309,Treating Internet Addiction,Addiction,"Under 11, 11-17, 18+",,,,,,"Therapy, Online",publish,treating-internet-addiction
+,treatment,191,Tricyclic Antidepressants (TCAs),"ADHD, Anxiety, Depression","Under 11, 11-17, 18+",,,,,,Medical,publish,tricyclic-antidepressants-tcas
+,condition,268,Types of intrusive thoughts,,"Under 11, 11-17, 18+",x,,,,,,publish,types-intrusive-thoughts
+,treatment,304,Types of Therapy,,"Under 11, 11-17, 18+",x,,,,,Therapy,publish,types-therapy
+,treatment,260,Valerian,"Anxiety, Depression","Under 11, 11-17, 18+",,,,,,Alternative Medicine,publish,valerian
+,provider,326,Veterans Crisis Line,,18+,x,Crisis,,,Online,,publish,veterans-crisis-line
+,provider,450,Warmline Phone Calls,,"11-17, 18+",x,Crisis,,,"Community Support, Online, Peer-Run",,publish,warmline-phone-calls
+,treatment,371,What are Injectable Mental Health Drugs?,"Bipolar, Psychosis","Under 11, 11-17, 18+",,,,,,"Medical, Treatment Resistance",publish,what-are-injectable-mental-health-drugs
+,condition,215,What are panic attacks?,"Anxiety, PTSD","Under 11, 11-17, 18+",,,,,,,publish,what-are-panic-attacks
+,condition,378,What are the best apps for anxiety?,"Anxiety, PTSD","Under 11, 11-17, 18+",,Youth,,,,,publish,what-are-best-apps-anxiety
+,condition,354,What are the best apps for depression?,"Depression, Bipolar, Postpartum Depression","Under 11, 11-17, 18+",,Youth,,,,,publish,what-are-best-apps-depression
+,treatment,540,What are the side-effects of antipsychotic meds?,"Anxiety, Bipolar, Depression, Eating Disorder, Psychosis, Addiction, Tardive Dyskinesia, PTSD","Under 11, 11-17, 18+",,,,,,Medical,publish,what-are-side-effects-antipsychotic-meds
+,condition,291,What are the symptoms of PTSD?,"Anxiety, PTSD, Trauma","Under 11, 11-17, 18+",,,,,,,publish,what-are-symptoms-ptsd
+,treatment,575,What can I do about treatment-resistant depression (TRD)?,"Bipolar, Depression, Postpartum Depression","Under 11, 11-17, 18+",,,,,,"Medical, Treatment Resistance",publish,what-can-i-do-about-treatment-resistant-depression-trd
+,condition,295,What can I do to recover from PTSD on my own?,"PTSD, Trauma","Under 11, 11-17, 18+",,,,,,,publish,what-can-i-do-recover-ptsd-my-own
+,treatment,457,What can keeping a journal do for my mental health?,,"Under 11, 11-17, 18+",x,,,,,Lifestyle Changes,publish,what-can-keeping-journal-do-my-mental-health
+,condition,592,What causes anxiety?,"Anxiety, Trauma, OCD","Under 11, 11-17, 18+",,,,,,,publish,what-causes-anxiety
+,condition,411,What causes bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,what-causes-bipolar
+,condition,394,What causes depression?,"Depression, Postpartum Depression","Under 11, 11-17, 18+",,,,,,,publish,what-causes-depression
+,condition,412,What causes mental illness?,,"Under 11, 11-17, 18+",x,,,,,,publish,what-causes-mental-illness
+,diy,370,What does mental illness feel like?,,"Under 11, 11-17, 18+",x,,"Website, Other","Anger, Confidence, Fear, Life & Trauma, Sadness, The Brain",,,publish,what-does-mental-illness-feel
+,treatment,628,What happens if I call the Suicide Prevention Lifeline?,Suicide,"Under 11, 11-17, 18+",,Crisis,,,,"Social Support, Online",publish,what-happens-if-i-call-suicide-prevention-lifeline
+,treatment,302,What is a psychiatric advance directive (PAD)?,"Bipolar, Psychosis, Addiction","Under 11, 11-17, 18+",x,Crisis,,,,"Social Support, Medical",publish,what-psychiatric-advance-directive-pad
+,condition,624,What is abuse?,"PTSD, Relationships, Trauma","Under 11, 11-17, 18+",,Youth,,,,,publish,what-abuse
+,condition,281,What is addiction?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,what-addiction
+,condition,210,What is an eating disorder?,Eating Disorder,"Under 11, 11-17, 18+",,Youth,,,,,publish,what-eating-disorder
+,condition,226,What is anxiety?,"Anxiety, Depression, PTSD, Addiction, Trauma","Under 11, 11-17, 18+",,Youth,,,,,publish,what-anxiety
+,condition,137,What is bipolar?,"Bipolar, Psychosis, Depression, Self-Harm","Under 11, 11-17, 18+",,,,,,,publish,what-bipolar
+,condition,293,What is Complex PTSD?,"ADHD, Anxiety, Bipolar, Borderline, Depression, Eating Disorder, PTSD, Addiction, Trauma, Relationships","Under 11, 11-17, 18+",x,Youth,,,,,publish,what-complex-ptsd
+,condition,162,What is depression?,"Bipolar, Depression, Addiction, Anxiety, Trauma, PTSD, Self-Harm","Under 11, 11-17, 18+",,Youth,,,,,publish,what-depression
+,condition,385,What is going to happen to me?,,"Under 11, 11-17, 18+",x,,,,,,publish,what-going-happen-me
+,condition,427,What is hypomania?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,what-hypomania
+,condition,164,What is mania?,"Bipolar, Psychosis","Under 11, 11-17, 18+",,,,,,,publish,what-mania
+,condition,227,What is mental illness? (A sciency article),,"Under 11, 11-17, 18+",x,,,,,,publish,what-mental-illness-sciency-article
+,condition,564,What is postpartum depression (PPD)?,"Depression, Postpartum Depression","Under 11, 11-17, 18+",,,,,,,publish,what-postpartum-depression-ppd
+,condition,290,What is posttraumatic stress disorder (PTSD)?,"Anxiety, PTSD, Trauma","Under 11, 11-17, 18+",,,,,,,publish,what-posttraumatic-stress-disorder-ptsd
+,condition,214,What is psychosis?,"Psychosis, Bipolar","Under 11, 11-17, 18+",,,,,,,publish,what-psychosis
+,condition,528,What is tardive dyskinesia?,Tardive Dyskinesia,"Under 11, 11-17, 18+",,,,,,,publish,what-tardive-dyskinesia
+,condition,596,What is trauma?,"Anxiety, Depression, Psychosis, PTSD, Addiction, Trauma, Relationships, Abuse","Under 11, 11-17, 18+",x,Youth,,,,,publish,what-trauma
+,treatment,414,What meds treat bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,Medical,publish,what-meds-treat-bipolar
+,treatment,573,What meds treat depression?,"Depression, Postpartum Depression","Under 11, 11-17, 18+",,,,,,Medical,publish,what-meds-treat-depression
+,condition,526,What mental health accommodations can I ask for at work?,,"Under 11, 11-17, 18+",,Workplace,,,,,publish,what-mental-health-accommodations-can-i-ask-work
+,condition,477,What mental illness do I have?,,"Under 11, 11-17, 18+",x,,,,,,publish,what-mental-illness-do-i-have
+,treatment,380,What should I look for in a mental health app?,,"Under 11, 11-17, 18+",x,,,,,"Online, Lifestyle Changes",publish,what-should-i-look-mental-health-app
+,treatment,516,What should I look for in a therapist?,,"Under 11, 11-17, 18+",x,,,,,Therapy,publish,what-should-i-look-therapist
+,condition,397,What to do when they don't want help,,"Under 11, 11-17, 18+",x,Caregiver,,,,,publish,what-do-when-they-dont-want-help
+,condition,216,What's the difference between anxiety and being stressed?,Anxiety,"Under 11, 11-17, 18+",,Youth,,,,,publish,whats-difference-between-anxiety-and-being-stressed
+,condition,228,What's the difference between depression and being sad?,Depression,"Under 11, 11-17, 18+",,Youth,,,,,publish,whats-difference-between-depression-and-being-sad
+,condition,213,Where can I find people like me?,,"Under 11, 11-17, 18+",x,,,,,,publish,where-can-i-find-people-me
+,diy,316,Where To Get Help,,"Under 11, 11-17, 18+",x,,"Document, Other","Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress, The Brain",,,publish,where-get-help
+,condition,292,Who can get PTSD?,"Anxiety, PTSD, Trauma","Under 11, 11-17, 18+",,Youth,,,,,publish,who-can-get-ptsd
+,condition,132,Who can I talk to about my anxiety?,"Anxiety, PTSD","Under 11, 11-17, 18+",,,,,,,publish,who-can-i-talk-about-my-anxiety
+,condition,139,Who can I talk to about my bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,who-can-i-talk-about-my-bipolar
+,condition,154,Who can I talk to about my depression?,Depression,"Under 11, 11-17, 18+",,,,,,,publish,who-can-i-talk-about-my-depression
+,condition,436,Who can I talk to about my mental illness?,,"Under 11, 11-17, 18+",x,Youth,,,,,publish,who-can-i-talk-about-my-mental-illness
+,condition,160,Who can I talk to about my psychosis?,Psychosis,"Under 11, 11-17, 18+",,,,,,,publish,who-can-i-talk-about-my-psychosis
+,diy,497,Who makes mental health decisions for me if I canâ€™t?,"Bipolar, Psychosis, Addiction","11-17, 18+",x,Crisis,Other,Legal,,,publish,who-makes-mental-health-decisions-me-if-i-cant
+,condition,314,Why can't I stop drinking after three beers?,Addiction,"Under 11, 11-17, 18+",,,,,,,publish,why-cant-i-stop-drinking-after-three-beers
+,diy,183,Why do I drink or use drugs?,"Anxiety, Bipolar, Borderline, Depression, Trauma, Addiction, Self-Harm","11-17, 18+",,,Other,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness",,,publish,why-do-i-drink-or-use-drugs
+,condition,424,Why do I have a mental illness?,,"Under 11, 11-17, 18+",x,,,,,,publish,why-do-i-have-mental-illness
+,condition,404,Why do I have bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,why-do-i-have-bipolar
+,condition,230,Why is it so hard to recover from an eating disorder?,Eating Disorder,"Under 11, 11-17, 18+",,,,,,,publish,why-it-so-hard-recover-eating-disorder
+,condition,387,Will depression come back?,"Bipolar, Depression","Under 11, 11-17, 18+",,,,,,,publish,will-depression-come-back
+,condition,313,Will I always have anxiety?,Anxiety,"Under 11, 11-17, 18+",,,,,,,publish,will-i-always-have-anxiety
+,condition,207,Will I always have bipolar?,Bipolar,"Under 11, 11-17, 18+",,,,,,,publish,will-i-always-have-bipolar
+,condition,479,Will talking about someone's delusions make them sicker?,Psychosis,"Under 11, 11-17, 18+",,Caregiver,,,,,publish,will-talking-about-someones-delusions-make-them-sicker
+,diy,583,Work on your negative thoughts,"Anxiety, Bipolar, Depression, Psychosis","11-17, 18+",x,,"Website, Mobile App","Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Stress",,,draft,work-your-negative-thoughts
+,diy,543,Wysa,,"11-17, 18+",x,,Mobile App,"Anger, Changing Thoughts, Confidence, Fear, Life & Trauma, Sadness, Sleep, Stress, The Brain",,,publish,wysa
+,diy,368,Youth Mental Health Facts,,"Under 11, 11-17, 18+",,"Parent, Youth",Other,"Confidence, Life & Trauma, The Brain",,,publish,youth-mental-health-facts

@@ -112,22 +112,24 @@ $post_id = get_the_ID();
                                 <?php
                                     // Condition Filters
                                     $query = get_terms(array(
-                                        'taxonomy' => 'condition',
+                                        'taxonomy' => array('condition','post_tag'),
                                         'hide_empty' => true,
                                         'parent' => 0
                                     ));
                                     if($query){
                                         foreach($query as $term){
-                                        ?>
-                                            <a href="<?php echo add_query_arg(
-                                                array( 
-                                                    'search' => get_query_var('search'), 
-                                                    'search_tag' => $term->term_id, 
-                                                    'search_tax' => $term->taxonomy, 
-                                                    'order' => 'ASC',  
-                                                    'orderby' => 'title'
-                                                ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button"><?php echo $term->name; ?></a>
-                                        <?php
+                                            if(!get_field('hide_on_front_end', $term->taxonomy.'_'.$term->term_id)){
+                                            ?>
+                                                <a href="<?php echo add_query_arg(
+                                                    array( 
+                                                        'search' => get_query_var('search'), 
+                                                        'search_tag' => $term->term_id, 
+                                                        'search_tax' => $term->taxonomy, 
+                                                        'order' => 'ASC',  
+                                                        'orderby' => 'title'
+                                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button"><?php echo $term->name; ?></a>
+                                            <?php
+                                            }
                                         }
                                     }
                                 ?>                                

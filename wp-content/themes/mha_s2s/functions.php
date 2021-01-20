@@ -501,10 +501,49 @@ function archive_meta_query( $query ) {
 	// For only archive pages
     if ( !is_admin() && $query->is_main_query() && $query->is_archive() ){
 
-		// Limit to just articles tagged condition
-		$query->query_vars["meta_key"] = 'type';
-		$query->query_vars["meta_value"] = 'condition';
+		// Limit articles displayed by specific types
+		if($query->is_tax('condition') || $query->is_tag()){
 
+			$query->query_vars["meta_key"] = 'type';
+			$query->query_vars["meta_value"] = array('condition','diy','connect','treatment');
+
+			$query->set( 'posts_per_page', '-1' ); 
+
+			/*
+			$meta_query = array(
+				array(
+				   'key' => 'type',
+				   'value' => array('condition','diy','connect','treatment'),
+				   'compare' => 'LIKE',
+				),
+			);
+			$query->set('meta_query',$meta_query);
+			$query->set('orderby', array(
+				'all_conditions' => 'ASC', 
+			));
+			*/
+
+			// All Condition inclusion override
+			/*
+			$og_term = get_queried_object();
+			$taxquery = array(
+				'relation' => 'OR',
+				array(
+					'taxonomy' => $og_term->taxonomy,
+					'field' => 'id',
+					'terms' => $og_term->terM_id
+				),
+				array(
+					'taxonomy' => 'condition',
+					'field' => 'id',
+					'terms' => 119
+				)
+			);		
+			$query->set( 'tax_query', $taxquery );
+			*/
+
+		}
+	
 		// Filter - Keyword
 		if(get_query_var('search')){
 			$query->query_vars["s"] = get_query_var('search');
@@ -522,7 +561,6 @@ function archive_meta_query( $query ) {
 			$query->query_vars["tax_query"] = $taxquery;			
 		}
 		
-
 	}
 }
 add_action( 'pre_get_posts', 'archive_meta_query', 1 );

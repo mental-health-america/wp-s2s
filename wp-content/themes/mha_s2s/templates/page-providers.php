@@ -80,12 +80,14 @@ get_header();
                         $conditions = [];
                         if($query){
                             foreach($query as $c){
-                            ?>
-                                <div class="form-item">
-                                    <input id="condition-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="condition[]" />
-                                    <label for="condition-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
-                                </div>
-                            <?php
+                                if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
+                                ?>
+                                    <div class="form-item">
+                                        <input id="condition-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="condition[]" />
+                                        <label for="condition-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
+                                    </div>
+                                <?php
+                                }
                             }
                             echo $html;
                         }
