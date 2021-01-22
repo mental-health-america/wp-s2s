@@ -159,9 +159,7 @@ wp-content/mysql.sql
 *.avi
 
 # c+k stuff/overrides
-!/wp-content/plugins/mythril_shard
-!/wp-content/plugins/mythril_export
-!/wp-content/plugins/mythril_signup
+!/wp-content/plugins/mha_shard
 !/wp-content/plugins/mha_activity
 !/wp-content/plugins/mha_screens
 !/wp-content/plugins/mha_exports

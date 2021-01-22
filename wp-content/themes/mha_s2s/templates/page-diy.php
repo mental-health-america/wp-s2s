@@ -63,6 +63,14 @@ get_header();
                         endif; 
                     ?>
                 </div>
+                
+                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#espanolCheck" aria-expanded="true" aria-controls="espanolCheck">Languages</button>
+                <div id="espanolCheck" class="collapse show filter-checkboxes">
+                    <div class="form-item" >
+                        <input id="espanol" type="checkbox" value="1" name="espanol" />
+                        <label for="espanol">Español </label><br />
+                    </div>
+                </div>
 
                 <input type="hidden" name="type" value="diy" />
                 <!--<button class="button red round block thin mt-4" style="width: 100%;">Search</button>-->
@@ -75,7 +83,13 @@ get_header();
         <div id="filters-content-container">
         <div id="filters-content">
 
-            <?php echo get_articles( 'diy' ); ?>
+            <?php
+                $options = array(
+                    'type' => 'diy',
+                    'espanol' => '!='
+                );
+                echo get_articles( $options ); 
+            ?>
 
         </div>
         </div>

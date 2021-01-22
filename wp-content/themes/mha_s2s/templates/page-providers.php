@@ -30,10 +30,10 @@ get_header();
                 <a href="/get-help" class="right plain pt-1 red small bold">Clear All</a>
                 <p class="bold text-dark-blue caps nb-3 intro-label">Filters</p>
 
-                <p><input type="text" name="search" class="gray" placeholder="Keyword Search" /></p>
+                <p><input id="keyword-search" type="text" name="search" class="gray input-text" placeholder="Keyword Search" /></p>
                 
                 <label for="zip" class="text-blue-dark">Location Search</label>
-                <p><input type="number" id="zip" name="zip" class="gray" placeholder="Enter your zip code" value="<?php echo get_query_var('geo'); ?>" /></p>
+                <p><input id="zip-search" type="number" id="zip" name="zip" class="gray input-text" placeholder="Enter your zip code" value="<?php echo get_query_var('geo'); ?>" /></p>
                 
                 <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#locationList" aria-expanded="true" aria-controls="locationList">Area Served</button>
                 <div id="locationList" class="collapse show filter-checkboxes">
@@ -69,29 +69,37 @@ get_header();
                 
                 <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Condition Treated</button>
                 <div id="conditionsList" class="collapse show filter-checkboxes">
-                    <?php
-                        // Condition Filters
-                        $query = get_terms(array(
-                            'taxonomy' => 'condition',
-                            'hide_empty' => true,
-                            'parent' => 0
-                        ));
-                        
-                        $conditions = [];
-                        if($query){
-                            foreach($query as $c){
-                                if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
-                                ?>
-                                    <div class="form-item">
-                                        <input id="condition-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="condition[]" />
-                                        <label for="condition-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
-                                    </div>
-                                <?php
+                
+                    <div class="form-item collapse" id="all-conditions-container">
+                        <input id="all_conditions" type="checkbox" value="1" name="all_conditions" />
+                        <label for="all_conditions">Include articles that apply to all conditions</label><br />
+                    </div>
+
+                    <div class="show-all-conditions">
+                        <?php
+                            // Condition Filters
+                            $query = get_terms(array(
+                                'taxonomy' => 'condition',
+                                'hide_empty' => true,
+                                'parent' => 0
+                            ));
+                            
+                            $conditions = [];
+                            if($query){
+                                foreach($query as $c){
+                                    if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
+                                    ?>
+                                        <div class="form-item">
+                                            <input id="condition-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="condition[]" />
+                                            <label for="condition-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
+                                        </div>
+                                    <?php
+                                    }
                                 }
+                                echo $html;
                             }
-                            echo $html;
-                        }
-                    ?>
+                        ?>
+                    </div>
                 </div>
 
                 <input type="hidden" name="type" value="provider" />
@@ -105,7 +113,16 @@ get_header();
         <div id="filters-content-container">
         <div id="filters-content">
 
-            <?php echo get_articles( 'provider', '', '', '', 'DESC', 'featured', get_geo(get_query_var('geo')) ); ?>
+            <?php 
+                $options = array(
+                    'type' => 'provider'
+                );
+                if(get_query_var('geo')){
+                    $options['geo'] = get_geo(get_query_var('geo'));
+                }
+                echo get_articles( $options ); 
+            ?>
+            
 
         </div>
         </div>

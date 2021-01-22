@@ -1,13 +1,13 @@
 <?php
 
 // Give editors the ability to see 'Menus' but hide the other items that appear with "edit_theme_options"
-function mythril_allow_editors_menu_access() {
+function mha_shard__allow_editors_menu_access() {
     if (current_user_can('editor')) {
         $role_object = get_role( 'editor' );
         $role_object->add_cap( 'edit_theme_options' );
     }
 }
-add_action('admin_head', 'mythril_allow_editors_menu_access');
+add_action('admin_head', 'mha_shard__allow_editors_menu_access');
 
 
 // Allow editors to access Gravity Forms
@@ -18,13 +18,13 @@ function wd_gravity_forms_roles() {
 add_action( 'admin_init', 'wd_gravity_forms_roles' );
 
 // Hide Menu Items from Toolbar
-add_action( 'admin_bar_menu', 'mythril_override_menu_toolbar_buttons', 999 );
-function mythril_override_menu_toolbar_buttons( $wp_admin_bar ) {
+add_action( 'admin_bar_menu', 'mha_shard__override_menu_toolbar_buttons', 999 );
+function mha_shard__override_menu_toolbar_buttons( $wp_admin_bar ) {
     $wp_admin_bar->remove_menu( 'customize' );
 }
 
 // Hide Menu Items for Roles
-function mythril_hide_admin_pages() {
+function mha_shard__hide_admin_pages() {
 
     if (current_user_can('editor')) {
         remove_submenu_page( 'themes.php', 'themes.php' ); // hide the theme selection submenu
@@ -49,7 +49,7 @@ function mythril_hide_admin_pages() {
         remove_menu_page('wck-page');
     }
 }
-add_action('admin_menu', 'mythril_hide_admin_pages', 999);
+add_action('admin_menu', 'mha_shard__hide_admin_pages', 999);
 
 
 /* Hide problematic duplicated taxonomy term boxes */

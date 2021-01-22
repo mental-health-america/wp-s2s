@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Mythril Shard
+ * Plugin Name: MHA - Shard
  * Plugin URI: http://mhascreening.org
  * Version: 1.0.0
  * Author: MHA Screening Web Team

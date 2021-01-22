@@ -25,7 +25,7 @@ function get_ipiden(){
 /**
  * Replaces "[...]" (appended to automatically generated excerpts) with ... and a 'Continue reading' link.
  */
-function mythril_excerpt_more( $url ) {
+function mha_shard__excerpt_more( $url ) {
 
     $link = esc_url_raw($url);
     
@@ -35,11 +35,11 @@ function mythril_excerpt_more( $url ) {
 
 	$link = sprintf( '<p class="link-more"><a href="%1$s" class="more-link">%2$s</a></p>',
 		esc_url( get_permalink( get_the_ID() ) ),
-		sprintf( __( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'mythril' ), get_the_title( get_the_ID() ) )
+		sprintf( __( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'mha_shard_' ), get_the_title( get_the_ID() ) )
 	);
 	return ' &hellip; ' . $link;
 }
-add_filter( 'excerpt_more', 'mythril_excerpt_more' );
+add_filter( 'excerpt_more', 'mha_shard__excerpt_more' );
 
 
 /**
@@ -188,7 +188,7 @@ function ck_csv_multi($file) {
 /**
  * Simple javascript detection
  */
-function mythril_javascript_detection() {
+function mha_shard__javascript_detection() {
 	echo "<script>(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>\n";
 }
-add_action( 'wp_head', 'mythril_javascript_detection', 0 );
+add_action( 'wp_head', 'mha_shard__javascript_detection', 0 );

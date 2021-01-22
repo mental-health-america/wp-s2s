@@ -55,12 +55,14 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
 
                     <?php 
 
+                        // Image
                         if(has_post_thumbnail()){
                             echo '<div class="featured-image mb-5">';
                                 the_post_thumbnail();
                             echo '</div>';
                         }
 
+                        // Featured Link
                         if(get_field('featured_link')){
                             
                             if(get_field('featured_link')){
@@ -72,9 +74,14 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                                 echo '<a class="button round" href="'.get_field('featured_link').'">'.$featured_text.'</a>';
                             echo '</div>';
                         }
+
+                        // Introductory Content
+                        the_field('introductory_content');
                     
+                        // Main Content
                         the_content();
                         
+                        // Locations
                         if(!get_field('hide_locations')){
                             $location = get_field('location');                        
                             if( $location && $location[0]['address'] != '') {
@@ -91,6 +98,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                             }
                         }
 
+                        // Pricing Information
                         if(get_field('pricing_information')){
                             echo '<div class="mb-4">';
                                 echo '<h2>Pricing Information</h2>';
@@ -98,6 +106,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                             echo '</div>';
                         }
 
+                        // Accolades
                         $accolades = get_field('accolades');                        
                         if( $accolades ) {
                             echo '<h2>What People Are Saying</h2>';
@@ -112,6 +121,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                             echo '</ul>';
                         }
 
+                        // Privacy
                         if(get_field('privacy_information')){
                             echo '<div class="mb-4">';
                                 echo '<h2>Privacy Information</h2>';
@@ -119,6 +129,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                             echo '</div>';
                         }
 
+                        // Disclaimer
                         if(get_field('disclaimer')){
                             echo '<div class="mb-4">';
                                 echo '<h2>Disclaimer</h2>';

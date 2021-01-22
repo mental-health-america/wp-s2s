@@ -39,6 +39,30 @@ function field_exploder($init_array, $object){
 /**
  * Big Content Tag Update
  */
+
+ 
+$article_args = array(
+    'post_type' => 'article',
+    'posts_per_page' => -1,
+    "post_status" => array('publish'),
+    "meta_query" => array(
+        array(
+            'key' => 'whole_state',
+            'value' => 'Minnesota'
+        )
+    )
+);
+pre($article_args);
+$article_query = new WP_Query( $article_args );
+while($article_query->have_posts()) : $article_query->the_post();
+
+    the_title();
+
+endwhile; 
+
+pre($updates);
+
+ /*
     $obj_diy_type = get_field_object('field_5fd3f1a935255');
     $obj_diy_issue = get_field_object('field_5fea345c4d25c');
     $obj_service_type = get_field_object('field_5fdc0a1448b13');
@@ -48,28 +72,15 @@ function field_exploder($init_array, $object){
     $csv_fix = array_shift($csv);
     //pre($csv);
     $updates = [];
+    */
 
-    foreach($csv as $c){
+    //foreach($csv as $c){
 
-        $article_args = array(
-            'posts_per_page' => 1,
-            'post_type' => 'article',
-            "post_status" => array('publish','draft'),
-            'meta_query' => array(
-                array(
-                    'key' => 'drupal_id',
-                    'value' => $c['ID']
-                )
-            )
-        );
-        $article_query = new WP_Query( $article_args );
-        while($article_query->have_posts()) : $article_query->the_post();
-
-            $post_id = get_the_ID();            
-        
+            /*
             if($c['All Conditions?'] != ''){ 
-                //$updates[$post_id]['conditions'] = wp_set_object_terms( $post_id, 119, 'condition', true ); 
+                $updates[$post_id]['conditions'] = wp_set_object_terms( $post_id, 119, 'condition', true ); 
             }
+            */
 
             // Update Post
             /*
@@ -132,11 +143,11 @@ function field_exploder($init_array, $object){
             }
             */
 
-        endwhile;
 
-    }
+    //}
+    
 
-    pre($updates);
+
 
 
 

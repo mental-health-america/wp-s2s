@@ -20,6 +20,7 @@ jQuery(function ($) {
 		$('#filters-content').addClass('loading');			
 		$('#filters-content button, #filters-content input', $(this)).prop('disabled', true);
 
+
 		$.ajax({
 			type: "POST",
 			url: do_mhaContent.ajaxurl,
@@ -43,7 +44,7 @@ jQuery(function ($) {
 				$('#filters-content button, #filters-content input', $(this)).prop('disabled', false);
 
 			},
-			error: function(xhr, ajaxOptions, thrownError){				
+			error: function(xhr, ajaxOptions, thrownError){		
 				$('#filters-content').removeClass('loading');
 				$('#filters-content button, #filters-content input', $(this)).prop('disabled', false);
 			}
@@ -52,9 +53,17 @@ jQuery(function ($) {
 	}
 
 	// Submit filter on checkbox changes
-	var intentDelay;
-	$('.search-filters input[type="text"], .search-filters input[type="number"]').on('input',function(event){
+	//var intentDelay;
+	$('#zip-search, #keyword-search').on('keyup', function (e) {
 		
+		if (e.key === 'Enter' || e.keyCode === 13) {
+			var orderby = $('#orderSelection').val(),
+				order = $('#orderSelection').attr('data-order');
+			submitFilterForm( order, orderby );	
+			return false;
+		}
+
+		/*
 		var $this = $(this);
 		$this.addClass('searching');
 		
@@ -74,6 +83,7 @@ jQuery(function ($) {
 			}, 2000);
 			
 		}, 1000);
+		*/
 
 	});
 	
@@ -120,5 +130,21 @@ jQuery(function ($) {
 		// Submit
 		submitFilterForm( order, orderby, 1, page );		
 	});
+
+
+	// Show "All Conditions" checkbox
+	if($('.show-all-conditions').length){
+		var countChecked = function() {
+			var checks = $(".show-all-conditions input").filter(":checked").length;
+			
+			if(checks >= 1){
+				$("#all-conditions-container").collapse('show');
+			} else {
+				$("#all-conditions-container").collapse('hide');
+			}        
+		};
+		countChecked();		 
+		$(".show-all-conditions input").on("change", countChecked );
+	}
 
 });

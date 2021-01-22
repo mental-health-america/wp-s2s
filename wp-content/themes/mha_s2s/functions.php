@@ -412,12 +412,6 @@ function searchfilter($query) {
         $query->set('post_type',array('page','article','screen','thought_activity'));
 	}
 	
-	// Type page overrides
-    if ( $query->query_vars['type'] ) {
-        $query->set( 'meta_key', 'type' );
-        $query->set( 'meta_value', $query->query_vars['type'] );
-	}
-
 	if ( !is_admin() && $query->is_main_query() ) {
 		if(get_query_var('filter_order')){
 			$query->set( 'order', get_query_var('filter_order') );
@@ -430,9 +424,8 @@ function searchfilter($query) {
 	return $query;
 }
 
-add_action( 'pre_get_posts', 'wpse331647_alter_query' );
- 
-add_filter('pre_get_posts','searchfilter');
+add_action( 'pre_get_posts', 'wpse331647_alter_query' ); 
+add_filter( 'pre_get_posts', 'searchfilter');
 
 
 /**
@@ -454,9 +447,9 @@ function mha_s2s_realestate_column( $column, $post_id ) {
 		$types = get_field('type', $post_id);
 		foreach($types as $type){
 			$type_name = ucfirst($type);
-			$html = '<a href="'.admin_url( 'edit.php?post_type=article&type=' . urlencode( $type ) ).'">';
+			//$html = '<a href="'.admin_url( 'edit.php?post_type=article&type=' . urlencode( $type ) ).'">';
 			$html .= str_replace('Diy','DIY', $type_name);
-			$html .= '</a>';
+			//$html .= '</a>';
 		}
 		echo $html;
 	}

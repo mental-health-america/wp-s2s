@@ -47,6 +47,41 @@ get_header();
                         endif; 
                     ?>
                 </div>
+                
+                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Conditions</button>
+
+                <div id="conditionsList" class="collapse show filter-checkboxes">
+                    
+                    <div class="form-item collapse" id="all-conditions-container">
+                        <input id="all_conditions" type="checkbox" value="1" name="all_conditions" />
+                        <label for="all_conditions">Include articles that apply to all conditions</label><br />
+                    </div>
+                    
+                    <div class="show-all-conditions">
+                        <?php
+                            // Condition Filters
+                            $query = get_terms(array(
+                                'taxonomy' => 'condition',
+                                'hide_empty' => true,
+                                'parent' => 0
+                            ));
+                            
+                            if($query){
+                                foreach($query as $c){
+                                    if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
+                                    ?>
+                                        <div class="form-item">
+                                            <input id="condition-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="condition[]" />
+                                            <label for="condition-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
+                                        </div>
+                                    <?php
+                                    }
+                                }
+                                echo $html;
+                            }
+                        ?>
+                    </div>
+                </div>
 
                 <input type="hidden" name="type" value="treatment" />
                 <!--<button class="button red round block thin mt-4" style="width: 100%;">Search</button>-->
@@ -59,7 +94,12 @@ get_header();
         <div id="filters-content-container">
         <div id="filters-content">
 
-            <?php echo get_articles( 'treatment' ); ?>
+            <?php
+                $options = array(
+                    'type' => 'treatment'
+                );
+                echo get_articles( $options ); 
+            ?>
 
         </div>
         </div>
