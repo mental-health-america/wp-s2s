@@ -150,16 +150,16 @@
         color: $gray;
         font-size: 1.2em;
         line-height: 1.3em;
-        @include montserrat(700);
+        @include montserrat(600);
     }
-    h3 {
+    h4 {
         margin: 0 0 .75em 0;
         color: $gray;
         font-size: 1.2em;
         line-height: 1.3em;
         @include montserrat(400);
     }
-    h4 {
+    h5 {
         margin: 0 0 .5em 0;
         color: $gray;
         font-size: 1em;

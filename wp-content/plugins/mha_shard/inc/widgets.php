@@ -80,7 +80,11 @@ function recent_flagged_thoughts() {
                         } else {
 
                             // Other thoughts
-                            echo $responses[$flag->row]['response'];   
+                            if(isset($responses[$flag->row]['response'])){
+                                echo $responses[$flag->row]['response'];   
+                            } else {
+                                echo '<em>&mdash; Thought Deleted &mdash;</em>';
+                            }
 
                         }
 
@@ -102,5 +106,3 @@ function recent_flagged_thoughts() {
     }
 
 }
-
-?>

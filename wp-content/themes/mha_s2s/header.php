@@ -27,6 +27,10 @@
 	gtag('config', 'G-RVS5DCS9C1', {
 		'user_id': '<?php echo get_ipiden().'_'.get_current_user_id(); ?>'
 	});
+
+	gtag('event', 'screen_view', {
+		'screen_name' : get_the_title()
+	});
 </script>
 
 <?php wp_head(); ?>

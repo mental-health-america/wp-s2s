@@ -120,4 +120,3 @@ if($flag_query){ ?>
 
 <?php
 }
-?>

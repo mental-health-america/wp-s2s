@@ -674,5 +674,3 @@ function mha_nonaggregate_data_export(){
     echo json_encode($result);
     exit();
 }
-
-?>

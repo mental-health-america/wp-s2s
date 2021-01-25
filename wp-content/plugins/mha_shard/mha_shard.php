@@ -31,5 +31,3 @@ include_once 'inc/geo-search.php';
 
 // Admin Specific Scripts
 include_once 'inc/admin.php';
-
-?>
