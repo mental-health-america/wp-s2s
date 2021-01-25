@@ -405,7 +405,7 @@ function mha_s2s_term_permalink( $url, $term, $taxonomy ){
 /**
  * Search Post Type Filter
  */
-function searchfilter($query) {
+function wpse331647_alter_query($query) {
 	
 	// Search result overrides
     if ($query->is_search && !is_admin() ) {
@@ -425,7 +425,7 @@ function searchfilter($query) {
 }
 
 add_action( 'pre_get_posts', 'wpse331647_alter_query' ); 
-add_filter( 'pre_get_posts', 'searchfilter');
+//add_filter( 'pre_get_posts', 'searchfilter');
 
 
 /**

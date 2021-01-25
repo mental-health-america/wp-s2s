@@ -26,17 +26,23 @@ function custom_class( $classes ) {
  * Shortcode - Popular Articles
  * Display the most popular articles
  */
-function mha_popular_articles( $atts ) { 
+function mha_popular_articles( $options ) { 
 	
 	global $wpdb;
 
 	$html = '';
-	$tag = $atts['tag'];
-	$tax = $atts['tax'];
-	$style = $atts['style'];
+	
+	// Default Args
+    $defaults = array (
+		  'tag' 		=> null, 
+		  'tax' 		=> null, 
+		  'style' 		=> null, 
+	);
+	$atts = wp_parse_args( $options, $defaults );
+
 	$month_range = date('Ym').','.date('Ym', strtotime("-1 months")).','.date('Ym', strtotime("-2 months")); // Last 3 months
 	
-	if($tag){	
+	if($atts['tag']){	
 		// Add a tag to the mix	
 		$articles = $wpdb->get_results('
 			SELECT DISTINCT posts.ID, postview.id, COUNT(postview.count) as total
@@ -46,7 +52,7 @@ function mha_popular_articles( $atts ) {
 			ON posts.ID = postview.id
 
 			INNER JOIN '.$wpdb->prefix.'term_relationships AS meta
-			ON posts.ID = meta.object_id AND meta.term_taxonomy_id = "'.$tag.'"	
+			ON posts.ID = meta.object_id AND meta.term_taxonomy_id = "'.$atts['tag'].'"	
 
 			INNER JOIN '.$wpdb->prefix.'postmeta AS postmeta
 			ON posts.ID = postmeta.post_id
@@ -87,7 +93,7 @@ function mha_popular_articles( $atts ) {
 
 		$inline_list = [];
 
-		if($style == 'inline'){
+		if($atts['style'] == 'inline'){
 			$html .= '<div class="conditions-list">';
 		} else {
 			$html .= '<ol class="plain popular-articles">';
@@ -97,14 +103,14 @@ function mha_popular_articles( $atts ) {
 			
 			$item_link = '<a class="plain gray-dark montserrat semi" href="'.get_the_permalink($a->ID).'">'.get_the_title($a->ID).'</a>';
 
-			if($style == 'inline'){
+			if($atts['style'] == 'inline'){
 				$inline_list[] = $item_link;
 			} else {
 				$html .= '<li>'.$item_link.'</li>';
 			}			
 		}
 
-		if($style == 'inline'){
+		if($atts['style'] == 'inline'){
 			
 			$html .= implode('&nbsp;<span class="noto">|</span>&nbsp; ', $inline_list);
 			$html .= '</div>';
