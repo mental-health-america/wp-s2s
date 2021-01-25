@@ -61,7 +61,6 @@ get_header();
                                     <?php
                                     }
                                 }
-                                echo $html;
                             }
                         ?>
                     </div>

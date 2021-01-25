@@ -536,7 +536,7 @@ function likeChecker($pid, $row){
 	/**
 	 * Follow Up Thoughts
 	 */
-	if($index > 0 || $_POST['data'] ){
+	if($index > 0 || isset($_POST['data'])){
 		
 		// For ajax requested calls
 		if($_POST['data']){
@@ -649,7 +649,7 @@ function likeChecker($pid, $row){
 		
 	}
 
-	if($_POST['data']){
+	if(isset($_POST['data'])){
 		die(); // Prevent Wordpress default ajax from returning 0
 	}
 

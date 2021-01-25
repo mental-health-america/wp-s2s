@@ -23,6 +23,7 @@ if (defined('WPSEO_VERSION')){
 	return preg_replace('/^<!--.*?[Y]oast.*?-->$/mi','',$o); }); });
 	add_action('wp_head',function (){ ob_end_flush(); }, 999);
 }
+add_filter( 'wpseo_debug_markers', '__return_false' );
 
 
 /**

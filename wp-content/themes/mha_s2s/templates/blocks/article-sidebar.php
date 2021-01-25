@@ -265,7 +265,7 @@
                     array(
                         'key' => 'type',
                         'value' => array('condition', 'diy'),
-                        'compare' => 'LIKE'
+                        'compare' => 'IN'
                     )
                 )
             );

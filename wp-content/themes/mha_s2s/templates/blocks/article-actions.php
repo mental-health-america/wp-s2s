@@ -30,7 +30,23 @@
     </p>
 
     <?php
-        // Share
+        // Share        
+        $path_id = get_query_var('pathway');
+        $current = get_the_ID();
+        $path = get_field('path', $path_id);
+
+        // Get Next Article in path
+        $next = false;
+        $next_id = false;
+        if(get_field('path', $path_id)){
+            foreach($path as $p){
+                if($next !== false){
+                    $next_id = $p['article'];
+                    break;
+                }
+            }
+        }
+            
         if(get_query_var('pathway')){
             $share_url = add_query_arg('pathway', get_query_var('pathway'), get_the_permalink($next_id));
         } else {

@@ -75,7 +75,7 @@ get_header();
                 $field = GFFormsModel::get_field( $data->form_id, $k );  
 
                 // Get referring screen ID                
-                if (strpos($field->label, 'Screen ID') !== false) {     
+                if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {     
                     $screen_id = $v;
                 }
 
@@ -83,7 +83,7 @@ get_header();
 			    if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {  
                     
                     // Advanced Conditions Check
-                    if(count(get_sub_field('advanced_condition', $screen_id)) > 0){
+                    if(get_sub_field('advanced_condition', $screen_id) && count(get_sub_field('advanced_condition', $screen_id)) > 0){
                         $advanced_conditions_data[$field->id] = $v; 
                     };
                     $general_score_data[$field->id] = $v; 
@@ -156,7 +156,7 @@ get_header();
             // Advanced Conditions
             while( have_rows('results', $screen_id) ) : the_row();   
                 $advanced_conditions = get_sub_field('advanced_conditions');
-                if(count($advanced_conditions) > 1){
+                if($advanced_conditions && count($advanced_conditions) > 1){
                     foreach($advanced_conditions as $ac){
                         $advanced_min = $ac['score_range_minimum'];
                         $advanced_max = $ac['score_range_max'];
@@ -268,13 +268,17 @@ get_header();
 
                         // Manual Next Steps
                         $next = get_sub_field('featured_next_steps');
-                        foreach($next as $n){
-                            $next_step_manual[] = $n['link']->ID;
+                        if($next){
+                            foreach($next as $n){
+                                $next_step_manual[] = $n['link']->ID;
+                            }
                         }
                         
                         $featured_cta = get_sub_field('featured_call_to_actions');
-                        foreach($featured_cta as $cta){
-                            $result_cta[] = $cta;
+                        if($featured_cta){
+                            foreach($featured_cta as $cta){
+                                $result_cta[] = $cta;
+                            }
                         }
                         ?>
 
@@ -414,7 +418,12 @@ get_header();
 
 
             // Automatic query args
-            $total_recs = 20 - count($exclude_id);
+            if(!empty($exclude_id)){
+                $total_exclude = count($exclude_id);
+            } else {
+                $total_exclude = 0;
+            }
+            $total_recs = 20 - $total_exclude;
             $args = array(
                 "post_type" => 'article',
                 "order"	=> 'ASC',
@@ -457,7 +466,9 @@ get_header();
             }
 
             // Excluded previous manual 
-            $args['post__not_in'] = $exclude_id; 
+            if(!empty($exclude_id)){
+                $args['post__not_in'] = $exclude_id; 
+            }
 
             // Set up taxonomy query filters
             foreach($taxonomy_query as $k => $v){

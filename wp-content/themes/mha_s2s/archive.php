@@ -107,7 +107,16 @@ wp_reset_query();
 						$resources = array('condition');
 						echo '<ol class="plain mb-0">';
 						while ( have_posts() ) : the_post();	
-							get_template_part( 'templates/blocks/archive', 'list' );		
+							$type = get_field('type');                        
+							$article_type = get_field('type');
+							?>
+							<li class="mb-4">
+								<p class="mb-2">	
+									<a class="dark-gray plain" href="<?php echo add_query_arg('ref', $term->term_id, get_the_permalink()); ?>"><?php the_title(); ?></a>
+								</p>
+								<!--<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>-->
+							</li>
+							<?php
 						endwhile;
 						echo '</ol>';
 				

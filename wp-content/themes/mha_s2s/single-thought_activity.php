@@ -60,10 +60,16 @@ get_header();
 				$last_admin_seed = $previous_responses[0]['admin_pre_seeded_thought'];
 				$last_user_seed = $previous_responses[0]['user_pre_seeded_thought'];
 
-				$return_ref_1 = $path_questions[$last_path]['questions'][$last_question + 1]['reference'];
-				$return_ref_2 = $path_questions[$last_path]['questions'][$last_question + 1]['additional_reference'];
-
-
+				if(isset($path_questions[$last_path]['questions'][$last_question + 1]['reference'])){
+					$return_ref_1 = $path_questions[$last_path]['questions'][$last_question + 1]['reference'];
+				} else {
+					$return_ref_1 = '';
+				}
+				if(isset($path_questions[$last_path]['questions'][$last_question + 1]['additional_reference'])){
+					$return_ref_2 = $path_questions[$last_path]['questions'][$last_question + 1]['additional_reference'];
+				} else {
+					$return_ref_2 = '';
+				}
 			}
 		}
 
@@ -135,7 +141,7 @@ get_header();
 				<label><?php the_field('question'); ?></label>
 				<p class="text-entry">
 					<textarea name="thought_0" data-question="0" class="required" required placeholder="Your answer"><?php 
-						if($previous_responses[0]['response'] != ''){
+						if(isset($previous_responses[0]['response']) && $previous_responses[0]['response'] != ''){
 							// Previously submitted thought
 							echo $previous_responses[0]['response'];
 						} else if(is_numeric($last_admin_seed)){
@@ -290,7 +296,7 @@ get_header();
 													<?php the_sub_field('question'); ?>
 												</label>
 												<textarea name="<?php echo $thought_name; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" class="required" placeholder="Your answer" required><?php 
-													if($previous_responses[$row]['response'] && $previous_responses[$row]['path'] == $path){
+													if(isset($previous_responses[$row]['response']) && $previous_responses[$row]['path'] == $path){
 														echo $previous_responses[$row]['response'];
 													}
 												?></textarea>
@@ -301,8 +307,8 @@ get_header();
 													<button class="submit bar submit-thought" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit &raquo;</button>
 													<button class="submit bar continue-thought" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" style="display: none;">Continue &raquo;</button>
 												<?php else: ?>
-													<button class="submit bar submit-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit &raquo;</button>
-													<button class="submit bar continue-thought<?php echo $last_class; ?>" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" style="display: none;">View summary &raquo;</button>
+													<button class="submit bar submit-thought last" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>">Submit &raquo;</button>
+													<button class="submit bar continue-thought last" data-question="<?php echo $row; ?>" data-path="<?php echo $path; ?>" style="display: none;">View summary &raquo;</button>
 												<?php endif; ?>
 												</div>
 

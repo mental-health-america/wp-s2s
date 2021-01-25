@@ -112,7 +112,7 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 					}
 				}                   
 				
-				if(strpos($field->cssClass, 'exclude') === false){     
+				if(isset($field->cssClass) && strpos($field->cssClass, 'exclude') === false){     
 					$total_score = $total_score + $v; // Add to total score	
 				}
 				
@@ -123,7 +123,7 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 					$html .= '</p>';
 
                     // Advanced Conditions Check
-                    if(count(get_sub_field('advanced_condition', $screen_id)) > 0){
+                    if(get_sub_field('advanced_condition', $screen_id) && count(get_sub_field('advanced_condition', $screen_id)) > 0){
                         $advanced_conditions_data[$field->id] = $v; 
                     };
                     $general_score_data[$field->id] = $v; 

@@ -404,16 +404,16 @@ function get_articles( $options ){
 
 	// Default Args
     $defaults = array (
-	  //'type' 			=> null, 
-	  //'search' 		=> null, 
-	  //'conditions' 	=> null, 
-	  //'filters' 		=> null, 
-		'order' 		=> 'DESC', 
-		'orderby' 		=> 'featured', 
-	  //'geo' 			=> null, 
-		'paged' 		=> 1, 
-	  //'espanol' 	    => '!=', 
-	  //'all_conditions' => null
+	  //'type' 				=> null, 
+	  	'search' 			=> null, 
+		'condition_terms'	=> null, 
+	  	'filters' 			=> null, 
+		'order' 			=> 'DESC', 
+		'orderby' 			=> 'featured', 
+	  	'geo' 				=> null, 
+		'paged' 			=> 1, 
+	  	'espanol' 	    	=> '!=', 
+	  	'all_conditions' 	=> null
 	);
 	$options = wp_parse_args( $options, $defaults );
 
@@ -456,7 +456,7 @@ function get_articles( $options ){
 	}
 
 	// Featured Ordering
-	if($orderby == 'featured'){
+	if($article_args['orderby'] == 'featured'){
 		$article_args['orderby'] = array( 
 			'meta_value' => 'DESC',
 			'date'       => 'DESC', 

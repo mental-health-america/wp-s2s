@@ -105,8 +105,7 @@ if (strpos($account_action, 'save_thought_') !== false) {
 			<div class="inner">
 				<div class="caps montserrat">DISPLAY NAME:</div>
 				<?php
-					global $current_user;
-					get_currentuserinfo();
+					$current_user = wp_get_current_user();
 					echo '<h3 class="text-white">'.$current_user->nickname.'</h3>';
 				?>
 
@@ -188,24 +187,24 @@ if (strpos($account_action, 'save_thought_') !== false) {
                                     $field = GFFormsModel::get_field( $data->form_id, $k );
 
                                     // Get referring screen ID                    
-                                    if (strpos($field->label, 'Screen ID') !== false) {     
+                                    if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {     
                                         $screen_id = $v;
                                     }
 
                                     // Get screen token                  
-                                    if (strpos($field->label, 'Token') !== false) {     
+                                    if (isset($field->label) && strpos($field->label, 'Token') !== false) {     
                                         $test_id = $v;
                                     }
 
                                     //Screening Questions
-                                    if (strpos($field->cssClass, 'question') !== false) {   
+                                    if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {   
                                         
                                         if(strpos($field->cssClass, 'exclude') === false){                                 
                                             $total_score = $total_score + $v; // Add to total score                                        
                                         }
                                         
                                         // Advanced Conditions Check
-                                        if(count(get_sub_field('advanced_condition', $screen_id)) > 0){
+                                        if(get_sub_field('advanced_condition', $screen_id) && count(get_sub_field('advanced_condition', $screen_id)) > 0){
                                             $advanced_conditions_data[$field->id] = $v; 
                                         };
                                         $general_score_data[$field->id] = $v; 
@@ -248,7 +247,7 @@ if (strpos($account_action, 'save_thought_') !== false) {
                                 $your_results_display[$test_title][$count_results]['max_score'] = $max_score;
                                 $your_results_display[$test_title][$count_results]['test_link'] = $test_id;     
 
-                                if($total_score >= $min && $total_score <= $max){
+                                if($total_score >= $min_score && $total_score <= $max_score){
                                     if(get_sub_field('required_tags')){
                                         $req = get_sub_field('required_tags');
                                         foreach($req as $t){
@@ -266,7 +265,7 @@ if (strpos($account_action, 'save_thought_') !== false) {
                                     // Advanced Conditions
                                     while( have_rows('results', $screen_id) ) : the_row();   
                                         $advanced_conditions = get_sub_field('advanced_conditions');
-                                        if(count($advanced_conditions) > 1){
+                                        if($advanced_conditions && count($advanced_conditions) > 1){
                                             foreach($advanced_conditions as $ac){
                                                 $advanced_min = $ac['score_range_minimum'];
                                                 $advanced_max = $ac['score_range_max'];
@@ -644,7 +643,7 @@ if (strpos($account_action, 'save_thought_') !== false) {
 
             foreach($likes as $like){
                 $article_type = get_field('type', $like->pid);                    
-                if(count(array_intersect($article_type, $resources)) > 0){
+                if($article_type && count(array_intersect($article_type, $resources)) > 0){
                     $liked_resources[] = $like->pid;
                 } else {
                     $liked_articles[] = $like->pid;

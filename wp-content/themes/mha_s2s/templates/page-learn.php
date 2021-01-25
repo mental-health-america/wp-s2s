@@ -166,7 +166,7 @@ $post_id = get_the_ID();
                         array(
                             'key' => 'type',
                             'value' => array('condition', 'treatment', 'connect', 'diy'),
-                            'compare' => 'LIKE'
+                            'compare' => 'IN'
                         )
                     )
                 );
@@ -190,7 +190,14 @@ $post_id = get_the_ID();
                     $resources = array('condition');
                     echo '<ol class="plain mb-0">';
                     while($loop->have_posts()) : $loop->the_post();		
-                        get_template_part( 'templates/blocks/archive', 'list' );		
+                    ?>
+                        <li class="mb-4">
+                            <p class="mb-2">	
+                                <a class="dark-gray plain" href="<?php echo add_query_arg('ref', $post_id, get_the_permalink()); ?>"><?php the_title(); ?></a>
+                            </p>
+                            <!--<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>-->
+                        </li>
+                    <?php	
                     endwhile;
                     echo '</ol>';
 
