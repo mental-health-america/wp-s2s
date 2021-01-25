@@ -65,8 +65,4 @@ function my_custom_fonts() {
         } 
     </style>';
 
-
 }
-
-?>
-

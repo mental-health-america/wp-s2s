@@ -370,7 +370,7 @@ function mha_nonaggregate_data_export(){
         "order" => 'DESC',
         "orderby" => 'date',
         "post_status" => array('publish', 'draft'),
-        "posts_per_page" => 10,
+        "posts_per_page" => 50,
         'paged' => $paged
     );
     
@@ -408,6 +408,7 @@ function mha_nonaggregate_data_export(){
         $response_data['Last Login'] = '';
         $response_data['Total Time Spent On Site'] = '';
         $response_data['Total Time Spent On This Thought'] = '';
+        $response_data['Abandoned Thought'] = get_field('abandoned', $post_id);
         $response_data['Initial Thought'] = '';
         $response_data['Initial Thought - Admin'] = '';
         $response_data['Initial Thought - User'] = '';
