@@ -259,6 +259,11 @@ function getArticlesAjax(){
 	if($data['condition']){
 		$options['condition_terms'] = $data['condition'];
 	}
+
+	// Tags
+	if($data['tags']){
+		$options['tag_terms'] = $data['tags'];
+	}
 	
 	// All Conditions
 	$allConditions = null;
@@ -407,6 +412,7 @@ function get_articles( $options ){
 	  //'type' 				=> null, 
 	  	'search' 			=> null, 
 		'condition_terms'	=> null, 
+		'tag_terms'			=> null, 
 	  	'filters' 			=> null, 
 		'order' 			=> 'DESC', 
 		'orderby' 			=> 'featured', 
@@ -559,12 +565,8 @@ function get_articles( $options ){
 	/**
 	 * Taxonomy Query
 	 */
-	if($options['condition_terms']){
+	if($options['condition_terms'] || $options['tag_terms']){
 
-		$tax_query_terms = [];
-		foreach($options['condition_terms'] as $ct){
-			$tax_query_terms[] = $ct;
-		}
 
 		$tax_args = array(
 			"post_type"      => 'article',
@@ -572,19 +574,29 @@ function get_articles( $options ){
 				'featured'   => 'DESC',
 				'date'       => 'DESC', 
 			),
-			"meta_key"    	 => 'type',
-			"meta_value"	 => $options['type'],
+			//"meta_key"    	 => 'type',
+			//"meta_value"	 => $options['type'],
 			"post_status"    => 'publish',
-			"posts_per_page" => -1,
-			"tax_query" 	 => array(
-				array(
-					'taxonomy' => 'condition',
-					'field'    => 'term_id',
-					'terms'    => $tax_query_terms,
-					'compare'  => 'LIKE'
-				)
-			)
+			"posts_per_page" => -1
 		);
+
+		$tag_terms = [];
+		foreach($options['tag_terms'] as $ct){
+			$tag_terms[] = $ct;
+		}
+		if(count($tag_terms) > 0){
+			$tax_args['tag__and'] = $tag_terms;
+		}
+		
+		foreach($options['condition_terms'] as $ct){
+			$tax_args['tax_query']['relation'] = 'AND';
+			$tax_args['tax_query'][] = array(
+				'taxonomy' => 'condition',
+				'field'    => 'term_id',
+				'terms'    => $ct
+			);
+		}
+
 		$tax_query = new WP_Query($tax_args);
 		$tax_posts = [];
 		foreach($tax_query->posts as $p){

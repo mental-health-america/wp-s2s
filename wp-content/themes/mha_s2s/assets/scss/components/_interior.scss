@@ -878,6 +878,33 @@ button.icon.like-button {
             }
         }
 
+        .image-container {
+            height: 160px;
+            display: block;
+            overflow: hidden;
+            width: 100%;
+            position: relative;
+            background:$white;
+            .image-container-inner {
+                display: block;
+                position: absolute;
+                z-index: 1;
+                background-position: center center;
+                background-repeat: no-repeat;
+                height: calc(100% - 40px);
+                width: calc(100% - 40px);
+                margin: auto;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background-size: contain;
+                &.rounded {
+                    @include radius(20px);
+                }
+            }
+        }
+
         .title-image {
             width: 100%;
             font-size: 1.1em;

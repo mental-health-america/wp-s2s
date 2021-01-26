@@ -65,6 +65,31 @@ get_header();
                         ?>
                     </div>
                 </div>
+                
+                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList">Tags</button>
+                <div id="tagsList" class="collapse show filter-checkboxes">                
+                    <?php
+                        // Condition Filters
+                        $query = get_terms(array(
+                            'taxonomy' => 'post_tag',
+                            'hide_empty' => true,
+                            'parent' => 0
+                        ));
+                        
+                        if($query){
+                            foreach($query as $c){
+                                if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
+                                ?>
+                                    <div class="form-item">
+                                        <input id="tag-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="tags[]" />
+                                        <label for="tag-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
+                                    </div>
+                                <?php
+                                }
+                            }
+                        }
+                    ?>
+                </div>
 
                 <input type="hidden" name="type" value="connect" />
                 <!--<button class="button red round block thin mt-4" style="width: 100%;">Search</button>-->
