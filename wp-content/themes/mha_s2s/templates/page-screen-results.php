@@ -34,7 +34,6 @@ get_header();
         $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
         //$response = wp_remote_get( 'https://mhascreening.wpengine.com/wp-json/gf/v2/entries/'.$user_screen_id.'?_labels[0]=1&_field_ids[0]=1' , array( 'headers' => $headers ) );
         $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers ) );
-
         
         // Future Content
         $your_answers = '';
@@ -58,7 +57,22 @@ get_header();
             $json = wp_remote_retrieve_body($response);
             $data = json_decode($json);                 
             $data = $data->entries[0];
+            ?>
+                
+            <?php if(!is_user_logged_in()): ?>
+                <div id="screen-save">
+                    <div class="bubble round blue thin mb-3">
+                    <div class="inner bold text-center">
+                        <a class="append-thought-id text-white" href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$data->id ?>">Log in</a>
+                        or
+                        <a class="append-thought-id text-white" href="/sign-up/?action=save_screen_<?php echo $data->id; ?>">register for an account</a>
+                        to save this result to your account.
+                    </div>
+                    </div>
+                </div>
+            <?php endif; ?>
 
+            <?php
             // Text
             $label = '';
             $value_label = '';

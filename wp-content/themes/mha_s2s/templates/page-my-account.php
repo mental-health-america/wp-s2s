@@ -14,17 +14,13 @@ if ( 0 == $current_user->ID ) {
  * Special action overrides
  */
 $account_action = get_query_var('action');
+$ipiden = get_ipiden();	
 
 // Attribute a thought to this user
 if (strpos($account_action, 'save_thought_') !== false) {
     $thought_id = str_replace('save_thought_', '', $account_action);
     $thought_author_id = get_post_field( 'post_author', $thought_id );
     $thought_ipiden = get_field('ipiden', $thought_id);
-    $ipiden = get_ipiden();	
-
-    pre($thought_ipiden);
-    echo $thought_id.'<br />';
-    echo 'User: '.$ipiden.'<br />Post User: '.$thought_ipiden;
 
     if($thought_author_id == 4 && $ipiden == $thought_ipiden) {
         // Only update this thought if its anonymous and matches the user's ipiden
@@ -32,10 +28,34 @@ if (strpos($account_action, 'save_thought_') !== false) {
             'ID' => $thought_id,
             'post_author' => $uid
         );
-        pre($thought_ipiden);
-        pre($thought_author_id);
-        pre($thought_args);
-        pre(wp_update_post( $thought_args ));
+    }
+}
+
+// Attribute a screen to this user
+if (strpos($account_action, 'save_screen_') !== false) {
+    $screen_id = str_replace('save_screen_', '', $account_action);
+    $screen_ipiden = get_ipiden();
+
+    $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
+    $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
+    $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
+    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/'.$screen_id, array( 'headers' => $headers ) );
+    
+    if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
+        // Error!
+    } else {
+        
+        $json = wp_remote_retrieve_body($response);
+        $data = json_decode($json);   
+                
+        // If the IP matches, add this test to this account
+        if($data->{40} == $screen_ipiden){            
+            $entry_id = $data->id;
+            $entry = GFAPI::get_entry( $entry_id );
+            $entry['41'] = $current_user->user_email; // UID field
+            $update = GFAPI::update_entry( $entry );
+        }
+
     }
 }
 ?>
