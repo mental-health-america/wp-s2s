@@ -26,7 +26,7 @@ get_header();
         $user_screen_result = getUserScreenResults( $user_screen_id );            
         $next_step_terms = [];
         $next_step_manual = [];
-        $result_cta = [];    
+        $result_cta = [];
         
         if(get_field('survey', $user_screen_result['screen_id'])){
             
@@ -196,7 +196,7 @@ get_header();
                                             $add_scores = get_sub_field('scores');
                                             $add_score_total = 0;
                                             foreach($add_scores as $score){
-                                                $add_score_total = $general_score_data[$score['question_id']] + $add_score_total;
+                                                $add_score_total = $user_screen_result['general_score_data'][$score['question_id']] + $add_score_total;
                                             }
 
                                             echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.'<br />';
@@ -282,8 +282,8 @@ get_header();
             }
 
             // Demographic based steps
-            if(!empty($user_screen_results['result_terms'])){
-                foreach($user_screen_results['result_terms'] as $step){ 
+            if(!empty($user_screen_result['result_terms'])){
+                foreach($user_screen_result['result_terms'] as $step){ 
                     if($step['taxonomy'] == 'condition' || $step['taxonomy'] == 'age_group' || $step['taxonomy'] == 'post_tag'){
                         $taxonomy_query[$step['taxonomy']][] = $step['id'];    
                     }   
@@ -292,9 +292,11 @@ get_header();
 
             // Overall screen based steps
             $tags = get_field('related_tags', $user_screen_result['screen_id']);
-            foreach($tags as $step){
-                if($step->taxonomy == 'condition' || $step->taxonomy == 'age_group' || $step->taxonomy == 'post_tag'){
-                    $taxonomy_query[$step->taxonomy][] = $step->term_id;
+            if($tags){
+                foreach($tags as $step){
+                    if($step->taxonomy == 'condition' || $step->taxonomy == 'age_group' || $step->taxonomy == 'post_tag'){
+                        $taxonomy_query[$step->taxonomy][] = $step->term_id;
+                    }
                 }
             }
 

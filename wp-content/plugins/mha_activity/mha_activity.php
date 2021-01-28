@@ -95,7 +95,7 @@ function thoughtSubmission(){
 
 			$question = intval($data['question']);
 			$path = intval($data['path']);
-			$response_text = $data['thought_'.$path.'_'.$question.''];
+			$response_text = sanitize_text_field($data['thought_'.$path.'_'.$question.'']);
 			$result['path'] = $path;
 			$result['question'] = $question;
 			
@@ -464,6 +464,8 @@ function likeChecker($pid, $row){
 					$unique_user_seeds[] = $thoughts[0]['user_pre_seeded_thought'];
 
 				} elseif($thoughts[0]['admin_pre_seeded_thought'] != '') { 
+					
+					$pid = get_the_ID();
 					
 					// Admin seeded response					
 					if(in_array($thoughts[0]['admin_pre_seeded_thought'], $unique_admin_seeds)){

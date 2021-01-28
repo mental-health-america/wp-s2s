@@ -264,19 +264,23 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 }
 
                                 // Limit results
-                                //if(count($graph_data[$test_title]['labels']) < 21){
+                                //if(count($graph_data[$test_title]['labels']) < 21){   
+                                if(!get_field('survey', $screen_id)){
                                     $graph_data[$test_title]['labels'][] = date('M', strtotime($data->date_created));
                                     $graph_data[$test_title]['scores'][] = $total_score;
                                     $graph_data[$test_title]['max'] = $max_score;
                                     $graph_data[$test_title]['steps'] = get_field('chart_steps', $screen_id);
+                                }
                                 //}
 
-                                $your_results_display[$test_title][$count_results]['test_id'] = $data->id;     
-                                $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
-                                $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
-                                $your_results_display[$test_title][$count_results]['total_score'] = $total_score;
-                                $your_results_display[$test_title][$count_results]['max_score'] = $max_score;
-                                $your_results_display[$test_title][$count_results]['test_link'] = $test_id;     
+                                if(!get_field('survey', $screen_id)){
+                                    $your_results_display[$test_title][$count_results]['test_id'] = $data->id;     
+                                    $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
+                                    $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
+                                    $your_results_display[$test_title][$count_results]['total_score'] = $total_score;
+                                    $your_results_display[$test_title][$count_results]['max_score'] = $max_score;
+                                    $your_results_display[$test_title][$count_results]['test_link'] = $test_id;     
+                                }
 
                                 if($total_score >= $min_score && $total_score <= $max_score){
                                     if(get_sub_field('required_tags')){
@@ -356,7 +360,9 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                                 continue;
                                             }
                                             
-                                            $your_results_display[$test_title][$count_results]['result_title'] = get_sub_field('result_title');
+                                            if(!get_field('survey', $screen_id)){
+                                                $your_results_display[$test_title][$count_results]['result_title'] = get_sub_field('result_title');
+                                            }
                                         }
                                     endwhile;
                                 endif;
@@ -485,7 +491,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                 <div class="row">
 
                     <div class="col-12">
-                        <h3 class="text-dark-teal mb-4"><?php echo $k; ?> Results Over Time</h3>
+                        <h3 class="text-dark-teal mb-4">Recent <?php echo $k; ?> Results Over Time</h3>
                     </div>
 
                     <div class="col-12 col-md-8">
@@ -584,7 +590,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                         $initial_thought = get_field('responses', $responses[0]['user_pre_seeded_thought']);
                         $initial_thought = $initial_thought[0]['response'];
                     } else {
-                        continue;
+                        $initial_thought = ' &mdash; (<em>Thought was removed</em>)';
                     }  
 
                     if($counter == 3 && $loop_total > 3){
@@ -677,7 +683,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
             wp_reset_query();
         ?>
 
-        <h2 class="mb-4">Saved Mental Health Information</h2>
+        <h2 class="mb-4 mt-5 pt-2">Saved Mental Health Information</h2>
         <?php
             $uid = get_current_user_id();
             $liked_articles = [];

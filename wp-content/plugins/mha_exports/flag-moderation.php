@@ -11,13 +11,13 @@ function mhaflaggedthoughtmod(){
 <?php
 
 global $wpdb;
-if($_GET['pager']){
+if(isset($_GET['pager'])){
     $paged = intval($_GET['pager']);
 } else {
     $paged = 0;
 }
 
-if($_GET['show_admin']){
+if(isset($_GET['show_admin'])){
     $show_admin = intval($_GET['show_admin']);
 } else {
     $show_admin = 0;

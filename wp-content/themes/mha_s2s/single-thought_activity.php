@@ -347,7 +347,7 @@ get_header();
 
 </div>
 
-
+<?php if(get_field('show_other_responses')): ?>
 <div class="wrap narrow">
 	
 	<?php 
@@ -375,6 +375,7 @@ get_header();
 	</div>
 
 </div>
+<?php endif; ?>
 
 <div id="temp-result-data" style="display: none;"></div>
 

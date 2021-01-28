@@ -1,5 +1,11 @@
 jQuery(function ($) {
 
+	function sanitizeThought( submittedText ){
+		var decoder = document.createElement('div');
+		decoder.innerHTML = submittedText;
+		var sanitized = decoder.textContent;
+		return sanitized;
+	}
 
 	// Initial sort the other thoughts
 	function sortThoughts(){
@@ -37,9 +43,10 @@ jQuery(function ($) {
 			$('.submit-initial-thought').prop('disabled', true);			
 			
 			// Simple validation for response
-			var thoughtCheck = $.trim($('textarea[name="thought_0"]').val());
+			var thoughtCheck = sanitizeThought($.trim($('textarea[name="thought_0"]').val()));
+			console.log(thoughtCheck);
 
-			if(thoughtCheck){
+			if(thoughtCheck != ''){
 
 				$('#thoughts-submitted .seed-admin, #thoughts-submitted .seed-user').fadeOut();
 
@@ -60,7 +67,6 @@ jQuery(function ($) {
 
 						// Show initial thought in the log
 						var resultData = JSON.parse(results);	
-						console.log(resultData);
 				
 						setTimeout(function() {
 							// Hide initial thought
@@ -74,7 +80,7 @@ jQuery(function ($) {
 						$('input[name="pid"]').val(resultData['pid']);
 						setTimeout(function() {
 							$('#start-over-container').slideDown();		
-							$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').slideDown().addClass('fade-in');		
+							$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+sanitizeThought(resultData.response.thought_0.replace(/\\/g, ""))+'</p>').slideDown().addClass('fade-in');		
 							$('.further-actions').slideDown().addClass('fade-in');			
 						}, 400);
 							
@@ -132,14 +138,13 @@ jQuery(function ($) {
 				success: function( results ) {
 
 					var resultData = JSON.parse(results);
-					console.log(resultData);
 					
 					// Next steps
 					$('.further-actions').fadeIn();
 					$('#start-over-container').fadeIn();
 					$('article.thought_activity, #other-responses').slideUp();
 
-					$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
+					$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+sanitizeThought(resultData.response.thought_0.replace(/\\/g, ""))+'</p>').fadeIn();
 
 					$('html, body').animate({
 						scrollTop: $("#content").offset().top - 30
@@ -187,14 +192,13 @@ jQuery(function ($) {
 				success: function( results ) {
 
 					var resultData = JSON.parse(results);
-					console.log(resultData);
 
 					// Next steps
 					$('.further-actions').slideDown();
 					$('#start-over-container').fadeIn();
 					$('article.thought_activity, #other-responses').slideUp();
 
-					$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();
+					$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+sanitizeThought(resultData.response.thought_0.replace(/\\/g, ""))+'</p>').fadeIn();
 					
 					$('html, body').animate({
 						scrollTop: $("#content").offset().top - 30
@@ -233,8 +237,6 @@ jQuery(function ($) {
 			// Prep the data
 			var args = $('#form-activity').serialize() + '&continue=0&path=' + path;
 
-			console.log(args);
-
 			$.ajax({
 				type: "POST",
 				url: do_mhaActivity.ajaxurl,
@@ -246,11 +248,10 @@ jQuery(function ($) {
 					
 					// Show initial thought in the log
 					var resultData = JSON.parse(results);
-					console.log(resultData);
 
 					setTimeout(function() {
 						$('#other-responses').fadeIn();
-						$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+resultData.response.thought_0.replace(/\\/g, "")+'</p>').fadeIn();				
+						$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+sanitizeThought(resultData.response.thought_0.replace(/\\/g, ""))+'</p>').fadeIn();				
 					}, 1200);
 									
 					/**
@@ -261,8 +262,6 @@ jQuery(function ($) {
 						user_seed = $('input[name="user_seed').val(),
 						userThoughtArgs = 'activity_id='+resultData.response['page']+'&index='+index+'&path='+resultData.response['path']+'&admin_seed='+admin_seed+'&user_seed='+user_seed;
 
-						console.log(userThoughtArgs);
-
 					$.ajax({
 						type: "POST",
 						url: do_mhaActivity.ajaxurl,
@@ -272,8 +271,6 @@ jQuery(function ($) {
 						},
 						success: function( results ) {		
 
-							//var resultData = JSON.parse(results);
-							//console.log(results);								
 							$('#thoughts-submitted').html(results);
 							sortThoughts();
 
@@ -307,10 +304,9 @@ jQuery(function ($) {
 			var $thisButton = $(this);
 
 			// Simple validation for response
-			var thoughtCheck = $.trim($(this).parents('.question-item').find('textarea').val());
-			console.log(thoughtCheck);
+			var thoughtCheck = sanitizeThought($.trim($(this).parents('.question-item').find('textarea').val()));
 			
-			if(thoughtCheck){
+			if(thoughtCheck != ''){
 				
 				// Prep the data
 				var ref = $(this).parents('li').attr('data-reference'),
@@ -338,7 +334,6 @@ jQuery(function ($) {
 					success: function( results ) {				
 						
 						var resultData = JSON.parse(results);
-						console.log(resultData);	
 
 						$('#temp-result-data').text(results);
 
@@ -423,13 +418,13 @@ jQuery(function ($) {
 				// Update thought log
 				var thoughtHistory = '<p class="thought-label"><em class="medium small">What you said before:</em></p>';
 				if(ref == 0){
-					thoughtHistory += '<p>'+resultData.response['thought_'+ref]+'</p>'; // Initial thought
+					thoughtHistory += '<p>'+sanitizeThought(resultData.response['thought_'+ref])+'</p>'; // Initial thought
 				} else if(resultData.response['thought_'+path+'_'+ref]){	
-					thoughtHistory += '<p>'+resultData.response['thought_'+path+'_'+ref]+'</p>'; // Referred thought
+					thoughtHistory += '<p>'+sanitizeThought(resultData.response['thought_'+path+'_'+ref])+'</p>'; // Referred thought
 				}
 
 				if(resultData.response['thought_'+path+'_'+ref_2]){	
-					thoughtHistory += '<p>'+resultData.response['thought_'+path+'_'+ref_2]+'</p>'; // Additional referred thought	
+					thoughtHistory += '<p>'+sanitizeThought(resultData.response['thought_'+path+'_'+ref_2])+'</p>'; // Additional referred thought	
 				}		
 							
 				$('#thought-history .inner').html(thoughtHistory.replace(/\\/g, ""));	
@@ -440,8 +435,6 @@ jQuery(function ($) {
 				$('.append-thought-id').each(function(){
 					var href = $(this).attr('href'),
 						pid = $('input[name="pid"]').val();
-					console.log(href+''+pid);
-					console.log('wtf!');
 					$(this).attr('href', href+''+pid);
 				});
 				
@@ -488,8 +481,6 @@ jQuery(function ($) {
 				},
 				success: function( results ) {		
 
-					//var resultData = JSON.parse(results);
-					//console.log(results);								
 					$('#thoughts-submitted').html(results);					
 					sortThoughts();
 
@@ -530,7 +521,6 @@ jQuery(function ($) {
 					data: args
 				},
 				success: function( results ) {
-					console.log(results);
 					//$(`.thought-like[data-pid="${pid}"][data-row="${row}"]`).toggleClass('liked').prop('disabled', false);
 					$('.thought-like[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('liked').prop('disabled', false);
 
@@ -654,8 +644,6 @@ jQuery(function ($) {
 				success: function( results ) {
 
 					var resp = JSON.parse(results);
-					console.log(resp);
-
 					window.location.href = resp.page_redirect;
 
 				},
@@ -697,7 +685,6 @@ jQuery(function ($) {
 				data: args
 			},
 			success: function( results ) {
-				console.log(results);
 				$this.toggleClass('liked').prop('disabled', false);				
 				$this.find('.text').text(text == 'Unsave This Page' ? 'Save This Page' : 'Unsave This Page');
 			},
@@ -802,7 +789,6 @@ jQuery(function ($) {
 				data: args
 			},
 			success: function( results ) {
-				console.log(results);
 				$this.parents('.screen-result-item').slideUp();			
 				setTimeout(function() {
 					$this.parents('.screen-result-item').remove();	

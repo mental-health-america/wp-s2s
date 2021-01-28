@@ -16,10 +16,8 @@
             
             if(res.next_page != ''){
 
-                console.log(res);
                 // Continue Paging
                 var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&exclude=' + exclude;
-                console.log(args_2);
                 $.ajax({
                     type: "POST",
                     url: do_mhaThoughts.ajaxurl,
@@ -29,7 +27,6 @@
                     },
                     success: function( results_2 ) {  
                         var res = JSON.parse(results_2);	
-                        console.log(results_2);
                         $('#aggregate-progress').slideDown();
                         $('#aggregate-progress .bar').css('width', res.percent+'%');
                         $('#aggregate-progress .label-number').html( res.percent );           
@@ -74,7 +71,6 @@
             success: function( results ) {
 
                 var res = JSON.parse(results);
-                console.log(results);	
                 $('#aggregate-progress').slideDown();
                 $('#aggregate-progress .bar').css('width', res.percent+'%');
                 $('#aggregate-progress .label-number').html( res.percent );
@@ -119,8 +115,6 @@
             href = href+addFilter;
         }
 
-        console.log(href);
-
         $('#export_screen_link').attr('href', href);
 
     });
@@ -141,10 +135,8 @@
             
             if(res.next_page != ''){
 
-                console.log(res);
                 // Continue Paging
                 var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&manual_users=' + res.manual_users;
-                console.log(args_2);
                 $.ajax({
                     type: "POST",
                     url: do_mhaThoughts.ajaxurl,
@@ -154,7 +146,6 @@
                     },
                     success: function( results_2 ) {  
                         var res = JSON.parse(results_2);	
-                        console.log(results_2);
                         $('#nonaggregate-progress').slideDown();
                         $('#nonaggregate-progress .bar').css('width', res.percent+'%');
                         $('#nonaggregate-progress .label-number').html( res.percent );           
@@ -199,12 +190,10 @@
             success: function( results ) {
 
                 var res = JSON.parse(results);
-                console.log(results);	
                 $('#nonaggregate-progress').slideDown();
                 $('#nonaggregate-progress .bar').css('width', res.percent+'%');
                 $('#nonaggregate-progress .label-number').html( res.percent );
 
-                console.log(res);	
                 nonAggregateLooper( results );                
             },
             error: function(xhr, ajaxOptions, thrownError){                

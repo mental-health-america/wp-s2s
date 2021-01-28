@@ -8,7 +8,7 @@ $search_term = get_query_var('search_term');
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
-	<div class="page-heading bar<?php echo $customClasses; ?>">	
+	<div class="page-heading bar">	
 	<div class="wrap normal">	
 		<?php
 			if(get_field('custom_title', $term)){
@@ -220,8 +220,25 @@ $search_term = get_query_var('search_term');
 				<div class="left-col ">
 				<div class="bubble round-br dark-blue normal">
 					<div class="inner">			
-						<h3>Learn About Mental Health Conditions</h3>
-						<?php echo do_shortcode('[mha_conditions]'); ?>
+						<?php 
+							$related_conditions = get_field('related_conditions', $term);
+							if($related_conditions && count($related_conditions) > 0 ){
+								echo '<h3>Learn About Other Related Mental Health Conditions</h3>';
+								echo '<div class="conditions-list">';
+								$rc_counter = 1;
+								foreach($related_conditions as $rc){
+									echo '<a class="plain cerulean" href="'.get_term_link($rc).'">'.$rc->name.'</a>';	 
+									if($rc_counter < count($related_conditions)){
+										echo ' &nbsp;<span class="noto">|</span>&nbsp; ';
+									}
+									$rc_counter++;
+								}
+								echo '</div>';
+							} else {
+								echo '<h3>Learn About Mental Health Conditions</h3>';
+								echo do_shortcode('[mha_conditions]'); 
+							}
+						?>
 					</div>
 				</div>    
 				</div>

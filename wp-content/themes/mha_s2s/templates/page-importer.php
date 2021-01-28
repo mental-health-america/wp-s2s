@@ -5,6 +5,7 @@ get_header();
 // This shouldn't be on production!
 //die();
 
+ /*
 function acf_field_array_conversion( $string ){            
     if($string != ''){
         $array = explode(',', $string);
@@ -39,7 +40,7 @@ function field_exploder($init_array, $object){
 /**
  * Big Content Tag Update
  */
-
+/*
  
 $article_args = array(
     'post_type' => 'article',
@@ -62,7 +63,6 @@ endwhile;
 
 pre($updates);
 
- /*
     $obj_diy_type = get_field_object('field_5fd3f1a935255');
     $obj_diy_issue = get_field_object('field_5fea345c4d25c');
     $obj_service_type = get_field_object('field_5fdc0a1448b13');

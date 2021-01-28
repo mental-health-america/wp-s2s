@@ -25,16 +25,8 @@ function getUserScreenResults( $user_screen_id ) {
     */
 
     // Vars
-    $user_screen_results = [];
+    $user_screen_results['user_screen_results'] = [];
     $user_screen_results['total_score'] = 0;
-
-    // Gravity Forms API Connection
-    $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
-    $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
-    $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers ) );
-
-    // Future Content
     $user_screen_results['your_answers'] = '';
     $user_screen_results['result_terms'] = [];
     $user_screen_results['required_result_tags'] = [];
@@ -42,6 +34,15 @@ function getUserScreenResults( $user_screen_id ) {
     $user_screen_results['advanced_condition_row'] = '';
 	$user_screen_results['screen_id'] = '';
 	$user_screen_results['alert'] = 0;
+    $user_screen_results['general_score_data'] = []; 
+    $user_screen_results['graph_data'] = []; 
+
+    // Gravity Forms API Connection
+    $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
+    $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
+    $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
+    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers ) );
+
 
     // Check the response code.
     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
@@ -76,9 +77,9 @@ function getUserScreenResults( $user_screen_id ) {
         // Text
         $label = '';
         $value_label = '';
-        $i = 0;         
+        $i = 0;        
+        $count_results = 0; 
         $advanced_conditions_data = []; 
-        $general_score_data = []; 
 
         $user_screen_results['your_answers'] .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';    
         foreach($data as $k => $v){
@@ -89,6 +90,11 @@ function getUserScreenResults( $user_screen_id ) {
             // Get referring screen ID                
             if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {     
                 $user_screen_results['screen_id'] = $v;
+            }
+
+            // Get screen token                  
+            if (isset($field->label) && strpos($field->label, 'Token') !== false) {     
+                $test_id = $v;
             }
 
             //Screening Questions
@@ -108,7 +114,7 @@ function getUserScreenResults( $user_screen_id ) {
                     }
                 }
 
-                $general_score_data[$field->id] = $v; 
+                $user_screen_results['general_score_data'][$field->id] = $v; 
 
                 $label = $field->label; // Field label    
                 if(strpos($field->cssClass, 'exclude') === false){             
@@ -147,6 +153,30 @@ function getUserScreenResults( $user_screen_id ) {
                     $i++;
                 }
             }
+
+            /*
+            // Future Vars
+            $test_id = $data->id;
+            $test_title = get_the_title( $user_screen_results['screen_id'] );
+            $test_date = date('M j, Y', strtotime($data->date_created));
+            $max_score = get_field('overall_max_score', $user_screen_results['screen_id']);                
+
+            // Graph Data         
+            $user_screen_results['graph_data'][$test_title]['labels'][] = $test_date;
+            $user_screen_results['graph_data'][$test_title]['scores'][] = $user_screen_results['total_score'];
+            $user_screen_results['graph_data'][$test_title]['max'] = $max_score;
+            $user_screen_results['graph_data'][$test_title]['steps'] = get_field('chart_steps', $user_screen_results['screen_id'] );
+
+            // Results Display
+            $user_screen_results['your_results_display'][$test_title][$count_results]['test_id'] = $test_id;     
+            $user_screen_results['your_results_display'][$test_title][$count_results]['test_date'] = $test_date;
+            $user_screen_results['your_results_display'][$test_title][$count_results]['test_title'] = $test_title;
+            $user_screen_results['your_results_display'][$test_title][$count_results]['total_score'] = $user_screen_results['total_score'];
+            $user_screen_results['your_results_display'][$test_title][$count_results]['max_score'] = $max_score;
+            $user_screen_results['your_results_display'][$test_title][$count_results]['test_link'] = $test_id;    
+            */
+            
+            $count_results++;
             
         }   
         
@@ -154,7 +184,7 @@ function getUserScreenResults( $user_screen_id ) {
         $user_screen_results['custom_results_logic'] = get_field('custom_results_logic', $user_screen_results['screen_id']);
         $user_screen_results['custom_result_row'] = '';
         if($user_screen_results['custom_results_logic']){
-            $custom_result_logic_data = custom_logic_checker($general_score_data, $user_screen_results['custom_results_logic']);
+            $custom_result_logic_data = custom_logic_checker($user_screen_results['general_score_data'], $user_screen_results['custom_results_logic']);
             $user_screen_results['total_score'] = $custom_result_logic_data['total_score'];
             $user_screen_results['custom_result_row'] = $custom_result_logic_data['custom_result_row'];
         }
