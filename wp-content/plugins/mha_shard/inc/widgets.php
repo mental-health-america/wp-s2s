@@ -42,6 +42,7 @@ function recent_flagged_thoughts() {
 
     global $wpdb;
     $flag_query = $wpdb->get_results( 'SELECT * FROM thoughts_flags ORDER BY date DESC LIMIT 10' );
+    $flag_count = 0;
 
     if($flag_query){ ?>
     <table class="wp-list-table widefat striped">
@@ -51,7 +52,13 @@ function recent_flagged_thoughts() {
             <th class="text-left">Comment</th>
             <th class="text-left">Edit</th>
         </tr>
-        <?php foreach($flag_query as $flag): ?>
+        <?php 
+            foreach($flag_query as $flag): 
+            if(get_field('admin_notes', $flag->pid)){
+                continue;
+            }
+            $flag_count++;
+        ?>
             <tr>
                 <td>
                     <?php 
@@ -101,7 +108,9 @@ function recent_flagged_thoughts() {
 
         <a href="/wp-admin/admin.php?page=mhaflaggedthoughtmod" class="button primary">View All Flagged Thoughts</a>
     <?php
-    } else {
+    }
+    
+    if($flag_count == 0){
         echo '<p>No flagged thoughts available for review.</p>';
     }
 

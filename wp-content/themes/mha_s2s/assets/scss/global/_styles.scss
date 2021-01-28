@@ -175,6 +175,7 @@ input[type="button"] {
         &.plain {
             background: none;
             color: $white;
+            &:focus,
             &:hover {
                 background: none;
                 color: $white;
@@ -355,6 +356,16 @@ input[type="button"] {
         }
     }
 
+    // Loading State
+    &.loading {
+        background: $grayLight;
+        color: $blueDark;
+        background-image: url('../images/loading-gray.gif');
+        background-size: auto;
+        background-position: 90% center;
+        background-repeat: no-repeat;
+    }
+
 }
 
 button.accordion-button {
@@ -446,6 +457,7 @@ button.plain {
     text-transform: none;
     font-weight: 600;
 
+    &:focus,
     &:hover {
         background: none;
         color: $orange;

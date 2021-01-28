@@ -177,6 +177,16 @@ add_filter( 'tiny_mce_before_init', 'my_mce_before_init_insert_formats' );
 	}
 }
 
+/**
+ * Remove Dashicons From Front End
+ */
+add_action( 'wp_print_styles', 'my_deregister_styles', 100 );
+function my_deregister_styles()    { 
+	if (!is_admin_bar_showing()){
+		wp_deregister_style( 'dashicons' ); 
+	}
+}
+
 
 /**
  * Pre Populate Tokens

@@ -137,6 +137,12 @@ label {
                 background: $coral;
                 color: $white;
             }
+            
+            // Loading State
+            &.loading {
+                background: url('../images/loading-gray.gif') $grayLight 90% center no-repeat !important;
+                color: $blueDark !important;
+            }
         }
 
         // Password

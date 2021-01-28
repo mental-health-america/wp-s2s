@@ -168,6 +168,12 @@
     }
 }
 
+.author {
+    font-style: italic;
+    @include montserrat(600);
+    margin: 0 0 1.5em 0;
+}
+
 
 // Page Headings
 .page-heading {

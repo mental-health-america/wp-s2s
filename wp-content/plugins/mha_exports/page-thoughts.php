@@ -17,9 +17,11 @@ function char_fix( $input ){
  */
 add_action('init', 'mhaThoughtScripts');
 function mhaThoughtScripts() {
-	wp_enqueue_script( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.js', array('jquery'), time(), true );
-	wp_enqueue_style( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.css', array(), time() );
-	wp_localize_script('process_mhaThoughts', 'do_mhaThoughts', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+    if(current_user_can('edit_posts')){
+        wp_enqueue_script( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.js', array('jquery'), time(), true );
+        wp_enqueue_style( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.css', array(), time() );
+        wp_localize_script('process_mhaThoughts', 'do_mhaThoughts', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+    }
 }
 
 // List Page
@@ -27,6 +29,28 @@ function mhathoughtexport(){
 ?>
 
 <div class="wrap">
+
+    <h1>Screen Exports</h1>
+    <fieldset id="mha-all-screen-exports">
+        <p>
+            <label style="display: inline-block; width: 100px;" for="export_screen_start_date">Start Date</label>
+            <input type="text" name="export_screen_start_date" id="export_screen_start_date" placeholder="<?php echo date('Y-m-d', strtotime('now - 7 days ago')); ?>" />
+        </p>
+
+        <p>
+            <label style="display: inline-block; width: 100px;" for="export_screen_end_date">End Date</label>
+            <input type="text" name="export_screen_end_date" id="export_screen_end_date" placeholder="<?php echo date('Y-m-d', strtotime('now')); ?>" />
+        </p>
+
+        <p>
+            <label style="display: inline-block; width: 100px;" for="export_screen_ref">Referrer URL Contains</label>
+            <input type="text" name="export_screen_ref" id="export_screen_ref" placeholder="mhanational.org" />
+        </p>
+        <p>
+            <a class="button button-primary" id="export_screen_link" data-orig-href="<?php echo get_site_url(null, '/gf-entries-in-excel/all_screen_export'); ?>" href="<?php echo get_site_url(null, '/gf-entries-in-excel/all_screen_export'); ?>">Download Screens</a>
+        </p>
+    </fieldset>
+    <br />
 
     <h1>UCI Data Exports</h1>		
 

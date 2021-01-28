@@ -164,6 +164,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
             <div class="container-fluid">
             <div class="row">
 
+
                 <?php
                     $current_user = wp_get_current_user();
                     $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
@@ -220,13 +221,23 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                     if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {   
                                         
                                         if(strpos($field->cssClass, 'exclude') === false){                                 
-                                            $total_score = $total_score + $v; // Add to total score                                        
+                                            $total_score = $total_score + intval($v); // Add to total score                                        
                                         }
                                         
                                         // Advanced Conditions Check
-                                        if(get_sub_field('advanced_condition', $screen_id) && count(get_sub_field('advanced_condition', $screen_id)) > 0){
-                                            $advanced_conditions_data[$field->id] = $v; 
-                                        };
+                                        $get_results = get_field('results', $screen_id);
+                                        if( $get_results ) {
+                                            foreach($get_results as $result){
+                                                if($result['advanced_conditions']){
+                                                    foreach($result['advanced_conditions'] as $ac){
+                                                        if($ac['question_id'] == $field->id){
+                                                            $advanced_conditions_data[$field->id] = $v; 
+                                                        }                                
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
                                         $general_score_data[$field->id] = $v; 
                                     }                            
                                 endforeach;
@@ -279,32 +290,45 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 }
                         
                                 $has_advanced_conditions = 0;
-                                $advanced_condition_row = '';                                
+                                $advanced_condition_row = '';   
+                                $required_check = '0';
+                                $advanced_counter = '';
+
                                 if( have_rows('results', $screen_id) ):
                                     
                                     // Advanced Conditions
                                     while( have_rows('results', $screen_id) ) : the_row();   
                                         $advanced_conditions = get_sub_field('advanced_conditions');
                                         if($advanced_conditions && count($advanced_conditions) > 1){
+                                            
+                                            $advanced_counter = count($advanced_conditions);
+
                                             foreach($advanced_conditions as $ac){
                                                 $advanced_min = $ac['score_range_minimum'];
                                                 $advanced_max = $ac['score_range_max'];
-                                                $advanced_id = $ac['question_id'];   
-                                                if($advanced_conditions_data[$advanced_id]){
-                                                    if($advanced_max){
+                                                $advanced_id = $ac['question_id'];  
+                                                if(isset($advanced_conditions_data[$advanced_id])){
+                                                    if($advanced_max && $advanced_min){
                                                         if($advanced_conditions_data[$advanced_id] >= $advanced_min && $advanced_conditions_data[$advanced_id] <= $advanced_max ){
                                                             $advanced_condition_row = get_row_index();
+                                                            $has_advanced_conditions++;
                                                         }
                                                     } else if($advanced_min) {
                                                         if($advanced_conditions_data[$advanced_id] == $advanced_min){
                                                             $advanced_condition_row = get_row_index();
+                                                            $has_advanced_conditions++;
                                                         }
                                                     }
                                                 }
                                             }
-                                            $has_advanced_conditions++;
+
                                         }
                                     endwhile;
+                                    
+                                    // If the total advanced conditions don't match the positive matches, reset to the first result
+                                    if($has_advanced_conditions != $advanced_counter){
+                                        $advanced_condition_row = 0;
+                                    }
                                     
                                     // Display Results
                                     while( have_rows('results', $screen_id) ) : the_row();                                    

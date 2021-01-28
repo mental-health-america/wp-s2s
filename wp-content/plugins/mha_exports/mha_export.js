@@ -89,6 +89,43 @@
     });
 
 
+    $(document).on("click", '#export_screen_link', function(event){
+        
+        var startDate = $('input#export_screen_start_date').val(),
+            endDate = $('input#export_screen_end_date').val(),
+            filters = $('input#export_screen_ref').val(),
+            href = $('a#export_screen_link').attr('data-orig-href');
+
+        if(startDate != '' || $endDate != '' || $filters != ''){
+            href = href+'?';
+        }
+
+        if(startDate != ''){
+            href = href+'start_date='+startDate;
+            if(endDate != '' || filters != ''){
+                href = href+'&';
+            }
+        }
+
+        if(endDate != ''){
+            href = href+'end_date='+endDate;
+            if(filters != ''){
+                href = href+'&';
+            }
+        }
+
+        if(filters != ''){
+            var addFilter = 'filter=53:contains:'+filters+';54:contains:'+filters+';66:contains:'+filters+';47:contains:'+filters+';76:contains:'+filters+';57:contains:'+filters+';55:contains:'+filters+';89:contains:'+filters+';51:contains:'+filters+';66:contains:'+filters+';82:contains:'+filters+';any';
+            href = href+addFilter;
+        }
+
+        console.log(href);
+
+        $('#export_screen_link').attr('href', href);
+
+    });
+
+
     /**
      * Aggregate Data Export
      */

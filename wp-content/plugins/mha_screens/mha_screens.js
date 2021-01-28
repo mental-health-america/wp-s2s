@@ -29,7 +29,7 @@ jQuery(function ($) {
 				$(form).addClass('submitted');
 
 				// Disable submit
-				$('.submit',form).prop('disabled', true);
+				$('.submit',form).prop('disabled', true).addClass('loading');
 
 				$.ajax({
 					type: "POST",
@@ -41,12 +41,12 @@ jQuery(function ($) {
 					success: function( results ) {
 						
 						$(form).addClass('success');
-						$('.form-message',form).html('<h3 class="section-title dark-teal">Your test results have been sent!</h3>').show();
+						$('.form-message',form).html('<p class="section-title text-dark-teal large bold m-0 text-center">Your test results have been sent</p>').show();
 						$('.form-content',form).slideUp();
 					},
 					error: function(xhr, ajaxOptions, thrownError){
 						$(form).addClass('error').removeClass('submitted');
-						$('.submit',form).prop('disabled', false);
+						$('.submit',form).prop('disabled', false).removeClass('loading');
 						$('.form-message',form).html('<div class="form-message-inner warning">There was a problem submitting the form. Please review your information and try again or try again later.</div>').show(); 
 					}
 				});
