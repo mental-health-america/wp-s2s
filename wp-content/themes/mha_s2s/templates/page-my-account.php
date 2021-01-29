@@ -4,11 +4,7 @@ get_header();
 
 global $wpdb;
 $uid = get_current_user_id();
-
 $current_user = wp_get_current_user();
-if ( 0 == $current_user->ID ) {
-    wp_redirect( site_url() );
-}
 
 /**
  * Special action overrides
@@ -39,7 +35,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
     $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
     $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
     $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/'.$screen_id, array( 'headers' => $headers ) );
+    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/'.$screen_id, array( 'headers' => $headers, 'timeout' => 120 ) );
     
     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
         // Error!
@@ -48,8 +44,8 @@ if (strpos($account_action, 'save_screen_') !== false) {
         $json = wp_remote_retrieve_body($response);
         $data = json_decode($json);   
                 
-        // If the IP matches, add this test to this account
-        if($data->{40} == $screen_ipiden){            
+        // If the IP matches and uid is blank, add this test to this account
+        if($data->{40} == $screen_ipiden && $data->{41} == ''){            
             $entry_id = $data->id;
             $entry = GFAPI::get_entry( $entry_id );
             $entry['41'] = $current_user->user_email; // UID field
@@ -124,10 +120,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
 			<div class="bubble narrow round-small-bl blue width-50" id="account-settings">
 			<div class="inner">
 				<div class="caps montserrat">DISPLAY NAME:</div>
-				<?php
-					$current_user = wp_get_current_user();
-					echo '<h3 class="text-white">'.$current_user->nickname.'</h3>';
-				?>
+				<?php echo '<h3 class="text-white">'.$current_user->nickname.'</h3>'; ?>
 
 				<div class="pt-2">
 					<button class="button white plain caps p-0 hover-bar" type="button" data-toggle="collapse" data-target="#account-settings-form" aria-expanded="false" aria-controls="account-settings-form">Account Settings</button> | 
@@ -170,21 +163,24 @@ if (strpos($account_action, 'save_screen_') !== false) {
                     $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
                     $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
                     $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-                    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?paging[page_size]=100&search={"field_filters": [{"key":41,"value":"'.$current_user->email.'","operator":"contains"}]}', array( 'headers' => $headers ) );
+                    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?paging[page_size]=100&search={"field_filters": [{"key":41,"value":"'.$current_user->user_email.'","operator":"contains"}]}', array( 'headers' => $headers, 'timeout' => 120 ) );
                     
                     // Check the response code.
                     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
                         
                         // Error!
-                        echo '<p>There was a problem displaying to your results. Please contact us if the issue persists.</p>';
+                        echo '<div class="col-12">';
+                        echo '<p>There was a problem displaying to your results. Try refreshing this page or please contact us if the issue persists.</p>';
                         echo '<p><strong>Response Error:</strong>'.wp_remote_retrieve_response_code( $response ).'<br />';
-                        echo '<strong>ID:</strong>'.$user_screen_id.'</p>';
+                        echo '<strong>ID:</strong>'.$current_user->ID.'</p>';
+                        echo '</div>';
 
                     } else {
 
                         // Got a good response, proceed!
                         $json = wp_remote_retrieve_body($response);
                         $info = json_decode($json); 
+
                         $total_results = $info->total_count;    
                         $count_results = 1;
                         $graph_data = [];
@@ -469,7 +465,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
             </div>
 
-            <?php if($graph_data): ?>
+            <?php if(!empty($graph_data)): ?>
             <div id="test-selection-dropdown" class="dropdown dropdown-menu-right">
                 <button class="button gray round-br dropdown-toggle" type="button" id="testSelection" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="truncate not-upper medium"><?php echo array_key_first($graph_data); ?></span>
@@ -485,65 +481,67 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
             <?php 
                 $chart_counter = 0;
-                foreach($graph_data as $k => $v): 
-                ?>
-                <div class="container-fluid loading-container pt-4<?php if($chart_counter > 0){ echo ' hidden'; } ?>" data-test-group="<?php echo sanitize_title($k); ?>">
-                <div class="row">
+                if(!empty($graph_data)){
+                    foreach($graph_data as $k => $v): 
+                    ?>
+                    <div class="container-fluid loading-container pt-4<?php if($chart_counter > 0){ echo ' hidden'; } ?>" data-test-group="<?php echo sanitize_title($k); ?>">
+                    <div class="row">
 
-                    <div class="col-12">
-                        <h3 class="text-dark-teal mb-4">Recent <?php echo $k; ?> Results Over Time</h3>
-                    </div>
+                        <div class="col-12">
+                            <h3 class="text-dark-teal mb-4">Recent <?php echo $k; ?> Results Over Time</h3>
+                        </div>
 
-                    <div class="col-12 col-md-8">
+                        <div class="col-12 col-md-8">
 
-                        <div class="bubble bubble-border round-tl results-graph">
-                        <div class="inner">
-                        <?php
-                            // Better chronological data
-                            $reverse_labels = array_reverse($v['labels']);
-                            $reverse_scores = array_reverse($v['scores']);
-                            $pre_data = [
-                                'borderWidth' => 3,
-                                'fill' => false,
-                                'backgroundColor' => '#199aa0',
-                                'borderColor' => '#199aa0',
-                                'pointRadius' => 4,
-                                'data' => $reverse_scores
-                            ];
-                            
-                            echo '<div class="chart-container"><canvas id="canvas-'.$chart_counter.'"></canvas></div>';
-                            $chartData = [
-                                'id' => 'canvas-'.$chart_counter,
-                                'labels' => $reverse_labels,
-                                'data' => [$pre_data],
-                                'ymax' => $v['max'],
-                                'steps' => $v['steps'] 
-                            ];
-                            $cdata = json_encode($chartData,JSON_NUMERIC_CHECK);
-                            ?>
-
-                            <script>loadLineChart(<?=$cdata?>);</script>
+                            <div class="bubble bubble-border round-tl results-graph">
+                            <div class="inner">
                             <?php
-                            $chart_counter++;
-                        ?>
+                                // Better chronological data
+                                $reverse_labels = array_reverse($v['labels']);
+                                $reverse_scores = array_reverse($v['scores']);
+                                $pre_data = [
+                                    'borderWidth' => 3,
+                                    'fill' => false,
+                                    'backgroundColor' => '#199aa0',
+                                    'borderColor' => '#199aa0',
+                                    'pointRadius' => 4,
+                                    'data' => $reverse_scores
+                                ];
+                                
+                                echo '<div class="chart-container"><canvas id="canvas-'.$chart_counter.'"></canvas></div>';
+                                $chartData = [
+                                    'id' => 'canvas-'.$chart_counter,
+                                    'labels' => $reverse_labels,
+                                    'data' => [$pre_data],
+                                    'ymax' => $v['max'],
+                                    'steps' => $v['steps'] 
+                                ];
+                                $cdata = json_encode($chartData,JSON_NUMERIC_CHECK);
+                                ?>
+
+                                <script>loadLineChart(<?=$cdata?>);</script>
+                                <?php
+                                $chart_counter++;
+                            ?>
+                            </div>
+                            </div>
+
                         </div>
+
+                        <div class="col-12 col-md-4">
+                            <div class="bubble round-tl mint">
+                            <div class="inner">
+                                <h3 class="text-green mb-4">Explore more mental health tests</h3>
+                                <p class="text-center mb-0"><a class="button teal round" href="/screening-tools">Take a mental health&nbsp;test</a></p>
+                            </div>
+                            </div>
                         </div>
 
                     </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="bubble round-tl mint">
-                        <div class="inner">
-                            <h3 class="text-green mb-4">Explore more mental health tests</h3>
-                            <p class="text-center mb-0"><a class="button teal round" href="/screening-tools">Take a mental health&nbsp;test</a></p>
-                        </div>
-                        </div>
-                    </div>
-
-                </div>
-                </div>   
-                <?php 
-                endforeach; 
+                    </div>   
+                    <?php 
+                    endforeach;
+                } 
             ?>         
 
         </div>

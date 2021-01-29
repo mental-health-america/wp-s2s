@@ -195,6 +195,8 @@ function mha_show_tests() {
         "posts_per_page" => 200
     );
 	$loop = new WP_Query($args);
+	
+	ob_start();
 	if($loop->have_posts()):
 	echo '<div id="screenings-list">';
 	while($loop->have_posts()) : $loop->the_post();
@@ -222,6 +224,7 @@ function mha_show_tests() {
 	endwhile;
 	echo '</div>';
 	endif;
+	return ob_get_clean();
 
 } 
 add_shortcode('mha_show_tests', 'mha_show_tests'); 

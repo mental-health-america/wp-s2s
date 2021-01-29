@@ -1,7 +1,11 @@
 <?php
 get_header();
 $term = get_queried_object();
-$search_query = get_query_var('search');
+if(get_query_var('search')){
+	$search_query = get_query_var('search');
+} else {
+	$search_query = '';
+}
 $search_tax = get_query_var('search_tax');
 $search_term = get_query_var('search_term');
 ?>

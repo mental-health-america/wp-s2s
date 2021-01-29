@@ -22,8 +22,8 @@ get_header();
             </div>
             
             <?php if( isset( $_GET['login_error'] ) && $_GET['login_error'] == 'true' ): ?>
-                <div class="validation_error">
-                    The login credentials were not valid. Please try again.
+                <div class="validation_error mt-4">
+                    Please supply a valid username and/or password.
                 </div>
             <?php endif; ?>
 

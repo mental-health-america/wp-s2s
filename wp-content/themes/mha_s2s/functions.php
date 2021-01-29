@@ -335,6 +335,17 @@ function check_username_password( $login, $username, $password ) {
 }
 
 /**
+ * Redirect My Account page when logged out
+ */
+add_action( 'template_redirect', 'my_account_redirect_logged_out' );
+function my_account_redirect_logged_out() {
+	if ( is_page('my-account') && ! is_user_logged_in() ) {
+		wp_redirect( site_url(), 301 ); 
+  		exit;
+    }
+}
+
+/**
  * Custom archive titles
  */
 add_filter( 'get_the_archive_title', function ($title) {    

@@ -41,16 +41,25 @@ function getUserScreenResults( $user_screen_id ) {
     $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
     $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
     $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers ) );
-
+    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers, 'timeout' => 120 ) );
 
     // Check the response code.
     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
         
         // Error!
-        echo '<p>There was a problem displaying to your results. Please contact us if the issue persists.</p>';
-        echo '<p><strong>Response Error:</strong>'.wp_remote_retrieve_response_code( $response ).'<br />';
-        echo '<strong>Screen ID:</strong>'.$user_screen_id.'</p>';
+        pre($response);
+        echo '<p>There was a problem displaying your results. Please refresh the page, or contact us with the following information if the issue persists.</p>';
+        // echo '<p><strong>Response Error:</strong>'.unserialize(wp_remote_retrieve_response_code( $response )).'<br /><br />';
+        echo '<strong>Screen ID:</strong> '.$user_screen_id.'</p>';
+
+		// Send email about error
+		$to = 'justin@chongandkoster.com';
+		$subject = 'MHA Error - Screen Results';
+        $body = 'Screen ID: '.$user_screen_id.'<br /><br />Error: '.$response->errors['http_request_failed'][0];
+		$headers = array('Content-Type: text/html; charset=UTF-8');	
+		$headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
+        $result['mail'] = wp_mail( $to, $subject, $body, $headers );
+        
 
     } else {
 
@@ -320,7 +329,7 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 	$consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
 	$consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
 	$headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-	$response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers ) );
+	$response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers, 'timeout' => 120 ) );
 	
 	// Future Content
 	$html = '';

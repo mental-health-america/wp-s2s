@@ -149,7 +149,7 @@ get_header();
 										<div class="row">
 
 											<div class="col-12 col-md-6">
-												<p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Search <?php echo $term_con->name; echo $term_tag->name; ?> articles" type="text" /></p>
+												<p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Search <?php if($term_con){echo $term_con->name; } if($term_tag){ echo $term_tag->name; } ?> articles" type="text" /></p>
 											</div>
 
 											<div class="col-12 col-md-3 mt-3 mt-md-0 pl-1 pr-1">
@@ -229,8 +229,10 @@ get_header();
 										$orderby = array('meta_value' => 'DESC', 'date' => 'DESC');
 									}
 
+									$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
 									$args = array(
 										"post_type" => 'article',
+										'paged' => $paged,
 										"orderby" => $orderby,
 										"order"	=> $order,
 										"post_status" => 'publish',
@@ -256,8 +258,17 @@ get_header();
 									if ( $loop->have_posts() ) :	
 										$resources = array('condition');
 										echo '<ol class="plain mb-0">';
-										while($loop->have_posts()) : $loop->the_post();
-											get_template_part( 'templates/blocks/archive', 'list' );
+										while($loop->have_posts()) : $loop->the_post();					
+											$type = get_field('type');                        
+											$article_type = get_field('type');
+											?>
+											<li class="mb-4">
+												<p class="mb-2">	
+													<a class="dark-gray plain" href="<?php echo add_query_arg('ref', $tag, get_the_permalink()); ?>"><?php the_title(); ?></a>
+												</p>
+												<!--<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>-->
+											</li>
+										<?php
 										endwhile;
 										echo '</ol>';
 
@@ -265,7 +276,7 @@ get_header();
 										echo paginate_links( array(
 											'base'         => str_replace( 999999999, '%#%', esc_url( get_pagenum_link( 999999999 ) ) ),
 											'total'        => $loop->max_num_pages,
-											'current'      => max( 1, get_query_var( 'paged' ) ),
+											'current'      => max( 1, $paged ),
 											'format'       => '?paged=%#%',
 											'show_all'     => false,
 											'type'         => 'plain',
