@@ -319,7 +319,11 @@ function front_end_login_fail( $username ) {
 add_action( 'authenticate', 'check_username_password', 1, 3);
 function check_username_password( $login, $username, $password ) {
 	// Getting URL of the login page
-	$referrer = $_SERVER['HTTP_REFERER'];
+	if(isset($_SERVER['HTTP_REFERER'])){
+		$referrer = $_SERVER['HTTP_REFERER'];
+	} else {
+		$referrer = '';
+	}
 
 	// if there's a valid referrer, and it's not the default log-in screen
 	if( !empty( $referrer ) && !strstr( $referrer,'wp-login' ) && !strstr( $referrer,'wp-admin' ) ) { 
