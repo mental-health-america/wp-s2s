@@ -17,22 +17,18 @@
 <link rel="dns-prefetch" href="//fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"> 
 
-<?php /*
-// For screening.mhanational.org
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-45375759-2"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'UA-45375759-2');
 </script>
-*/ ?>
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <?php
 // For s2s.mhanational.org
-?>
+/*
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-RGT73CT3W0"></script>
 <script>
 	window.dataLayer = window.dataLayer || [];
@@ -45,6 +41,7 @@
 		'screen_name' : '<?php echo get_the_permalink(); ?>'
 	});
 </script>
+*/ ?>
 
 <?php wp_head(); ?>
 </head>
