@@ -50,8 +50,16 @@ get_header();
 		else : ?>
 
 			<p><?php _e( 'Sorry, but nothing matched your search terms. Please try again with some different keywords.', 'mha_s2s' ); ?></p>
-			<?php
-				echo get_search_form();
+
+			<div class="bubble cerulean thin round-bl mb-5">
+			<div class="inner">
+				<div class="form-container line-form blue" id="search-form-interior">
+					<?php echo get_search_form(); ?>
+				</div>
+			</div>
+			</div>
+
+		<?php
 
 		endif;
 		?>
