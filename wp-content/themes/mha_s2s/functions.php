@@ -97,7 +97,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), '1.0.1', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), '1.0.0', true );
 	
 }
 add_action( 'wp_enqueue_scripts', 'mha_s2s_scripts' );
@@ -335,17 +335,6 @@ function check_username_password( $login, $username, $password ) {
 }
 
 /**
- * Redirect My Account page when logged out
- */
-add_action( 'template_redirect', 'my_account_redirect_logged_out' );
-function my_account_redirect_logged_out() {
-	if ( is_page('my-account') && ! is_user_logged_in() ) {
-		wp_redirect( site_url(), 301 ); 
-  		exit;
-    }
-}
-
-/**
  * Custom archive titles
  */
 add_filter( 'get_the_archive_title', function ($title) {    
@@ -466,6 +455,8 @@ function mha_s2s_filter_posts_columns( $columns ) {
 // Column Content
 add_action( 'manage_article_posts_custom_column', 'mha_s2s_realestate_column', 10, 2);
 function mha_s2s_realestate_column( $column, $post_id ) {
+
+	$html = '';
 
 	// Article Type
 	if ( 'type' === $column ) {

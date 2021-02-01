@@ -169,11 +169,13 @@ if (strpos($account_action, 'save_screen_') !== false) {
                     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
                         
                         // Error!
+                        /*
                         echo '<div class="col-12">';
                         echo '<p>There was a problem displaying to your results. Try refreshing this page or please contact us if the issue persists.</p>';
                         echo '<p><strong>Response Error:</strong>'.wp_remote_retrieve_response_code( $response ).'<br />';
                         echo '<strong>ID:</strong>'.$current_user->ID.'</p>';
                         echo '</div>';
+                        */
 
                     } else {
 

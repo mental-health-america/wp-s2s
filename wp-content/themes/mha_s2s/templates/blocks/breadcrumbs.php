@@ -15,30 +15,32 @@
             $ref_id = get_query_var('pathway');
             $path_terms = get_the_terms($ref_id, 'condition');
 
-            $args = array(
-                'post_type'  => 'page', 
-                "post_status" => 'publish',
-                "posts_per_page" => 1,
-                'meta_query' => array( 
-                    'relation' => 'AND',
-                    array(
-                        'key'   => '_wp_page_template', 
-                        'value' => 'templates/page-path-collection.php'
-                    ),
-                    array(
-                        'key'   => 'condition', 
-                        'value' => $path_terms[0]->term_id
+            if($path_terms){
+                $args = array(
+                    'post_type'  => 'page', 
+                    "post_status" => 'publish',
+                    "posts_per_page" => 1,
+                    'meta_query' => array( 
+                        'relation' => 'AND',
+                        array(
+                            'key'   => '_wp_page_template', 
+                            'value' => 'templates/page-path-collection.php'
+                        ),
+                        array(
+                            'key'   => 'condition', 
+                            'value' => $path_terms[0]->term_id
+                        )
                     )
-                )
-            );
-            $loop = new WP_Query($args);
-            if($loop->have_posts()):
-            while($loop->have_posts()) : $loop->the_post();  
-                echo '<a class="crumb crumb-primary" href="'.get_the_permalink().'">'.get_the_title().'</a>';
-            endwhile;
-            endif;
-            wp_reset_query();
-            
+                );
+                $loop = new WP_Query($args);
+                if($loop->have_posts()):
+                while($loop->have_posts()) : $loop->the_post();  
+                    echo '<a class="crumb crumb-primary" href="'.get_the_permalink().'">'.get_the_title().'</a>';
+                endwhile;
+                endif;
+                wp_reset_query();
+            }
+                
             echo '<span class="crumb">'.get_the_title($ref_id).'</span>';
                         
         }

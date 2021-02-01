@@ -120,11 +120,13 @@ $search_term = get_query_var('search_term');
 						"order" => 'ASC',
 						"meta_key" => 'featured',
 						"meta_query"	 => array(
+							/*
 							'relation'	 	=> 'AND',
 							array(
 								'key'		=> 'all_conditions',
 								'value'		=> 1
 							),
+							*/
 							array(
 								'key'		=> 'type',
 								'value'		=> array('provider'),
@@ -138,10 +140,12 @@ $search_term = get_query_var('search_term');
 						$allCondition_args['s'] = get_query_var('search');
 					}
 
-					$allConditions = new WP_Query($allCondition_args);
-
-					// Merge Queries
-					$new_query = array_unique( array_merge( $wp_query->posts, $allConditions->posts ), SORT_REGULAR);
+					/**
+					 * Update to NOT show other articles tagged "all conditions"
+					 */
+					//$allConditions = new WP_Query($allCondition_args);
+					//$new_query = array_unique( array_merge( $wp_query->posts, $allConditions->posts ), SORT_REGULAR);
+					$new_query = $wp_query->posts;
 
 					// Title Ordering
 					if(get_query_var('orderby') == 'title'){

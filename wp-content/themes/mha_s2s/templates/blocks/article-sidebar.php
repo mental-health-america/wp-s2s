@@ -34,6 +34,7 @@
     $terms_all = '';
 
     //if(has_term('All Conditions', 'condition')){
+    /*
     if(get_field('all_conditions')){
 
         // Display all tags
@@ -43,6 +44,7 @@
         ));
 
     } else {
+    */
 
         // Use assigned tags 
         if($terms_conditions && $terms_tags){
@@ -56,7 +58,7 @@
         // Sort alphabetically
         usort($terms_all, "term_sort_name");
 
-    }
+    //}
     
 
     if($terms_all):
@@ -123,7 +125,9 @@
         // Pathway override
         if(get_query_var('pathway')){
             $path_terms = get_the_terms(get_query_var('pathway'), 'condition');
-            $primary_condition = $path_terms[0]->term_id;
+            if($path_terms){
+                $primary_condition = $path_terms[0]->term_id;
+            }
         }
 
         if($primary_condition){

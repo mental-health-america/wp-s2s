@@ -187,6 +187,11 @@ add_shortcode('mha_provider_search', 'mha_provider_search');
  */
 function mha_show_tests() { 
 	
+	$referrer = '';
+	if(get_query_var('ref')){
+		$referrer = get_query_var('ref');
+	}
+	
     $args = array(
         "post_type" => 'screen',
         "orderby" => 'menu_order',
@@ -205,6 +210,7 @@ function mha_show_tests() {
 		if(get_field('survey', get_the_ID())){
 			$screen_color = 'purple';
 		}
+
 		?>  		
 			<div class="screen-item relative">
 				<button class="reveal-excerpt"  
@@ -212,7 +218,7 @@ function mha_show_tests() {
 					aria-expanded="false"
 					aria-controls="<?php echo $screen_id; ?>>">+</button>
 				<a class="button round block text-left large <?php echo $screen_color; ?>"
-					href="<?php echo get_the_permalink(); ?>">
+					href="<?php echo add_query_arg( 'ref', $referrer, get_the_permalink()); ?>">
 					<span class="excerpt-title"><?php the_title(); ?></span>
 					<span class="excerpt block" style="display: none;" id="<?php echo $screen_id; ?>">
 						<?php echo get_the_excerpt(); ?><br />
