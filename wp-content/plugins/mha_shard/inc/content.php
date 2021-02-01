@@ -45,7 +45,7 @@ function mha_popular_articles( $options ) {
 	if($atts['tag']){	
 		// Add a tag to the mix	
 		$articles = $wpdb->get_results('
-			SELECT DISTINCT posts.ID, postview.id, COUNT(postview.count) as total
+			SELECT DISTINCT posts.ID, postview.id, SUM(postview.count) as total
 			FROM '.$wpdb->prefix.'posts AS posts
 
 			INNER JOIN '.$wpdb->prefix.'post_views AS postview
@@ -69,7 +69,7 @@ function mha_popular_articles( $options ) {
 	} else {
 		// All articles
 		$articles = $wpdb->get_results('
-			SELECT DISTINCT posts.ID, postview.id, postmeta.post_id, COUNT(postview.count) as total
+			SELECT DISTINCT posts.ID, postview.id, postmeta.post_id, SUM(postview.count) as total
 			FROM '.$wpdb->prefix.'posts AS posts
 
 			INNER JOIN '.$wpdb->prefix.'post_views AS postview

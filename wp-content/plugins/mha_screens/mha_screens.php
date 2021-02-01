@@ -47,7 +47,6 @@ function getUserScreenResults( $user_screen_id ) {
     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
         
         // Error!
-        pre($response);
         echo '<p>There was a problem displaying your results. Please refresh the page, or contact us with the following information if the issue persists.</p>';
         // echo '<p><strong>Response Error:</strong>'.unserialize(wp_remote_retrieve_response_code( $response )).'<br /><br />';
         echo '<strong>Screen ID:</strong> '.$user_screen_id.'</p>';
