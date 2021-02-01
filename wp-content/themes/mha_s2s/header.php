@@ -17,6 +17,7 @@
 <link rel="dns-prefetch" href="//fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"> 
 
+<!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-45375759-2"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -25,7 +26,6 @@
   gtag('config', 'UA-45375759-2');
 </script>
 
-<!-- Global site tag (gtag.js) - Google Analytics -->
 <?php
 // For s2s.mhanational.org
 /*
@@ -41,7 +41,8 @@
 		'screen_name' : '<?php echo get_the_permalink(); ?>'
 	});
 </script>
-*/ ?>
+*/ 
+?>
 
 <?php wp_head(); ?>
 </head>

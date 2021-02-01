@@ -7,7 +7,7 @@ $post_id = get_the_ID();
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
-    <div class="page-heading bar<?php echo $customClasses; ?>">	
+    <div class="page-heading bar">	
     <div class="wrap normal">	
         <?php
             the_title('<h1>','</h1>');
