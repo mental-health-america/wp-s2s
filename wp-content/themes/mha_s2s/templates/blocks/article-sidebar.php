@@ -49,14 +49,13 @@
         // Use assigned tags 
         if($terms_conditions && $terms_tags){
             $terms_all = array_merge($terms_conditions, $terms_tags);
+            usort($terms_all, "term_sort_name");
         } else if($terms_conditions && !$terms_tags){
             $terms_all = $terms_conditions;
         } else if(!$terms_conditions && $terms_tags){
             $terms_all = $terms_tags;
         }
         
-        // Sort alphabetically
-        usort($terms_all, "term_sort_name");
 
     //}
     
