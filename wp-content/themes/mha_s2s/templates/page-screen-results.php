@@ -239,8 +239,8 @@ get_header();
             // Manual steps
             if( have_rows('featured_next_steps', $user_screen_result['screen_id']) ):
             while( have_rows('featured_next_steps', $user_screen_result['screen_id']) ) : the_row();
-                if(!in_array($step->id, $exclude_ids)){
-                    $step = get_sub_field('link');
+                $step = get_sub_field('link');
+                if($step && !in_array($step->id, $exclude_ids)){
                     echo '<li><a class="dark-gray plain rec-screen-manual" href="'.get_the_permalink($step->ID).'">'.$step->post_title.'</a></li>';
                     $exclude_id[] = $step->ID;
                 }

@@ -54,7 +54,11 @@ function getUserScreenResults( $user_screen_id ) {
 		// Send email about error
 		$to = 'justin@chongandkoster.com';
 		$subject = 'MHA Error - Screen Results';
-        $body = 'Screen ID: '.$user_screen_id.'<br /><br />Error: '.$response->errors['http_request_failed'][0];
+        $body = 'Site: '.get_site_url().'<br />';
+        $body = 'Screen ID: '.$user_screen_id.'<br /><br />';
+        foreach($response->errors as $k => $v){
+            $body .= 'Errors: '.$k.': '.implode(' | ', $v).'<br />';
+        }
 		$headers = array('Content-Type: text/html; charset=UTF-8');	
 		$headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
         $result['mail'] = wp_mail( $to, $subject, $body, $headers );
