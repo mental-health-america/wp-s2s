@@ -70,22 +70,7 @@ function getUserScreenResults( $user_screen_id ) {
         $json = wp_remote_retrieve_body($response);
         $data = json_decode($json);                 
         $data = $data->entries[0];
-        ?>
-            
-        <?php if(!is_user_logged_in()): ?>
-            <div id="screen-save">
-                <div class="bubble round blue thin mb-3">
-                <div class="inner bold text-center">
-                    <a class="append-thought-id text-white" href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$data->id ?>">Log in</a>
-                    or
-                    <a class="append-thought-id text-white" href="/sign-up/?action=save_screen_<?php echo $data->id; ?>">register for an account</a>
-                    to save this result to your account.
-                </div>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <?php
+        
         // Text
         $label = '';
         $value_label = '';
@@ -93,7 +78,8 @@ function getUserScreenResults( $user_screen_id ) {
         $count_results = 0; 
         $advanced_conditions_data = []; 
 
-        $user_screen_results['your_answers'] .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';    
+        $user_screen_results['result_id'] = $data->id;
+        
         foreach($data as $k => $v){
             
             // Get field object
@@ -511,7 +497,7 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 					}
 
 					// Result Header
-					$header .= '<div>Your score was</div><h1 style="margin-top: 0; padding-top: 0;"><strong>'.get_sub_field('result_title').'</strong></h1>';
+					$header .= '<h1 style="margin-top: 0; padding-top: 0;"><strong>'.get_sub_field('result_title').'</strong></h1>';
 					$header .= get_sub_field('result_content');
 					
 					if(have_rows('additional_results', $screen_id)):

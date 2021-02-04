@@ -1,33 +1,66 @@
 <?php 
 /* Template Name: Screen Results */
 get_header(); 
+
+// Get Screen Results
+$user_screen_id = get_query_var('sid');
+$user_screen_result = getUserScreenResults( $user_screen_id );            
+$next_step_terms = [];
+$next_step_manual = [];
+$result_cta = [];
 ?>
 
 <div class="wrap normal">
-    <?php
-        while ( have_posts() ) : the_post();
-            get_template_part( 'templates/blocks/content', 'plain' );
-        endwhile;
-    ?>
+    <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+        <div class="page-heading plain">			
+            <?php 
+                if(get_field('espanol', $user_screen_result['screen_id'])){
+                    echo '<h1 class="entry-title">Sus Resultados</h1>';
+                } else {
+                    the_title( '<h1 class="entry-title">', '</h1>' ); 
+                }
+            ?>
+        </div>
+        <div class="page-intro">
+            <?php the_content(); ?>				
+        </div>
+    </article>
 </div>
 
 <div class="wrap narrow">
 
-    <ol class="screen-progress-bar clearfix step-3-of-3">
-        <li class="step-1"><span>Test<br />Questions</span></li>
-        <li class="step-2"><span>Demographic<br />Information</span></li>
-        <li class="step-3"><span>Your<br />Results</span></li>
-    </ol>
+    <?php 
+        if(get_field('espanol', $user_screen_result['screen_id'])){
+            echo '<ol class="screen-progress-bar clearfix step-3-of-3">
+                <li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
+                <li class="step-2"><span>Preguntas<br />Opcionales</span></li>
+                <li class="step-3"><span>Sus<br />Resultados</span></li>
+            </ol>';
+        } else {
+            echo '<ol class="screen-progress-bar clearfix step-3-of-3">
+                <li class="step-1"><span>Test<br />Questions</span></li>
+                <li class="step-2"><span>Demographic<br />Information</span></li>
+                <li class="step-3"><span>Your<br />Results</span></li>
+            </ol>';
+        }
+    ?>
+    
+    <?php if(!is_user_logged_in()): ?>
+        <div class="wrap narrow">
+            <div id="screen-save">
+                <div class="bubble round blue thin mb-3">
+                <div class="inner bold text-center">
+                    <a class="append-thought-id text-white" href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$user_screen_result['result_id'] ?>">Log in</a>
+                    or
+                    <a class="append-thought-id text-white" href="/sign-up/?action=save_screen_<?php echo $user_screen_result['result_id']; ?>">register for an account</a>
+                    to save this result to your account.
+                </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
     
     <?php
-        
-        // Get Screen Results
-        $user_screen_id = get_query_var('sid');
-        $user_screen_result = getUserScreenResults( $user_screen_id );            
-        $next_step_terms = [];
-        $next_step_manual = [];
-        $result_cta = [];
-        
         if(get_field('survey', $user_screen_result['screen_id'])){
             
             /**
@@ -113,7 +146,13 @@ get_header();
 
                             <div class="bubble thin teal round-small-bl mb-4">
                             <div class="inner">
-                                <div class="subtitle thin caps block pb-1">Your <?php echo get_the_title($user_screen_result['screen_id']); ?> score was</div>
+                                <div class="subtitle thin caps block pb-1">
+                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                        Su resultado para la <?php echo get_the_title($user_screen_result['screen_id']); ?> fue
+                                    <?php else: ?>
+                                        Your <?php echo get_the_title($user_screen_result['screen_id']); ?> score was
+                                    <?php endif; ?>
+                                </div>
                                 <h2 class="white small m-0">
                                     <strong><?php the_sub_field('result_title'); ?></strong>
                                 </h2>
@@ -121,10 +160,39 @@ get_header();
                             </div>
                                         
                             <div id="screen-result-buttons" class="button-grid pt-3 pb-3 pl-0 pr-0 pl-md-5 pr-md-5">
-                                <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">About your Score: <?php echo $user_screen_result['total_score']; ?></button>
-                                <button id="screen-email" class="button mint round thin" type="button" data-toggle="collapse" data-target="#email-results" aria-expanded="false" aria-controls="email-results">Email Results</button>
-                                <button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">Your Answers</button>
-                                <a class="button mint round thin" id="screen-take" href="/screening-tools/" target="_blank">Take a Mental Health Test</a>
+                                <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">                                                                   
+                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                        Sobre su puntuación:
+                                    <?php else: ?>
+                                        About your Score:
+                                    <?php endif; ?>
+                                    <?php echo $user_screen_result['total_score']; ?>     
+                                </button>
+
+                                <button id="screen-email" class="button mint round thin" type="button" data-toggle="collapse" data-target="#email-results" aria-expanded="false" aria-controls="email-results">                                    
+                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                        Enviar sus respuestas por correo electrónico
+                                    <?php else: ?>
+                                        Email Results
+                                    <?php endif; ?>
+                                </button>
+
+                                <button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">
+                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                        Sus respuestas
+                                    <?php else: ?>
+                                        Your Answers
+                                    <?php endif; ?>
+                                </button>
+
+                                <a class="button mint round thin" id="screen-take" href="/screening-tools/" target="_blank">
+                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                        Tomar otra prueba de salud mental
+                                    <?php else: ?>
+                                        Take Another Mental Health&nbsp;Test
+                                    <?php endif; ?>
+                                </a>
+
                             </div>
 
                             <div class="pt-4">
@@ -151,8 +219,12 @@ get_header();
                                             <div class="form-actions pt-3">
                                                 <input type="hidden" name="nonce" value="<?php $nonce = wp_create_nonce('mhaScreenEmail'); echo $nonce; ?>" />
                                                 <input type="hidden" name="screen_id" value="<?php echo $user_screen_result['screen_id']; ?>" />
-                                                <input type="hidden" name="screen_user_id" value="<?php echo $user_screen_id; ?>" />
-                                                <input type="submit" class="submit button teal gform_button" value="Send Results" />
+                                                <input type="hidden" name="screen_user_id" value="<?php echo $user_screen_id; ?>" />                                                
+                                                <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                                    <input type="submit" class="submit button teal gform_button espanol" value="Enviar" />
+                                                <?php else: ?>
+                                                    <input type="submit" class="submit button teal gform_button" value="Send Results" />
+                                                <?php endif; ?>
                                             </div>
 
                                         </div>
@@ -174,6 +246,11 @@ get_header();
                                 <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="your-answers">
                                 <div class="inner small">
                                     <div class="container-fluid p-0">
+                                        <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                            <h3 class="section-title dark-teal mb-4">Sus respuestas</h3>
+                                        <?php else: ?>
+                                            <h3 class="section-title dark-teal mb-4">Your Answers</h3>
+                                        <?php endif; ?>                                        
                                         <?php echo $user_screen_result['your_answers']; ?>
                                     </div>
                                 </div>
@@ -217,7 +294,32 @@ get_header();
 </div>
 
 <div class="wrap normal pt-5 pb-3">
+
     <h2 class="section-title dark-blue bold">Next Steps</h2>
+    
+    <?php    
+        // CTA
+        global $post;
+        foreach($result_cta as $cta){
+            $post = get_post($cta); 
+            get_template_part( 'templates/blocks/block', 'cta' );  
+        } 
+        wp_reset_postdata();
+
+        // Global CTAs
+        if( have_rows('actions', 'option') ):
+        while( have_rows('actions', 'option') ) : the_row();  
+            $post_id = get_sub_field('action');
+            $post = get_post($post_id); 
+            if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
+                setup_postdata($post);
+                get_template_part( 'templates/blocks/block', 'cta' );  
+            }
+        endwhile;
+        endif;
+        wp_reset_postdata();
+    ?>
+
     <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
         <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
     <?php endif; ?>
@@ -341,26 +443,6 @@ get_header();
 </div>
     
 <?php
-    // CTA
-    global $post;
-    foreach($result_cta as $cta){
-        $post = get_post($cta); 
-        get_template_part( 'templates/blocks/block', 'cta' );  
-    } 
-    wp_reset_postdata();
-
-    // Global CTAs
-    if( have_rows('actions', 'option') ):
-    while( have_rows('actions', 'option') ) : the_row();  
-        $post_id = get_sub_field('action');
-        $post = get_post($post_id); 
-        if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
-            setup_postdata($post);
-            get_template_part( 'templates/blocks/block', 'cta' );  
-        }
-    endwhile;
-    endif;
-    wp_reset_postdata();
     
     // Content Blocks
     wp_reset_query();

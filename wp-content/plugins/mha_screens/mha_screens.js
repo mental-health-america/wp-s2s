@@ -41,7 +41,11 @@ jQuery(function ($) {
 					success: function( results ) {
 						
 						$(form).addClass('success');
-						$('.form-message',form).html('<p class="section-title text-dark-teal large bold m-0 text-center">Your test results have been sent</p>').show();
+						if($('.submit',form).hasClass('espanol')){
+							$('.form-message',form).html('<p class="section-title text-dark-teal large bold m-0 text-center">Resultados enviados</p>').show();
+						} else {
+							$('.form-message',form).html('<p class="section-title text-dark-teal large bold m-0 text-center">Your test results have been sent</p>').show();
+						}
 						$('.form-content',form).slideUp();
 					},
 					error: function(xhr, ajaxOptions, thrownError){

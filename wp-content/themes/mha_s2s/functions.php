@@ -276,11 +276,19 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 	$current_page = GFFormDisplay::get_current_page( $form['id'] );
 	$page_count = GFFormDisplay::get_max_page_number( $form ) + 1;
 	
-    $progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
-        <li class="step-1"><span>Test<br />Questions</span></li>
-        <li class="step-2"><span>Demographic<br />Information</span></li>
-        <li class="step-3"><span>Your<br />Results</span></li>
-    </ol>';
+	if(get_field('espanol')){
+		$progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+			<li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
+			<li class="step-2"><span>Preguntas<br />Opcionales</span></li>
+			<li class="step-3"><span>Sus<br />Resultados</span></li>
+		</ol>';
+	} else {
+		$progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+			<li class="step-1"><span>Test<br />Questions</span></li>
+			<li class="step-2"><span>Demographic<br />Information</span></li>
+			<li class="step-3"><span>Your<br />Results</span></li>
+		</ol>';
+	}
  
     return $progress_bar;
 }

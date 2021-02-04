@@ -3,7 +3,7 @@
 get_header(); 
 
 // This shouldn't be on production!
-//die();
+die();
 
  /*
 function acf_field_array_conversion( $string ){            

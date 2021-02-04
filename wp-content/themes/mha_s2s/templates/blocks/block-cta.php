@@ -9,7 +9,7 @@
     $custom = get_field('custom_classes');
 ?>
 
-<div class="content-block block-text <?php echo $custom; ?>">
+<div class="content-block block-text block-cta <?php echo $custom; ?> mb-4 mt-4">
         
     <?php
         // Open Wrappers
@@ -31,7 +31,7 @@
     ?>
 
     <?php if(get_field('headline')): ?>
-        <h2 class="block-title"><?php the_field('headline'); ?></h2>
+        <h2 class="section-title small bold"><?php the_field('headline'); ?></h2>
     <?php endif; ?>
 
     <?php the_field('content'); ?>

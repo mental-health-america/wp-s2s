@@ -222,7 +222,13 @@ function mha_show_tests() {
 					<span class="excerpt-title"><?php the_title(); ?></span>
 					<span class="excerpt block" style="display: none;" id="<?php echo $screen_id; ?>">
 						<?php echo get_the_excerpt(); ?><br />
-						<strong class="caps lh-normal">Take <?php the_title(); ?></strong>
+						<strong class="caps lh-normal">							
+							<?php if(get_field('espanol')): ?>
+								Tome la <?php the_title(); ?>
+							<?php else: ?>
+								Take <?php the_title(); ?>
+							<?php endif; ?>
+						</strong>
 					</span>
 				</a>
 			</div>		
