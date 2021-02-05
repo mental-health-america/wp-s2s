@@ -293,6 +293,20 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
     return $progress_bar;
 }
 
+
+/**
+ * Export labels instead of values for excel exports
+ */
+add_filter('gfexcel_export_field_value_checkbox', function ($gform_value, $form_id, $input_id, $entry) {
+    $field = \GFAPI::get_field($form_id, $input_id);
+    return $field->get_value_export($entry, $input_id, true);
+}, 10, 4);
+add_filter('gfexcel_export_field_value_radio', function ($gform_value, $form_id, $input_id, $entry) {
+    $field = \GFAPI::get_field($form_id, $input_id);
+    return $field->get_value_export($entry, $input_id, true);
+}, 10, 4);
+
+
 /**
  * Useful array search function
  */

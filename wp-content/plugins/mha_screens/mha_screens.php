@@ -47,22 +47,27 @@ function getUserScreenResults( $user_screen_id ) {
     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
         
         // Error!
-        echo '<p>There was a problem displaying your results. Please refresh the page, or contact us with the following information if the issue persists.</p>';
-        // echo '<p><strong>Response Error:</strong>'.unserialize(wp_remote_retrieve_response_code( $response )).'<br /><br />';
-        echo '<strong>Screen ID:</strong> '.$user_screen_id.'</p>';
+        echo '<div class="wrap narrow mb-5">';
+        echo '<div class="bubble round-bl coral">';
+        echo '<div class="inner">';
 
-		// Send email about error
-		$to = 'justin@chongandkoster.com';
-		$subject = 'MHA Error - Screen Results';
-        $body = 'Site: '.get_site_url().'<br />';
-        $body = 'Screen ID: '.$user_screen_id.'<br /><br />';
-        foreach($response->errors as $k => $v){
-            $body .= 'Errors: '.$k.': '.implode(' | ', $v).'<br />';
-        }
-		$headers = array('Content-Type: text/html; charset=UTF-8');	
-		$headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
-        $result['mail'] = wp_mail( $to, $subject, $body, $headers );
-        
+            echo '<p>There was a problem displaying your results. Please refresh the page, or contact us with the following information if the issue persists.</p>';
+            echo '<p class="mb-0"><strong>Screen ID:</strong> '.$user_screen_id.'</p>';
+
+            // Send email about error
+            $to = 'justin@chongandkoster.com';
+            $subject = 'MHA Error - Screen Results';
+            $body = 'Site: '.get_site_url().'<br />';
+            $body .= 'Screen ID: '.$user_screen_id.'<br />';
+            $body .= 'Response Code: '.wp_remote_retrieve_response_code( $response ).'<br /><br />';
+            $body .= json_encode($response);
+            $headers = array('Content-Type: text/html; charset=UTF-8');	
+            $headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
+            $result['mail'] = wp_mail( $to, $subject, $body, $headers );
+            
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';        
 
     } else {
 

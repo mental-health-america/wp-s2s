@@ -189,8 +189,8 @@ function thoughtLike(){
 		}
 
 		// Handle anonymous or logged in differently
-		if($uid == 0){			
-			$user_where = "uid = 0 AND ipiden = '$ipiden'";
+		if($uid == 4){			
+			$user_where = "uid = 4 AND ipiden = '$ipiden'";
 		} else {
 			$user_where = "uid = $uid";
 		}		
@@ -329,14 +329,11 @@ function likeChecker($pid, $row){
 	// Vars
 	$table = 'thoughts_likes';
 	$ipiden = get_ipiden();	
-	$uid = get_current_user_id();	
-	if(!$uid){
-		$uid = 4; // Default "Anonymous" User
-	}
+	$uid = get_current_user_id();
 
 	// Handle anonymous or logged in differently
 	if($uid == 0){			
-		$user_where = "uid = 0 AND ipiden = '$ipiden'";
+		$user_where = "uid = 4 AND ipiden = '$ipiden'";
 	} else {
 		$user_where = "uid = $uid";
 	}	

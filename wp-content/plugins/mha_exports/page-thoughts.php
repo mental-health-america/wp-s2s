@@ -34,7 +34,7 @@ function mhathoughtexport(){
     <fieldset id="mha-all-screen-exports">
         <p>
             <label style="display: inline-block; width: 100px;" for="export_screen_start_date">Start Date</label>
-            <input type="text" name="export_screen_start_date" id="export_screen_start_date" placeholder="<?php echo date('Y-m-d', strtotime('now - 7 days ago')); ?>" />
+            <input type="text" name="export_screen_start_date" id="export_screen_start_date" placeholder="<?php echo date('Y-m-d', strtotime('now - 1 week')); ?>" />
         </p>
 
         <p>
@@ -220,6 +220,11 @@ function mha_aggregate_data_export(){
          * Participant Identifier
          */ 
         $csv_data[$i]['Participant Identifier'] = $ipiden.'_'.$author_id;
+        if($author_id != 4){
+            $csv_data[$i]['Participant Email'] = get_the_author_meta( 'email', $author_id );
+        } else {
+            $csv_data[$i]['Participant Email'] = '';
+        }
 
         /**
          * Thoughts
@@ -333,6 +338,7 @@ function mha_aggregate_data_export(){
             $writer->insertOne(
                 [
                     "Participant Identifier",
+                    "Participant Email",
                     'Number of Thoughts Started',
                     'Number of Responses Answered',
                     'Number of Logins',
@@ -428,6 +434,7 @@ function mha_nonaggregate_data_export(){
         // Set Up Headers    
         $response_data = [];
         $response_data['Participant Identifier'] = '';
+        $response_data['Participant Email'] = '';
         $response_data['Total Logins'] = '';
         $response_data['Last Login'] = '';
         $response_data['Total Time Spent On Site'] = '';
@@ -468,6 +475,11 @@ function mha_nonaggregate_data_export(){
          * Participant Identifier
          */ 
         $response_data['Participant Identifier'] = $ipiden.'_'.$author_id;
+        if($author_id != 4){
+            $response_data['Participant Email'] = get_the_author_meta( 'email', $author_id );
+        } else {
+            $response_data['Participant Email'] = '';
+        }
 
         /**
          * Thoughts

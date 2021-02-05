@@ -521,6 +521,7 @@ jQuery(function ($) {
 					data: args
 				},
 				success: function( results ) {
+					
 					//$(`.thought-like[data-pid="${pid}"][data-row="${row}"]`).toggleClass('liked').prop('disabled', false);
 					$('.thought-like[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('liked').prop('disabled', false);
 
