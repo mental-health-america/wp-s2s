@@ -515,9 +515,10 @@ ol.next-steps {
                 stroke: #438FEF;
                 stroke-width: 4;
             }
-            .red & {
+            .red & svg {
                 //background-image: url('../images/path-red.png');
-                fill: $red;
+                //fill: $red;
+                stroke: $raz;
             }
         }
         &.path-spacer-narrow { display: none; }
@@ -538,9 +539,10 @@ ol.next-steps {
                     stroke: #438FEF;
                     stroke-width: 3;
                 }
-                .red & {
+                .red & svg {
                     //background-image: url('../images/path-red.png');
-                    fill: $red;
+                    //fill: $red;
+                    stroke: $raz;
                 }
             }
             &.path-spacer-wide { display: none; }

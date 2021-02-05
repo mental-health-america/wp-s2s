@@ -287,13 +287,15 @@
                             if( have_rows('more_links') ):
                             while( have_rows('more_links') ) : the_row();                                        
                                 $page = get_sub_field('page');
-                                echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink($page).'">';
-                                    if(get_sub_field('custom_title')){
-                                        the_sub_field('custom_title');
-                                    } else {
-                                        echo get_the_title($page);
-                                    }
-                                echo '</a></li>';
+                                if($page){
+                                    echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink($page).'">';
+                                        if(get_sub_field('custom_title')){
+                                            the_sub_field('custom_title');
+                                        } else {
+                                            echo get_the_title($page);
+                                        }
+                                    echo '</a></li>';
+                                }
                             endwhile;
                             endif;
 

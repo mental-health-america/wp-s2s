@@ -26,24 +26,6 @@
   gtag('config', 'UA-45375759-2');
 </script>
 
-<?php
-// For s2s.mhanational.org
-/*
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-RGT73CT3W0"></script>
-<script>
-	window.dataLayer = window.dataLayer || [];
-	function gtag(){dataLayer.push(arguments);}
-	gtag('js', new Date());
-	gtag('config', 'G-RGT73CT3W0', {
-		'user_id': '<?php echo get_ipiden().'_'.get_current_user_id(); ?>'
-	});
-	gtag('event', 'screen_view', {
-		'screen_name' : '<?php echo get_the_permalink(); ?>'
-	});
-</script>
-*/ 
-?>
-
 <?php wp_head(); ?>
 </head>
 

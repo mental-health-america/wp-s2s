@@ -47,7 +47,7 @@ get_header();
 		$article_type = get_field('type');
 		$link_skip = [];
 
-		if(get_query_var('pathway') || have_rows('more_links') && count(array_intersect($article_type, $resources)) == 0):
+		if(get_query_var('pathway') || have_rows('more_links')):
 
 			$path_id = get_query_var('pathway');
 			$current = get_the_ID();
@@ -86,6 +86,48 @@ get_header();
 
 					<div class="bubble round-tl <?php echo $bubble_color; ?> mb-5 bubble-border path-container mt-5">
 					<div class="inner">
+
+						<?php 
+							/**
+							 * Check for duplicate articles in the pathway below and don't show them
+							 * in the "More Links" section
+							 */
+							if($path_id){
+								if( have_rows('path', $path_id) ):
+								while( have_rows('path', $path_id) ) : the_row();
+									$article = get_sub_field('article');
+									$link_skip[] = $article;
+								endwhile;
+								endif;
+							}
+						?>
+
+						<?php 
+							/**
+							 * More Links
+							 */
+							if(have_rows('more_links', $current)): 
+								echo '<div class="pl-2 mb-4">';
+								echo '<h4 class="thin">More Links</h4>';
+								while( have_rows('more_links', $current) ) : the_row();
+
+									$page = get_sub_field('page');
+									if($page){
+										if(!in_array($page->ID, $link_skip)){ // Skip pathway links to avoid duplicates
+											echo '<a class="button '.$button_color.' thin round mr-3 mb-3" href="'.get_the_permalink($page).'">';
+												if(get_sub_field('custom_title')){
+													the_sub_field('custom_title');
+												} else {
+													echo get_the_title($page);
+												}
+											echo '</a>';
+										}
+									}
+
+								endwhile;
+								echo '</div>';
+							endif; 
+						?>
 
 						<?php if($path_id): ?>
 							<h3><?php echo get_the_title($path_id); ?></h3>
@@ -139,38 +181,12 @@ get_header();
 												$spacer_counter_narrow = 0;
 											}
 										}
-										$link_skip[] = $article;
 										$delay = $delay + .1;
 									endwhile;
 									endif;
 								?>
 							</ol>
 						<?php endif; ?>
-
-						<?php 
-							if(have_rows('more_links', $current)): 
-								if($next_id){
-									$top_padding = ' mt-5';
-								} else {
-									$top_padding = '';
-								}
-								echo '<h4 class="thin'.$top_padding.'">More Links</h4>';
-								while( have_rows('more_links', $current) ) : the_row();
-
-									$page = get_sub_field('page');
-									if(!in_array($page->ID, $link_skip)){ // Skip pathway links to avoid duplicates
-										echo '<a class="button '.$button_color.' thin round mr-3 mb-3" href="'.get_the_permalink($page).'">';
-											if(get_sub_field('custom_title')){
-												the_sub_field('custom_title');
-											} else {
-												echo get_the_title($page);
-											}
-										echo '</a>';
-									}
-
-								endwhile;
-							endif; 
-						?>
 						
 					</div>
 					</div>
