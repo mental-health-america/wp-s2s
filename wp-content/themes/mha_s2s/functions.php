@@ -669,3 +669,51 @@ add_filter( 'gform_export_fields', function( $form ) {
 
 	return $form;
 } );
+
+
+/**
+ * Default Pathway Override
+ * Only show Reading Paths that this post is a part of
+ */
+/*
+add_filter('acf/fields/post_object/result/name=default_pathway', 'my_acf_fields_post_object_result', 10, 4);
+function my_acf_fields_post_object_result( $text, $post, $field, $post_id ) {
+
+	$paths = get_field('path', $post->ID);
+	if( $paths ) {
+		$counter = 0;
+		foreach($paths as $path){
+			if($path['article'] == $post_id){
+				$counter++;
+			}
+		}		
+		if($counter == 0){
+			return false;
+		}
+	}
+
+    return $text;
+}
+*/
+
+add_filter('acf/fields/post_object/query/name=default_pathway', 'my_acf_fields_post_object_query', 10, 3);
+function my_acf_fields_post_object_query( $args, $field, $post_id ) {
+
+	$meta_query = array();
+    $meta_query[] = array(
+		'key' 		=> 'path_$_article',
+		'value' 	=> $post_id,
+		'compare'	=> '=',
+	);
+
+    $args['meta_query'] = $meta_query;
+
+    return $args;
+} 
+
+
+function path_article_where( $where ) {	
+	$where = str_replace("meta_key = 'path_$", "meta_key LIKE 'path_%", $where);
+	return $where;
+}
+add_filter('posts_where', 'path_article_where');

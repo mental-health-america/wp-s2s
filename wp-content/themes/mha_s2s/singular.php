@@ -47,9 +47,16 @@ get_header();
 		$article_type = get_field('type');
 		$link_skip = [];
 
-		if(get_query_var('pathway') || have_rows('more_links')):
-
+		if(get_query_var('pathway')){
 			$path_id = get_query_var('pathway');
+		} else if(get_field('default_pathway')){
+			$path_id = get_field('default_pathway');
+		} else {
+			$path_id = null;
+		}
+
+		if($path_id || have_rows('more_links')):
+
 			$current = get_the_ID();
 			$path = get_field('path', $path_id);
 
