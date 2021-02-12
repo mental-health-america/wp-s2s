@@ -139,6 +139,10 @@
         p {
             margin: 0;
         }
+        &.flagged {
+            color: $white;
+            background: $grayMedium;
+        }
     }
 
     .thought-text {
@@ -209,7 +213,6 @@
         }
     }
 }
-
 
 // Pathways
 #form-paths {

@@ -116,7 +116,7 @@ function thoughtSubmission(){
 						'value'		=> $ipiden
 					),
 					array(
-						'key'		=> 'abandoned', // TODO: Update this in case "reopening" thoughts is ever a thing
+						'key'		=> 'abandoned',
 						'compare'   => 'NOT EXISTS',
 					)
 				)
@@ -397,19 +397,19 @@ function likeChecker($pid, $row){
 					'value'		=> $activity_id
 				),
 				array(
-					'key'		=> 'abandoned', // TODO: Update this in case "reopening" thoughts is ever a thing
-					'compare'   => 'NOT EXISTS',
+					'key'		=> 'abandoned',
+					'value'		=> ''
 				)
 			)
 		);
-
+		
 		$loop = new WP_Query($args);
 		if($loop->have_posts()):
 			while($loop->have_posts()) : $loop->the_post();
 
 				$thoughts = get_field('responses');	
 
-				if($thoughts[0]['response']) { 
+				if($thoughts[0]['response'] && $thoughts[0]['hide'] != 1) { 
 
 					// Vars
 					$pid = get_the_ID();
@@ -421,7 +421,7 @@ function likeChecker($pid, $row){
 
 					$like_count = getThoughtLikes($pid, 0);
 				
-					echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'">';
+					echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'" id="thought-'.get_the_ID().'">';
 					echo '<div class="inner clearfix">';
 
 						// Thought Display
@@ -442,20 +442,31 @@ function likeChecker($pid, $row){
 							echo '</button>';
 
 							// Flag
-							echo '<button class="icon thought-flag"  data-toggle="tooltip" data-placement="top" title="Flag this thought for review if you feel it is inappropriate." data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0">';
+							echo '<button class="icon thought-flagger" data-toggle="tooltip" data-placement="top" title="Report this thought for review if you feel it is inappropriate." aria-controls="#thought-'.get_the_ID().'">';
 								echo '<span class="image">';
 									include("assets/flag.svg");
 								echo '</span>';
-								echo '<span class="text">Flag</span>';
+								echo '<span class="text">Report</span>';
 							echo '</button>';
 							
 							// Explore
 							if(!$return){
 								echo '<span class="explore-container"><button class="bar submit submit-initial-thought seed-user submitted-thought" value="'.$pid.'">Explore this thought &raquo;</button></span>';
-							}						
-						echo '</div>';
+							}		
 
-					echo '</div>';
+						echo '</div>';	
+					echo '</div>';	
+
+					echo '
+					<div class="thought-flag-confirm-container text-center hidden">
+						<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
+							<p class="mb-3"><em>&quot;'.$thoughts[0]['response'].'&quot;</em></p>
+							<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0" data-thought-id="#thought-'.get_the_ID().'">Are you sure you want to report this thought?</button></p>
+							<button class="cancel-flag-thought plain gray round text-gray">Nevermind</button>
+						</div>
+					</div>
+					';
+
 					echo '</li>';
 
 					$unique_user_seeds[] = $thoughts[0]['user_pre_seeded_thought'];
@@ -475,7 +486,7 @@ function likeChecker($pid, $row){
 
 					$like_count = getThoughtLikes($pid, $admin_thought_row);
 				
-					echo '<li class="round-small-bl bubble thin submitted-by-admin wow fadeIn" data-count="'.$like_count.'">';
+					echo '<li class="round-small-bl bubble thin submitted-by-admin wow fadeIn" data-count="'.$like_count.'" id="thought-'.get_the_ID().'">';
 					echo '<div class="inner clearfix">';
 
 						// Thought Display
@@ -496,11 +507,11 @@ function likeChecker($pid, $row){
 							echo '</button>';
 
 							// Flag
-							echo '<button class="icon thought-flag"  data-toggle="tooltip" data-placement="top" title="Flag this thought for review if you feel it is inappropriate." data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">';
+							echo '<button class="icon thought-flagger" data-toggle="tooltip" data-placement="top" title="Report this thought for review if you feel it is inappropriate." aria-controls="#thought-'.get_the_ID().'">';
 								echo '<span class="image">';
 									include("assets/flag.svg");
 								echo '</span>';
-								echo '<span class="text">Flag</span>';
+								echo '<span class="text">Report</span>';
 							echo '</button>';
 							
 							// Explore
@@ -510,6 +521,17 @@ function likeChecker($pid, $row){
 						echo '</div>';
 
 					echo '</div>';
+					
+					echo '
+					<div class="thought-flag-confirm-container text-center hidden">
+						<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
+							<p class="mb-3"><em>&quot;'.$admin_thought_text[$admin_thought_row_adjust]['response'].'&quot;</em></p>
+							<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'" data-thought-id="#thought-'.get_the_ID().'">Are you sure you want to report this thought?</button></p>
+							<button class="cancel-flag-thought plain gray round text-gray">Nevermind</button>
+						</div>
+					</div>
+					';
+					
 					echo '</li>';
 
 					$unique_admin_seeds[] = $thoughts[0]['admin_pre_seeded_thought'];
@@ -609,7 +631,7 @@ function likeChecker($pid, $row){
 					$pid = get_the_ID();				
 					$thoughts = get_field( 'responses', $pid );	
 					
-					if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != ''){					
+					if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != '' && $thoughts[$index]['hide'] != 1){					
 						thoughtRow($pid, $thoughts, $index);
 						$counter++;
 					}
@@ -625,7 +647,7 @@ function likeChecker($pid, $row){
 				$pid = get_the_ID();				
 				$thoughts = get_field( 'responses', $pid );	
 				
-				if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != ''){					
+				if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != '' && $thoughts[$index]['hide'] != 1){					
 					thoughtRow($pid, $thoughts, $index);
 					$counter++;
 				}
@@ -664,7 +686,7 @@ function thoughtRow($pid, $thoughts, $index) {
 	
 	$like_count = getThoughtLikes($pid, $index);
 
-	echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'">';
+	echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'" id="thought-'.$pid.'">';
 	echo '<div class="inner clearfix">';
 		
 		// Thought Display
@@ -685,15 +707,26 @@ function thoughtRow($pid, $thoughts, $index) {
 			echo '</button>';
 
 			// Flag
-			echo '<button class="icon thought-flag" data-toggle="tooltip" data-placement="top" title="Flag this thought for review if you feel it is inappropriate." data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'">';
+			echo '<button class="icon thought-flagger" data-toggle="tooltip" data-placement="top" title="Report this thought for review if you feel it is inappropriate." aria-controls="#thought-'.$pid.'">';
 				echo '<span class="image">';
 					include("assets/flag.svg");
 				echo '</span>';
-				echo '<span class="text">Flag</span>';
+				echo '<span class="text">Report</span>';
 			echo '</button>';			
 		echo '</div>';
 
 	echo '</div>';
+	
+	echo '
+	<div class="thought-flag-confirm-container text-center hidden">
+		<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
+			<p class="mb-3"><em>&quot;'.$thoughts[$index]['response'].'&quot;</em></p>
+			<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'" data-thought-id="#thought-'.$pid.'">Are you sure you want to report this thought?</button></p>
+			<button class="cancel-flag-thought plain gray round text-gray">Nevermind</button>
+		</div>
+	</div>
+	';
+
 	echo '</li>';
 }
 
@@ -754,7 +787,7 @@ function abandonThought(){
 				),
 				array(
 					'key'		=> 'abandoned',
-					'compare'   => 'NOT EXISTS'
+					'compare'  	=> 'NOT EXISTS'
 				),
 				array(
 					'key'		=> 'activity',

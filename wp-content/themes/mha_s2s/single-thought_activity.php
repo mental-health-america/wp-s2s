@@ -35,7 +35,7 @@ get_header();
 				),
 				array(
 					'key'		=> 'abandoned',
-					'compare'   => 'NOT EXISTS'
+					'value'   	=> ''
 				)
 			)
 		);

@@ -54,7 +54,9 @@ function recent_flagged_thoughts() {
         </tr>
         <?php 
             foreach($flag_query as $flag): 
-            if(get_field('admin_notes', $flag->pid)){
+            $responses = get_field('responses', $flag->pid);
+            $type = get_post_type($flag->pid);
+            if($type == 'thought_activity' || $responses[$flag->row]['hide'] == 1 || get_field('admin_notes', $flag->pid)){
                 continue;
             }
             $flag_count++;
@@ -73,11 +75,10 @@ function recent_flagged_thoughts() {
                 </td>
                 <td>
                     <?php
-                        $responses = get_field('responses', $flag->pid);
-                        $type = get_post_type($flag->pid);
                         //echo $flag->row;
                         $edit_pid = $flag->pid;
 
+                        /*
                         if($type == 'thought_activity'){
 
                             // Admin seeded thought
@@ -85,6 +86,7 @@ function recent_flagged_thoughts() {
                             echo '<strong>Admin Seeded Thought:</strong><br />'.$initial_thought[$flag->row]['response'];
 
                         } else {
+                        */
 
                             // Other thoughts
                             if(isset($responses[$flag->row]['response'])){
@@ -93,7 +95,9 @@ function recent_flagged_thoughts() {
                                 echo '<em>&mdash; Thought Deleted &mdash;</em>';
                             }
 
+                        /*
                         }
+                        */
 
                     ?>
                 </td>

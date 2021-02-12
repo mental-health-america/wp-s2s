@@ -24,10 +24,11 @@ if(isset($_GET['show_admin'])){
 }
 
 if($show_admin == 0){
-    echo '<p><a class="button button-primary" href="/wp-admin/admin.php?page=mhaflaggedthoughtmod&show_admin=1">Show Flags with Admin Notes</a></p>';
+    echo '<p><a class="button button-primary" href="/wp-admin/admin.php?page=mhaflaggedthoughtmod&show_admin=1">Show Moderated Flags</a></p>';
 } else {
-    echo '<p><a class="button button-primary" href="/wp-admin/admin.php?page=mhaflaggedthoughtmod&show_admin=0">Hide Flags with Admin Notes</a></p>';
+    echo '<p><a class="button button-primary" href="/wp-admin/admin.php?page=mhaflaggedthoughtmod&show_admin=0">Hide Moderated Flags</a></p>';
 }
+
 ?>
 
 <?php
@@ -35,7 +36,7 @@ if($show_admin == 0){
 $items = 100;
 $offset = $paged * $items;
 $flag_query = $wpdb->get_results( 'SELECT * FROM thoughts_flags ORDER BY date DESC LIMIT '.$offset.', '.$items );
-
+$flagCount = 0;
 if($flag_query){ ?>
 
     <table class="wp-list-table widefat striped">
@@ -46,14 +47,17 @@ if($flag_query){ ?>
             <th class="text-left">Admin Notes</th>
             <th class="text-left">Edit</th>
         </tr>
-        <?php foreach($flag_query as $flag): ?>
-
-            <?php
-                // Skip moderated flags
+        <?php 
+            foreach($flag_query as $flag): 
+                $responses = get_field('responses', $flag->pid);
+                $type = get_post_type($flag->pid);
+                
+                // Skip moderated flags         
+                
                 if($show_admin == 0){ 
-                    if(get_field('admin_notes', $flag->pid)){
+                    if($type == 'thought_activity' || $responses[$flag->row]['hide'] == 1){
                         continue;
-                    }
+                    } 
                 }
             ?>
 
@@ -71,8 +75,6 @@ if($flag_query){ ?>
                 </td>
                 <td>
                     <?php
-                        $responses = get_field('responses', $flag->pid);
-                        $type = get_post_type($flag->pid);
                         //echo $flag->row;
                         $edit_pid = $flag->pid;
 
@@ -98,7 +100,14 @@ if($flag_query){ ?>
                     <?php edit_post_link('Edit', '', '', $edit_pid); ?>
                 </td>
             </tr>
-        <?php endforeach;?> 
+        <?php 
+            $flagCount++; 
+            endforeach;
+            
+            if($flagCount == 0){
+                echo '<td colspan="5">There are no flags available for review.</td>';
+            }
+        ?> 
     </table>
     <br /><br />
 
