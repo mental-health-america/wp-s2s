@@ -43,29 +43,43 @@ function mha_popular_articles( $options ) {
 	$month_range = date('Ym').','.date('Ym', strtotime("-1 months")).','.date('Ym', strtotime("-2 months")); // Last 3 months
 	
 	if($atts['tag']){	
-		// Add a tag to the mix	
-		$articles = $wpdb->get_results('
-			SELECT DISTINCT posts.ID, postview.id, SUM(postview.count) as total
+
+		// All articles
+		$articles_bunch = $wpdb->get_results('
+			SELECT DISTINCT posts.ID, postview.id, postmeta.post_id, SUM(postview.count) as total
 			FROM '.$wpdb->prefix.'posts AS posts
 
 			INNER JOIN '.$wpdb->prefix.'post_views AS postview
 			ON posts.ID = postview.id
 
-			INNER JOIN '.$wpdb->prefix.'term_relationships AS meta
-			ON posts.ID = meta.object_id AND meta.term_taxonomy_id = "'.$atts['tag'].'"	
-
 			INNER JOIN '.$wpdb->prefix.'postmeta AS postmeta
 			ON posts.ID = postmeta.post_id
 
-			WHERE posts.post_status LIKE "publish" 
-			AND posts.post_type LIKE "article"		
+			WHERE posts.post_status LIKE "publish"
+			AND posts.post_type LIKE "article" 
 			AND postview.period IN ('.$month_range.') 
 			AND postmeta.meta_value LIKE "condition"
 
 			GROUP BY posts.ID
 			ORDER BY total DESC
-			LIMIT 8'
+			LIMIT 300'
 		);
+
+		$articles = [];
+
+		$bunch_counter = 0;
+		if($articles_bunch){
+			foreach($articles_bunch as $a){
+				if($bunch_counter > 8){
+					continue;
+				}
+				if(has_term($atts['tag'], $atts['tax'], $a->ID)){
+					$articles[] = $a;
+					$bunch_counter++;
+				}
+			}
+		}
+
 	} else {
 		// All articles
 		$articles = $wpdb->get_results('
