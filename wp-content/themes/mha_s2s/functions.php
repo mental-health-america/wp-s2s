@@ -297,6 +297,8 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 /**
  * Export labels instead of values for excel exports
  */
+
+// GF excel exports
 add_filter('gfexcel_export_field_value_checkbox', function ($gform_value, $form_id, $input_id, $entry) {
     $field = \GFAPI::get_field($form_id, $input_id);
     return $field->get_value_export($entry, $input_id, true);
@@ -305,6 +307,13 @@ add_filter('gfexcel_export_field_value_radio', function ($gform_value, $form_id,
     $field = \GFAPI::get_field($form_id, $input_id);
     return $field->get_value_export($entry, $input_id, true);
 }, 10, 4);
+
+// Normal GF exports
+add_filter( 'gform_export_field_value', 'export_choice_text', 10, 4 );
+function export_choice_text( $value, $form_id, $field_id, $entry ) {
+    $field = GFAPI::get_field( $form_id, $field_id );
+    return is_object( $field ) && is_array( $field->choices ) ? $field->get_value_export( $entry, $field_id, true ) : $value;
+}
 
 
 /**

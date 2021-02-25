@@ -352,7 +352,28 @@ function likeChecker($pid, $row){
  * Update Thoughts Submitted
  */
 
- function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null, $admin_seed = null, $user_seed = null, $return = null ){
+ 
+function loadMoreThoughts(){
+
+	parse_str($_POST['data'], $data);  
+
+	$activity_id = intval($data['activity_id']);
+	$index = intval($data['index']);
+	$path = intval($data['path']);
+	$admin_seed = intval($data['admin_seed']);
+	$user_seed = intval($data['user_seed']);
+	$return = intval($data['return']);
+	$paged = intval($data['paged']);
+
+	return getThoughtsSubmitted($activity_id, $index, $path, $admin_seed, $user_seed, $return, $paged);
+
+}
+add_action("wp_ajax_nopriv_loadMoreThoughts", "loadMoreThoughts");
+add_action("wp_ajax_loadMoreThoughts", "loadMoreThoughts");
+
+
+
+ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null, $admin_seed = null, $user_seed = null, $return = null, $paged = 1 ){
 	
 	/*
 	echo '<pre>';
@@ -386,29 +407,34 @@ function likeChecker($pid, $row){
 
 		$args = array(
 			"post_type" 	 => 'thought',
-			"post_status" 	 => 'publish',
+			"post_status" 	 => array('publish', 'draft'),
 			"order"			 => 'DESC',
 			"orderby" 		 => 'date',
-			"posts_per_page" => 50,
+			"posts_per_page" => 100,
+			"paged" 		 => $paged,
 			"meta_query"	 => array(
-				'relation'	 	=> 'AND',
+				//'relation'	 	=> 'AND',
 				array(
 					'key'		=> 'activity',
 					'value'		=> $activity_id
 				),
+				/*
 				array(
 					'key'		=> 'abandoned',
 					'value'		=> ''
 				)
+				*/
 			)
 		);
 		
 		$loop = new WP_Query($args);
+		$max_pages = $loop->max_num_pages;
+		
 		if($loop->have_posts()):
 			while($loop->have_posts()) : $loop->the_post();
 
 				$thoughts = get_field('responses');	
-
+				
 				if($thoughts[0]['response'] && $thoughts[0]['hide'] != 1) { 
 
 					// Vars
@@ -421,7 +447,7 @@ function likeChecker($pid, $row){
 
 					$like_count = getThoughtLikes($pid, 0);
 				
-					echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'" id="thought-'.get_the_ID().'">';
+					echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'" data-index="'.$index.'" id="thought-'.get_the_ID().'">';
 					echo '<div class="inner clearfix">';
 
 						// Thought Display
@@ -461,8 +487,9 @@ function likeChecker($pid, $row){
 					<div class="thought-flag-confirm-container text-center hidden">
 						<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
 							<p class="mb-3"><em>&quot;'.$thoughts[0]['response'].'&quot;</em></p>
-							<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0" data-thought-id="#thought-'.get_the_ID().'">Are you sure you want to report this thought?</button></p>
-							<button class="cancel-flag-thought plain gray round text-gray">Nevermind</button>
+							<p class="mb-3">This will alert moderators that the comment may be inappropriate. Continue?</p>
+							<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0" data-thought-id="#thought-'.get_the_ID().'">Yes, report this comment</button></p>
+							<button class="cancel-flag-thought button blue thin round small">Nevermind</button>
 						</div>
 					</div>
 					';
@@ -486,7 +513,7 @@ function likeChecker($pid, $row){
 
 					$like_count = getThoughtLikes($pid, $admin_thought_row);
 				
-					echo '<li class="round-small-bl bubble thin submitted-by-admin wow fadeIn" data-count="'.$like_count.'" id="thought-'.get_the_ID().'">';
+					echo '<li class="round-small-bl bubble thin submitted-by-admin wow fadeIn" data-count="'.$like_count.'" data-index="'.$index.'" id="thought-'.get_the_ID().'">';
 					echo '<div class="inner clearfix">';
 
 						// Thought Display
@@ -526,8 +553,9 @@ function likeChecker($pid, $row){
 					<div class="thought-flag-confirm-container text-center hidden">
 						<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
 							<p class="mb-3"><em>&quot;'.$admin_thought_text[$admin_thought_row_adjust]['response'].'&quot;</em></p>
-							<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'" data-thought-id="#thought-'.get_the_ID().'">Are you sure you want to report this thought?</button></p>
-							<button class="cancel-flag-thought plain gray round text-gray">Nevermind</button>
+							<p class="mb-3">This will alert moderators that the comment may be inappropriate. Continue?</p>
+							<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'" data-thought-id="#thought-'.get_the_ID().'">Yes, report this comment</button></p>
+							<button class="cancel-flag-thought button blue thin round small">Nevermind</button>
 						</div>
 					</div>
 					';
@@ -546,20 +574,40 @@ function likeChecker($pid, $row){
 				}
 
 			endwhile; 
+		
 		else:
-			echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn">';
-				echo '<div class="inner clearfix">There are no other thoughts to display.</div>';
-			echo '</li>';
+			if($paged == 1){
+				echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn">';
+					echo '<div class="inner clearfix">There are no other thoughts to display.</div>';
+				echo '</li>';
+			}
+		endif;
+				
+		// Load More
+		$paged_next = $paged + 1;
+		if( $max_pages > 1 && $paged_next <= $max_pages ):
+			if(!isset($_POST['data']) || isset($_POST['data']) && $index == 0):
+				echo '<li class="load-more navigation pagination pt-5 mr-2 mr-md-3" data-index="'.$index.'" style="background: none;">';
+					echo '<button class="load-more-thoughts button round red" 
+						data-activity-id="'.$activity_id.'"
+						data-index="'.$index.'"
+						data-path="'.$path.'"
+						data-admin-seed="'.$admin_seed.'"
+						data-user-seed="'.$user_seed.'"
+						data-return="'.$return.'"
+						data-paged="'.$paged_next.'">Load More Thoughts</button>';
+				echo '</li>';
+			endif;
 		endif;
 	}
-
 
 	/**
 	 * Follow Up Thoughts
 	 */
-	if($index > 0 || isset($_POST['data'])){
+	if($index > 0 || isset($_POST['data']) && $return == null ){
 		
-		// For ajax requested calls
+		// For ajlax requested calls
+		$true_index = $index;
 		if($_POST['data']){
 			parse_str($_POST['data'], $data); 
 			$activity_id = $data['activity_id'];
@@ -574,10 +622,11 @@ function likeChecker($pid, $row){
 
 		$args = array(
 			"post_type" 	 => 'thought',
+			'paged' 		 => $paged,
 			"post_status" 	 => 'publish',
 			"order"			 => 'DESC',
 			"orderby" 		 => 'date',
-			"posts_per_page" => 50,
+			"posts_per_page" => 100,
 			'meta_query' 	 => array(
 				'relation'   => 'AND',
 				array(
@@ -620,6 +669,7 @@ function likeChecker($pid, $row){
 
 		$loop = new WP_Query($args);
 		$max = $loop->post_count;
+		$max_pages = $loop->max_num_pages;
 		$counter = 0;
 		$if_check = 0;
 
@@ -653,16 +703,32 @@ function likeChecker($pid, $row){
 				}
 
 			endwhile;
+				
+			// Load More
+			$paged_next = $paged + 1;
+			if( $max_pages > 1 && $paged_next <= $max_pages ):
+				echo '<li class="load-more navigation pagination pt-5 mr-2 mr-md-3" data-index="'.$index.'" style="background: none;">';
+						echo '<button class="load-more-thoughts button round red" 
+							data-activity-id="'.$activity_id.'"
+							data-index="'.$index.'"
+							data-path="'.$path.'"
+							data-admin-seed="'.$admin_seed.'"
+							data-user-seed="'.$user_seed.'"
+							data-return="'.$return.'"
+							data-paged="'.$paged_next.'">Load More Thoughts</button>';
+				echo '</li>';
+			endif;
+
 		else:
-			if($counter == 0){
+			if($counter == 0 && $paged == 1){
 				echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn no-thought">';
-					echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!...</div>';
+					echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
 				echo '</li>';
 				$if_check = 1;
 			}
 		endif;
 
-		if($counter == 0 && $if_check == 0){			
+		if($counter == 0 && $if_check == 0 && $paged == 1){			
 			echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn no-thought">';
 				echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
 			echo '</li>';
@@ -679,6 +745,7 @@ add_action("wp_ajax_nopriv_getThoughtsSubmitted", "getThoughtsSubmitted");
 add_action("wp_ajax_getThoughtsSubmitted", "getThoughtsSubmitted");
 
 
+
 /**
  * Template for display other responses
  */
@@ -686,7 +753,7 @@ function thoughtRow($pid, $thoughts, $index) {
 	
 	$like_count = getThoughtLikes($pid, $index);
 
-	echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'" id="thought-'.$pid.'">';
+	echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'" data-index="'.$index.'" id="thought-'.$pid.'">';
 	echo '<div class="inner clearfix">';
 		
 		// Thought Display
@@ -721,8 +788,9 @@ function thoughtRow($pid, $thoughts, $index) {
 	<div class="thought-flag-confirm-container text-center hidden">
 		<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
 			<p class="mb-3"><em>&quot;'.$thoughts[$index]['response'].'&quot;</em></p>
-			<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'" data-thought-id="#thought-'.$pid.'">Are you sure you want to report this thought?</button></p>
-			<button class="cancel-flag-thought plain gray round text-gray">Nevermind</button>
+			<p class="mb-3">This will alert moderators that the comment may be inappropriate. Continue?</p>
+			<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'" data-thought-id="#thought-'.$pid.'">Yes, report this comment</button></p>
+			<button class="cancel-flag-thought button blue thin round small">Never mind</button>
 		</div>
 	</div>
 	';

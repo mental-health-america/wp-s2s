@@ -821,4 +821,58 @@ jQuery(function ($) {
 	});
 
 
+	/**
+	 * Load More Thoughts
+	 */
+
+	$(document).on('click', '.load-more-thoughts', function(event){
+		
+		// Disable default behavior
+		event.preventDefault();
+
+		// Get vars
+		var $this = $(this),
+			activity_id = $this.attr('data-activity-id'),
+			index = $this.attr('data-index'),
+			path = $this.attr('data-path'),
+			admin_seed = $this.attr('data-admin-seed'),
+			user_seed = $this.attr('data-user-seed'),
+			dreturn = $this.attr('data-return'),
+			path = $this.attr('data-path'),
+			page = $this.attr('data-paged');		
+			
+		// Prep the data
+		var args = 'activity_id='+activity_id+'&index='+index+'&path='+path+'&paged='+page+'&admin_seed='+admin_seed+'&user_seed='+user_seed+'&dreturn='+dreturn;
+
+		// Disable rhe button
+		$this.prop('disabled', true);			
+		
+		$.ajax({
+			type: "POST",
+			url: do_mhaActivity.ajaxurl,
+			data: { 
+				action: 'loadMoreThoughts',
+				data: args
+			},
+			success: function( results ) {
+
+				//$this.parents('li').remove();
+				$('#thoughts-submitted li.load-more').remove();
+				$('#thoughts-submitted').append(results);
+				$('#thoughts-submitted li').each(function(){
+					var rowIndex = $(this).attr('data-index');
+					if(rowIndex != index){
+						$(this).remove();
+					}
+				});
+
+			},
+			error: function(xhr, ajaxOptions, thrownError){				
+				console.error(xhr,thrownError);
+			}
+		});	
+
+	});
+
+
 });

@@ -55,6 +55,7 @@ function getUserScreenResults( $user_screen_id ) {
             echo '<p class="mb-0"><strong>Screen ID:</strong> '.$user_screen_id.'</p>';
 
             // Send email about error
+            /*
             $to = 'justin@chongandkoster.com';
             $subject = 'MHA Error - Screen Results';
             $body = 'Site: '.get_site_url().'<br />';
@@ -64,6 +65,7 @@ function getUserScreenResults( $user_screen_id ) {
             $headers = array('Content-Type: text/html; charset=UTF-8');	
             $headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
             $result['mail'] = wp_mail( $to, $subject, $body, $headers );
+            */
             
         echo '</div>';
         echo '</div>';
