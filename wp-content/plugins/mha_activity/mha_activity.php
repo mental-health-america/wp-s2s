@@ -372,368 +372,177 @@ add_action("wp_ajax_nopriv_loadMoreThoughts", "loadMoreThoughts");
 add_action("wp_ajax_loadMoreThoughts", "loadMoreThoughts");
 
 
-
- function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null, $admin_seed = null, $user_seed = null, $return = null, $paged = 1 ){
+/**
+ * Get submitted thoughts for each path
+ */
+function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null, $admin_seed = null, $user_seed = null, $return = null, $paged = 1 ){
 	
+	/**
+	 * Var overrides when ajax requested
+	 */
+	if($_POST['data']){
+		parse_str($_POST['data'], $data); 
+		$activity_id = $data['activity_id'];
+		$index = $data['index'];
+		$path = $data['path'];
+		$admin_seed = $data['admin_seed'];
+		$user_seed = $data['user_seed'];
+		$return = $data['return'];
+		$paged = $data['paged'];
+		if($index == 0 && $path != ''){
+			$index = 1;
+		}
+	}
+
+	// Debugging
 	/*
 	echo '<pre>';
-	echo 'Activity ID: ';
-	print_r($activity_id);
-	echo '<br />';
-
-	echo 'Index: ';
-	print_r($index);
-	echo '<br />';
-
-	echo 'Path: ';
-	print_r($path);
-	echo '<br />';
-
-	echo 'Admin Seed: ';
-	print_r($admin_seed);
-	echo '<br />';
-	
-	echo 'User Seed: ';
-	print_r($user_seed);
+		echo 'ID: '.$activity_id.'<br />';
+		echo 'Index: '.$index.'<br />';
+		echo 'Path: '.$path.'<br />';
+		echo 'Admin Seed: '.$admin_seed.'<br />';
+		echo 'User Seed: '.$user_seed.'<br />';
+		echo 'Return: '.$return.'<br />';
+		echo 'Paged: '.$paged.'<br />';
 	echo '</pre>';
 	*/
 
-	/** Initital Thoughts */
-	if($index === 0){
+	// General Vars
+	$admin_seeds = get_field('pre_generated_responses', $activity_id);
+	$unique_admin_seeds = [];
+	$unique_user_seeds = [];
+	$thought_counter = 0;
+	$thought_query_fail = 0;
 
-		$admin_seeds = get_field('pre_generated_responses', $activity_id);
-		$unique_admin_seeds = [];
-		$unique_user_seeds = [];
-
-		$args = array(
-			"post_type" 	 => 'thought',
-			"post_status" 	 => array('publish', 'draft'),
-			"order"			 => 'DESC',
-			"orderby" 		 => 'date',
-			"posts_per_page" => 100,
-			"paged" 		 => $paged,
-			"meta_query"	 => array(
-				//'relation'	 	=> 'AND',
-				array(
-					'key'		=> 'activity',
-					'value'		=> $activity_id
-				),
-				/*
-				array(
-					'key'		=> 'abandoned',
-					'value'		=> ''
-				)
-				*/
+	$args = array(
+		"post_type" 	 => 'thought',
+		"post_status" 	 => array('publish', 'draft'),
+		"order"			 => 'DESC',
+		"orderby" 		 => 'date',
+		"posts_per_page" => 250,
+		"paged" 		 => $paged,
+		"meta_query"	 => array(
+			array(
+				'key'		=> 'activity',
+				'value'		=> $activity_id
 			)
+		)
+	);
+	
+	// Add to our meta query for subsequent questions
+	if($path != '' && $path > 0){
+		$args['meta_query'] = array( 'relation' => 'AND' );
+		$args['meta_query'] = array(
+			'key'		=> 'responses_1_path', 
+			'value'  	=> intval($path)
 		);
+	}
+
 		
-		$loop = new WP_Query($args);
-		$max_pages = $loop->max_num_pages;
-		
-		if($loop->have_posts()):
-			while($loop->have_posts()) : $loop->the_post();
-
-				$thoughts = get_field('responses');	
-				
-				if($thoughts[0]['response'] && $thoughts[0]['hide'] != 1) { 
-
-					// Vars
-					$pid = get_the_ID();
-
-					// Skip already displayed responses				
-					if(in_array($pid, $unique_user_seeds)){
-						continue;
-					}
-
-					$like_count = getThoughtLikes($pid, 0);
-				
-					echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'" data-index="'.$index.'" id="thought-'.get_the_ID().'">';
-					echo '<div class="inner clearfix">';
-
-						// Thought Display
-						echo edit_post_link('Edit', '', '', $pid);
-						echo '<div class="thought-text" data-pid="'.$pid.'">';
-							echo $thoughts[0]['response'];
-						echo '</div>';		
-						
-						// Actions
-						echo '<div class="thought-actions">';
-							// Relate
-							$like_class = (likeChecker($pid, 0)) ? ' liked' : '';
-							echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="0">';
-								echo '<span class="image">';
-									include("assets/heart.svg");
-								echo '</span>';
-								echo '<span class="text">I relate</span>';
-							echo '</button>';
-
-							// Flag
-							echo '<button class="icon thought-flagger" data-toggle="tooltip" data-placement="top" title="Report this thought for review if you feel it is inappropriate." aria-controls="#thought-'.get_the_ID().'">';
-								echo '<span class="image">';
-									include("assets/flag.svg");
-								echo '</span>';
-								echo '<span class="text">Report</span>';
-							echo '</button>';
-							
-							// Explore
-							if(!$return){
-								echo '<span class="explore-container"><button class="bar submit submit-initial-thought seed-user submitted-thought" value="'.$pid.'">Explore this thought &raquo;</button></span>';
-							}		
-
-						echo '</div>';	
-					echo '</div>';	
-
-					echo '
-					<div class="thought-flag-confirm-container text-center hidden">
-						<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
-							<p class="mb-3"><em>&quot;'.$thoughts[0]['response'].'&quot;</em></p>
-							<p class="mb-3">This will alert moderators that the comment may be inappropriate. Continue?</p>
-							<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0" data-thought-id="#thought-'.get_the_ID().'">Yes, report this comment</button></p>
-							<button class="cancel-flag-thought button blue thin round small">Nevermind</button>
-						</div>
-					</div>
-					';
-
-					echo '</li>';
-
-					$unique_user_seeds[] = $thoughts[0]['user_pre_seeded_thought'];
-
-				} elseif($thoughts[0]['admin_pre_seeded_thought'] != '') { 
-					
-					$pid = get_the_ID();
-					
-					// Admin seeded response					
-					if(in_array($thoughts[0]['admin_pre_seeded_thought'], $unique_admin_seeds)){
-						continue;
-					}
-
-					$admin_thought_text = get_field('pre_generated_responses', $activity_id);
-					$admin_thought_row = intval($thoughts[0]['admin_pre_seeded_thought']);
-					$admin_thought_row_adjust = $admin_thought_row; // ACF saves with a 1 based index instead of 0
-
-					$like_count = getThoughtLikes($pid, $admin_thought_row);
-				
-					echo '<li class="round-small-bl bubble thin submitted-by-admin wow fadeIn" data-count="'.$like_count.'" data-index="'.$index.'" id="thought-'.get_the_ID().'">';
-					echo '<div class="inner clearfix">';
-
-						// Thought Display
-						echo edit_post_link('Edit', '', '', get_the_ID());
-						echo '<div class="thought-text">';
-							echo $admin_thought_text[$admin_thought_row_adjust]['response']; 
-						echo '</div>';							
-
-						// Actions
-						echo '<div class="thought-actions">';
-							// Relate
-							$like_class = (likeChecker($activity_id, $admin_thought_row)) ? ' liked' : '';
-							echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'">';
-								echo '<span class="image">';
-									include("assets/heart.svg");
-								echo '</span>';
-								echo '<span class="text">I relate</span>';
-							echo '</button>';
-
-							// Flag
-							echo '<button class="icon thought-flagger" data-toggle="tooltip" data-placement="top" title="Report this thought for review if you feel it is inappropriate." aria-controls="#thought-'.get_the_ID().'">';
-								echo '<span class="image">';
-									include("assets/flag.svg");
-								echo '</span>';
-								echo '<span class="text">Report</span>';
-							echo '</button>';
-							
-							// Explore
-							if(!$return){
-								echo '<span class="explore-container"><button class="bar submit submit-initial-thought seed-admin submitted-thought" value="'.$admin_thought_row.'">Explore this thought &raquo;</button></span>';
-							}						
-						echo '</div>';
-
-					echo '</div>';
-					
-					echo '
-					<div class="thought-flag-confirm-container text-center hidden">
-						<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
-							<p class="mb-3"><em>&quot;'.$admin_thought_text[$admin_thought_row_adjust]['response'].'&quot;</em></p>
-							<p class="mb-3">This will alert moderators that the comment may be inappropriate. Continue?</p>
-							<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$activity_id.'" data-row="'.$admin_thought_row.'" data-thought-id="#thought-'.get_the_ID().'">Yes, report this comment</button></p>
-							<button class="cancel-flag-thought button blue thin round small">Nevermind</button>
-						</div>
-					</div>
-					';
-					
-					echo '</li>';
-
-					$unique_admin_seeds[] = $thoughts[0]['admin_pre_seeded_thought'];
-				
-				} elseif($thoughts[0]['user_pre_seeded_thought']) { 
-					
-					/**
-					 * User seeds should never show, only display admin seeds or user 
-					 * thoughts directly for liking consolidation and such.
-					 */
-					continue;
-				}
-
-			endwhile; 
-		
-		else:
-			if($paged == 1){
-				echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn">';
-					echo '<div class="inner clearfix">There are no other thoughts to display.</div>';
-				echo '</li>';
+	// Admin Seeded Thought Overrides
+	if(is_numeric($admin_seed)){
+		// Add the admin connection 
+		$args['meta_query'][] = array(
+			'key'		=> 'responses_0_admin_pre_seeded_thought',
+			'value'  	=> intval($admin_seed)
+		);
+	}
+	
+	// User Seeeded Thought Overrides
+	$loop_extra = '';
+	$loop_extra_thought = '';
+	if(is_numeric($user_seed)){
+		// Add the original thought to our list
+		$args_extra = array(
+			"p" 			=> $user_seed,
+			"post_type" 	=> 'thought'
+		);
+		$loop_extra = new WP_Query($args_extra);
+	}
+	/*
+	if($loop_extra != '' && $loop_extra->have_posts()):		
+		while($loop_extra->have_posts()) : $loop_extra->the_post();
+										
+			// Vars
+			$pid = get_the_ID();				
+			$thoughts = get_field( 'responses', $pid );	
+			
+			if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != '' && $thoughts[$index]['hide'] != 1){					
+				thoughtRow($pid, $thoughts, $index);
+				$counter++;
 			}
-		endif;
+
+		endwhile;
+	endif;
+	*/
+
+	$loop = new WP_Query($args);
+	$max_pages = $loop->max_num_pages;
+		
+	if($loop->have_posts()):
+		while($loop->have_posts()) : $loop->the_post();
+
+			$pid = get_the_ID();
+			$thoughts = get_field('responses');	
+
+			// Skip user seeded thoughts (only show the original), and skip thoughts that have been hidden
+			if($index === 0 && $thoughts[0]['user_pre_seeded_thought'] || $thoughts[$index]['hide'] == 1 || !isset($thoughts[$index])){
+				continue;
+			}
+
+			// Skip thoughts not in this same path
+			if($index > 0 && $thoughts[1]['path'] != $path){
+				continue;
+			}
+
+			// Get the Thought Row text
+			$thought_text = $thoughts[$index]['response'];
+					
+			// Admin seeded thoughts override
+			if($index === 0 && $thoughts[0]['admin_pre_seeded_thought']){	
+				$admin_thought_text = get_field('pre_generated_responses', $activity_id);
+				$admin_thought_row = intval($thoughts[0]['admin_pre_seeded_thought']);
+				$thought_text = $admin_thought_text[$admin_thought_row]['response']; 				
+			}
+
+			// Skip empty thoughts
+			if($thought_text == ''){
+				continue;
+			}
+
+			thoughtRow($pid, $thought_text, $index);	
+			$thought_counter++;
 				
+		endwhile; 
+			
 		// Load More
 		$paged_next = $paged + 1;
 		if( $max_pages > 1 && $paged_next <= $max_pages ):
-			if(!isset($_POST['data']) || isset($_POST['data']) && $index == 0):
-				echo '<li class="load-more navigation pagination pt-5 mr-2 mr-md-3" data-index="'.$index.'" style="background: none;">';
-					echo '<button class="load-more-thoughts button round red" 
-						data-activity-id="'.$activity_id.'"
-						data-index="'.$index.'"
-						data-path="'.$path.'"
-						data-admin-seed="'.$admin_seed.'"
-						data-user-seed="'.$user_seed.'"
-						data-return="'.$return.'"
-						data-paged="'.$paged_next.'">Load More Thoughts</button>';
-				echo '</li>';
-			endif;
-		endif;
-	}
-
-	/**
-	 * Follow Up Thoughts
-	 */
-	if($index > 0 || isset($_POST['data']) && $return == null ){
-		
-		// For ajlax requested calls
-		$true_index = $index;
-		if($_POST['data']){
-			parse_str($_POST['data'], $data); 
-			$activity_id = $data['activity_id'];
-			$index = $data['index'];
-			$path = $data['path'];
-			$admin_seed = $data['admin_seed'];
-			$user_seed = $data['user_seed'];
-			if($index == 0){
-				$index = 1;
-			}
-		}
-
-		$args = array(
-			"post_type" 	 => 'thought',
-			'paged' 		 => $paged,
-			"post_status" 	 => 'publish',
-			"order"			 => 'DESC',
-			"orderby" 		 => 'date',
-			"posts_per_page" => 100,
-			'meta_query' 	 => array(
-				'relation'   => 'AND',
-				array(
-					'key' 	 	=> 'activity',
-					'value'  	=> intval($activity_id)
-				),
-				array(
-					'key'		=> 'responses_1_path', // Check for path on the second response entry
-					'value'  	=> intval($path)
-				)
-			),
-		);
-		
-		// Admin Seeded Thought Overrides
-		if(is_numeric($admin_seed)){
-			// Add the admin connection 
-			$args['meta_query'][] = array(
-				'key'		=> 'responses_0_admin_pre_seeded_thought',
-				'value'  	=> intval($admin_seed)
-			);
-		}
-		
-		// User Seeeded Thought Overrides
-		$loop_extra = '';
-		if(is_numeric($user_seed)){
-
-			$args['meta_query'][] = array(
-				'key'		=> 'responses_0_user_pre_seeded_thought',
-				'value'  	=> intval($user_seed)
-			);
-			
-			// Add the original thought to our list
-			$args_extra = array(
-				"p" 			=> $user_seed,
-				"post_type" 	=> 'thought'
-			);
-			$loop_extra = new WP_Query($args_extra);
-
-		}
-
-		$loop = new WP_Query($args);
-		$max = $loop->post_count;
-		$max_pages = $loop->max_num_pages;
-		$counter = 0;
-		$if_check = 0;
-
-		if($loop_extra != ''){
-			if($loop_extra->have_posts()):		
-				while($loop_extra->have_posts()) : $loop_extra->the_post();
-												
-					// Vars
-					$pid = get_the_ID();				
-					$thoughts = get_field( 'responses', $pid );	
-					
-					if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != '' && $thoughts[$index]['hide'] != 1){					
-						thoughtRow($pid, $thoughts, $index);
-						$counter++;
-					}
-
-				endwhile;
-			endif;
-		}
-
-		if($loop->have_posts()):		
-			while($loop->have_posts()) : $loop->the_post();
-											
-				// Vars
-				$pid = get_the_ID();				
-				$thoughts = get_field( 'responses', $pid );	
-				
-				if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != '' && $thoughts[$index]['hide'] != 1){					
-					thoughtRow($pid, $thoughts, $index);
-					$counter++;
-				}
-
-			endwhile;
-				
-			// Load More
-			$paged_next = $paged + 1;
-			if( $max_pages > 1 && $paged_next <= $max_pages ):
-				echo '<li class="load-more navigation pagination pt-5 mr-2 mr-md-3" data-index="'.$index.'" style="background: none;">';
-						echo '<button class="load-more-thoughts button round red" 
-							data-activity-id="'.$activity_id.'"
-							data-index="'.$index.'"
-							data-path="'.$path.'"
-							data-admin-seed="'.$admin_seed.'"
-							data-user-seed="'.$user_seed.'"
-							data-return="'.$return.'"
-							data-paged="'.$paged_next.'">Load More Thoughts</button>';
-				echo '</li>';
-			endif;
-
-		else:
-			if($counter == 0 && $paged == 1){
-				echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn no-thought">';
-					echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
-				echo '</li>';
-				$if_check = 1;
-			}
-		endif;
-
-		if($counter == 0 && $if_check == 0 && $paged == 1){			
-			echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn no-thought">';
-				echo '<div class="inner clearfix">There are no other responses for this path yet. Keep going!</div>';
+			echo '<li class="load-more navigation pagination pt-5 mr-2 mr-md-3" data-index="'.$index.'" style="background: none;">';
+				echo '<button class="load-more-thoughts button round red" 
+					data-activity-id="'.$activity_id.'"
+					data-index="'.$index.'"
+					data-path="'.$path.'"
+					data-admin-seed="'.$admin_seed.'"
+					data-user-seed="'.$user_seed.'"
+					data-return="'.$return.'"
+					data-paged="'.$paged_next.'">Load More Thoughts</button>';
 			echo '</li>';
-		}
+		endif;
 		
+	else:
+
+		echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn">';
+			echo '<div class="inner clearfix">There are no other thoughts to display.</div>';
+		echo '</li>';
+		$thought_query_fail = 1;
+
+	endif;
+
+	if($thought_counter == 0 && $thought_query_fail == 0){
+		echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn">';
+			echo '<div class="inner clearfix">There are no other thoughts to display.</div>';
+		echo '</li>';
 	}
 
 	if(isset($_POST['data'])){
@@ -749,24 +558,32 @@ add_action("wp_ajax_getThoughtsSubmitted", "getThoughtsSubmitted");
 /**
  * Template for display other responses
  */
-function thoughtRow($pid, $thoughts, $index) {
+function thoughtRow($pid = null, $text = null, $index) {
 	
-	$like_count = getThoughtLikes($pid, $index);
+	if($pid == null || $text == null ){
+		return false;
+	}
 
+	// Get like count
+	$like_count = getThoughtLikes($pid, $index);
+			
+	// Start the output
 	echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'" data-index="'.$index.'" id="thought-'.$pid.'">';
 	echo '<div class="inner clearfix">';
-		
+
 		// Thought Display
 		echo edit_post_link('Edit', '', '', $pid);
 		echo '<div class="thought-text" data-pid="'.$pid.'">';
-			echo $thoughts[$index]['response'];
-		echo '</div>';
+		
+			echo $text;
+			
+		echo '</div>';		
 		
 		// Actions
 		echo '<div class="thought-actions">';
 			// Relate
 			$like_class = (likeChecker($pid, $index)) ? ' liked' : '';
-			echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="'.$index.'">';
+			echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="0">';
 				echo '<span class="image">';
 					include("assets/heart.svg");
 				echo '</span>';
@@ -779,23 +596,27 @@ function thoughtRow($pid, $thoughts, $index) {
 					include("assets/flag.svg");
 				echo '</span>';
 				echo '<span class="text">Report</span>';
-			echo '</button>';			
-		echo '</div>';
+			echo '</button>';
+			
+			// Explore
+			if($index === 0){
+				echo '<span class="explore-container"><button class="bar submit submit-initial-thought seed-user submitted-thought" value="'.$pid.'">Explore this thought &raquo;</button></span>';
+			}	
+			echo '</div>';	
+		echo '</div>';		
 
-	echo '</div>';
-	
-	echo '
-	<div class="thought-flag-confirm-container text-center hidden">
-		<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
-			<p class="mb-3"><em>&quot;'.$thoughts[$index]['response'].'&quot;</em></p>
-			<p class="mb-3">This will alert moderators that the comment may be inappropriate. Continue?</p>
-			<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$index.'" data-thought-id="#thought-'.$pid.'">Yes, report this comment</button></p>
-			<button class="cancel-flag-thought button blue thin round small">Never mind</button>
-		</div>
-	</div>
-	';
+		// Flag Prompt
+		echo '<div class="thought-flag-confirm-container text-center hidden">
+			<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
+				<p class="mb-3"><em>&quot;'.$text.'&quot;</em></p>
+				<p class="mb-3">This will alert moderators that the comment may be inappropriate. Continue?</p>
+				<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0" data-thought-id="#thought-'.$pid.'">Yes, report this comment</button></p>
+				<button class="cancel-flag-thought button blue thin round small">Nevermind</button>
+			</div>
+		</div>';
+		
+	echo '</li>';	
 
-	echo '</li>';
 }
 
 

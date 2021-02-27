@@ -859,12 +859,6 @@ jQuery(function ($) {
 				//$this.parents('li').remove();
 				$('#thoughts-submitted li.load-more').remove();
 				$('#thoughts-submitted').append(results);
-				$('#thoughts-submitted li').each(function(){
-					var rowIndex = $(this).attr('data-index');
-					if(rowIndex != index){
-						$(this).remove();
-					}
-				});
 
 			},
 			error: function(xhr, ajaxOptions, thrownError){				
