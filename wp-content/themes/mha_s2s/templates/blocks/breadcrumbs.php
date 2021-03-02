@@ -97,13 +97,17 @@
                             echo '<a class="crumb crumb-referrer" href="'.get_the_permalink($ref_id).'">'.get_the_title($ref_id).'</a>';
                         } else {
                             if(get_query_var('ref')){
-                                $term = get_term( get_query_var('ref') );
-                                if(get_field('custom_category_name', $term->taxonomy.'_'.$term->term_id)){
-                                    $term_name = get_field('custom_category_name', $term->taxonomy.'_'.$term->term_id);
+                                if(get_term( get_query_var('ref') )){
+                                    $term = get_term( get_query_var('ref') );
+                                    if(get_field('custom_category_name', $term->taxonomy.'_'.$term->term_id)){
+                                        $term_name = get_field('custom_category_name', $term->taxonomy.'_'.$term->term_id);
+                                    } else {
+                                        $term_name = $term->name;
+                                    }
+                                    echo '<a class="crumb crumb-referrer" href="'.get_term_link($term).'">'.$term_name.'</a>';
                                 } else {
-                                    $term_name = $term->name;
+                                    echo '<a class="crumb crumb-referrer" href="'.get_the_permalink( get_query_var('ref') ).'">'.get_the_title( get_query_var('ref') ).'</a>';
                                 }
-                                echo '<a class="crumb crumb-referrer" href="'.get_term_link($term).'">'.$term_name.'</a>';
                             }
                         }
 

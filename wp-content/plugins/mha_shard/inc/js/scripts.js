@@ -1,7 +1,11 @@
 jQuery(function ($) {
 
 	// Main Search Filter Search
-	function submitFilterForm( order, orderby, append = '', page = 1 ){
+	function submitFilterForm( order, orderby, append, page ){
+
+		// IE doesn't like default parameters, so using this shorthand cheat instead
+		var append = append || '';
+		var page = page || 1;
 
 		// Prep the data
 		var args = $('.search-filters').serialize();
