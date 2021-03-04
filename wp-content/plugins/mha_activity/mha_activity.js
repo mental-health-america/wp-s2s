@@ -10,10 +10,13 @@ jQuery(function ($) {
 	// Initial sort the other thoughts
 	function sortThoughts(){
 		if($('#thoughts-submitted').length){
+			var loadMore = $('#thoughts-submitted li.load-more');
+			$('#thoughts-submitted li.load-more').remove();
 			$("#thoughts-submitted li").sort(sort_li).appendTo('#thoughts-submitted');
 			function sort_li(a, b) {
 				return ($(a).data('count')) < ($(b).data('count')) ? 1 : -1;
 			}
+			$(loadMore).appendTo('#thoughts-submitted');
 		}
 	}
 	sortThoughts();
@@ -65,9 +68,10 @@ jQuery(function ($) {
 					},
 					success: function( results ) {
 
-						// Show initial thought in the log
+						// Ajax response
 						var resultData = JSON.parse(results);	
 				
+						// Show initial thought in the log
 						setTimeout(function() {
 							// Hide initial thought
 							$('.activity-response, .form-item.pre-seed').slideUp();
@@ -76,8 +80,9 @@ jQuery(function ($) {
 							$('article.thought_activity, #other-responses').slideUp();		
 						}, 400);
 
-						// ID associated with the thought 
+						// Update post id with newly created thought
 						$('input[name="pid"]').val(resultData['pid']);
+
 						setTimeout(function() {
 							$('#start-over-container').slideDown();		
 							$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+sanitizeThought(resultData.response.thought_0.replace(/\\/g, ""))+'</p>').slideDown().addClass('fade-in');		
@@ -137,7 +142,11 @@ jQuery(function ($) {
 				},
 				success: function( results ) {
 
+					// Ajax response
 					var resultData = JSON.parse(results);
+				
+					// Update post id with newly created thought
+					$('input[name="pid"]').val(resultData['pid']);
 					
 					// Next steps
 					$('.further-actions').fadeIn();
@@ -191,8 +200,12 @@ jQuery(function ($) {
 				},
 				success: function( results ) {
 
+					// Ajax response
 					var resultData = JSON.parse(results);
 
+					// Update post id with newly created thought
+					$('input[name="pid"]').val(resultData['pid']);
+					
 					// Next steps
 					$('.further-actions').slideDown();
 					$('#start-over-container').fadeIn();
@@ -246,9 +259,10 @@ jQuery(function ($) {
 				},
 				success: function( results ) {
 					
-					// Show initial thought in the log
+					// Ajax response
 					var resultData = JSON.parse(results);
 
+					// Show initial thought in the log
 					setTimeout(function() {
 						$('#other-responses').fadeIn();
 						$('#thought-history .inner').html('<p class="thought-label"><em class="medium small">What you said before:</em></p><p>'+sanitizeThought(resultData.response.thought_0.replace(/\\/g, ""))+'</p>').fadeIn();				
@@ -333,10 +347,10 @@ jQuery(function ($) {
 					},
 					success: function( results ) {				
 						
-						var resultData = JSON.parse(results);
+						// Ajax response
+						// var resultData = JSON.parse(results);
 
 						$('#temp-result-data').text(results);
-
 						$('.question-item.active .text-entry').slideUp();
 						
 						/**
@@ -435,8 +449,22 @@ jQuery(function ($) {
 				$('.append-thought-id').each(function(){
 					var href = $(this).attr('href'),
 						pid = $('input[name="pid"]').val();
-					$(this).attr('href', href+''+pid);
+					$(this).attr('href', href+''+pid); // Blue Bar Links
 				});
+
+				// Update Register Links
+				$('.existing-account a.plain').each(function(event){
+					var href = $(this).attr('href'),
+						pid = $('input[name="pid"]').val();
+					if(href == '/sign-up'){
+						$(this).attr('href','/sign-up/?action=save_thought_'+pid);
+					}
+				});
+
+				// Update Header Login Form Redirection
+				var pid = $('input[name="pid"]').val(),
+					login_form_redirect = $('#loginform input[name="redirect_to"]').val()+'&action=save_thought_'+pid;
+				$('#loginform input[name="redirect_to"]').val('/my-account?action=save_thought_'+pid);
 				
 				// Question Log
 				var thoughtSummary = '<h2>Your Responses</h2>';

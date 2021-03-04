@@ -342,7 +342,19 @@ function front_end_login_fail( $username ) {
 	$referrer = $_SERVER['HTTP_REFERER'];    
 	// if there's a valid referrer, and it's not the default log-in screen
 	if( !empty( $referrer ) && !strstr( $referrer,'wp-login' ) && !strstr( $referrer,'wp-admin' ) ) {
-		wp_redirect( get_permalink( 566 ) . "?login_error=true" ); 
+		// Custom Redirect/Args
+		$query_args = array( 'login_error' => 'true' );
+
+		// Custom Referral Check
+		$ref_query = parse_url($referrer, PHP_URL_QUERY);
+		parse_str($ref_query, $ref_query_params);
+		if(isset($ref_query_params['redirect_to']) && $ref_query_params['redirect_to'] != ''){
+			$query_args['redirect_to'] = $ref_query_params['redirect_to'];
+		}
+
+		// Set our URL parameters
+		$custom_redirect = add_query_arg( $query_args, get_permalink( 566 ) );
+		wp_redirect( $custom_redirect ); 
 		exit;
 	}
 }
@@ -363,7 +375,19 @@ function check_username_password( $login, $username, $password ) {
 	// if there's a valid referrer, and it's not the default log-in screen
 	if( !empty( $referrer ) && !strstr( $referrer,'wp-login' ) && !strstr( $referrer,'wp-admin' ) ) { 
 		if( $username == "" || $password == "" ){
-			wp_redirect( get_permalink( 566 ) . "?login_error=true" );
+			// Custom Redirect/Args
+			$query_args = array( 'login_error' => 'true' );
+	
+			// Custom Referral Check
+			$ref_query = parse_url($referrer, PHP_URL_QUERY);
+			parse_str($ref_query, $ref_query_params);
+			if(isset($ref_query_params['redirect_to']) && $ref_query_params['redirect_to'] != ''){
+				$query_args['redirect_to'] = $ref_query_params['redirect_to'];
+			}
+	
+			// Set our URL parameters
+			$custom_redirect = add_query_arg( $query_args, get_permalink( 566 ) );
+			wp_redirect( $custom_redirect ); 
 			exit;
 		}
 	}
@@ -623,18 +647,13 @@ function remove_admin_bar() {
  * Auto login after registration.
  */
 add_action( 'gform_user_registered', 'wpc_gravity_registration_autologin',  10, 4 );
-function wpc_gravity_registration_autologin( $user_id, $user_config, $entry, $password ) {
-	$user = get_userdata( $user_id );
-	$user_login = $user->user_login;
-	$user_password = $password;
-       $user->set_role(get_option('default_role', 'subscriber'));
+function wpc_gravity_registration_autologin( $user_id, $feed, $entry, $user_pass ) {
+	
+	$source = $entry['source_url'];
+	GFCommon::log_debug( __METHOD__ .'Source URL: '.$source );
 
-    wp_signon( array(
-		'user_login' => $user_login,
-		'user_password' =>  $user_password,
-		'remember' => false
+	wp_set_auth_cookie( $user_id, false, is_ssl() );
 
-    ) );
 }
 
 

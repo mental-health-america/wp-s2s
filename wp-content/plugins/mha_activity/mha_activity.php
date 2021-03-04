@@ -457,7 +457,7 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 			"p" 			=> $user_seed,
 			"post_type" 	=> 'thought'
 		);
-		$loop_extra = new WP_Query($args_extra);
+		//$loop_extra = new WP_Query($args_extra);
 	}
 	/*
 	if($loop_extra != '' && $loop_extra->have_posts()):		
@@ -517,7 +517,7 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 			
 		// Load More
 		$paged_next = $paged + 1;
-		if( $max_pages > 1 && $paged_next <= $max_pages ):
+		if( $max_pages > 1 && $paged_next < $max_pages ):
 			echo '<li class="load-more navigation pagination pt-5 mr-2 mr-md-3" data-index="'.$index.'" style="background: none;">';
 				echo '<button class="load-more-thoughts button round red" 
 					data-activity-id="'.$activity_id.'"

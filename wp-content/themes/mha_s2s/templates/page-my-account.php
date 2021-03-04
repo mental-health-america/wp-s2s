@@ -20,10 +20,11 @@ if (strpos($account_action, 'save_thought_') !== false) {
 
     if($thought_author_id == 4 && $ipiden == $thought_ipiden) {
         // Only update this thought if its anonymous and matches the user's ipiden
-        $thought_args = array(
+        $update_thought_args = array(
             'ID' => $thought_id,
             'post_author' => $uid
         );
+        $update_thought = wp_update_post( $update_thought_args );
     }
 }
 
