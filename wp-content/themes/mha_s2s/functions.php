@@ -177,9 +177,20 @@ add_filter( 'tiny_mce_before_init', 'my_mce_before_init_insert_formats' );
  // https://make.wordpress.org/themes/2019/03/29/addition-of-new-wp_body_open-hook/
  if ( ! function_exists( 'wp_body_open' ) ) {
 	function wp_body_open() {
-			do_action( 'wp_body_open' );
+		do_action( 'wp_body_open' );
 	}
 }
+
+/**
+ * Custom Body Classes
+ */
+function wp_body_classes( $classes ) {
+	if(isset($_GET['iframe']) && $_GET['iframe'] == 'true'){
+    	$classes[] = 'iframe-mode';
+	}      
+    return $classes;
+}
+add_filter( 'body_class','wp_body_classes' );
 
 /**
  * Remove Dashicons From Front End
@@ -218,6 +229,27 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
 }
 
 
+
+/**
+ * Add iframe mode to screening results page
+ */
+add_filter( 'gform_confirmation', function ( $confirmation, $form, $entry ) {
+
+	// Default behavior
+    if ( ! is_array( $confirmation ) || empty( $confirmation['redirect'] ) ) {
+        return $confirmation;
+    }
+
+	// Check for the iframe parameter and include it on results page
+	if($confirmation['redirect'] && !empty($confirmation['redirect']) && isset($_GET['iframe']) && $_GET['iframe'] == 'true'){
+		$confirmation['redirect'] = add_query_arg( array( 'iframe' => 'true' ), $confirmation['redirect'] );
+	}
+
+    return $confirmation;
+
+}, 11, 3 );
+
+
 /**
  * Allowed additional query vars
  */
@@ -238,6 +270,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'action'; // Special my-account actions
     $qvars[] = 'redirect_to'; // Redirect for logins
     $qvars[] = 'paged'; // Pagination
+    $qvars[] = 'iframe'; // Custom header/footer for iframe usage
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );

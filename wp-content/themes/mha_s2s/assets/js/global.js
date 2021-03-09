@@ -38,7 +38,7 @@
 				return attr == 'true' ? 'false' : 'true'
 			});
 			$('#search-header').toggleClass('show');
-		});
+		});	
 
 		// Log In Toggle
 		$('#sign-in-toggle').on('click', function(event){
@@ -242,6 +242,28 @@
 
 		// Sticky Sidebars		
 		$("aside.article-right .sticky").stick_in_parent();
+
+
+		/**
+		 * Iframe mode options
+		 */
+		// Open links out of iframes
+		$('.iframe-mode a').each(function(){
+			$(this).click(function(event) {
+				event.preventDefault();
+				window.open(this.href, '_blank');
+			});
+		});
+
+		// Open form submissions in new window
+		/*
+		if($('body').hasClass('iframe-mode')){
+			if($('.screen-progress-bar').hasClass('step-2-of-3')){
+				// $('.iframe-mode form').attr('target', '_blank'); // Open results in new window
+				// $('.single-screen form input[type="submit"]').attr('formtarget', '_blank');
+			}
+		}
+		*/
 
 	});
 

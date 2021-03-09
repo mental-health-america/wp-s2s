@@ -1,0 +1,36 @@
+/* Styles to apply to the site when ?iframe=true is used */
+
+.iframe-mode {
+
+    // General Hiding
+    #utility-menu,
+    #navigation,
+    #smart-footer {
+        visibility: hidden;
+        display: none;
+    }
+
+    // Header
+    #header #logo {
+        float: none;
+        margin: 0 auto;
+        text-align: center;
+        text-decoration: none;
+        border: 0;
+        &:before {
+            content: 'Powered by:';
+            display: block;
+            margin: 0 0 10px 0;
+            text-align: center;
+            color: $gray;
+            font-size: 14px;
+            text-decoration: none;
+        }
+    }
+
+    // Content
+    .type-screen .page-heading.plain h1 {
+        text-align: center;
+    }
+
+}
