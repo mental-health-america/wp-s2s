@@ -249,10 +249,12 @@
 		 */
 		// Open links out of iframes
 		$('.iframe-mode a').each(function(){
-			$(this).click(function(event) {
-				event.preventDefault();
-				window.open(this.href, '_blank');
-			});
+			if(!$(this).parent('.screen-item')){ // Don't do this on the screen listing page
+				$(this).click(function(event) {
+					event.preventDefault();
+					window.open(this.href, '_blank');
+				});
+			}
 		});
 
 		// Open form submissions in new window

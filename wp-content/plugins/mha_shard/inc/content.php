@@ -205,6 +205,11 @@ function mha_show_tests() {
 	if(get_query_var('ref')){
 		$referrer = get_query_var('ref');
 	}
+
+	$iframe_mode = '';
+	if(get_query_var('iframe')){
+		$iframe_mode = get_query_var('iframe');
+	}
 	
     $args = array(
         "post_type" => 'screen',
@@ -225,6 +230,14 @@ function mha_show_tests() {
 			$screen_color = 'purple';
 		}
 
+		$screen_link_args = array(
+			'ref' => $referrer
+		);
+		if($iframe_mode == 'true'){
+			$screen_link_args['iframe'] = 'true';
+		}
+		$screen_link = add_query_arg( $screen_link_args, get_the_permalink());
+
 		?>  		
 			<div class="screen-item relative">
 				<button class="reveal-excerpt"  
@@ -232,7 +245,7 @@ function mha_show_tests() {
 					aria-expanded="false"
 					aria-controls="<?php echo $screen_id; ?>>">+</button>
 				<a class="button round block text-left large <?php echo $screen_color; ?>"
-					href="<?php echo add_query_arg( 'ref', $referrer, get_the_permalink()); ?>">
+					href="<?php echo $screen_link; ?>">
 					<span class="excerpt-title"><?php the_title(); ?></span>
 					<span class="excerpt block" style="display: none;" id="<?php echo $screen_id; ?>">
 						<?php echo get_the_excerpt(); ?><br />
