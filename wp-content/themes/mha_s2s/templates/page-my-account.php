@@ -33,6 +33,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
     $screen_id = str_replace('save_screen_', '', $account_action);
     $screen_ipiden = get_ipiden();
 
+    /*
     $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
     $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
     $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
@@ -41,14 +42,15 @@ if (strpos($account_action, 'save_screen_') !== false) {
     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
         // Error!
     } else {
-        
-        $json = wp_remote_retrieve_body($response);
-        $data = json_decode($json);   
-                
+    */
+
+    $entry = GFAPI::get_entry( $screen_id );
+
+    if(!is_wp_error($entry)){
+                        
         // If the IP matches and uid is blank, add this test to this account
-        if($data->{40} == $screen_ipiden && $data->{41} == ''){            
-            $entry_id = $data->id;
-            $entry = GFAPI::get_entry( $entry_id );
+        if($entry[40] == $screen_ipiden && $entry[41] == ''){
+            $entry = GFAPI::get_entry( $entry['id'] );
             $entry['41'] = $current_user->user_email; // UID field
             $update = GFAPI::update_entry( $entry );
         }
@@ -161,30 +163,43 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
                 <?php
                     $current_user = wp_get_current_user();
+                    /*
                     $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
                     $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
                     $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
                     $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?paging[page_size]=100&search={"field_filters": [{"key":41,"value":"'.$current_user->user_email.'","operator":"contains"}]}', array( 'headers' => $headers, 'timeout' => 120 ) );
+                    */
                     
                     // Check the response code.
+                    /*
                     if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
                         
                         // Error!
-                        /*
-                        echo '<div class="col-12">';
-                        echo '<p>There was a problem displaying to your results. Try refreshing this page or please contact us if the issue persists.</p>';
-                        echo '<p><strong>Response Error:</strong>'.wp_remote_retrieve_response_code( $response ).'<br />';
-                        echo '<strong>ID:</strong>'.$current_user->ID.'</p>';
-                        echo '</div>';
-                        */
+                        // echo '<div class="col-12">';
+                        // echo '<p>There was a problem displaying to your results. Try refreshing this page or please contact us if the issue persists.</p>';
+                        // echo '<p><strong>Response Error:</strong>'.wp_remote_retrieve_response_code( $response ).'<br />';
+                        // echo '<strong>ID:</strong>'.$current_user->ID.'</p>';
+                        // echo '</div>';
 
                     } else {
+                    */
+                    
+                    $search_criteria = array();
+                    $search_criteria['field_filters'][] = array( 
+                        'key' => '41', 
+                        'value' => $current_user->user_email
+                    );
+                    $info = GFAPI::get_entries( '0', $search_criteria);
+                    //if(count($info) > 0){
 
                         // Got a good response, proceed!
+                        /*
                         $json = wp_remote_retrieve_body($response);
                         $info = json_decode($json); 
+                        */
 
-                        $total_results = $info->total_count;    
+                        //$total_results = $info->total_count;    
+                        $total_results = count($info);    
                         $count_results = 1;
                         $graph_data = [];
                         $pre_data = [];
@@ -193,10 +208,10 @@ if (strpos($account_action, 'save_screen_') !== false) {
                         $general_score_data = []; 
                         
                         if($total_results > 0):
-                            foreach($info->entries as $data){
+                            foreach($info as $data){
 
                                 // Skip hidden screens
-                                if(in_array($data->id, $hide_screens)) {
+                                if(in_array($data['id'], $hide_screens)) {
                                     continue;
                                 }
 
@@ -204,7 +219,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 $test_id = '';
                                 foreach($data as $k => $v):
                                     // Get field object
-                                    $field = GFFormsModel::get_field( $data->form_id, $k );
+                                    $field = GFFormsModel::get_field( $data['form_id'], $k );
 
                                     // Get referring screen ID                    
                                     if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {     
@@ -243,7 +258,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
                                 // Vars for later
                                 $test_title = get_the_title($screen_id);
-                                $test_date = date('M j, Y', strtotime($data->date_created));
+                                $test_date = date('M j, Y', strtotime($data['date_created']));
                                 $screen_results = get_field('results', $screen_id);
 
                                 // Custom Logic Override
@@ -265,7 +280,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 // Limit results
                                 //if(count($graph_data[$test_title]['labels']) < 21){   
                                 if(!get_field('survey', $screen_id)){
-                                    $graph_data[$test_title]['labels'][] = date('M', strtotime($data->date_created));
+                                    $graph_data[$test_title]['labels'][] = date('M', strtotime($data['date_created']));
                                     $graph_data[$test_title]['scores'][] = $total_score;
                                     $graph_data[$test_title]['max'] = $max_score;
                                     $graph_data[$test_title]['steps'] = get_field('chart_steps', $screen_id);
@@ -273,7 +288,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 //}
 
                                 if(!get_field('survey', $screen_id)){
-                                    $your_results_display[$test_title][$count_results]['test_id'] = $data->id;     
+                                    $your_results_display[$test_title][$count_results]['test_id'] = $data['id'];     
                                     $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
                                     $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
                                     $your_results_display[$test_title][$count_results]['total_score'] = $total_score;
@@ -369,7 +384,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 $count_results++;
                             }
                         endif;
-                    }
+                    //}
                 ?>
                 </div>
 

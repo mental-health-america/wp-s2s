@@ -36,7 +36,8 @@ function getUserScreenResults( $user_screen_id ) {
 	$user_screen_results['alert'] = 0;
     $user_screen_results['general_score_data'] = []; 
     $user_screen_results['graph_data'] = []; 
-
+    
+    /*    
     // Gravity Forms API Connection
     $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
     $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
@@ -55,28 +56,40 @@ function getUserScreenResults( $user_screen_id ) {
             echo '<p class="mb-0"><strong>Screen ID:</strong> '.$user_screen_id.'</p>';
 
             // Send email about error
-            /*
-            $to = 'justin@chongandkoster.com';
-            $subject = 'MHA Error - Screen Results';
-            $body = 'Site: '.get_site_url().'<br />';
-            $body .= 'Screen ID: '.$user_screen_id.'<br />';
-            $body .= 'Response Code: '.wp_remote_retrieve_response_code( $response ).'<br /><br />';
-            $body .= json_encode($response);
-            $headers = array('Content-Type: text/html; charset=UTF-8');	
-            $headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
-            $result['mail'] = wp_mail( $to, $subject, $body, $headers );
-            */
+            // $to = 'justin@chongandkoster.com';
+            // $subject = 'MHA Error - Screen Results';
+            // $body = 'Site: '.get_site_url().'<br />';
+            // $body .= 'Screen ID: '.$user_screen_id.'<br />';
+            // $body .= 'Response Code: '.wp_remote_retrieve_response_code( $response ).'<br /><br />';
+            // $body .= json_encode($response);
+            // $headers = array('Content-Type: text/html; charset=UTF-8');	
+            // $headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
+            // $result['mail'] = wp_mail( $to, $subject, $body, $headers );
             
         echo '</div>';
         echo '</div>';
         echo '</div>';        
 
     } else {
+    */
+
+    // Use GFAPI instead of the REST API
+    $search_criteria = array();
+    $search_criteria['field_filters'][] = array( 
+        'key' => '38', 
+        'value' => $user_screen_id
+    );
+    $search_entries = GFAPI::get_entries( '0', $search_criteria );
+
+    if(count($search_entries) > 0){
 
         // Got a good response, proceed!
+        /*
         $json = wp_remote_retrieve_body($response);
         $data = json_decode($json);                 
         $data = $data->entries[0];
+        */
+        $data = $search_entries[0];
         
         // Text
         $label = '';
@@ -85,15 +98,15 @@ function getUserScreenResults( $user_screen_id ) {
         $count_results = 0; 
         $advanced_conditions_data = []; 
 
-        $user_screen_results['result_id'] = $data->id;
+        $user_screen_results['result_id'] = $data['id'];
         
         foreach($data as $k => $v){
             
             // Get field object
-            $field = GFFormsModel::get_field( $data->form_id, $k );  
+            $field = GFFormsModel::get_field( $data['form_id'], $k );  
 
             // Get referring screen ID                
-            if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {     
+            if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {  
                 $user_screen_results['screen_id'] = $v;
             }
 
@@ -322,14 +335,16 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 	$total_score = 0;
 
 	// Gravity Forms API Connection
-	$consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
+	/*
+    $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
 	$consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
 	$headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
 	$response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers, 'timeout' => 120 ) );
-	
+	*/
+
 	// Future Content
 	$html = '';
-
+    /*
 	// Check the response code.
 	if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
 		
@@ -337,11 +352,24 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 		return false;
 
 	} else {
+    */
+        
+    $search_criteria = array();
+    $search_criteria['field_filters'][] = array( 
+        'key' => '38', 
+        'value' => $user_screen_id
+    );
+    $search_entries = GFAPI::get_entries( '0', $search_criteria );
+
+    if(count($search_entries) > 0){
 
 		// Got a good response, proceed!
+        /*
 		$json = wp_remote_retrieve_body($response);
 		$data = json_decode($json);              
 		$data = $data->entries[0]; 
+        */
+        $data = $search_entries[0];
 
 		// Text
 		$label = '';
@@ -355,7 +383,7 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 		foreach($data as $k => $v){
 			
 			// Get field object
-			$field = GFFormsModel::get_field( $data->form_id, $k );  
+			$field = GFFormsModel::get_field( $data['form_id'], $k );  
 
 			// Get referring screen ID                
 			if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {     
