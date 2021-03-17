@@ -185,6 +185,9 @@ article.screen {
             align-items: stretch;
             li {
                 flex: 0 1 auto;
+                @media only screen and (max-width: 480px){
+                    max-width: 100%;
+                }
                 label {
                     padding: 20px;
                 }
@@ -356,6 +359,9 @@ article.screen {
     .gform_page_footer {
         text-align: right;
         padding-top: 80px;
+        @media only screen and (max-width: 480px){
+            text-align: center;
+        }
         .button {
             font-size: .85em;
             padding-right: 80px;
@@ -366,6 +372,10 @@ article.screen {
             background-position: 80% center;
             background-repeat: no-repeat;
             @include transitions(background-position 150ms ease, background-color 150ms ease);
+            @media only screen and (max-width: 480px){
+                float: none;
+                margin: 0 0 30px 0;
+            }
             &:hover {
                 background-color: $teal;
                 background-position: 85% center;
@@ -382,6 +392,11 @@ article.screen {
                 background-position: 20% center;
                 background-repeat: no-repeat;
                 @extend .round-small-tr;
+                
+                @media only screen and (max-width: 480px){
+                    float: none;
+                    margin: 0 0 30px 0;
+                }
                 &:hover {
                     background-color: $silver;
                     background-position: 15% center;
