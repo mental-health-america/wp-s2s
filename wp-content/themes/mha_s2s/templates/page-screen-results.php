@@ -4,7 +4,7 @@ get_header();
 
 // Get Screen Results
 $user_screen_id = get_query_var('sid');
-$user_screen_result = getUserScreenResults( $user_screen_id );            
+$user_screen_result = getUserScreenResults( $user_screen_id );  
 $next_step_terms = [];
 $next_step_manual = [];
 $result_cta = [];
@@ -257,6 +257,7 @@ $result_cta = [];
                                 </div>                   
                             
                                 <?php
+                                    // Alert message
                                     if($user_screen_result['alert'] > 0){
                                         //echo '<div class="bubble coral round-tl mb-4 narrow"><div class="inner bold">';
                                         echo '<div class="bold warning-message mb-4">';
@@ -264,8 +265,12 @@ $result_cta = [];
                                         echo '</div>';
                                         //echo '</div></div>';
                                     }
+
+                                    // Result content
                                     the_sub_field('result_content');
 
+                                    // Additional scores to display
+                                    $additional_scores = array();
                                     if(have_rows('additional_results', $user_screen_result['screen_id'])):
                                     echo '<p>';
                                         echo '<strong>Overall Score:</strong> '.$user_screen_result['total_score'].'<br />';
@@ -277,6 +282,9 @@ $result_cta = [];
                                             }
 
                                             echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.'<br />';
+                                            
+                                            $additional_scores[] = $add_score_total;
+
                                         endwhile;
                                         echo '</p>';
                                     endif;
@@ -284,6 +292,17 @@ $result_cta = [];
                             </div>
 
                         <?php
+
+                        // Add score data to result
+                        $updateScreenArray = array(
+                            'entry_id'          => $user_screen_result['result_id'],
+                            'user_score'        => $user_screen_result['total_score'],
+                            'user_result'       => get_sub_field('result_title'),
+                            'additional_scores' => $additional_scores
+                        );
+
+                        updateUserScreenResults( $updateScreenArray );
+
                     }
 
                 endwhile;

@@ -618,3 +618,90 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 	return $results;
 
 }
+
+
+
+/**
+ * Add User Results to Screen
+ */
+function updateUserScreenResults( $options ){
+    
+	// Default Args
+    $defaults = array (
+        'entry_id'              => null, 
+        'user_score'            => null, 
+        'user_result'           => null,
+        'additional_scores'     => null
+    );
+
+    $atts = wp_parse_args( $options, $defaults );
+
+    $entry = GFAPI::get_entry( $atts['entry_id'] );
+
+    if(!is_wp_error($entry)){
+
+        // Vars for later
+        $user_score_id = null;
+        $user_result_id = null;
+        
+        foreach($entry as $k => $v){
+            
+            // Get field object
+            $field = GFFormsModel::get_field( $entry['form_id'], $k );  
+
+            // User Score
+            if (isset($field->label) && strpos($field->label, 'User Score') !== false) { 
+                if($entry[$field->id] == ''){
+                    $user_score_id = $field->id;
+                    $entry[$field->id] = $atts['user_score'];
+                }
+            }
+
+            // User Result
+            if (isset($field->label) && strpos($field->label, 'User Result') !== false) {  
+                if($entry[$field->id] == ''){
+                    $user_result_id = $field->id;
+                    $entry[$field->id] = $atts['user_result'];
+                }
+            }
+
+            // Subscores
+            $sub_score_1 = null;
+            $sub_score_2 = null;
+            $sub_score_3 = null;
+
+            // Sub Score 1
+            if (isset($field->label) && strpos($field->label, 'Sub Score 1') !== false) {  
+                if($entry[$field->id] == '' && isset($atts['additional_scores'][0])){
+                    $user_result_id = $field->id;
+                    $entry[$field->id] = $atts['additional_scores'][0];
+                }
+            }
+            // Sub Score 2
+            if (isset($field->label) && strpos($field->label, 'Sub Score 2') !== false) {  
+                if($entry[$field->id] == '' && isset($atts['additional_scores'][1])){
+                    $user_result_id = $field->id;
+                    $entry[$field->id] = $atts['additional_scores'][1];
+                }
+            }
+            // Sub Score 3
+            if (isset($field->label) && strpos($field->label, 'Sub Score 3') !== false) {  
+                if($entry[$field->id] == '' && isset($atts['additional_scores'][2])){
+                    $user_result_id = $field->id;
+                    $entry[$field->id] = $atts['additional_scores'][2];
+                }
+            }
+
+        }
+
+        // Update the entry if the fields were empty
+        if($user_score_id || $user_result_id || $sub_score_1 || $sub_score_2 || $sub_score_3){
+            $result = GFAPI::update_entry( $entry );
+            return true;
+        }
+
+    }
+    
+    return false;
+
+}

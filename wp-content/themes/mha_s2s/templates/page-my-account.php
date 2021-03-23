@@ -667,7 +667,8 @@ if (strpos($account_action, 'save_screen_') !== false) {
                     <p><a class="button blue round" href="/overcoming-thoughts">What thought are you struggling with right now?</a></p>
                 <?php
                 endif;
-                if($counter > 5 && $loop_total > 5){
+                
+                if($counter > 3 && $loop_total > 3){
                     echo '</div>';
                     ?>
                         <div class="container-fluid">
@@ -676,6 +677,16 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 <button class="button gray round-tl" type="button" data-toggle="collapse" data-target="#allThoughts" aria-expanded="false" aria-controls="allThoughts">View All Thoughts</button>
                             </div>
                             <div class="col-12 col-sm-6 text-sm-right text-center pr-0">
+                                <a href="/overcoming-thoughts" class="button round-br blue">Start a new thought</a>
+                            </div>
+                        </div>
+                        </div>
+                    <?php 
+                } elseif($counter > 0 && $counter <= 3){
+                    ?>
+                        <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12 text-right pr-0">
                                 <a href="/overcoming-thoughts" class="button round-br blue">Start a new thought</a>
                             </div>
                         </div>

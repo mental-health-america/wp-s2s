@@ -151,28 +151,30 @@
 		});
 
 		// Checkbox Limiter
-		if($('.limit-3 .ginput_container_checkbox').length){			
-			$.fn.limit = function(n) {
-				var self = this;
-				this.click(function(){ return (self.filter(":checked").length<=n); });
-			}
-			$('.limit-2 .ginput_container_checkbox ul').each(function(e){
-				var id = $(this).attr('id');
-				$("ul#"+id+" li input:checkbox").limit(2);
-			});
-			$('.limit-3 .ginput_container_checkbox ul').each(function(e){
-				var id = $(this).attr('id');
-				$("ul#"+id+" li input:checkbox").limit(3);
-			});
-			$('.limit-4 .ginput_container_checkbox ul').each(function(e){
-				var id = $(this).attr('id');
-				$("ul#"+id+" li input:checkbox").limit(4);
-			});
-			$('.limit-5 .ginput_container_checkbox ul').each(function(e){
-				var id = $(this).attr('id');
-				$("ul#"+id+" li input:checkbox").limit(5);
-			});
+		$.fn.limit = function(n) {
+			var self = this;
+			this.click(function(){ return (self.filter(":checked").length<=n); });
 		}
+		$('.limit-1 .ginput_container_checkbox ul').each(function(e){
+			var id = $(this).attr('id');
+			$("ul#"+id+" li input:checkbox").limit(1);
+		});
+		$('.limit-2 .ginput_container_checkbox ul').each(function(e){
+			var id = $(this).attr('id');
+			$("ul#"+id+" li input:checkbox").limit(2);
+		});
+		$('.limit-3 .ginput_container_checkbox ul').each(function(e){
+			var id = $(this).attr('id');
+			$("ul#"+id+" li input:checkbox").limit(3);
+		});
+		$('.limit-4 .ginput_container_checkbox ul').each(function(e){
+			var id = $(this).attr('id');
+			$("ul#"+id+" li input:checkbox").limit(4);
+		});
+		$('.limit-5 .ginput_container_checkbox ul').each(function(e){
+			var id = $(this).attr('id');
+			$("ul#"+id+" li input:checkbox").limit(5);
+		});
 
 		// Animated form labels
 		$(".float-label input").on("blur input focus", function() {

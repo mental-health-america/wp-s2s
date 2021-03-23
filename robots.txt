@@ -1,0 +1,13 @@
+Crawl-delay: 5
+User-agent: *
+Sitemap: https://screening.mhanational.org/sitemap_index.xml
+Sitemap: https://screening.mhanational.org/page-sitemap.xml
+Sitemap: https://screening.mhanational.org/article-sitemap.xml
+Sitemap: https://screening.mhanational.org/screen-sitemap.xml
+Sitemap: https://screening.mhanational.org/thought_activity-sitemap.xml
+Sitemap: https://screening.mhanational.org/condition-sitemap.xml
+User-agent: *
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+User-agent: *
+Disallow: /*?*

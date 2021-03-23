@@ -19,7 +19,7 @@
             $like_class .= ' article-like';
         } else {
             $like_class .= ' logged-out';
-            $like_tooltip = 'data-toggle="tooltip" data-placement="top" data-html="true" title="You must be <a href=\'/log-in/?redirect_to='.urlencode(get_the_permalink()).'\'>logged in</a> to save this page."';
+            $like_tooltip = 'data-toggle="tooltip" data-placement="top" data-html="true" title="You must be <a href=\'/log-in/?redirect_to='.urlencode(get_the_permalink()).'\'>logged in</a> to save this page." ';
         }
     ?>
     <p>
