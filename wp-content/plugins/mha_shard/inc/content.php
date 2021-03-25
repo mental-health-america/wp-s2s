@@ -362,7 +362,7 @@ function getArticlesAjax(){
 	if($data['espanol']){
 		$options['espanol'] = '=';
 	}
-		
+
 	// Get the articles
 	echo get_articles( $options );
 	exit();
@@ -459,6 +459,7 @@ function get_articles( $options ){
 		'order' 			=> 'DESC', 
 		'orderby' 			=> 'featured', 
 	  	'geo' 				=> null, 
+	  	'area_served'		=> null, 
 		'paged' 			=> 1, 
 	  	'espanol' 	    	=> '!=', 
 	  	'all_conditions' 	=> null
@@ -515,6 +516,15 @@ function get_articles( $options ){
 	// Keyword Search
 	if($options['search']){
 		$article_args['s'] = sanitize_text_field($options['search']);
+	}
+
+	// Area Served
+	if($options['area_served']){
+		$article_args['meta_query'][] = array(
+			'key'	 	=> 'area_served',
+			'value'	  	=> $options['area_served'],
+			'compare'   => 'LIKE'
+		);
 	}
 
 	// Additional Custom Fields
@@ -608,7 +618,6 @@ function get_articles( $options ){
 	 * Taxonomy Query
 	 */
 	if($options['condition_terms'] || $options['tag_terms']){
-
 
 		$tax_args = array(
 			"post_type"      => 'article',
@@ -747,8 +756,7 @@ function get_articles( $options ){
 		}
 
 	}
-	
-
+		
 	/**
 	 * Print Results
 	 */
@@ -758,7 +766,7 @@ function get_articles( $options ){
 	// Start our main articles array
 	$articles = $article_posts;
 
-	if(isset($tax_posts)){		
+	if(isset($tax_posts)){	
 		// Only show matching IDs based on articles of this type and selected taxonomy
 		$articles = array_intersect($article_posts, $tax_posts);
 	}	
@@ -771,6 +779,17 @@ function get_articles( $options ){
 
 	if(isset($geo_posts)){	
 		$articles = $geo_posts;
+
+		if(isset($tax_posts)){	
+			// Only show matching IDs based on articles of this type and selected taxonomy
+			$articles = array_intersect($tax_posts, $geo_posts);
+		}	
+		
+		if(isset($allcon_posts)){	
+			// Add all condition articles after the above	
+			$articles_addendum = array_diff($allcon_posts, $geo_posts);
+			$articles = array_merge($geo_posts, $articles_addendum);
+		}
 	}
 
 	// Pager

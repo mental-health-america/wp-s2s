@@ -1,11 +1,26 @@
 jQuery(function ($) {
 
+	// Disable wheel scrolling on number fields to prevent number changes
+	$(document).on("wheel", "input[type=number]", function (e) {
+		$(this).blur();
+	});
+
 	// Main Search Filter Search
 	function submitFilterForm( order, orderby, append, page ){
 
 		// IE doesn't like default parameters, so using this shorthand cheat instead
 		var append = append || '';
 		var page = page || 1;
+
+		// Provider/Get Help Override
+		if($('body').hasClass('page-template-page-providers')){
+			// If zip has value, "uncheck" the national only checkbox
+			if($('#zip-search').val()){
+				$('#area-national').val('');
+			} else {
+				$('#area-national').val('national');
+			}
+		}
 
 		// Prep the data
 		var args = $('.search-filters').serialize();
@@ -24,6 +39,7 @@ jQuery(function ($) {
 		$('#filters-content').addClass('loading');			
 		$('#filters-content button, #filters-content input', $(this)).prop('disabled', true);
 
+		console.log(args);
 
 		$.ajax({
 			type: "POST",

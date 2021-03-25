@@ -35,6 +35,8 @@ get_header();
                 <label for="zip" class="text-blue-dark">Location Search</label>
                 <p><input id="zip-search" type="number" id="zip" name="zip" class="gray input-text" placeholder="Enter your zip code" value="<?php echo get_query_var('geo'); ?>" /></p>
                 
+                <input id="area-national" type="hidden" value="national" name="area_served[]" />
+                
                 <?php /*
                 <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#locationList" aria-expanded="true" aria-controls="locationList">Area Served</button>
                 <div id="locationList" class="collapse show filter-checkboxes">
@@ -140,7 +142,8 @@ get_header();
 
             <?php 
                 $options = array(
-                    'type' => 'provider'
+                    'type'          => 'provider',
+                    'area_served'   => 'national'
                 );
                 if(get_query_var('geo')){
                     $options['geo'] = get_geo(get_query_var('geo'));
