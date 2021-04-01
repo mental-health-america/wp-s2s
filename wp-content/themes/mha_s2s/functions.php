@@ -605,20 +605,57 @@ function archive_meta_query( $query ) {
 		// Limit articles displayed by specific types
 		if($query->is_tax('condition') || $query->is_tag()){
 
+			/*
 			$query->query_vars["meta_key"] = 'type';
 			$query->query_vars["meta_value"] = array('condition','diy','connect','treatment');
-
+			*/
 			$query->set( 'posts_per_page', '-1' ); 
 
-			/*
-			$meta_query = array(
+			$meta_query = array('relation' => 'AND');
+			$meta_query[] =  array(
+				'key' => 'type',
+				'value' => array('condition','diy','connect','treatment'),
+				'compare' => 'LIKE',
+			);
+			$meta_query[] = array(
+				'relation' => 'OR',
 				array(
-				   'key' => 'type',
-				   'value' => array('condition','diy','connect','treatment'),
-				   'compare' => 'LIKE',
+					'key' => 'type',
+					'value' => 'condition',
+					'compare' => 'LIKE'
 				),
+				array(
+					'key' => 'type',
+					'value' => 'treatment',
+					'compare' => 'LIKE'
+				),
+				array(
+					'key' => 'type',
+					'value' => 'connect',
+					'compare' => 'LIKE'
+				),
+				array(
+					'key' => 'type',
+					'value' => 'diy',
+					'compare' => 'LIKE'
+				)
+			);
+			$meta_query[] = array(
+				'relation' => 'OR',
+				array(
+					'key' => 'espanol',
+					'value' => '1',
+					'compare' => '!='
+				),
+				array(
+					'key' => 'espanol',
+					'value' => '1',
+					'compare' => 'NOT EXISTS'
+				)
 			);
 			$query->set('meta_query',$meta_query);
+
+			/*
 			$query->set('orderby', array(
 				'all_conditions' => 'ASC', 
 			));

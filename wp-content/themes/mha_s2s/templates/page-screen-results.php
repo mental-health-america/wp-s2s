@@ -88,6 +88,10 @@ $result_cta = [];
             /**
              * Screening Results
              */         
+
+             echo '<div style="display: none;">';
+             pre($user_screen_result);
+             echo '</div>';
             if( have_rows('results', $user_screen_result['screen_id']) ):
                                 
                 // Result Display
@@ -95,6 +99,7 @@ $result_cta = [];
                     $min = get_sub_field('score_range_minimum');
                     $max = get_sub_field('score_range_max');
                     $custom_logic_condition_row = get_sub_field('custom_logic_condition');
+                    
 
                     if(
                         $user_screen_result['total_score'] >= $min && $user_screen_result['total_score'] <= $max || 
@@ -283,7 +288,7 @@ $result_cta = [];
 
                                             echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.'<br />';
                                             
-                                            $additional_scores[] = $add_score_total;
+                                            $additional_scores[] = strval($add_score_total);
 
                                         endwhile;
                                         echo '</p>';
@@ -296,7 +301,7 @@ $result_cta = [];
                         // Add score data to result
                         $updateScreenArray = array(
                             'entry_id'          => $user_screen_result['result_id'],
-                            'user_score'        => $user_screen_result['total_score'],
+                            'user_score'        => strval($user_screen_result['total_score']),
                             'user_result'       => get_sub_field('result_title'),
                             'additional_scores' => $additional_scores
                         );

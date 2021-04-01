@@ -238,9 +238,42 @@ get_header();
 										"post_status" => 'publish',
 										"posts_per_page" => 40,
 										"meta_query" => array(
+											'relation' => 'AND',
 											array(
-												'key' => 'type',
-												'value' => array('condition', 'treatment', 'connect', 'diy'),
+												'relation' => 'OR',
+												array(
+													'key' => 'type',
+													'value' => 'condition',
+													'compare' => 'LIKE'
+												),
+												array(
+													'key' => 'type',
+													'value' => 'treatment',
+													'compare' => 'LIKE'
+												),
+												array(
+													'key' => 'type',
+													'value' => 'connect',
+													'compare' => 'LIKE'
+												),
+												array(
+													'key' => 'type',
+													'value' => 'diy',
+													'compare' => 'LIKE'
+												)
+											),
+											array(
+												'relation' => 'OR',
+												array(
+													'key' => 'espanol',
+													'value' => '1',
+													'compare' => '!='
+												),
+												array(
+													'key' => 'espanol',
+													'value' => '1',
+													'compare' => 'NOT EXISTS'
+												)
 											)
 										),
 										"tax_query" => array(

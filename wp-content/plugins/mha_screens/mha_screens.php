@@ -37,42 +37,6 @@ function getUserScreenResults( $user_screen_id ) {
     $user_screen_results['general_score_data'] = []; 
     $user_screen_results['graph_data'] = []; 
     
-    /*    
-    // Gravity Forms API Connection
-    $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
-    $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
-    $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers, 'timeout' => 120 ) );
-
-    // Check the response code.
-    if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
-        
-        // Error!
-        echo '<div class="wrap narrow mb-5">';
-        echo '<div class="bubble round-bl coral">';
-        echo '<div class="inner">';
-
-            echo '<p>There was a problem displaying your results. Please refresh the page, or contact us with the following information if the issue persists.</p>';
-            echo '<p class="mb-0"><strong>Screen ID:</strong> '.$user_screen_id.'</p>';
-
-            // Send email about error
-            // $to = 'justin@chongandkoster.com';
-            // $subject = 'MHA Error - Screen Results';
-            // $body = 'Site: '.get_site_url().'<br />';
-            // $body .= 'Screen ID: '.$user_screen_id.'<br />';
-            // $body .= 'Response Code: '.wp_remote_retrieve_response_code( $response ).'<br /><br />';
-            // $body .= json_encode($response);
-            // $headers = array('Content-Type: text/html; charset=UTF-8');	
-            // $headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
-            // $result['mail'] = wp_mail( $to, $subject, $body, $headers );
-            
-        echo '</div>';
-        echo '</div>';
-        echo '</div>';        
-
-    } else {
-    */
-
     // Use GFAPI instead of the REST API
     $search_criteria = array();
     $search_criteria['field_filters'][] = array( 
@@ -84,11 +48,6 @@ function getUserScreenResults( $user_screen_id ) {
     if(count($search_entries) > 0){
 
         // Got a good response, proceed!
-        /*
-        $json = wp_remote_retrieve_body($response);
-        $data = json_decode($json);                 
-        $data = $data->entries[0];
-        */
         $data = $search_entries[0];
         
         // Text
@@ -611,6 +570,32 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 		} else {
 			$custom_result_row = 3; // Low Risk
 		}         
+		$results['custom_result_row'] = $custom_result_row;         
+
+	endif;
+
+    
+	// Bipolar
+	if($custom_results_logic == 'bipolar'):
+
+		$results = [];
+
+        // Question 1
+		$any_time = $general_score_data[47] + $general_score_data[50] + $general_score_data[51] + $general_score_data[52] + $general_score_data[53] + $general_score_data[54] + $general_score_data[55] + $general_score_data[56] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59] + $general_score_data[60];
+		
+        // Question 2
+        $same_period = $general_score_data[61];
+
+        // Question 3
+        $problem = $general_score_data[62];
+
+        // Results
+        $results['total_score'] = $any_time + $same_period + $problem;
+		$custom_result_row = 2; // Bipolar Negative
+        if($any_time >= 7 && $same_period > 0 && $problem > 1){
+			$custom_result_row = 1; // Bipolar Positive
+        }
+
 		$results['custom_result_row'] = $custom_result_row;         
 
 	endif;

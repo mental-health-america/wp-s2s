@@ -157,6 +157,20 @@ if (strpos($account_action, 'save_screen_') !== false) {
                 }
             ?>
 
+            <?php if(get_field('test_results_introduction')){ ?>
+                <?php 
+                    $test_result_color = 'cerulean';
+                    if(get_field('test_results_introduction_-_background')){ 
+                        $test_result_color = get_field('test_results_introduction_-_background');
+                    }
+                ?>
+                <div class="bubble <?php echo $test_result_color; ?> thinner filled round-small mb-4 ml-4 mr-4">
+                <div class="inner montserrat medium">
+                    <?php the_field('test_results_introduction'); ?>
+                </div>
+                </div>  
+            <?php } ?>
+
             <div class="container-fluid">
             <div class="row">
 

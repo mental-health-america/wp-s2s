@@ -112,6 +112,7 @@ $search_term = get_query_var('search_term');
 					global $wp_query;
 
 					// All Condition articles
+					/*
 					$allCondition_args = array(
 						"post_type" 	 => 'article',
 						"post_status" 	 => 'publish', // Incomplete thoughts only
@@ -120,13 +121,11 @@ $search_term = get_query_var('search_term');
 						"order" => 'ASC',
 						"meta_key" => 'featured',
 						"meta_query"	 => array(
-							/*
 							'relation'	 	=> 'AND',
 							array(
 								'key'		=> 'all_conditions',
 								'value'		=> 1
 							),
-							*/
 							array(
 								'key'		=> 'type',
 								'value'		=> array('provider'),
@@ -139,6 +138,7 @@ $search_term = get_query_var('search_term');
 					if(get_query_var('search')){
 						$allCondition_args['s'] = get_query_var('search');
 					}
+					*/
 
 					/**
 					 * Update to NOT show other articles tagged "all conditions"
@@ -146,6 +146,16 @@ $search_term = get_query_var('search_term');
 					//$allConditions = new WP_Query($allCondition_args);
 					//$new_query = array_unique( array_merge( $wp_query->posts, $allConditions->posts ), SORT_REGULAR);
 					$new_query = $wp_query->posts;
+
+					// Custom meta queries are janky so we'll do it this way
+					/*
+					$new_query = [];
+					foreach($wp_query->posts as $item){
+						if( !get_field('espanol', $item->ID) && get_field('type', $item->ID) != 'provider' && get_post_type($item->ID) == 'article' ){
+							$new_query[] = $item;
+						}
+					}
+					*/
 
 					// Title Ordering
 					if(get_query_var('orderby') == 'title'){
