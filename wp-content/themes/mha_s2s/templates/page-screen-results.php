@@ -8,6 +8,7 @@ $user_screen_result = getUserScreenResults( $user_screen_id );
 $next_step_terms = [];
 $next_step_manual = [];
 $result_cta = [];
+$max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
 ?>
 
 <div class="wrap normal">
@@ -89,9 +90,6 @@ $result_cta = [];
              * Screening Results
              */         
 
-             echo '<div style="display: none;">';
-             pre($user_screen_result);
-             echo '</div>';
             if( have_rows('results', $user_screen_result['screen_id']) ):
                                 
                 // Result Display
@@ -171,7 +169,7 @@ $result_cta = [];
                                     <?php else: ?>
                                         About your Score:
                                     <?php endif; ?>
-                                    <?php echo $user_screen_result['total_score']; ?>     
+                                    <?php echo $user_screen_result['total_score']; ?> / <?php echo $max_score; ?>    
                                 </button>
 
                                 <button id="screen-email" class="button mint round thin" type="button" data-toggle="collapse" data-target="#email-results" aria-expanded="false" aria-controls="email-results">                                    
@@ -271,9 +269,6 @@ $result_cta = [];
                                         //echo '</div></div>';
                                     }
 
-                                    // Result content
-                                    the_sub_field('result_content');
-
                                     // Additional scores to display
                                     $additional_scores = array();
                                     if(have_rows('additional_results', $user_screen_result['screen_id'])):
@@ -293,12 +288,13 @@ $result_cta = [];
                                         endwhile;
                                         echo '</p>';
                                     endif;
+
+                                    // Result content
+                                    the_sub_field('result_content');
                                 ?>
                             </div>
 
                         <?php
-
-                        // Add score data to result
                         $updateScreenArray = array(
                             'entry_id'          => $user_screen_result['result_id'],
                             'user_score'        => strval($user_screen_result['total_score']),
