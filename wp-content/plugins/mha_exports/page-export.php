@@ -19,6 +19,7 @@ add_action('init', 'mhaThoughtScripts');
 function mhaThoughtScripts() {
     if(current_user_can('edit_posts')){
         wp_enqueue_script( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.js', array('jquery'), time(), true );
+        wp_enqueue_style( 'process_mhaacfeui', '/wp-content/plugins/acf-extended/assets/css/acfe-ui.min.css', array(), time() );
         wp_enqueue_style( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.css', array(), time() );
         wp_localize_script('process_mhaThoughts', 'do_mhaThoughts', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
     }
@@ -28,80 +29,161 @@ function mhaThoughtScripts() {
 function mhathoughtexport(){
 ?>
 
-<div class="wrap">
+<div id="poststuff" class="wrap">
 
-    <h1>Screen Exports</h1>
-    <fieldset id="mha-all-screen-exports">
-        <p>
-            <label style="display: inline-block; width: 100px;" for="export_screen_start_date">Start Date</label>
-            <input type="text" name="export_screen_start_date" id="export_screen_start_date" placeholder="<?php echo date('Y-m-d', strtotime('now - 1 week')); ?>" />
-        </p>
+    <h1>Data Exports</h1>
 
-        <p>
-            <label style="display: inline-block; width: 100px;" for="export_screen_end_date">End Date</label>
-            <input type="text" name="export_screen_end_date" id="export_screen_end_date" placeholder="<?php echo date('Y-m-d', strtotime('now')); ?>" />
-        </p>
+    <form id="mha-all-screen-exports" action="#" method="POST">
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
+        
+            <div id="screen-export-error"></div>
+            <h2>Screen Exports</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label for="export_screen_start_date">Start Date</label></th>
+                    <td>
+                        <input type="text" name="export_screen_start_date" id="export_screen_start_date" value="<?php echo date('Y-m', strtotime('now')); ?>-01" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_screen_end_date">End Date</label></th>
+                    <td>
+                        <input type="text" name="export_screen_end_date" id="export_screen_end_date" value="<?php echo date('Y-m-d', strtotime('now')); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_screen_ref">Referrer URL Contains</label></th>
+                    <td>
+                        <input type="text" name="export_screen_ref" id="export_screen_ref" placeholder="mhanational.org" />
+                    </td>
+                </tr>
+                <!--
+                <tr>
+                    <th scope="row"><label for="export_screen_duplicates">Duplicates to Exclude</label></th>
+                    <td>
+                        <input type="text" name="export_screen_duplicates" id="export_screen_duplicates" placeholder="0" />
+                    </td>
+                </tr>
+                -->
+                <tr>
+                    <th scope="row"><label for="export_screen_spam">Exclude Suspected Spam</label></th>
+                    <td>
+                        <input type="checkbox" name="export_screen_spam" id="export_screen_spam" value="1" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_screen_ref">Forms</label><br /></th>
+                    <td>
+                        <?php 
+                            $gforms = GFAPI::get_forms(); 
+                            echo '<select name="export_screen_form">';
+                            foreach($gforms as $gf){
+                                if (strpos(strtolower($gf['title']), 'test') !== false || strpos(strtolower($gf['title']), 'survey') !== false) {
+                                    echo '<option name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</option>';                                    
+                                    // Multiple Checkbox. TODO: Simply too much data for great exports, try again another time?
+                                    //echo '<label for="gform-'.$gf['id'].'"><input id="gform-'.$gf['id'].'" type="checkbox" name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</label><br />';
+                                }
+                            }
+                            echo '</select>'
+                        ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
 
-        <p>
-            <label style="display: inline-block; width: 100px;" for="export_screen_ref">Referrer URL Contains</label>
-            <input type="text" name="export_screen_ref" id="export_screen_ref" placeholder="mhanational.org" />
-        </p>
-        <p>
-            <a class="button button-primary" id="export_screen_link" data-orig-href="<?php echo get_site_url(null, '/gf-entries-in-excel/all_screen_export'); ?>" href="<?php echo get_site_url(null, '/gf-entries-in-excel/all_screen_export'); ?>">Download Screens</a>
-        </p>
-    </fieldset>
+                        <p>
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_screen_link"  value="Download Screening Data">
+                        </p>
+                        
+                        <div id="screen-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <p id="screen-exports-download" style="display: none;"></p>      
+                        <br /><br />
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </form>
     <br />
+
 
     <h1>UCI Data Exports</h1>		
 
-    <h2>Aggregate Data</h2>
-    <div id="aggregate-error"></div>
     <form action="#" id="aggregate-data-export" method="POST">
-    <fieldset>
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
         
-        <p>
-            <label id="manual_users" >User Selection</label> 
-            <input type="text" name="manual_users" id="manual_users" value="" placeholder="e.g. 1, 2, 3" />
-            
-            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
-            <button class="button button-primary" id="submit-aggregate-data-export">
-                Export
-            </button>
-        </p>
+            <div id="aggregate-error"></div>
+            <h2>Aggregate Data</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label id="manual_users" >User Selection</label> </th>
+                    <td>
+                        <input type="text" name="manual_users" id="manual_users" value="" placeholder="e.g. 1, 2, 3" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
+                        <button class="button button-primary" id="submit-aggregate-data-export">
+                            Download Aggregate Data
+                        </button>
         
-        <div id="aggregate-progress" style="display: none;">
-            <div class="bar-wrapper"><div class="bar"></div></div>            
-            <strong class="label"><span class="label-number">0</span>%</strong>
-        </div>
-        <p id="aggregate-download" style="display: none;"></p>
+                        <div id="aggregate-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <p id="aggregate-download" style="display: none;"></p>                        
+                    </td>
+                </tr>
+            </tbody>
+            </table>
 
-    </fieldset> 
+        </div>
+        </div>
     </form>
 
-    <hr />
-
-    <h2>Non-Aggregate Data</h2>
-    <div id="nonaggregate-error"></div>
     <form action="#" id="nonaggregate-data-export" method="POST">
-    <fieldset>
-
-        <p>
-            <label id="manual_users" >User Selection</label> 
-            <input type="text" name="manual_users" id="manual_users" value="" placeholder="e.g. 4, 12, 67" />
-            
-            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
-            <button class="button button-primary" id="submit-nonaggregate-data-export">
-                Export
-            </button>
-        </p>
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
         
-        <div id="nonaggregate-progress" style="display: none;">
-            <div class="bar-wrapper"><div class="bar"></div></div>            
-            <strong class="label"><span class="label-number">0</span>%</strong>
-        </div>
-        <p id="nonaggregate-download" style="display: none;"></p>
+            <div id="nonaggregate-error"></div>
+            <h2>Non-Aggregate Data</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label id="manual_users" >User Selection</label> </th>
+                    <td>
+                    <input type="text" name="manual_users" id="manual_users" value="" placeholder="e.g. 4, 12, 67" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
+                        <button class="button button-primary" id="submit-nonaggregate-data-export">
+                            Download Non-Aggregate Data
+                        </button>
+        
+                        <div id="nonaggregate-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <p id="nonaggregate-download" style="display: none;"></p>             
+                    </td>
+                </tr>
+            </tbody>
+            </table>
 
-    </fieldset> 
+        </div>
+        </div>
     </form>
 
 </div>	
@@ -140,6 +222,8 @@ function mha_aggregate_data_export(){
     }
     */
     
+    $result['proceed'] = '1';
+
     // Get unique users and identifiers    
     $args = array(
         "post_type" => 'thought',
@@ -457,7 +541,6 @@ function mha_nonaggregate_data_export(){
         $activity_loop = new WP_Query($activity_args);
         while($activity_loop->have_posts()) : $activity_loop->the_post();
             $paths = get_field('paths');
-            //pre($paths);
             foreach($paths as $path_key => $path_val){
                 foreach($path_val['questions'] as $k => $v){   
                     //if($k > 0){             
@@ -657,10 +740,6 @@ function mha_nonaggregate_data_export(){
     endwhile;
     wp_reset_query();
     
-    // Debugging
-    /*pre($csv_data);
-    die();*/
-
     /**
      * Write Data
      */
@@ -710,3 +789,234 @@ function mha_nonaggregate_data_export(){
     echo json_encode($result);
     exit();
 }
+
+
+add_action( 'wp_ajax_mha_export_screen_data', 'mha_export_screen_data' );
+function mha_export_screen_data(){
+    
+	// General variables
+    $result = array();
+    $timezone = new DateTimeZone('America/New_York');
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);  
+
+    // Options
+    $startDate = $data['export_screen_start_date'];
+    $result['export_screen_start_date'] = $startDate;
+
+    $endDate = $data['export_screen_end_date'];
+    $result['export_screen_end_date'] = $endDate;
+
+    $ref = $data['export_screen_ref'];
+    $result['export_screen_ref'] = $ref;
+
+    $form_id = $data['export_screen_form'];
+    $result['export_screen_form'] = $form_id;
+
+    $dupes = '';
+    if(isset($data['export_screen_duplicates']) && $data['export_screen_duplicates'] != ''){
+        $dupes = $data['export_screen_duplicates'];
+    }
+    $result['export_screen_duplicates'] = $dupes;
+
+    $exclude_spam = '';
+    if(isset($data['export_screen_spam']) && $data['export_screen_spam'] != ''){
+        $exclude_spam = $data['export_screen_spam'];
+    }
+    $result['export_screen_spam'] = $exclude_spam;
+
+    // Pagination
+    $page_size = 200;
+    if(isset($data['page'])){
+        $page = $data['page'];
+    } else {
+        $page = 1;
+    }
+    $result['page'] = $page;
+    $offset = ($page - 1) * $page_size;
+    $result['offset'] = $offset;
+
+    // CSV Export
+    $search_criteria = [];
+    $search_criteria['status'] = 'active';
+    $search_criteria['field_filters']['mode'] = 'all';
+    $search_criteria['start_date'] = $startDate;
+    $search_criteria['end_date'] = $endDate;
+    
+    // Get field order for later
+    $gform = GFAPI::get_form( $form_id );
+    $form_slug = sanitize_title_with_dashes($gform['title']);
+    $field_order = [];
+    $field_order['Date'] = 'Date'; // Manual additional field
+    foreach($gform['fields'] as $gf){
+        
+        // Skip these columns
+        $field = \GFAPI::get_field( $form_id, $gf['id'] );
+        if(
+            isset($field->type) && $field->type == 'html' || 
+            isset($field->label) && $field->label == 'uid' || 
+            isset($field->label) && $field->label == 'Screen ID' || 
+            isset($field->label) && $field->label == ''){
+            continue;
+        } 
+        $field_order[] = $gf['label'];
+
+    }
+    $field_order['User Agent'] = 'User Agent'; // Manual additional field
+
+    // Referer filter
+    if($ref != ''):
+        $filter_id = '';
+        foreach($gform['fields'] as $field):
+            if($field['label'] == 'Referer'){
+                $search_criteria['field_filters'][] = array( 
+                    'key' => $field['id'], 
+                    'operator' => 'contains', 
+                    'value' => $ref
+                );
+                break;
+            }
+        endforeach;
+    endif;
+
+    // Get form entries
+    $paging = array( 'offset' => $offset, 'page_size' => $page_size );
+    $total_count = 0;
+    $entries = GFAPI::get_entries( $form_id, $search_criteria, null, $paging, $total_count );
+    $search_criteria['total_count_real'] = $total_count;
+    $csv_data = [];
+    $i = 0;
+
+    foreach($entries as $entry){
+
+        // Put all fields in the CSV
+        $gfdata = GFAPI::get_entry( $entry['id'] );
+        $field_order_temp = $field_order;
+        $temp_array = [];
+        $spam_check = 0;
+        $required_compare = 0;
+
+        
+        $row_date = new DateTime($gfdata['date_created']);
+        $row_date->setTimezone($timezone);
+        $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");
+        foreach($gfdata as $k => $v){           
+            $field = \GFAPI::get_field( $form_id, $k );
+
+            // Skip these columns
+            if(
+                isset($field->type) && $field->type == 'html' || 
+                isset($field->label) && $field->label == 'uid' || 
+                isset($field->label) && $field->label == 'Screen ID' || 
+                isset($field->label) && $field->label == ''){
+                continue;
+            }
+
+            // Get the label instead of value
+            if(isset($field->type) && $field->type == 'radio' || isset($field->type) && $field->type == 'checkbox'){
+                $v = $field->get_value_export($entry, $k, true);
+            }
+
+            // Count required questions with no value
+            if(isset($field->isRequired) && isset($field->cssClass)){
+                if($field->isRequired && strpos($field->cssClass, 'question') !== false && !$v){
+                    $spam_check++;
+                }
+            }
+
+            // Insert into array
+            // $csv_data[$i][$field->label] = $v;
+            if(isset($field->label)){
+                $temp_array[$field->label] = $v;
+            }
+            
+        }
+        $temp_array['User Agent'] = $gfdata['user_agent'];
+
+        // Insert the rows
+        if($exclude_spam == 1 && $spam_check > 0){
+
+            // Skip potential spam when exclude spam is checked
+            continue;
+
+        } else {
+
+            // Reorder our fields based on how they appear on the form and add the row
+            if(!empty($temp_array)){
+                $result['temp_array'] = $temp_array;
+                foreach($field_order as $key){
+                    $csv_data[$i][$key] = $temp_array[$key];  
+                }
+                $csv_data[$i]['Spam Likely'] = $spam_check; // Spam Speculation    
+                $i++;
+            }
+
+        }
+
+    }
+
+    /**
+     * Set next step variables and exit
+     */
+    $result['total'] = $total_count;
+    $max_pages = ceil($total_count / $page_size);
+    $result['max'] = $max_pages;
+    $result['percent'] = round( ( ($page / $max_pages) * 100 ), 2 );
+    if($page >= $max_pages){
+        $result['next_page'] = '' ;
+    } else {
+        $result['next_page'] = $page + 1;
+    }
+    
+    /**
+     * Write CSV
+     */
+    try {
+
+        // Create CSV
+        if($data['filename']){
+            // Update existing file
+            $filename = $data['filename'];
+            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
+        } else {
+            // Create file
+            $filename = $form_slug.'--'.$startDate.'_'.$endDate.'--'.date('U').'.csv';
+            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
+        }
+        $result['filename'] = $filename;
+        
+        if($page >= $max_pages){
+            // Final page
+            $result['download'] = plugin_dir_url(__FILE__).'tmp/'.$filename;
+        }
+        
+        // Headers only on page 1
+        if($page == 1){
+            $csv_headers = [];
+            foreach($csv_data[0] as $k => $v){
+                $csv_headers[] = $k;
+            }
+            $writer->insertOne($csv_headers);
+            $result['headers'] = $csv_headers;
+        }    
+        $writer->insertAll(new ArrayIterator($csv_data));
+
+    } catch (CannotInsertRecord $e) {
+        $result['error'] = $e->getRecords();
+    }
+
+    echo json_encode($result);
+    exit();   
+
+}
+
+/** 
+ * WPEngine Heartbeat Override
+ * https://wordpress.org/support/topic/missing-dependencies-in-query-monitor-with-wp-auth-check-and-heatbeat-missing/
+ */
+add_filter( 'wpe_heartbeat_allowed_pages', function( $pages ) {
+	global $pagenow;
+	$pages[] =  $pagenow;
+	return $pages;
+});

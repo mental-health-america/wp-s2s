@@ -41,8 +41,8 @@
 
                 // Export is done
                 var download_link = res.download;
-                $('#submit-aggregate-data-export').prop('disabled', false).text('Export');	
-                $('#aggregate-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a><Br />Note: You will probably need to manually remove duplicates.');
+                $('#submit-aggregate-data-export').prop('disabled', false).text('Download');	
+                $('#aggregate-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
 
             }
 
@@ -85,37 +85,85 @@
     });
 
 
-    $(document).on("click", '#export_screen_link', function(event){
+    /**
+     * Screening Data Export
+     */
+
+     function screenExportDataLooper( results ){
+
+        var res = JSON.parse(results);
+
+        if(res.error){
+            // Error
+            $('#screen-export-error').html(res.error);            
+        } else {
+            
+            if(res.next_page != ''){
+
+                // Continue Paging
+                var args_2 = 'page=' + res.next_page + '&filename=' + res.filename + '&export_screen_start_date=' + res.export_screen_start_date + '&export_screen_end_date=' + res.export_screen_end_date + '&export_screen_ref=' + res.export_screen_ref + '&export_screen_form=' + res.export_screen_form + '&export_screen_duplicates=' + res.export_screen_duplicates + '&export_screen_spam=' + res.export_screen_spam;
+                $.ajax({
+                    type: "POST",
+                    url: do_mhaThoughts.ajaxurl,
+                    data: { 
+                        action: 'mha_export_screen_data',
+                        data: args_2
+                    },
+                    success: function( results_2 ) {  
+                        var res = JSON.parse(results_2);
+                        $('#screen-exports-progress').slideDown();
+                        $('#screen-exports-progress .bar').css('width', res.percent+'%');
+                        $('#screen-exports-progress .label-number').html( res.percent );         
+                        screenExportDataLooper( results_2 );
+                    },
+                    error: function(xhr, ajaxOptions, thrownError){                        
+                        console.error(xhr,thrownError);        
+                    }
+                });	
+
+            } else {
+
+                // Export is done
+                var download_link = res.download;
+                $('#export_screen_link').prop('disabled', false).text('Download');	
+                $('#screen-exports-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
+
+            }
+
+        }
+    }
+
+    $(document).on("submit", '#mha-all-screen-exports', function(event){
         
-        var startDate = $('input#export_screen_start_date').val(),
-            endDate = $('input#export_screen_end_date').val(),
-            filters = $('input#export_screen_ref').val(),
-            href = $('a#export_screen_link').attr('data-orig-href');
+        // Disable default form submit
+        event.preventDefault();
+        
+        var args = $('#mha-all-screen-exports').serialize();
 
-        if(startDate != '' || $endDate != '' || $filters != ''){
-            href = href+'?';
-        }
+        $('#export_screen_link').prop('disabled', true).text('Processing...');
+        $('#screen-export-error').html('');
 
-        if(startDate != ''){
-            href = href+'start_date='+startDate;
-            if(endDate != '' || filters != ''){
-                href = href+'&';
+        $.ajax({
+            type: "POST",
+            url: do_mhaThoughts.ajaxurl,
+            data: { 
+                action: 'mha_export_screen_data',
+                data: args
+            },
+            success: function( results ) {
+
+                var res = JSON.parse(results);
+                $('#screen-exports-progress').slideDown();
+                $('#screen-exports-progress .bar').css('width', res.percent+'%');
+                $('#screen-exports-progress .label-number').html( res.percent );   
+                screenExportDataLooper( results );
+
+            },
+            error: function(xhr, ajaxOptions, thrownError){                
+                console.error(xhr,thrownError);
             }
-        }
-
-        if(endDate != ''){
-            href = href+'end_date='+endDate;
-            if(filters != ''){
-                href = href+'&';
-            }
-        }
-
-        if(filters != ''){
-            var addFilter = 'filter=53:contains:'+filters+';54:contains:'+filters+';66:contains:'+filters+';47:contains:'+filters+';76:contains:'+filters+';57:contains:'+filters+';55:contains:'+filters+';89:contains:'+filters+';51:contains:'+filters+';66:contains:'+filters+';82:contains:'+filters+';any';
-            href = href+addFilter;
-        }
-
-        $('#export_screen_link').attr('href', href);
+        });	
+        
 
     });
 
@@ -160,7 +208,7 @@
 
                 // Export is done
                 var download_link = res.download;
-                $('#submit-nonaggregate-data-export').prop('disabled', false).text('Export');	
+                $('#submit-nonaggregate-data-export').prop('disabled', false).text('Download');	
                 $('#nonaggregate-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
 
             }
@@ -176,7 +224,7 @@
         // Vars
         var args = $('#nonaggregate-data-export').serialize();
             
-        // Disable flag button
+        // Disable submit button
         $('#submit-nonaggregate-data-export').prop('disabled', true).text('Processing...');
         $('#nonaggregate-error').html('');
         

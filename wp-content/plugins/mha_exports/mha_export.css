@@ -1,4 +1,4 @@
-
+#screen-exports-progress,
 #aggregate-progress,
 #nonaggregate-progress {
     width: 401px;
@@ -7,6 +7,7 @@
     border: 1px solid #007BA7;
 }
 
+#screen-exports-progress .bar-wrapper,
 #aggregate-progress .bar-wrapper,
 #nonaggregate-progress .bar-wrapper {
     position: relative;
@@ -14,6 +15,7 @@
     width: 398px;
     margin: 1px 0 0 1px;
 }
+#screen-exports-progress .bar,
 #aggregate-progress .bar,
 #nonaggregate-progress .bar {
     position: absolute;
@@ -25,6 +27,7 @@
     height: 100%;
     background: #007BA7;
 }
+#screen-exports-download,
 #aggregate-download,
 #nonaggregate-download {
     padding-top: 15px;
