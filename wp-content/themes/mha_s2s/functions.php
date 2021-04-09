@@ -798,9 +798,11 @@ function my_acf_fields_post_object_result( $text, $post, $field, $post_id ) {
 }
 */
 
+/**
+ * Updated query for repeater fields
+ */
 add_filter('acf/fields/post_object/query/name=default_pathway', 'my_acf_fields_post_object_query', 10, 3);
 function my_acf_fields_post_object_query( $args, $field, $post_id ) {
-
 	$meta_query = array();
     $meta_query[] = array(
 		'key' 		=> 'path_$_article',
