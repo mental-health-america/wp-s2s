@@ -626,8 +626,12 @@ function updateUserScreenResults( $options ){
     if(!is_wp_error($entry)){
 
         // Vars for later
-        $user_score_id = null;
-        $user_result_id = null;
+        $user_score = null;
+        $user_result = null;
+        $sub_score_1 = null;
+        $sub_score_2 = null;
+        $sub_score_3 = null;
+        $token = null;
         
         foreach($entry as $k => $v){
             
@@ -636,54 +640,67 @@ function updateUserScreenResults( $options ){
 
             // User Score
             if (isset($field->label) && strpos($field->label, 'User Score') !== false) { 
-                if($entry[$field->id] == ''){
-                    $user_score_id = $field->id;
-                    $entry[$field->id] = $atts['user_score'];
+                if($atts['user_score'] != $entry[$field->id]){
+                    $user_score = strval($atts['user_score']);
+                    $entry[$field->id] = $user_score;
                 }
             }
 
             // User Result
             if (isset($field->label) && strpos($field->label, 'User Result') !== false) {  
-                if($entry[$field->id] == ''){
-                    $user_result_id = $field->id;
-                    $entry[$field->id] = $atts['user_result'];
+                if($atts['user_result'] != $entry[$field->id]){
+                    $user_result = strval($atts['user_result']);
+                    $entry[$field->id] = $user_result;
                 }
             }
 
-            // Subscores
-            $sub_score_1 = null;
-            $sub_score_2 = null;
-            $sub_score_3 = null;
-
             // Sub Score 1
             if (isset($field->label) && strpos($field->label, 'Sub Score 1') !== false) {  
-                if($entry[$field->id] == '' && isset($atts['additional_scores'][0])){
-                    $user_result_id = $field->id;
-                    $entry[$field->id] = $atts['additional_scores'][0];
+                if(isset($atts['additional_scores'][0]) && $atts['additional_scores'][0] != $entry[$field->id]){
+                    $sub_score_1 = strval($atts['additional_scores'][0]);
+                    $entry[$field->id] = $sub_score_1;
                 }
             }
             // Sub Score 2
             if (isset($field->label) && strpos($field->label, 'Sub Score 2') !== false) {  
-                if($entry[$field->id] == '' && isset($atts['additional_scores'][1])){
-                    $user_result_id = $field->id;
-                    $entry[$field->id] = $atts['additional_scores'][1];
+                if(isset($atts['additional_scores'][1]) && $atts['additional_scores'][1] != $entry[$field->id]){
+                    $sub_score_2 = strval($atts['additional_scores'][1]);
+                    $entry[$field->id] = $sub_score_2;
                 }
             }
             // Sub Score 3
             if (isset($field->label) && strpos($field->label, 'Sub Score 3') !== false) {  
-                if($entry[$field->id] == '' && isset($atts['additional_scores'][2])){
-                    $user_result_id = $field->id;
-                    $entry[$field->id] = $atts['additional_scores'][2];
+                if(isset($atts['additional_scores'][2]) && $atts['additional_scores'][2] != $entry[$field->id]){
+                    $sub_score_3 = strval($atts['additional_scores'][2]);
+                    $entry[$field->id] = $sub_score_3;
                 }
             }
 
         }
 
         // Update the entry if the fields were empty
-        if($user_score_id || $user_result_id || $sub_score_1 || $sub_score_2 || $sub_score_3){
+        if($user_score || $user_result || $sub_score_1 || $sub_score_2 || $sub_score_3){
             $result = GFAPI::update_entry( $entry );
             return true;
         }
+
+        // Check for Duplicates
+        /*
+        $search_criteria['field_filters'][] = array( 
+            'key' => $token['id'], 
+            'value' => $token['val']
+        );
+        $search_entries = GFAPI::get_entries( '0', $search_criteria );
+
+        if(count($search_entries) > 1){
+            foreach($search_entries as $item){
+                if($user_score || $user_result || $sub_score_1 || $sub_score_2 || $sub_score_3){
+                    $result = GFAPI::update_entry( $item );
+                }
+            }
+        }
+        */
+
 
     }
     
