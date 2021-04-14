@@ -198,7 +198,7 @@ add_filter( 'body_class','wp_body_classes' );
 add_action( 'wp_print_styles', 'my_deregister_styles', 100 );
 function my_deregister_styles()    { 
 	if (!is_admin_bar_showing()){
-		wp_deregister_style( 'dashicons' ); 
+		//wp_deregister_style( 'dashicons' ); 
 	}
 }
 
@@ -814,8 +814,6 @@ function my_acf_fields_post_object_query( $args, $field, $post_id ) {
 
     return $args;
 } 
-
-
 function path_article_where( $where ) {	
 	$where = str_replace("meta_key = 'path_$", "meta_key LIKE 'path_%", $where);
 	return $where;

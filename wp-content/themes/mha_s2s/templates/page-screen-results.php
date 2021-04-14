@@ -295,14 +295,45 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                             </div>
 
                         <?php
+                        // Update the entry with the user score and result
                         $updateScreenArray = array(
                             'entry_id'          => $user_screen_result['result_id'],
                             'user_score'        => strval($user_screen_result['total_score']),
                             'user_result'       => get_sub_field('result_title'),
                             'additional_scores' => $additional_scores
                         );
-
                         updateUserScreenResults( $updateScreenArray );
+                                                
+                    
+                        /**
+                         * Array sorting helper
+                         * Usage: usort($array, array_key_sorter('id'));
+                         */
+                        function array_key_sorter($key) {
+                            return function ($a, $b) use ($key) {
+                                return strnatcmp($a[$key], $b[$key]);
+                            };
+                        }
+
+                        /**
+                         * Handle rare duplicate
+                         */
+                        $search_criteria['field_filters'][] = array( 
+                            'key' => 38, 
+                            'value' => $user_screen_id
+                        );
+                        $search_entries = GFAPI::get_entries( '0', $search_criteria, $sorting );   
+                        usort($search_entries, array_key_sorter('id'));
+                        $search_counter = 0;
+                        foreach($search_entries as $item){
+                            if($search_counter > 0){ // Skip the first entry
+                                $updateScreenArray_dupe = $updateScreenArray;
+                                $updateScreenArray_dupe['entry_id'] = $item['id'];
+                                $updateScreenArray_dupe['duplicate'] = '1';
+                                updateUserScreenResults( $updateScreenArray_dupe );
+                            }                                
+                            $search_counter++;
+                        }
 
                     }
 
@@ -317,15 +348,36 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
 
     <h2 class="section-title dark-blue bold">Next Steps</h2>
     
-    <?php    
-        // CTA
+    <?php            
+        // Screen Specific CTAs
+        $screen_specific_cta = get_field('call_to_actions_all_results', $user_screen_result['screen_id']);
+        if($screen_specific_cta){
+            foreach($screen_specific_cta as $cta){
+                $result_cta[] = $cta; // Add to our array for later
+            }
+        }
+
+        // Result specific CTA
         global $post;
         foreach($result_cta as $cta){
             $post = get_post($cta); 
             get_template_part( 'templates/blocks/block', 'cta' );  
         } 
         wp_reset_postdata();
-
+        
+        // All Screen CTAs
+        if( have_rows('actions_global_screening', 'option') ):
+        while( have_rows('actions_global_screening', 'option') ) : the_row();  
+            $post_id = get_sub_field('action');
+            $post = get_post($post_id); 
+            if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
+                setup_postdata($post);
+                get_template_part( 'templates/blocks/block', 'cta' );  
+                $result_cta[] = $post_id;
+            }
+        endwhile;
+        endif;
+        
         // Global CTAs
         if( have_rows('actions', 'option') ):
         while( have_rows('actions', 'option') ) : the_row();  

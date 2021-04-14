@@ -616,7 +616,8 @@ function updateUserScreenResults( $options ){
         'entry_id'              => null, 
         'user_score'            => null, 
         'user_result'           => null,
-        'additional_scores'     => null
+        'additional_scores'     => null,
+        'duplicate'             => null
     );
 
     $atts = wp_parse_args( $options, $defaults );
@@ -631,7 +632,7 @@ function updateUserScreenResults( $options ){
         $sub_score_1 = null;
         $sub_score_2 = null;
         $sub_score_3 = null;
-        $token = null;
+        $duplicate = null;
         
         foreach($entry as $k => $v){
             
@@ -676,31 +677,21 @@ function updateUserScreenResults( $options ){
                 }
             }
 
+            // Duplicate
+            if (isset($field->label) && strpos($field->label, 'Duplicate') !== false) {  
+                if(!is_null($atts['duplicate'])){
+                    $duplicate = true;
+                    $entry[$field->id] = '1';
+                }
+            }
+
         }
 
         // Update the entry if the fields were empty
-        if($user_score || $user_result || $sub_score_1 || $sub_score_2 || $sub_score_3){
+        if($user_score || $user_result || $sub_score_1 || $sub_score_2 || $sub_score_3 || $duplicate){
             $result = GFAPI::update_entry( $entry );
             return true;
         }
-
-        // Check for Duplicates
-        /*
-        $search_criteria['field_filters'][] = array( 
-            'key' => $token['id'], 
-            'value' => $token['val']
-        );
-        $search_entries = GFAPI::get_entries( '0', $search_criteria );
-
-        if(count($search_entries) > 1){
-            foreach($search_entries as $item){
-                if($user_score || $user_result || $sub_score_1 || $sub_score_2 || $sub_score_3){
-                    $result = GFAPI::update_entry( $item );
-                }
-            }
-        }
-        */
-
 
     }
     
