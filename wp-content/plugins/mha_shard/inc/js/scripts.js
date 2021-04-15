@@ -39,8 +39,6 @@ jQuery(function ($) {
 		$('#filters-content').addClass('loading');			
 		$('#filters-content button, #filters-content input', $(this)).prop('disabled', true);
 
-		console.log(args);
-
 		$.ajax({
 			type: "POST",
 			url: do_mhaContent.ajaxurl,
@@ -166,5 +164,48 @@ jQuery(function ($) {
 		countChecked();		 
 		$(".show-all-conditions input").on("change", countChecked );
 	}
+
+
+	// Submit Article Form Display + Captcha Confirmation
+	$('#article-submit-recaptcha-confirm').on('submit', function(event){
+
+		event.preventDefault();		
+
+		var recaptcha = $('#g-recaptcha-response').val();
+		$('#article-submit-recaptcha-confirm .button').prop('disabled',true).addClass('loading');
+
+		if(recaptcha.length == 0 ){
+			$('#recaptcha-error .inner').html('We\'re sorry, but that response was invalid, please try again.');
+			$('#recaptcha-error').removeClass('hidden');
+			$('#article-submit-recaptcha-confirm .button').prop('disabled',false).removeClass('loading');
+		} else {
+			$('#recaptcha-error').addClass('hidden');
+			$('#recaptcha-error .inner').html('');
+			
+			var args = $('#article-submit-recaptcha-confirm').serialize();
+
+			$.ajax({
+				type: "POST",
+				url: do_mhaContent.ajaxurl,
+				data: { 
+					action: 'mha_submit_article_form_display',
+					data: args
+				},
+				success: function( result ) {
+					
+					$('#article-submit-container').html(result);
+					acf.do_action('append', $('#article-submit-container'));
+
+				},
+				error: function(xhr, ajaxOptions, thrownError){		
+					$('#recaptcha-error .inner').html('We\'re sorry, but there was an error loading the form, please try again later.');
+					$('#recaptcha-error').removeClass('hidden');
+					$('#article-submit-recaptcha-confirm .button').prop('disabled',false).removeClass('loading');
+				}
+			});	
+			
+		}
+
+	});
 
 });

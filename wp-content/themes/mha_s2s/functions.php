@@ -271,6 +271,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'redirect_to'; // Redirect for logins
     $qvars[] = 'paged'; // Pagination
     $qvars[] = 'iframe'; // Custom header/footer for iframe usage
+    $qvars[] = 'updated'; // Custom validation for form submissions
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );
