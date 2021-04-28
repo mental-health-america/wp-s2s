@@ -163,5 +163,6 @@ wp-content/mysql.sql
 !/wp-content/plugins/mha_activity
 !/wp-content/plugins/mha_screens
 !/wp-content/plugins/mha_exports
+!/wp-content/plugins/mha_imports
 
 !/wp-content/themes/mha_s2s
