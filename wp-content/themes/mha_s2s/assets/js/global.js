@@ -277,7 +277,27 @@
 		}
 		*/
 
+		// Simple Masonry
+		
+		$('.cta-cols').each(function(event){
+			if($(this).children('.block-cta').length > 1){
+				var macyId = $(this).attr('id');
+				$('#'+macyId).addClass('masonry');
+				var macy = Macy({
+					container: '#'+macyId,
+					trueOrder: true,
+					waitForImages: false,
+					margin: 0,
+					columns: 2,
+					breakAt: {
+						767: 1
+					}
+				});
+			}
+		});
+
 	});
+
 
 	/**
 	 * Window Resize Functions

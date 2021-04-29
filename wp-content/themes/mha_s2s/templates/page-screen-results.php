@@ -348,49 +348,51 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
 
     <h2 class="section-title dark-blue bold">Next Steps</h2>
     
-    <?php            
-        // Screen Specific CTAs
-        $screen_specific_cta = get_field('call_to_actions_all_results', $user_screen_result['screen_id']);
-        if($screen_specific_cta){
-            foreach($screen_specific_cta as $cta){
-                $result_cta[] = $cta; // Add to our array for later
+    <div id="cta-col" class="cta-cols">
+        <?php            
+            // Screen Specific CTAs
+            $screen_specific_cta = get_field('call_to_actions_all_results', $user_screen_result['screen_id']);
+            if($screen_specific_cta){
+                foreach($screen_specific_cta as $cta){
+                    $result_cta[] = $cta; // Add to our array for later
+                }
             }
-        }
 
-        // Result specific CTA
-        global $post;
-        foreach($result_cta as $cta){
-            $post = get_post($cta); 
-            get_template_part( 'templates/blocks/block', 'cta' );  
-        } 
-        wp_reset_postdata();
-        
-        // All Screen CTAs
-        if( have_rows('actions_global_screening', 'option') ):
-        while( have_rows('actions_global_screening', 'option') ) : the_row();  
-            $post_id = get_sub_field('action');
-            $post = get_post($post_id); 
-            if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
-                setup_postdata($post);
+            // Result specific CTA
+            global $post;
+            foreach($result_cta as $cta){
+                $post = get_post($cta); 
                 get_template_part( 'templates/blocks/block', 'cta' );  
-                $result_cta[] = $post_id;
-            }
-        endwhile;
-        endif;
-        
-        // Global CTAs
-        if( have_rows('actions', 'option') ):
-        while( have_rows('actions', 'option') ) : the_row();  
-            $post_id = get_sub_field('action');
-            $post = get_post($post_id); 
-            if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
-                setup_postdata($post);
-                get_template_part( 'templates/blocks/block', 'cta' );  
-            }
-        endwhile;
-        endif;
-        wp_reset_postdata();
-    ?>
+            } 
+            wp_reset_postdata();
+            
+            // All Screen CTAs
+            if( have_rows('actions_global_screening', 'option') ):
+            while( have_rows('actions_global_screening', 'option') ) : the_row();  
+                $post_id = get_sub_field('action');
+                $post = get_post($post_id); 
+                if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
+                    setup_postdata($post);
+                    get_template_part( 'templates/blocks/block', 'cta' );  
+                    $result_cta[] = $post_id;
+                }
+            endwhile;
+            endif;
+            
+            // Global CTAs
+            if( have_rows('actions', 'option') ):
+            while( have_rows('actions', 'option') ) : the_row();  
+                $post_id = get_sub_field('action');
+                $post = get_post($post_id); 
+                if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
+                    setup_postdata($post);
+                    get_template_part( 'templates/blocks/block', 'cta' );  
+                }
+            endwhile;
+            endif;
+            wp_reset_postdata();
+        ?>
+    </div>
 
     <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
         <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
