@@ -18,7 +18,7 @@ function mhaUpdateResults(){
 <div id="poststuff" class="wrap">
 
     <h1>Update User Results</h1>
-    <p>For developer use only. This will update all submitted screens from February 1, 2021 to April 1, 2021 and recalculate their saved user score and result.</p>
+    <p>For developer use only. This will update all submitted screens from April 1, 2021 to April 29, 2021 and recalculate their saved user score and result.</p>
 
     <form id="mha-update-user-results" action="#" method="POST">
         <div class="acf-columns-2">
@@ -67,8 +67,8 @@ function mha_result_updater_looper(){
     $search_criteria = [];
     $search_criteria['status'] = 'active';
     $search_criteria['field_filters']['mode'] = 'all';
-    $search_criteria['start_date'] = '2021-02-01';
-    $search_criteria['end_date'] = '2021-04-01';
+    $search_criteria['start_date'] = '2021-04-01';
+    $search_criteria['end_date'] = '2021-04-29';
     $entries = GFAPI::get_entries( $form_id, $search_criteria, null, $paging, $total_count );
     
     $max_pages = ceil($total_count / $page_size);
@@ -113,6 +113,11 @@ function mha_result_updater_looper(){
                 $user_result_old = $v;
                 continue;
             }
+        }
+
+        // Skip entries with scores/results already
+        if($user_score_old != ''){
+            continue;
         }
 
         $user_screen_result = getUserScreenResults( $user_screen_id ); 

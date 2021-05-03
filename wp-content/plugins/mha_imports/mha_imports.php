@@ -70,7 +70,7 @@ function mhaimporterpage(){
                                 <div class="bar-wrapper"><div class="bar"></div></div>            
                                 <strong class="label"><span class="label-number">0</span>%</strong>
                             </div>
-                            <p id="provider-imports-status" style="display: none;"></p>      
+                            <p id="provider-imports-status"></p>      
                             <br /><br />
                         </td>
                     </tr>

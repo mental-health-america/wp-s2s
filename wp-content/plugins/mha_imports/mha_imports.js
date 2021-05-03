@@ -30,8 +30,8 @@ jQuery(function ($) {
             processData: false,
             data: form_data,
             success: function( results ) {
-                var res = JSON.parse(results);    
-                mhaProviderImportLooper(results);    
+                var res = JSON.parse(results);   
+                mhaProviderImportLooper(res);    
             },
             error: function(xhr, ajaxOptions, thrownError){                
                 console.error(xhr,thrownError);
@@ -44,9 +44,9 @@ jQuery(function ($) {
     /**
      * Provider Looper
      */
-    function mhaProviderImportLooper( results ){
+    function mhaProviderImportLooper( res ){
 
-        var res = JSON.parse(results);
+        console.log(res);
             
         if(res.error){
 
@@ -54,24 +54,29 @@ jQuery(function ($) {
             $('#provider-import-error').html(res.error);        
 
         } else {
+
+            console.log('Proceeding...');
             
-            if(res.next_page != ''){
+            if(res.next_page != null){
 
                 // Continue Paging
-                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&manual_users=' + res.manual_users;
+                var args = 'next_page=' + res.next_page + '&file=' + res.file;
+
                 $.ajax({
                     type: "POST",
-                    url: do_mhaThoughts.ajaxurl,
+                    url: do_mhaImports.ajaxurl,
                     data: { 
-                        action: 'mha_nonaggregate_data_export',
-                        data: args_2
+                        action: 'mhaImporterLooper',
+                        data: args
                     },
-                    success: function( results_2 ) {  
-                        var res = JSON.parse(results_2);	
+                    success: function( results ) {  
+                        var res2 = JSON.parse(results);	
+                        console.log(res2);
                         $('#provider-imports-progress').slideDown();
-                        $('#provider-imports-progress .bar').css('width', res.percent+'%');
-                        $('#provider-imports-progress .label-number').html( res.percent );           
-                        mhaProviderImportLooper( results_2 );
+                        $('#provider-imports-progress .bar').css('width', res2.percent+'%');
+                        $('#provider-imports-progress .label-number').html( res2.percent );     
+                        $('#provider-imports-status').append(res2.log);    
+                        //mhaProviderImportLooper( res2 );
                     },
                     error: function(xhr, ajaxOptions, thrownError){                        
                         console.error(xhr,thrownError);        

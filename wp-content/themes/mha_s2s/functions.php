@@ -212,9 +212,12 @@ add_filter( 'gform_field_input', 'hidden_token_field', 10, 5 );
 function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
 	
 	// Gererate custom unique ID (that's not the ID) for this submission
+	// Replaced this with a pre submission handler mha_screening_pre_submission_handler() to avoid duplicates
+	/*
 	if ( $field->label == 'Token' ) {
 		$input = '<input name="input_'.$field->id.'" id="input_'.$form_id.'_'.$field->id.'" type="hidden" class="gform_hidden" aria-invalid="false" value="'.wp_generate_uuid4().'">';
 	}
+	*/
 
 	// Prepopulate with screen page's ID
 	if ( $field->label == 'Screen ID' ) {

@@ -698,3 +698,15 @@ function updateUserScreenResults( $options ){
     return false;
 
 }
+
+
+
+/**
+ * Pre Submission Handler
+ */
+add_action( 'gform_pre_submission', 'mha_screening_pre_submission_handler' );
+function mha_screening_pre_submission_handler( $form ) {
+    // Populate token field with unique ID before save
+    $_POST['input_38'] = wp_generate_uuid4();
+}
+
