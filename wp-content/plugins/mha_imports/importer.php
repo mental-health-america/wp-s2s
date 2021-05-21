@@ -53,49 +53,70 @@ function mhaImporterUploader(){
 
 }
 
+function convert_smart_quotes($string) {
+    $search = array(chr(145),
+                    chr(146),
+                    chr(147),
+                    chr(148),
+                    chr(151));
+ 
+    $replace = array("'",
+                     "'",
+                     '"',
+                     '"',
+                     '-');
+ 
+    return str_replace($search, $replace, $string);
+} 
+
 
 add_action( 'wp_ajax_mhaImporterLooper', 'mhaImporterLooper' );
-function mhaImporterLooper() {
+function mhaImporterLooper( $data = null ) {
 
     // Defaults
     $pager = 50;
 
     // Initial data
-	parse_str($_POST['data'], $data);  
-    $offset = $data['next_page'] * $pager;
-    $filename = urldecode($data['file']);
+    if($data){
+        $data = $data;
+        $filename = urldecode($data['file']);
+        $offset = $data['next_page'] * $pager;
+    } else {
+        parse_str($_POST['data'], $data);  
+        $offset = $data['next_page'] * $pager;
+        $filename = urldecode($data['file']);
+    }
 
     // Load CSV and get data
     $csv = Reader::createFromPath(__DIR__.'/tmp/'.$filename, 'r');
     $csv->setHeaderOffset(0);
-    $data['csv'] = $csv;
 
+    //$records = Statement::create()->process($csv);
+    //$records->getHeader();
+    //$header = $csv->getHeader();
 
-    $records = Statement::create()->process($csv);
-    $records->getHeader();
-    $header = $csv->getHeader();
     $records = $csv->getRecords();
-
     $total_records = count($records);
     $max_pages = ceil($total_records / $pager);
 
-
     // Loop through data
-    $record_selection = Statement::create()->offset($offset)->limit($pager);
+    //$record_selection = Statement::create()->offset($offset)->limit($pager);
     $data['log'] = '';
     foreach ($records as $record) {
-
+        
+        $post_content = utf8_encode( convert_smart_quotes($record['post_content']) );
+        
         // Create Article
         $new_article = array(
-            'post_title'    =>  sanitize_text_field($record['post_title']),
-            'post_status'   =>  sanitize_text_field($record['post_status']),
-            'post_author'   =>  intval($record['post_author']),
-            'post_type'     =>  sanitize_text_field($record['post_type']),
-            'post_content'  =>  wp_kses_post($record['post_content']),
-            'post_excerpt'  =>  sanitize_text_field($record['post_excerpt']),
-            'post_status'   =>  sanitize_text_field($record['post_status'])
+            'post_title'    =>  $record['post_title'],
+            'post_status'   =>  $record['post_status'],
+            'post_author'   =>  $record['post_author'],
+            'post_type'     =>  $record['post_type'],
+            'post_content'  =>  $post_content,
+            'post_excerpt'  =>  $record['post_excerpt'],
+            'post_status'   =>  $record['post_status']
         );
-        $pid = wp_insert_post($new_article);
+        $pid = wp_insert_post($new_article, 1);
 
         // Taxonomy
         wp_set_object_terms( $pid, explode(',', sanitize_text_field($record['post_tag'])), 'post_tag', false );
@@ -117,12 +138,12 @@ function mhaImporterLooper() {
         update_field('treatment_type',          explode(',', $record['treatment_type']), $pid);
         update_field('whole_state',             sanitize_text_field($record['whole_state']), $pid);
         update_field('hide_locations',          intval($record['hide_locations']), $pid);
-        update_field('introductory_content',    wp_kses_post($record['introductory_content']), $pid);
+        update_field('introductory_content',    utf8_encode( convert_smart_quotes($record['introductory_content']), $pid));
         update_field('featured_link',           esc_url_raw($record['featured_link']), $pid);
         update_field('featured_link_text',      sanitize_text_field($record['featured_link_text']), $pid);
-        update_field('pricing_information',     wp_kses_post($record['pricing_information']), $pid);
-        update_field('privacy_information',     wp_kses_post($record['privacy_information']), $pid);
-        update_field('disclaimer',              wp_kses_post($record['disclaimer']), $pid);
+        update_field('pricing_information',     utf8_encode( convert_smart_quotes($record['pricing_information']), $pid));
+        update_field('privacy_information',     utf8_encode( convert_smart_quotes($record['privacy_information']), $pid));
+        update_field('disclaimer',              utf8_encode( convert_smart_quotes($record['disclaimer']), $pid));
         update_field('all_conditions',          intval($record['all_conditions']), $pid);
         update_field('point_of_contact_name',   sanitize_text_field($record['point_of_contact_name']), $pid);
         update_field('point_of_contact_title',  sanitize_text_field($record['point_of_contact_title']), $pid);

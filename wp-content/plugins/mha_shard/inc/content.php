@@ -236,6 +236,11 @@ function mha_show_tests() {
 		if($iframe_mode == 'true'){
 			$screen_link_args['iframe'] = 'true';
 		}
+
+		$partner_var = get_query_var('partner');
+		if(isset($_GET['partner']) && in_array($partner_var, mha_approved_partners() )){
+			$screen_link_args['partner'] = $partner_var;
+		}
 		$screen_link = add_query_arg( $screen_link_args, get_the_permalink());
 
 		?>  		

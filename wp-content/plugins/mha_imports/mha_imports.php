@@ -54,7 +54,7 @@ function mhaimporterpage(){
                 <table class="form-table" role="presentation">
                 <tbody>
                     <tr>
-                        <th scope="row"><label for="import_provider_file">Start Date</label></th>
+                        <th scope="row"><label for="import_provider_file">CSV File</label></th>
                         <td>
                             <input type="file" name="import_provider_file" id="import_provider_file" required />
                         </td>

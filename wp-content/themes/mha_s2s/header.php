@@ -23,7 +23,7 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'UA-45375759-2');
+  gtag('config', 'UA-45375759-2', { 'anonymize_ip': true });
 </script>
 
 <?php wp_head(); ?>

@@ -61,6 +61,7 @@ jQuery(function ($) {
 
                 // Continue Paging
                 var args = 'next_page=' + res.next_page + '&file=' + res.file;
+                console.log(args);
 
                 $.ajax({
                     type: "POST",
@@ -70,6 +71,7 @@ jQuery(function ($) {
                         data: args
                     },
                     success: function( results ) {  
+                        console.log(results);
                         var res2 = JSON.parse(results);	
                         console.log(res2);
                         $('#provider-imports-progress').slideDown();

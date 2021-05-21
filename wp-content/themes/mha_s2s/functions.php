@@ -9,6 +9,16 @@
  * @since 1.0
  */
 
+ /**
+  * Approved partner list
+  */
+function mha_approved_partners() {
+	$partners = array(
+		'own'
+	);
+	return $partners;
+}
+
 /**
  * Sets up theme defaults and registers support for various WordPress features.
  */
@@ -80,6 +90,22 @@ function mha_s2s_scripts() {
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
 	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), '1.03' );
 	
+	// Partner CSS Files
+	$partner_var = get_query_var('partner');
+	if(in_array($partner_var, mha_approved_partners() )){
+		switch ($partner_var) {
+			case 'own':
+				$partner_css = 'https://www.chongandkoster.com/test/example.css';
+				break;
+			default:
+				$partner_css = null;
+				break;
+		}
+		if($partner_css){
+			wp_enqueue_style( 'mha_s2s-partner-style', $partner_css, array(), date('mdy') ); // 24 hour cache
+		}
+	}
+
 	// Add print CSS.
 	// wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/print.css', null, '1.0', 'print' );
     
@@ -189,6 +215,10 @@ function wp_body_classes( $classes ) {
 	if(isset($_GET['iframe']) && $_GET['iframe'] == 'true'){
     	$classes[] = 'iframe-mode';
 	}      
+	$partner_var = get_query_var('partner');
+	if(isset($_GET['partner']) && in_array($partner_var, mha_approved_partners() )){
+    	$classes[] = 'partner-'.$partner_var;
+	}      
     return $classes;
 }
 add_filter( 'body_class','wp_body_classes' );
@@ -246,8 +276,19 @@ add_filter( 'gform_confirmation', function ( $confirmation, $form, $entry ) {
 
 	// Check for the iframe parameter and include it on results page
 	if($confirmation['redirect'] && !empty($confirmation['redirect']) && isset($_GET['iframe']) && $_GET['iframe'] == 'true'){
-		$confirmation['redirect'] = add_query_arg( array( 'iframe' => 'true' ), $confirmation['redirect'] );
+
+		// Set up query args
+		$query_args = [];
+		$query_args['iframe'] = 'true'; // Pass iframe parameter to results page
+		if(isset($_GET['partner'])){
+			$query_args['partner'] = get_query_var('partner'); // Pass partner code to results page
+		}
+
+		$confirmation['redirect'] = add_query_arg( $query_args, $confirmation['redirect'] );
+		
 	}
+
+
 
     return $confirmation;
 
@@ -276,6 +317,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'paged'; // Pagination
     $qvars[] = 'iframe'; // Custom header/footer for iframe usage
     $qvars[] = 'updated'; // Custom validation for form submissions
+    $qvars[] = 'partner'; // Approved partner code
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );

@@ -4,6 +4,7 @@
 require_once __DIR__ . '/vendor/autoload.php';
 use League\Csv\CharsetConverter;
 use League\Csv\Writer;
+use League\Csv\Reader;
 
 function char_fix( $input ){
     $bad_chars  = array('’');
@@ -412,10 +413,6 @@ function mha_aggregate_data_export(){
         }
 
         $result['filename'] = $filename;
-        if($paged >= $max_pages){
-            // Final page
-            $result['download'] = plugin_dir_url(__FILE__).'tmp/'.$filename;
-        }
         
         // Headers only on page 1
         if($paged == 1){
@@ -446,6 +443,28 @@ function mha_aggregate_data_export(){
 
     }
     
+    if($paged >= $max_pages){
+            
+        /**
+         * Remove duplicates
+         */
+        $uniques = array();
+        $newRecords = [];
+        $writerProcessed = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/processed-'.$filename, 'a+');
+        $reader = Reader::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'r');
+        $records = $reader->getRecords();            
+        foreach ($records as $offset => $record) {
+            if (isset($uniques[$record[0]])) {            
+                continue; // Skip duplicates
+            }                
+            $uniques[$record[0]] = true; // Write uniques to array
+            $newRecords[] = $record; // Add record to new CSV
+        }            
+        $writerProcessed->insertAll(new ArrayIterator($newRecords));
+
+        $result['download'] = plugin_dir_url(__FILE__).'tmp/processed-'.$filename;
+        
+    }    
 
     echo json_encode($result);
 
@@ -453,7 +472,33 @@ function mha_aggregate_data_export(){
 }
 
 
+/** 
+ * Aggregate Duplicate Remover
+ */
+function mha_aggregate_remove_duplicates($filename){
 
+    $uniques = array();
+    $newRecords = [];
+
+    $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/processed-'.$filename, 'a+');
+    $reader = Reader::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'r');
+    $records = $reader->getRecords();
+    
+    foreach ($records as $offset => $record) {
+
+        if (isset($uniques[$record[0]])) {            
+            continue; // Skip duplicates
+        }
+        
+        $uniques[$record[0]] = true; // Write uniques to array
+        $newRecords[] = $record; // Add record to new CSV
+    }
+    
+    $writer->insertAll(new ArrayIterator($newRecords));
+
+    return plugin_dir_url(__FILE__).'tmp/processed-'.$filename;
+
+}
 
 /**
  * Non-Aggregate Data to CSV
