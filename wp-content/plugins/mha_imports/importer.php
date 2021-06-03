@@ -141,13 +141,16 @@ function mhaImporterLooper( $data = null ) {
         update_field('introductory_content',    utf8_encode( convert_smart_quotes($record['introductory_content']), $pid));
         update_field('featured_link',           esc_url_raw($record['featured_link']), $pid);
         update_field('featured_link_text',      sanitize_text_field($record['featured_link_text']), $pid);
+        update_field('customer_service_email',           sanitize_email($record['customer_service_email']), $pid);
+        update_field('customer_service_contact_form',    esc_url_raw($record['customer_service_contact_form']), $pid);
+        update_field('customer_service_phone',           sanitize_text_field($record['customer_service_phone']), $pid);
         update_field('pricing_information',     utf8_encode( convert_smart_quotes($record['pricing_information']), $pid));
         update_field('privacy_information',     utf8_encode( convert_smart_quotes($record['privacy_information']), $pid));
         update_field('disclaimer',              utf8_encode( convert_smart_quotes($record['disclaimer']), $pid));
         update_field('all_conditions',          intval($record['all_conditions']), $pid);
         update_field('point_of_contact_name',   sanitize_text_field($record['point_of_contact_name']), $pid);
         update_field('point_of_contact_title',  sanitize_text_field($record['point_of_contact_title']), $pid);
-        update_field('point_of_contact_email',  sanitize_text_field($record['point_of_contact_email']), $pid);
+        update_field('point_of_contact_email',  sanitize_email($record['point_of_contact_email']), $pid);
         update_field('point_of_contact_phone',  sanitize_text_field($record['point_of_contact_phone']), $pid);
 
 
@@ -167,7 +170,8 @@ function mhaImporterLooper( $data = null ) {
                     $location_data[] = array(
                         "address"	=> sanitize_text_field($record['location_address_'.$location_counter]),
                         "city"	    => sanitize_text_field($record['location_city_'.$location_counter]),
-                        "state"	    => sanitize_text_field($record['location_state_'.$location_counter])
+                        "state"	    => sanitize_text_field($record['location_state_'.$location_counter]),
+                        "phone"	    => sanitize_text_field($record['location_phone_'.$location_counter])
                     );
                     $location_counter++;
                 } else {

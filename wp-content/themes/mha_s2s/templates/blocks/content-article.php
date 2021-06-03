@@ -65,7 +65,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                         // Featured Link
                         if(get_field('featured_link')){
                             
-                            if(get_field('featured_link')){
+                            if(get_field('featured_link_text')){
                                 $featured_text = get_field('featured_link_text');
                             } else {
                                 $featured_text = get_field('featured_link');
@@ -87,17 +87,57 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                             if( $location && $location[0]['address'] != '') {
                                 if(count($location) > 1){ 
                                     echo '<h2>Locations</h2>';
+
+                                    echo '<div class="table-wrapper" style="overflow-x: auto;"><table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Address</th>
+                                            <th>Phone</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>';
+                                    foreach( $location as $row ) {
+                                        echo '<tr>';
+                                            echo '<td>'.$row['address'].'</td>';
+                                            echo '<td><a href="tel:'.$row['phone'].'">'.$row['phone'].'</a></td>';
+                                        echo '</tr>';
+                                    }
+                                    echo '</tbody>
+                                    </table></div>';
                                 } else {
                                     echo '<h2>Location</h2>';
+                                    echo '<p>';
+                                    foreach( $location as $row ) {
+                                        if($row['address'] != ''){ 
+                                            echo $row['address'].'<br />'; 
+                                        }
+                                        if($row['phone'] != ''){ 
+                                            echo '<a href="tel:'.$row['phone'].'">'.$row['phone'].'</a>'; 
+                                        }
+                                    }
+                                    echo '</p>';
                                 }
-                                echo '<p>';
-                                foreach( $location as $row ) {
-                                    echo ''.$row['address'].'<br />';
-                                }
-                                echo '</p>';
                             }
                         }
-
+                        
+                        // Contact Information
+                        if(get_field('customer_service_email') || get_field('customer_service_contact_form') || get_field('customer_service_phone') ){
+                            echo '<h2>Contact Info</h2>';
+                            echo '<div class="mb-5">';
+                        }
+                            if(get_field('customer_service_email')) { 
+                                echo '<p class="mb-0"><strong>Email:</strong> <a href="mailto:'.get_field('customer_service_email').'">'.get_field('customer_service_email').'</a></p>'; 
+                            }
+                            if(get_field('customer_service_contact_form')) { 
+                                echo '<p class="mb-0"><strong>Contact form:</strong> <a href="'.get_field('customer_service_contact_form').'" target="_blank">'.get_field('customer_service_contact_form').'</a></p>'; 
+                            }
+                            if(get_field('customer_service_phone')) { 
+                                echo '<p class="mb-0"><strong>Phone:</strong> <a href="tel:'.get_field('customer_service_phone').'">'.get_field('customer_service_phone').'</a></p>'; 
+                            }
+                        if(get_field('customer_service_email') || get_field('customer_service_contact_form') || get_field('customer_service_phone') ){
+                            echo '</div>';
+                        }
+                        
                         // Pricing Information
                         if(get_field('pricing_information')){
                             echo '<div class="mb-4">';

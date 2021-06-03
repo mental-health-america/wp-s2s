@@ -10,12 +10,18 @@ function mha_shard__allow_editors_menu_access() {
 add_action('admin_head', 'mha_shard__allow_editors_menu_access');
 
 
-// Allow editors to access Gravity Forms
+// Disable editor access to gravity forms
 function wd_gravity_forms_roles() {
     $role = get_role( 'editor' );
-    $role->add_cap( 'gform_full_access' );
+    $role->remove_cap( 'gform_full_access' );
+    $role->remove_cap('gravityforms_view_entries');
+    $role->remove_cap('gravityforms_edit_entries');
+    $role->remove_cap('gravityforms_delete_entries');
+    $role->remove_cap('gravityforms_export_entries');
 }
 add_action( 'admin_init', 'wd_gravity_forms_roles' );
+
+
 
 // Hide Menu Items from Toolbar
 add_action( 'admin_bar_menu', 'mha_shard__override_menu_toolbar_buttons', 999 );
