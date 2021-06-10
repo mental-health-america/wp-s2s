@@ -318,6 +318,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'iframe'; // Custom header/footer for iframe usage
     $qvars[] = 'updated'; // Custom validation for form submissions
     $qvars[] = 'partner'; // Approved partner code
+    $qvars[] = 'admin_uid'; // User ID override for admins
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );
@@ -866,3 +867,13 @@ function path_article_where( $where ) {
 	return $where;
 }
 add_filter('posts_where', 'path_article_where');
+
+
+/**
+ * Redirect subscribers to MY Account  
+ */
+add_action( 'load-profile.php', function() {
+    if(!current_user_can('manage_options')){
+        exit( wp_safe_redirect('/my-account?cb='.date('U')) );
+	}
+});

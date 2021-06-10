@@ -101,7 +101,17 @@
             if(res.next_page != ''){
 
                 // Continue Paging
-                var args_2 = 'page=' + res.next_page + '&filename=' + res.filename + '&export_screen_start_date=' + res.export_screen_start_date + '&export_screen_end_date=' + res.export_screen_end_date + '&export_screen_ref=' + res.export_screen_ref + '&export_screen_form=' + res.export_screen_form + '&export_screen_duplicates=' + res.export_screen_duplicates + '&export_screen_spam=' + res.export_screen_spam;
+                var args_2 = 'page=' + res.next_page;
+                    args_2 += '&filename=' + res.filename;
+                    args_2 += '&export_screen_start_date=' + res.export_screen_start_date;
+                    args_2 += '&export_screen_end_date=' + res.export_screen_end_date;
+                    args_2 += '&export_screen_ref=' + res.export_screen_ref;
+                    args_2 += '&export_screen_form=' + res.export_screen_form;
+                    args_2 += '&export_screen_duplicates=' + res.export_screen_duplicates;
+                    args_2 += '&export_screen_spam=' + res.export_screen_spam;
+                    args_2 += '&elapsed_start=' + res.elapsed_start;
+                    //args_2 += '&field_labels=' + res.field_labels;
+
                 $.ajax({
                     type: "POST",
                     url: do_mhaThoughts.ajaxurl,
@@ -117,16 +127,17 @@
                         screenExportDataLooper( results_2 );
                     },
                     error: function(xhr, ajaxOptions, thrownError){                        
-                        console.error(xhr,thrownError);        
+                        console.error(xhr,thrownError);
                     }
                 });	
 
             } else {
 
                 // Export is done
+                console.log(res);
                 var download_link = res.download;
                 $('#export_screen_link').prop('disabled', false).text('Download');	
-                $('#screen-exports-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
+                $('#screen-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
 
             }
 
@@ -151,7 +162,7 @@
                 data: args
             },
             success: function( results ) {
-
+                
                 var res = JSON.parse(results);
                 $('#screen-exports-progress').slideDown();
                 $('#screen-exports-progress .bar').css('width', res.percent+'%');

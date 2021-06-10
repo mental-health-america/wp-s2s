@@ -6,6 +6,11 @@ global $wpdb;
 $uid = get_current_user_id();
 $current_user = wp_get_current_user();
 
+if(get_query_var('admin_uid') && current_user_can('administrator')){
+    $uid = get_query_var('admin_uid');
+    $current_user = get_user_by( 'id', $uid );
+}
+
 /**
  * Special action overrides
  */
