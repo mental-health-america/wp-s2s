@@ -29,24 +29,26 @@ function mha_export_screen_data(){
     $exclude_spam = $data['export_screen_spam'];
     $result['export_screen_spam'] = $exclude_spam;
 
-    $form_id = $data['export_screen_form'];
-    //$form_id = 1; // Debug
-    $result['export_screen_form'] = $form_id;
-
     
-    // For speedier exports, avoid checking get_value_export() every time.
+    // Form ID Determination
+    $form_id = $data['export_screen_form'];
+    $result['all_forms'] = null;
+    $all_forms = null;
+    if(isset($data['all_forms']) && $data['all_forms'] != null && $data['all_forms'] != "null"){
+        // All Forms Override
+        $all_forms = json_decode(stripslashes($data['all_forms']), true);
+        $form_id = $all_forms[0];
+        $result['all_forms'] = stripslashes($data['all_forms']);
+    }
+    $result['export_screen_form'] = $form_id;
+    
+    // TODO: Speedier exports by passing the checkbox labels instead of querying every time?
+    /*
     if(isset($data['field_labels'])){
-        $field_labels = json_decode($data['field_labels'],); 
+        $field_labels = json_decode($data['field_labels']); 
     } else {
         $field_labels = []; 
     }
-
-    /*
-    $dupes = '';
-    if(isset($data['export_screen_duplicates']) && $data['export_screen_duplicates'] != ''){
-        $dupes = $data['export_screen_duplicates'];
-    }
-    $result['export_screen_duplicates'] = $dupes;
     */
 
     // Pagination
@@ -58,7 +60,7 @@ function mha_export_screen_data(){
     }
     $result['page'] = $page;
     $offset = ($page - 1) * $page_size;
-    $result['offset'] = $offset;
+    //$result['offset'] = $offset;
 
     // CSV Export
     $search_criteria = [];
@@ -67,14 +69,15 @@ function mha_export_screen_data(){
     $search_criteria['start_date'] = $startDate;
     $search_criteria['end_date'] = $endDate;
     
-    // Get field order for later
+    // Get field order/headers for later
     $gform = GFAPI::get_form( $form_id );
     $form_slug = sanitize_title_with_dashes($gform['title']);
     $field_order = [];
-    $field_order['Date'] = 'Date'; // Manual additional field
-    foreach($gform['fields'] as $gf){
-        
-        // Skip these columns
+    $field_order['Date'] = 'Date';                          // Manual additional field
+    $field_order['Spam Likely'] = 'Spam Likely';            // Manual additional field
+    //$field_order['Item Counter'] = 'Item Counter';        // Manual additional field
+
+    foreach($gform['fields'] as $gf){  
         $field = GFAPI::get_field( $form_id, $gf['id'] );
         if(
             isset($field->type) && $field->type == 'html' || 
@@ -82,11 +85,11 @@ function mha_export_screen_data(){
             isset($field->label) && $field->label == 'Token' || 
             isset($field->label) && $field->label == 'Screen ID' || 
             isset($field->label) && $field->label == 'Source URL' || 
-            isset($field->label) && $field->label == 'uid'){
-            continue;
+            isset($field->label) && $field->label == 'uid' || 
+            isset($field->label) && $field->label == ''){
+            continue; // Skip these columns
         } 
         $field_order[] = $gf['label'];
-
     }
 
     // Referer filter
@@ -117,14 +120,16 @@ function mha_export_screen_data(){
         $gfdata = GFAPI::get_entry( $e['id'] );
         $temp_array = [];
         $spam_check = 0;
+        $last_field = '';
 
         $row_date = new DateTime($gfdata['date_created']);
         $row_date->setTimezone($timezone);
-        $temp_array['Counter'] = $i;
-        $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");
+        //$temp_array['Item Counter'] = $i;
+        $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");       
 
         foreach($gfdata as $k => $v){           
             $field = GFAPI::get_field( $form_id, $k );
+            $current_field = $field->id;
 
             // Skip these columns
             if(
@@ -133,38 +138,49 @@ function mha_export_screen_data(){
                 isset($field->label) && $field->label == 'Token' || 
                 isset($field->label) && $field->label == 'Screen ID' || 
                 isset($field->label) && $field->label == 'Source URL' || 
-                isset($field->label) && $field->label == 'uid'){
+                isset($field->label) && $field->label == 'uid' || 
+                isset($field->label) && $field->label == ''){
                 continue;
             }
 
-            // Count required questions with no value
-            if($field->isRequired && $v == ''){
-                $spam_check++;
-            }
-
             // Get the label instead of value
-            if(isset($field->type) && $field->type == 'radio' || isset($field->type) && $field->type == 'checkbox'){
+            if($field->type == 'checkbox'){
+                $check_field = RGFormsModel::get_field( $form_id, $k );
+                $v = is_object( $check_field ) ? $check_field->get_value_export( $e ) : '';
+            }
+            if($field->type == 'radio'){
                 $v = $field->get_value_export($e, $k, true);  
             }
 
+
             // Insert into array
             $temp_array[$field->label] = $v;
+
+            // Count required questions with no value
+            if($last_field != $current_field){
+                $last_field = $current_field;
+                if($field->isRequired && $v == ''){
+                    $spam_check++;
+                    $result['field_checker'][$i][] = $field;
+                }
+            }
        
+        }
+
+        if($spam_check > 0){
+            $temp_array['Spam Likely'] = 'yes';
+        } else {
+            $temp_array['Spam Likely'] = 'no';
+        }
+
+        if($exclude_spam == 1 && $spam_check > 0){
+            $temp_array = [];
         }
 
         // Reorder our fields based on how they appear on the form and add the row
         if(!empty($temp_array)){
-            //$result['temp_array'] = $temp_array;
-            foreach($field_order as $key){             
-                if($exclude_spam == 1 && $spam_check > 0 ){
-                    continue;
-                }         
-                $csv_data[$i][$key] = $temp_array[$key];  
-                $csv_data[$i]['Spam Likely'] = $spam_check; // Spam Speculation
-            }            
-            
-            if($exclude_spam == 1 && $spam_check > 0 ){
-                continue; // Skip counter if entry is suspected spam and we want to exclude it
+            foreach($field_order as $key){  
+                $csv_data[$i][$key] = $temp_array[$key]; 
             }
             $i++;
         }
@@ -174,7 +190,7 @@ function mha_export_screen_data(){
     /**
      * Set next step variables and exit
      */
-    $result['field_labels'] = json_encode($field_labels);
+    //$result['field_labels'] = json_encode($field_labels);
 
     $result['total'] = $total_count;
     $max_pages = ceil($total_count / $page_size);
@@ -215,20 +231,34 @@ function mha_export_screen_data(){
         
         if($page >= $max_pages){
             // Final page
-            $result['download'] = plugin_dir_url(__FILE__).'tmp/'.$filename;
+            $result['download'] = plugin_dir_url(__FILE__).'tmp/'.$filename;   
 
             // Elapsed time
             $result['elapsed_end'] = time();
             $interval = $result['elapsed_end'] - $result['elapsed_start'];
             $result['total_elapsed_time'] = gmdate("H:i:s", abs($interval));
+            
+            // All Forms Continuation
+            if(isset($data['all_forms']) && count($all_forms) > 0){    
+                $cut_form = array_shift($all_forms);
+                $result['all_forms'] = json_encode($all_forms, JSON_UNESCAPED_SLASHES);
+                $result['all_forms_continue'] = 1;
+            } else {
+                $result['all_forms'] = null;
+                $result['all_forms_continue'] = null;
+            }
+
         }
         
         // Headers only on page 1
-        if($page == 1){
+        $reader = Reader::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'r+');
+        $csv_row = $reader->fetchOne();
+        if($page == 1 || empty($csv_row)){
             $csv_headers = [];
-            foreach($csv_data[0] as $k => $v){
+            foreach($csv_data[array_key_first($csv_data)] as $k => $v){
                 $csv_headers[] = $k;
             }
+            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
             $writer->insertOne($csv_headers);
         }    
         $writer->insertAll(new ArrayIterator($csv_data));
