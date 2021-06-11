@@ -92,6 +92,7 @@
      function screenExportDataLooper( results ){
 
         var res = JSON.parse(results);
+        console.log(res);
 
         if(res.error){
             // Error
@@ -110,6 +111,7 @@
                     args_2 += '&export_screen_duplicates=' + res.export_screen_duplicates;
                     args_2 += '&export_screen_spam=' + res.export_screen_spam;
                     args_2 += '&elapsed_start=' + res.elapsed_start;
+                    args_2 += '&all_forms=' + res.all_forms;
                     //args_2 += '&field_labels=' + res.field_labels;
 
                 $.ajax({
@@ -134,24 +136,46 @@
             } else {
 
                 // Export is done
-                console.log(res);
                 var download_link = res.download;
                 $('#export_screen_link').prop('disabled', false).text('Download');	
                 $('#screen-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                
+                if(res.all_forms){
+                    var all_forms_array = JSON.parse(res.all_forms);
+                    if(Object.keys(all_forms_array).length > 0 && res.all_forms_continue == 1){                    
+                        var continue_params = [];
+                            continue_params['all_forms'] = res.all_forms;
+                        screenExportDataStart( continue_params );                    
+                        $('#screen-exports-progress .bar').css('width', '0%');
+                        $('#screen-exports-progress .bar').css('background-color', '');
+                        $('#screen-exports-progress .label-number').html( 'Calculating...' );   
+                    }
+                } else {       
+                    $('#screen-exports-progress .bar').css('width', '100%');
+                    $('#screen-exports-progress .bar').css('background-color', '#f89941');
+                    $('#screen-exports-download').slideDown().append('<li>Done!</li>');
+                }
 
             }
 
         }
     }
 
-    $(document).on("submit", '#mha-all-screen-exports', function(event){
+    function screenExportDataStart( params ){
         
-        // Disable default form submit
-        event.preventDefault();
-        
+        // Form fields args
         var args = $('#mha-all-screen-exports').serialize();
 
+        // All forms override
+        if(params.all_forms){
+            args += '&all_forms=' + params.all_forms;
+        }
+
+        console.log(args);
+
         $('#export_screen_link').prop('disabled', true).text('Processing...');
+        $('#screen-exports-progress .bar').css('background-color', '');
+        $('#screen-exports-progress .label-number').html( 'Calculating...' );  
         $('#screen-export-error').html('');
 
         $.ajax({
@@ -175,6 +199,24 @@
             }
         });	
         
+    }
+
+    $(document).on("submit", '#mha-all-screen-exports', function(event){
+        
+        // Disable default form submit
+        event.preventDefault();
+
+        var all_forms = [];
+        if($('select[name="export_screen_form"]').val() == 'all'){
+            var form_ids = [];
+            $('select[name="export_screen_form"] option').each(function() {
+                if($(this).val() != 'all'){
+                    form_ids.push($(this).val());
+                }
+            });
+            all_forms['all_forms'] = JSON.stringify(form_ids);
+        }
+        screenExportDataStart( all_forms );        
 
     });
 

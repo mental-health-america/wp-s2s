@@ -81,6 +81,7 @@ function mhathoughtexport(){
                                     //echo '<label for="gform-'.$gf['id'].'"><input id="gform-'.$gf['id'].'" type="checkbox" name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</label><br />';
                                 }
                             }
+                            echo '<option name="gform[]" value="all" />[All] Export All Forms</option>';
                             echo '</select>'
                         ?>
                     </td>
