@@ -1,0 +1,34 @@
+#screen-exports-progress,
+#aggregate-progress,
+#nonaggregate-progress {
+    width: 401px;
+    height: 41px;
+    position: relative;
+    border: 1px solid #007BA7;
+}
+
+#screen-exports-progress .bar-wrapper,
+#aggregate-progress .bar-wrapper,
+#nonaggregate-progress .bar-wrapper {
+    position: relative;
+    height: 38px;
+    width: 398px;
+    margin: 1px 0 0 1px;
+}
+#screen-exports-progress .bar,
+#aggregate-progress .bar,
+#nonaggregate-progress .bar {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    top: 0;
+    transition: width 150ms ease;
+    width: 0%;
+    height: 100%;
+    background: #007BA7;
+}
+#screen-exports-download,
+#aggregate-download,
+#nonaggregate-download {
+    padding-top: 15px;
+}

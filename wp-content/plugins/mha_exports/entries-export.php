@@ -262,6 +262,11 @@ function mha_export_screen_data(){
             $writer->insertOne($csv_headers);
         }    
         $writer->insertAll(new ArrayIterator($csv_data));
+        $encoder = (new CharsetConverter())
+            ->inputEncoding('utf-8')
+            ->outputEncoding('iso-8859-15')
+        ;
+        $writer->addFormatter($encoder);
 
     } catch (CannotInsertRecord $e) {
         $result['error'] = $e->getRecords();

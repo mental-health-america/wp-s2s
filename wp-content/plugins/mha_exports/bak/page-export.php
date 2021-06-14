@@ -1,6 +1,5 @@
 <?php
 
-
 // Plugins
 require_once __DIR__ . '/vendor/autoload.php';
 use League\Csv\CharsetConverter;
@@ -27,14 +26,13 @@ function mhaThoughtScripts() {
     }
 }
 
-
 // List Page
 function mhathoughtexport(){
 ?>
 
 <div id="poststuff" class="wrap">
 
-    <h1>General Data Exports</h1>
+    <h1>Data Exports</h1>
 
     <form id="mha-all-screen-exports" action="#" method="POST">
         <div class="acf-columns-2">
@@ -47,13 +45,13 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label for="export_screen_start_date">Start Date</label></th>
                     <td>
-                        <input type="text" name="export_screen_start_date" id="export_screen_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')); ?>-01" />
+                        <input type="text" name="export_screen_start_date" id="export_screen_start_date" value="<?php echo date('Y-m', strtotime('now')); ?>-01" />
                     </td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="export_screen_end_date">End Date</label></th>
                     <td>
-                        <input type="text" name="export_screen_end_date" id="export_screen_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                        <input type="text" name="export_screen_end_date" id="export_screen_end_date" value="<?php echo date('Y-m-d', strtotime('now')); ?>" />
                     </td>
                 </tr>
                 <tr>
@@ -62,6 +60,14 @@ function mhathoughtexport(){
                         <input type="text" name="export_screen_ref" id="export_screen_ref" placeholder="mhanational.org" />
                     </td>
                 </tr>
+                <!--
+                <tr>
+                    <th scope="row"><label for="export_screen_duplicates">Duplicates to Exclude</label></th>
+                    <td>
+                        <input type="text" name="export_screen_duplicates" id="export_screen_duplicates" placeholder="0" />
+                    </td>
+                </tr>
+                -->
                 <tr>
                     <th scope="row"><label for="export_screen_spam">Exclude Suspected Spam</label></th>
                     <td>
@@ -81,7 +87,6 @@ function mhathoughtexport(){
                                     //echo '<label for="gform-'.$gf['id'].'"><input id="gform-'.$gf['id'].'" type="checkbox" name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</label><br />';
                                 }
                             }
-                            echo '<option name="gform[]" value="all" />[All] Export All Forms</option>';
                             echo '</select>'
                         ?>
                     </td>
@@ -98,7 +103,7 @@ function mhathoughtexport(){
                             <div class="bar-wrapper"><div class="bar"></div></div>            
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
-                        <ul id="screen-exports-download" style="display: none;"></ul>      
+                        <p id="screen-exports-download" style="display: none;"></p>      
                         <br /><br />
                     </td>
                 </tr>
@@ -831,6 +836,226 @@ function mha_nonaggregate_data_export(){
 }
 
 
+add_action( 'wp_ajax_mha_export_screen_data', 'mha_export_screen_data' );
+function mha_export_screen_data(){
+    
+	// General variables
+    $result = array();
+    $timezone = new DateTimeZone('America/New_York');
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);  
+
+    // Options
+    $startDate = $data['export_screen_start_date'];
+    $result['export_screen_start_date'] = $startDate;
+
+    $endDate = $data['export_screen_end_date'];
+    $result['export_screen_end_date'] = $endDate;
+
+    $ref = $data['export_screen_ref'];
+    $result['export_screen_ref'] = $ref;
+
+    $form_id = $data['export_screen_form'];
+    $result['export_screen_form'] = $form_id;
+
+    $dupes = '';
+    if(isset($data['export_screen_duplicates']) && $data['export_screen_duplicates'] != ''){
+        $dupes = $data['export_screen_duplicates'];
+    }
+    $result['export_screen_duplicates'] = $dupes;
+
+    $exclude_spam = '';
+    if(isset($data['export_screen_spam']) && $data['export_screen_spam'] != ''){
+        $exclude_spam = $data['export_screen_spam'];
+    }
+    $result['export_screen_spam'] = $exclude_spam;
+
+    // Pagination
+    $page_size = 200;
+    if(isset($data['page'])){
+        $page = $data['page'];
+    } else {
+        $page = 1;
+    }
+    $result['page'] = $page;
+    $offset = ($page - 1) * $page_size;
+    $result['offset'] = $offset;
+
+    // CSV Export
+    $search_criteria = [];
+    $search_criteria['status'] = 'active';
+    $search_criteria['field_filters']['mode'] = 'all';
+    $search_criteria['start_date'] = $startDate;
+    $search_criteria['end_date'] = $endDate;
+    
+    // Get field order for later
+    $gform = GFAPI::get_form( $form_id );
+    $form_slug = sanitize_title_with_dashes($gform['title']);
+    $field_order = [];
+    $field_order['Date'] = 'Date'; // Manual additional field
+    foreach($gform['fields'] as $gf){
+        
+        // Skip these columns
+        $field = \GFAPI::get_field( $form_id, $gf['id'] );
+        if(
+            isset($field->type) && $field->type == 'html' || 
+            isset($field->label) && $field->label == 'uid' || 
+            isset($field->label) && $field->label == 'Screen ID' || 
+            isset($field->label) && $field->label == ''){
+            continue;
+        } 
+        $field_order[] = $gf['label'];
+
+    }
+    $field_order['User Agent'] = 'User Agent'; // Manual additional field
+
+    // Referer filter
+    if($ref != ''):
+        $filter_id = '';
+        foreach($gform['fields'] as $field):
+            if($field['label'] == 'Referer'){
+                $search_criteria['field_filters'][] = array( 
+                    'key' => $field['id'], 
+                    'operator' => 'contains', 
+                    'value' => $ref
+                );
+                break;
+            }
+        endforeach;
+    endif;
+
+    // Get form entries
+    $paging = array( 'offset' => $offset, 'page_size' => $page_size );
+    $total_count = 0;
+    $entries = GFAPI::get_entries( $form_id, $search_criteria, null, $paging, $total_count );
+    $search_criteria['total_count_real'] = $total_count;
+    $csv_data = [];
+    $i = 0;
+
+    foreach($entries as $entry){
+
+        // Put all fields in the CSV
+        $gfdata = GFAPI::get_entry( $entry['id'] );
+        $field_order_temp = $field_order;
+        $temp_array = [];
+        $spam_check = 0;
+        $required_compare = 0;
+
+        
+        $row_date = new DateTime($gfdata['date_created']);
+        $row_date->setTimezone($timezone);
+        $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");
+        foreach($gfdata as $k => $v){           
+            $field = \GFAPI::get_field( $form_id, $k );
+
+            // Skip these columns
+            if(
+                isset($field->type) && $field->type == 'html' || 
+                isset($field->label) && $field->label == 'uid' || 
+                isset($field->label) && $field->label == 'Screen ID' || 
+                isset($field->label) && $field->label == ''){
+                continue;
+            }
+
+            // Get the label instead of value
+            if(isset($field->type) && $field->type == 'radio' || isset($field->type) && $field->type == 'checkbox'){
+                $v = $field->get_value_export($entry, $k, true);
+            }
+
+            // Count required questions with no value
+            if(isset($field->isRequired) && isset($field->cssClass)){
+                if($field->isRequired && strpos($field->cssClass, 'question') !== false && !$v){
+                    $spam_check++;
+                }
+            }
+
+            // Insert into array
+            // $csv_data[$i][$field->label] = $v;
+            if(isset($field->label)){
+                $temp_array[$field->label] = $v;
+            }
+            
+        }
+        $temp_array['User Agent'] = $gfdata['user_agent'];
+
+        // Insert the rows
+        if($exclude_spam == 1 && $spam_check > 0){
+
+            // Skip potential spam when exclude spam is checked
+            continue;
+
+        } else {
+
+            // Reorder our fields based on how they appear on the form and add the row
+            if(!empty($temp_array)){
+                $result['temp_array'] = $temp_array;
+                foreach($field_order as $key){
+                    $csv_data[$i][$key] = $temp_array[$key];  
+                }
+                $csv_data[$i]['Spam Likely'] = $spam_check; // Spam Speculation    
+                $i++;
+            }
+
+        }
+
+    }
+
+    /**
+     * Set next step variables and exit
+     */
+    $result['total'] = $total_count;
+    $max_pages = ceil($total_count / $page_size);
+    $result['max'] = $max_pages;
+    $result['percent'] = round( ( ($page / $max_pages) * 100 ), 2 );
+    if($page >= $max_pages){
+        $result['next_page'] = '' ;
+    } else {
+        $result['next_page'] = $page + 1;
+    }
+    
+    /**
+     * Write CSV
+     */
+    try {
+
+        // Create CSV
+        if($data['filename']){
+            // Update existing file
+            $filename = $data['filename'];
+            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
+        } else {
+            // Create file
+            $filename = $form_slug.'--'.$startDate.'_'.$endDate.'--'.date('U').'.csv';
+            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
+        }
+        $result['filename'] = $filename;
+        
+        if($page >= $max_pages){
+            // Final page
+            $result['download'] = plugin_dir_url(__FILE__).'tmp/'.$filename;
+        }
+        
+        // Headers only on page 1
+        if($page == 1){
+            $csv_headers = [];
+            foreach($csv_data[0] as $k => $v){
+                $csv_headers[] = $k;
+            }
+            $writer->insertOne($csv_headers);
+            $result['headers'] = $csv_headers;
+        }    
+        $writer->insertAll(new ArrayIterator($csv_data));
+
+    } catch (CannotInsertRecord $e) {
+        $result['error'] = $e->getRecords();
+    }
+
+    echo json_encode($result);
+    exit();   
+
+}
+
 /** 
  * WPEngine Heartbeat Override
  * https://wordpress.org/support/topic/missing-dependencies-in-query-monitor-with-wp-auth-check-and-heatbeat-missing/
@@ -840,29 +1065,3 @@ add_filter( 'wpe_heartbeat_allowed_pages', function( $pages ) {
 	$pages[] =  $pagenow;
 	return $pages;
 });
-
-
-// Delete Entries
-// wp gf entry delete $( wp gf entry list 1 --status=trash --format=ids ) --force
-
-/**
- * Export entries with WP CLI
- */
-function mha_cli_screen_exporter(){
-
-    // Dynamic Variables
-    $form = 1;
-    $start_date = '2021-05-01';
-    $end_date = '2021-05-31';
-
-    // Constructor Variables
-    $gform = GFAPI::get_form( $form_id );
-    $form_slug = sanitize_title_with_dashes($gform['title']);
-    $filename = $form_slug.'--'.$start_date.'_'.$end_date.'--'.date('U').'.csv';
-    $tmp_dir = plugin_dir_path(__FILE__).'tmp';
-
-    // wp gf entry export ( wp gf entry list 5 ) test.csv --dir=~/sites/mhanationalstg/wp-content/plugins/mha_exports/tmp --format=csv --start_date=21-05-01 --end_date=21-05-31;
-    // wp gf entry export ( wp gf entry list 1 ) test.csv --format=csv --start_date=2021-05-01 --end_date=2021-05-02;
-    $cli_command = "wp gf entry export ( wp gf entry list $form ) $filename --dir=$tmp_dir --format=csv --start_date=$start_date --end_date=$end_date";
-
-}
