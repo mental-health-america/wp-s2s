@@ -81,12 +81,6 @@ if($flag_query){ ?>
                             $initial_thought = get_field('pre_generated_responses', $activity);
                             echo '<strong>Admin Seeded Thought:</strong><br />'.$initial_thought[$responses[$flag->row]['admin_pre_seeded_thought']]['response'];
 
-                        } else if($type == 'thought_activity'){
-
-                            // Admin seeded thought
-                            $initial_thought = get_field('pre_generated_responses', $flag->pid);
-                            echo '<strong>Admin Seeded Thought:</strong><br />'.$initial_thought[$flag->row]['response'];
-
                         } else {
 
                             // Other thoughts
