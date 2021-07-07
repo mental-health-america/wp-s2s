@@ -41,7 +41,7 @@ function recent_flagged_thoughts_widget() {
 function recent_flagged_thoughts() {
 
     global $wpdb;
-    $flag_query = $wpdb->get_results( 'SELECT * FROM thoughts_flags ORDER BY date DESC LIMIT 10' );
+    $flag_query = $wpdb->get_results( 'SELECT * FROM thoughts_flags ORDER BY date DESC LIMIT 30' );
     $flag_count = 0;
 
     if($flag_query){ ?>
@@ -56,7 +56,7 @@ function recent_flagged_thoughts() {
             foreach($flag_query as $flag): 
             $responses = get_field('responses', $flag->pid);
             $type = get_post_type($flag->pid);
-            if($type == 'thought_activity' || $responses[$flag->row]['hide'] == 1 || get_field('admin_notes', $flag->pid)){
+            if($type == 'thought_activity' || $responses[$flag->row]['hide'] == 1 || get_field('admin_notes', $flag->pid) || $responses[$flag->row]['response'] == ''){
                 continue;
             }
             $flag_count++;

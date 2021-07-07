@@ -7,6 +7,21 @@
     left: -999em !important;
 }
 
+.hidden_label > label {
+    position: absolute;
+    left: -999em;
+}
+
+h2.gform_submission_error {
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+}
+
 // Global
 .gform_fields {
     margin: 0;
@@ -25,6 +40,8 @@ label {
 // Animated Labels
 .float-label {
     position: relative;
+    label,
+    &.gfield_error label,
     label:not(.error) {
         position: absolute;
         z-index: 1;
@@ -32,6 +49,8 @@ label {
         top: 0px;
         @include transitions(top 150ms ease, font-size 150ms ease);
     }
+    &.filled label,
+    &.gfield_error label,
     &.filled label:not(.error) {
         top: -15px;
         font-size: 10px !important;

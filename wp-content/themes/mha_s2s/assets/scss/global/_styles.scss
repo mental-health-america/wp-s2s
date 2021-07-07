@@ -811,23 +811,61 @@ table td {
     }
 }
 
+table.table {
+    display: table;
+    margin: 0 0 1.5em 0;
+    width: auto;
+    height: auto;
+    color: inherit;
+}
+
 tr.even,
 .even { background: none; border: 0; padding: 0; }
 tr.odd,
 .odd { background: $gray; border: 0; padding: 0; }
 
-.table-striped tbody tr:nth-of-type(2n+1) { background-color: $grayLight; }
-.table-bordered td, .table-bordered th { border-color: $grayLight; }
-
-.content-red {
-    .table-striped tbody tr:nth-of-type(2n+1) { background-color: $redLight; }
-    .table-bordered td, .table-bordered th { border-color: $redLight; }
+.table-striped tbody tr:nth-of-type(odd),
+.table-striped tbody tr:nth-of-type(2n+1) { 
+    background-color: transparent; 
+}
+.table-striped th { 
+    background-color: $redLight; 
+}
+.table-striped tbody tr:nth-of-type(even) { 
+    background-color: $grayLight; 
+}
+.table-bordered td, 
+.table-bordered th { 
+    border-color: $grayLight; 
 }
 
+.content-red {
+    .table-striped th { 
+        background-color: $redLight; 
+    }
+    .table-striped tbody tr:nth-of-type(even) { 
+        background-color: $redLight; 
+    }
+    .table-bordered td, 
+    .table-bordered th { 
+        border-color: $redLight; 
+    }
+}
+
+/* Table Bootstrap Overrides */
 .table-responsive-lg {
     @media(max-width: 991.98px) {
         border-right: 1px solid $gray;
     }
+}
+.table-responsive { 
+    max-height: 85vh 
+}
+.table-responsive thead { 
+    position: -webkit-sticky; 
+    position: sticky; 
+    top: -1px; 
+    @include transitions(top 100ms ease);
 }
 
 /* Lists */

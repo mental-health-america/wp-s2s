@@ -73,10 +73,15 @@ if($flag_query){ ?>
                     <?php
                         $responses = get_field('responses', $flag->pid);
                         $type = get_post_type($flag->pid);
-                        //echo $flag->row;
                         $edit_pid = $flag->pid;
+                        
+                        if(is_numeric($responses[$flag->row]['admin_pre_seeded_thought'])){
+                            
+                            $activity = get_field('activity', $flag->pid);
+                            $initial_thought = get_field('pre_generated_responses', $activity);
+                            echo '<strong>Admin Seeded Thought:</strong><br />'.$initial_thought[$responses[$flag->row]['admin_pre_seeded_thought']]['response'];
 
-                        if($type == 'thought_activity'){
+                        } else if($type == 'thought_activity'){
 
                             // Admin seeded thought
                             $initial_thought = get_field('pre_generated_responses', $flag->pid);
