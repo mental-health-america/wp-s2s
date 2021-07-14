@@ -13,3 +13,6 @@ function remove_comments(){
     $wp_admin_bar->remove_menu('comments');
 }
 add_action( 'wp_before_admin_bar_render', 'remove_comments' );
+
+// Disabmle xmlrpc.php access
+add_filter( 'xmlrpc_enabled', '__return_false' );
