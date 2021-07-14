@@ -49,7 +49,8 @@ function mhacleanuppage(){
             <div class="acf-columns-2">
             <div class="acf-column-1">
             
-                <div id="mha-cleanup-error"></div>
+                <div id="mha-cleanup-error" class="error fade hidden"></div>
+
                 <h2>Anonymous Data Removal</h2>
                 <p>This tool will delete any anonymous (Screens with no User ID or User ID of #4) screening data for the selected date range.</p>
                 
@@ -70,6 +71,7 @@ function mhacleanuppage(){
                     <tr>
                         <td colspan="2">    
                             <p>
+                                <input type="hidden" name="form_ids" value="15,8,10,1,13,12,5,18,17,9,11,16,14" />
                                 <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhacleanupsnonce'); ?>" />
                                 <button id="mha-start-clean-up" class="button button-primary button-large">Clean Up Data</button>
                                 <button id="mha-cleanup-data-begin" type="submit" class="button button-secondary button-large hidden">Are you Sure?</button>
@@ -79,6 +81,10 @@ function mhacleanuppage(){
                                 <div class="bar-wrapper"><div class="bar"></div></div>            
                                 <strong class="label"><span class="label-number">0</span>%</strong>
                             </div>
+
+                            <p id="cleanup-deleted-container" style="display: none;">
+                                <span id="cleanup-deleted">0</span> Entries Removed
+                            </p>
                             <p id="cleanup-status"></p>      
                             <br /><br />
                         </td>
@@ -88,6 +94,8 @@ function mhacleanuppage(){
             </div>
             </div>
         </form>
+
+        <div id="cleanup-json-storage" style="display: none;"></div>
     
     </div>	
 <?php } 

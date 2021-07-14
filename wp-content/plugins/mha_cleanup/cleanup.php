@@ -24,6 +24,12 @@ function mhacleanuperLooper( $data = null ) {
         parse_str($_POST['data'], $data);  
     }
 
+    // Defaults
+    //$form_ids = array(15, 8, 10, 1, 13, 12, 5, 18, 17, 9, 11, 16, 14); // All screening related form IDs     
+    $form_ids = explode(',',$data['form_ids']);
+    $data['form_ids'] = $form_ids;
+    $data['log'] = '';
+
     // Pagination
     $page_size = 1000;
     if(isset($data['next_page'])){
@@ -33,7 +39,6 @@ function mhacleanuperLooper( $data = null ) {
     }
     $data['page'] = $page;
     $offset = ($page - 1) * $page_size;
-
 
     // Filters
     $startDate = $data['start_date'];
@@ -53,20 +58,15 @@ function mhacleanuperLooper( $data = null ) {
     $search_criteria = [];
     $search_criteria['start_date'] = $startDate;
     $search_criteria['end_date'] = $endDate;
+    //$search_criteria['field_filters'][] = array( 'key' => 41, 'value' => null );    
 
-    /**
-     * This method is too slow for any substantial queries, better to check the key individually later
-     */
-    //$search_criteria['field_filters'][] = array( 'key' => 'created_by', 'value' => array( null, 4) ); // Not reliable as it can apply admin IDs 
-    //$search_criteria['field_filters'][] = array( 'key' => 41', 'value' => null ); // UID field
-    
     // Get form entries
     $paging = array( 'offset' => $offset, 'page_size' => $page_size );
     $total_count = 0; // Set this for later
-    $deleted_entries = 0;
+    $data['entries'] = [];
 
-    $form_ids = array(15, 8, 10, 1, 13, 12, 5, 18, 17, 9, 11, 16, 14); // All screening related form IDs    
-    $entries = GFAPI::get_entries( 15, $search_criteria, null, $paging, $total_count );
+    //$search_criteria['field_filters'][] = array( 'key' => 41, 'value' => null );
+    $entries = GFAPI::get_entries( $form_ids[0], $search_criteria, null, $paging, $total_count );
 
     $data['total'] = $total_count;
     $max_pages = ceil($total_count / $page_size);
@@ -75,12 +75,15 @@ function mhacleanuperLooper( $data = null ) {
     if($total_count > 0){
         foreach($entries as $e){
             if(empty($e[41])){ // This is the UID field we're checking for anonymous users 
-                GFAPI::delete_entry( $e['id'] );
-                $deleted_entries++;
+                $data['entries'][] = $e['id'];
             }
         }
-    } else {
-        $data['error'][] = 'No anonymous entries to delete';
+    } else {        
+        $remove_form_id = array_shift($form_ids);
+        $data['log'] = '<br />No matching applicable entries from Form #'.$remove_form_id.'... Skipping.';
+        $data['form_ids'] = $form_ids;
+        $data['next_page'] = null;
+        $data['deleted_entries'] = 0;
         echo json_encode($data);
         exit();
     }
@@ -89,10 +92,17 @@ function mhacleanuperLooper( $data = null ) {
     $data['max'] = $max_pages;
     $data['percent'] = round( ( ($page / $max_pages) * 100 ), 2 );
     if($page >= $max_pages){
+        
+        $remove_form_id = array_shift($form_ids);
+        $data['log'] = '<br />Cleaning up Form #'.$remove_form_id;
+        $data['form_ids'] = $form_ids;
         $data['next_page'] = null;
+
     } else {
+        //$data['log'] = '';
         $data['next_page'] = $page + 1;
     }  
+
 
     // Extras to pass along
     $data['deleted_entries'] = $deleted_entries + $data['deleted_entries'];
@@ -100,4 +110,34 @@ function mhacleanuperLooper( $data = null ) {
     // Return our responses
     echo json_encode($data);
     exit();
+}
+
+
+
+add_action( 'wp_ajax_mhaCleanerJsonScrubber', 'mhaCleanerJsonScrubber' );
+function mhaCleanerJsonScrubber() {
+
+    if(!current_user_can( 'manage_options' )){
+        exit();
+    }
+
+    $data = explode(",", trim($_POST['data']));
+    $response['data'] = $data;
+    $response['entries'] = [];
+    
+    $counter = 0;
+    foreach($data as $d) {
+        if($d != ''){
+            GFAPI::delete_entry( $d );
+            $response['entries_new'][] = $d;
+            $counter++;
+        }
+    }
+
+    $response['deleted_entries'] = $counter;
+    
+    // Return our responses
+    echo json_encode($response);
+    exit();
+
 }

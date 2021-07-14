@@ -20,12 +20,21 @@ jQuery(function ($) {
 
         // Vars
         var args = $('#mha-cleanup').serialize();
-        console.log(args);
             
         // Disable flag button
         $('#mha-cleanup-data-begin').prop('disabled', true).text('Processing...');
-        $('#mha-cleanup-error').html('');
-        
+        $('#mha-cleanup-error').html('').addClass('hidden');
+        $('#cleanup-deleted-container').slideDown();
+
+        // Start Counter
+
+        // Start the log
+        /*
+        var form_ids = $('input[name="form_ids"]').val(),
+            form_id_array = form_ids.split(",");
+        $('#cleanup-status').append('<br />Processing Form #'+form_id_array[0]);   
+        */
+
         $.ajax({
             type: "POST",
             url: do_mhacleanups.ajaxurl,
@@ -34,18 +43,20 @@ jQuery(function ($) {
                 data: args
             },
             success: function( results ) {
-                var res = JSON.parse(results);  
+                var res = JSON.parse(results); 
                 if(results){
                     if(res.error){
-                        console.error(res);
-                        $('#mha-cleanup-error').html(res.error);  
+                        $('#mha-cleanup-error').html(res.error).removeClass('hidden');  
                         $('#mha-cleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
                         $('#mha-start-clean-up').removeClass('hidden');
                     } else {
                         $('#cleanup-progress').slideDown();
                         $('#cleanup-progress .bar').css('width', res.percent+'%');
-                        $('#cleanup-progress .label-number').html( res.percent );     
-                        $('#provider-imports-status').append(res.log);  
+                        $('#cleanup-progress .label-number').html( res.percent );   
+                        
+                        // Spit out JSON for later 
+                        $('#cleanup-json-storage').append('<textarea class="group">'+res.entries+'</textarea>');
+
                         mhaCleanupLooper(res);    
                     }
                 }
@@ -64,24 +75,30 @@ jQuery(function ($) {
     function mhaCleanupLooper( res ){
         
         console.log(res);
+
         if(res.error){
 
             // Error
             console.error(res);
-            $('#mha-cleanup-error').html(res.error);  
+            $('#mha-cleanup-error').html(res.error).removeClass('hidden');  
             $('#cleanup-status').append('<br />Error...'+res.error);
             $('#mha-cleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
             $('#mha-start-clean-up').removeClass('hidden');      
 
         } else {
+
+            //console.log('Else...');
             
             if(res.next_page != null){
 
-                // Continue Paging
+                //console.log('Next...');
+
+                // Continue Normal Paging
                 var args_2 = 'next_page=' + res.next_page;
                 args_2 += '&start_date=' + res.start_date;
                 args_2 += '&end_date=' + res.end_date;
                 args_2 += '&deleted_entries=' + res.deleted_entries;
+                args_2 += '&form_ids=' + res.form_ids;
 
                 $.ajax({
                     type: "POST",
@@ -95,7 +112,10 @@ jQuery(function ($) {
                         $('#cleanup-progress').slideDown();
                         $('#cleanup-progress .bar').css('width', res2.percent+'%');
                         $('#cleanup-progress .label-number').html( res2.percent );     
-                        $('#provider-imports-status').append(res2.log);     
+
+                        // Spit out JSON for later 
+                        $('#cleanup-json-storage').append('<textarea class="group">'+res2.entries+'</textarea>');
+
                         mhaCleanupLooper( res2 );
                     },
                     error: function(xhr, ajaxOptions, thrownError){                        
@@ -105,17 +125,113 @@ jQuery(function ($) {
 
             } else {
 
-                // Export is done
-                $('#cleanup-progress .bar').css('width', '100%');
-                $('#cleanup-progress .bar').css('background-color', '#f89941');
-                $('#cleanup-status').append('<br />Done!');
-                $('#mha-cleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
-                $('#mha-start-clean-up').removeClass('hidden');
+                //console.log('Cleaning...');
+
+                // Export is done, start cleaning up
+                $('#cleanup-progress .bar').css('width', '99%');  
+                $('#cleanup-progress .bar').css('background-color', '#1fb4bb');
+                $('#cleanup-progress .label-number').html( '99' );  
+                $('#cleanup-status').append(res.log);   
+                
+                mhaCleanGroups( res );
 
             }
 
         }
     }
 
+
+    function mhaCleanGroups( res ){
+        
+        //console.log('Clean group...');
+
+        // Loop through our JSON
+        if($('#cleanup-json-storage .group').length){  
+
+            var $thisGroup = $('#cleanup-json-storage .group:first');
+
+            $.ajax({
+                type: "POST",
+                url: do_mhacleanups.ajaxurl,
+                data: { 
+                    action: 'mhaCleanerJsonScrubber',
+                    data: $thisGroup.val()
+                },
+                success: function( scrub_results ) {
+
+                    var results = JSON.parse(scrub_results); 
+                    $thisGroup.remove();
+                    
+                    var cleanup_total = parseInt($('#cleanup-deleted').text());
+                    $('#cleanup-deleted').html( cleanup_total + results.deleted_entries ); 
+
+                    if($('#cleanup-json-storage .group').length){   
+                        
+                        // There are still groups
+                        mhaCleanGroups( res );
+
+                    } else {
+
+                        // No more groups, how to proceed...
+                        if(res.form_ids && res.form_ids.length > 0){   
+                            // Start cleaning the next form ID                         
+                            mhaCleanGroupsSwitcher( res );    
+                        } else {                            
+                            // All done!
+                            mhaCleanGroupsCloser();
+                        }
+                        
+
+                    }
+                },
+                error: function(xhr, ajaxOptions, thrownError){                
+                    console.error(xhr,thrownError);
+                }    
+            
+        
+            });
+
+        } else {
+
+            //console.log('Group loop 2...');
+            if(res.form_ids && res.form_ids.length > 0){                           
+                mhaCleanGroupsSwitcher( res );    
+            } else {                            
+                mhaCleanGroupsCloser();
+            }
+
+        }
+    
+    }
+
+    
+    function mhaCleanGroupsSwitcher( res ){
+        //console.log('Switching...');
+
+        // Finished one form, move on to the next
+        //$('#cleanup-status').append('<br />Processing form #'+res.form_ids[0]+'...');
+    
+        $('#cleanup-progress .bar').css('width', '0%');
+        $('#cleanup-progress .bar').css('background-color', '#007BA7');
+        $('#cleanup-progress .label-number').html( '0' );    
+        res.page = null;
+        res.next_page = 1;
+        //console.log(res);
+        mhaCleanupLooper(res);  
+    }
+
+
+    function mhaCleanGroupsCloser(){    
+        //console.log('Done!');
+
+        // All done, wrap it up
+        $('#cleanup-progress .bar').css('width', '100%');
+        $('#cleanup-progress .bar').css('background-color', '#f89941');
+        $('#cleanup-progress .label-number').html( '100' );     
+        $('#cleanup-status').append('<br /><strong>Done!</strong>');
+        $('#cleanup-json-storage').html('');
+        $('#mha-cleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
+        $('#mha-start-clean-up').removeClass('hidden');
+    }
 
 });
