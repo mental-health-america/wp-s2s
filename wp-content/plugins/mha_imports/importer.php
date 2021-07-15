@@ -104,7 +104,7 @@ function mhaImporterLooper( $data = null ) {
     $data['log'] = '';
     foreach ($records as $record) {
         
-        $post_content = utf8_encode( convert_smart_quotes($record['post_content']) );
+        $post_content = mb_convert_encoding($record['post_content'], "HTML-ENTITIES", 'UTF-8');
         
         // Create Article
         $new_article = array(
@@ -138,15 +138,15 @@ function mhaImporterLooper( $data = null ) {
         update_field('treatment_type',          explode(',', $record['treatment_type']), $pid);
         update_field('whole_state',             sanitize_text_field($record['whole_state']), $pid);
         update_field('hide_locations',          intval($record['hide_locations']), $pid);
-        update_field('introductory_content',    utf8_encode( convert_smart_quotes($record['introductory_content']), $pid));
+        update_field('introductory_content',    mb_convert_encoding($record['introductory_content'], "HTML-ENTITIES", 'UTF-8'), $pid);
         update_field('featured_link',           esc_url_raw($record['featured_link']), $pid);
         update_field('featured_link_text',      sanitize_text_field($record['featured_link_text']), $pid);
         update_field('customer_service_email',           sanitize_email($record['customer_service_email']), $pid);
         update_field('customer_service_contact_form',    esc_url_raw($record['customer_service_contact_form']), $pid);
         update_field('customer_service_phone',           sanitize_text_field($record['customer_service_phone']), $pid);
-        update_field('pricing_information',     utf8_encode( convert_smart_quotes($record['pricing_information']), $pid));
-        update_field('privacy_information',     utf8_encode( convert_smart_quotes($record['privacy_information']), $pid));
-        update_field('disclaimer',              utf8_encode( convert_smart_quotes($record['disclaimer']), $pid));
+        update_field('pricing_information',     mb_convert_encoding($record['pricing_information'], "HTML-ENTITIES", 'UTF-8'), $pid);
+        update_field('privacy_information',     mb_convert_encoding($record['privacy_information'], "HTML-ENTITIES", 'UTF-8'), $pid);
+        update_field('disclaimer',              mb_convert_encoding($record['disclaimer'], "HTML-ENTITIES", 'UTF-8'), $pid);
         update_field('all_conditions',          intval($record['all_conditions']), $pid);
         update_field('point_of_contact_name',   sanitize_text_field($record['point_of_contact_name']), $pid);
         update_field('point_of_contact_title',  sanitize_text_field($record['point_of_contact_title']), $pid);
