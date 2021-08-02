@@ -1,3 +1,4 @@
+.mce-content-body,
 .type-article {
 
     aside {
@@ -7,6 +8,27 @@
         .sidebar-featured-image {
             position: relative;
             margin-top: -80px;
+        }
+    }
+
+    table > caption,
+    figcaption { 
+        text-align: center; 
+        @include montserrat(100);
+        font-style: italic; 
+    }
+    table > caption {
+        text-align: inherit;
+    }
+
+    blockquote {
+        @media only screen and (max-width: 767px){
+            width: 90%; 
+            padding: 35px; 
+            ul, 
+            ol { 
+                margin-left: 3em; 
+            }
         }
     }
 

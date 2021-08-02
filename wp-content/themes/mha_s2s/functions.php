@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), '1.04' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Partner CSS Files
 	$partner_var = get_query_var('partner');
@@ -877,3 +877,15 @@ add_action( 'load-profile.php', function() {
         exit( wp_safe_redirect('/my-account?cb='.date('U')) );
 	}
 });
+
+
+/**
+ * Custom HTML Lang Attribute Overrides
+ */
+function mha_language_attributes($lang){
+	if (get_field('espanol')) {
+		return "lang=\"es-US\"";
+    }
+    return $lang;
+}
+add_filter('language_attributes', 'mha_language_attributes');

@@ -485,6 +485,11 @@ label {
                         background-color: $silver;
                     }
                 }
+                &.gfield_label {
+                    &:hover {
+                        color: $gray;
+                    }
+                }
             }
             
             input[type="checkbox"]:checked+label,

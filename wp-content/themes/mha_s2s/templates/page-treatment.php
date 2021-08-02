@@ -32,7 +32,7 @@ get_header();
 
                 <p><input type="text" name="search" class="gray" placeholder="Search" /></p>
                 
-                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#treatmentType" aria-expanded="true" aria-controls="treatmentType">Type</button>
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#treatmentType" aria-expanded="true" aria-controls="treatmentType">Treatment Type</button>
                 <div id="treatmentType" class="collapse show filter-checkboxes">
                     <?php
                         $treatment_type = get_field_object('field_5fd3f7a3951ad');
@@ -49,7 +49,6 @@ get_header();
                 </div>
                 
                 <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Conditions</button>
-
                 <div id="conditionsList" class="collapse show filter-checkboxes">
                     
                     <div class="form-item collapse" id="all-conditions-container">
@@ -80,6 +79,31 @@ get_header();
                             }
                         ?>
                     </div>
+                </div>
+                
+                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList">Tags</button>
+                <div id="tagsList" class="collapse show filter-checkboxes">                
+                    <?php
+                        // Condition Filters
+                        $query = get_terms(array(
+                            'taxonomy' => 'post_tag',
+                            'hide_empty' => true,
+                            'parent' => 0
+                        ));
+                        
+                        if($query){
+                            foreach($query as $c){
+                                if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
+                                ?>
+                                    <div class="form-item">
+                                        <input id="tag-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="tags[]" />
+                                        <label for="tag-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
+                                    </div>
+                                <?php
+                                }
+                            }
+                        }
+                    ?>
                 </div>
 
                 <input type="hidden" name="type" value="treatment" />

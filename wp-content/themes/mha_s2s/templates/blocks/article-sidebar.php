@@ -6,29 +6,21 @@
     $article_id = get_the_ID();
     $resources = array('diy','connect','treatment','provider');
     $article_type = get_field('type');
+    $more_links = get_field('more_links');
     
     // Related content triggers
     $article_diy_issue = get_field('diy_type');
     $article_treatment_type = get_field('treatment_type');
     $article_service_type = get_field('service_type');
     $article_conditions = [];
+    $article_tags = [];
     if(count(array_intersect($article_type, $resources)) > 0){
         $categoryColor = 'raspberry';
     } else {
         $categoryColor = 'dark-blue';
     }
-?>
-
-<?php /*if(has_post_thumbnail()): ?>
-    <div class="bubble white thin round-big-tl mb-4 hide-mobile sidebar-featured-image">
-    <div class="inner">
-        <?php the_post_thumbnail(); ?>
-    </div>
-    </div>
-<?php endif; */?>
-
-<?php
-
+    
+    // Conditions and Tags
     $terms_conditions = get_the_terms( $article_id, 'condition' );
     $terms_tags = get_the_terms( $article_id, 'post_tag' );
     $terms_all = '';
@@ -43,29 +35,26 @@
             'hide_empty' => true
         ));
 
-    } else {
+    } 
     */
 
-        // Use assigned tags 
-        if($terms_conditions && $terms_tags){
-            $terms_all = array_merge($terms_conditions, $terms_tags);
-            usort($terms_all, "term_sort_name");
-        } else if($terms_conditions && !$terms_tags){
-            $terms_all = $terms_conditions;
-        } else if(!$terms_conditions && $terms_tags){
-            $terms_all = $terms_tags;
-        }
-        
-
-    //}
-    
+    // Use assigned tags 
+    if($terms_conditions && $terms_tags){
+        $terms_all = array_merge($terms_conditions, $terms_tags);
+        usort($terms_all, "term_sort_name");
+    } else if($terms_conditions && !$terms_tags){
+        $terms_all = $terms_conditions;
+    } else if(!$terms_conditions && $terms_tags){
+        $terms_all = $terms_tags;
+    }
 
     if($terms_all):
     ?>
         <div class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4">
         <div class="inner">
-            <h4>Categories</h4>
-            <p class="mb-4">Tags associated with this article:</p>
+                        
+            <h4>Related Topics</h4>
+            <p class="mb-4">​Click on each topic to see more articles:</p>
             <?php 
                 echo '<ol class="plain ml-2 ml-lg-5 mb-0">'; 
                 foreach($terms_all as $c){
@@ -105,18 +94,25 @@
                         endif;
                         wp_reset_query();
 
-                        $article_conditions[] = $c->term_id; // Used later for related content 
+                         // Used later for related content 
+                        if($c->taxonomy == 'condition'){
+                            $article_conditions[] = $c->term_id;
+                        }
+                        if($c->taxonomy == 'post_tag'){
+                            $article_tags[] = $c->term_id; 
+                        }
                     }
                 }
                 echo '</ol>';
             ?>
+
         </div>
         </div>
     <?php endif; ?>
 
     <?php
         /**
-         * Test CTA
+         * Screening CTAs
          */
 
         $primary_condition = get_field('primary_condition');
@@ -129,6 +125,8 @@
             }
         }
 
+
+        // Screens
         if($primary_condition){
 
             // Show Specific Related Test
@@ -143,20 +141,20 @@
                             'taxonomy'          => 'condition',
                             'include_children'  => false,
                             'field'             => 'term_id',
-                            'terms'             => $primary_condition
+                            'terms'             => $primary_condition->term_id
                         ),
                     ),
                     'meta_query' => array( 
                         'relation' => 'OR',
                         array(
-                          'key' => 'espanol',
-                          'value' => '1',
-                          'compare' => '!='
+                            'key' => 'espanol',
+                            'value' => '1',
+                            'compare' => '!='
                         ),
                         array(
-                          'key' => 'espanol',
-                          'value' => '1',
-                          'compare' => 'NOT EXISTS'
+                            'key' => 'espanol',
+                            'value' => '1',
+                            'compare' => 'NOT EXISTS'
                         )
                     )
                 );
@@ -205,14 +203,14 @@
                     'meta_query' => array( 
                         'relation' => 'OR',
                         array(
-                          'key' => 'espanol',
-                          'value' => '1',
-                          'compare' => '!='
+                            'key' => 'espanol',
+                            'value' => '1',
+                            'compare' => '!='
                         ),
                         array(
-                          'key' => 'espanol',
-                          'value' => '1',
-                          'compare' => 'NOT EXISTS'
+                            'key' => 'espanol',
+                            'value' => '1',
+                            'compare' => 'NOT EXISTS'
                         )
                     )
                 );
@@ -248,37 +246,108 @@
         /**
          * Related Articles
          */
-        if(count(array_intersect($article_type, $resources)) > 0){   
-            
-            $more_links = get_field('more_links');
+        //$resources[] = 'condition';
+        if(count(array_intersect($article_type, $resources)) > 0){               
+
+            $related_articles = [];
             $args = array(
                 "post_type"      => 'article',
-                "orderby"        => 'rand',
+                "orderby"        => 'title',
                 "post_status"    => 'publish',
-                "posts_per_page" => 5,
-                'tax_query'      => array(
-                    array(
-                        'taxonomy'          => 'condition',
-                        'include_children'  => false,
-                        'field'             => 'term_id',
-                        'terms'             => $article_conditions
-                    ),
-                ),
-                'meta_query'    => array(
+                "posts_per_page" => 500,
+                'meta_query' => array(
                     array(
                         'key' => 'type',
                         'value' => array('condition', 'diy'),
-                        'compare' => 'IN'
+                        'compare' => 'LIKE'
                     )
                 )
             );
-            $loop = new WP_Query($args);            
 
-            if($loop->have_posts() || $more_links):                     
+                
+            if(!empty($article_conditions) && !empty($article_tags)){
+                $args['tax_query']['relation'] = 'OR';
+            }
+            if(!empty($article_conditions)){
+                $args['tax_query'][] = array(
+                    'taxonomy'          => 'condition',
+                    'include_children'  => false,
+                    'field'             => 'term_id',
+                    'terms'             => $article_conditions
+                );
+            }
+            if(!empty($article_tags)){
+                $args['tax_query'][] = array(
+                    'taxonomy'          => 'post_tag',
+                    'include_children'  => false,
+                    'field'             => 'term_id',
+                    'terms'             => $article_tags
+                );
+            }
+            
+            $loop = new WP_Query($args);     
+
+            $counter = 0;
+            $terms_match = [];
+            foreach($terms_all as $ta){
+                $terms_match[] = $ta->term_id;
+            }
+
+            // Get populart articles for later
+            $pop_array = mha_monthly_pop_articles( 'read' );
+
+            while($loop->have_posts()) : $loop->the_post();
+                $rel_score = 0;
+                $new_id = get_the_ID();
+                $new_cond = get_the_terms( $new_id, 'condition' );
+                $new_tags = get_the_terms( $new_id, 'post_tag' );
+                $new_primary = get_field('primary_condition', $new_id);
+
+                // Matching primary condition
+                if($new_primary && $primary_condition && $new_primary->term_id == $primary_condition->term_id){
+                    $rel_score = $rel_score + 3;
+                }
+
+                // Matching Popular article
+                if(in_array($new_id, $pop_array)){
+                    $rel_score = $rel_score + 1;
+                }
+
+                // Matching conditions
+                foreach($new_cond as $nc){
+                    if(in_array($nc->term_id, $terms_match)){
+                        $rel_score = $rel_score + 1;
+                    }
+                    if($nc->term_id == $primary_condition->term_id){
+                        $rel_score = $rel_score + 2;
+                    }
+                }
+
+                // Matching tags
+                foreach($new_tags as $nt){
+                    if(in_array($nt->term_id, $terms_match)){
+                        $rel_score = $rel_score + 1;
+                    }
+                    if($nt->term_id == $primary_condition->term_id){
+                        $rel_score = $rel_score + 2;
+                    }
+                }
+
+                $related_articles[$new_id]['id'] = get_the_ID();
+                $related_articles[$new_id]['score'] = $rel_score;
+                $counter++;
+            endwhile;
+
+            usort($related_articles, function ($item1, $item2) {
+                return $item2['score'] <=> $item1['score'];
+            });
+            $related_articles_display = array_slice($related_articles, 0, 6);
+            
+            if(count($related_articles_display) > 0 || $more_links):                     
             ?>
 
                 <div class="bubble coral thin round-big-tl mb-4">
-                <div class="inner">
+                <div class="inner">                        
                     <h4>Related Articles</h4>
                     <?php 
                         echo '<ol class="plain ml-2 ml-lg-5 mb-0">';                                             
@@ -299,10 +368,13 @@
                             endwhile;
                             endif;
 
-                            // Automatic Related
-                            while($loop->have_posts()) : $loop->the_post();
-                                echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink().'">'.get_the_title().'</a></li>';
-                            endwhile;
+                            // Related Articles
+                            foreach($related_articles_display as $rad){
+                                if($rad['id'] == $article_id){
+                                    continue;// Skip if the same article
+                                }
+                                echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink($rad['id']).'">'.get_the_title($rad['id']).'</a> ('.$rad['score'].')</li>';
+                            }
 
                         echo '</ol>';
                     ?>
@@ -322,3 +394,8 @@
     
 </div>
 </div>
+
+
+    
+
+    

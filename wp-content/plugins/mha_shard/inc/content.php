@@ -34,9 +34,9 @@ function mha_popular_articles( $options ) {
 	
 	// Default Args
     $defaults = array (
-		  'tag' 		=> null, 
-		  'tax' 		=> null, 
-		  'style' 		=> null, 
+		'tag' 		=> null, 
+		'tax' 		=> null, 
+		'style'		=> null, 
 	);
 	$atts = wp_parse_args( $options, $defaults );
 
@@ -993,3 +993,63 @@ function mha_submit_article_form_display(){
 }
 add_action("wp_ajax_nopriv_mha_submit_article_form_display", "mha_submit_article_form_display");
 add_action("wp_ajax_mha_submit_article_form_display", "mha_submit_article_form_display");
+
+
+/**
+ * Monthly Popular Article Check
+ */
+
+add_action( 'init', 'register_monthly_generate_mha_popular_article_json_event');
+
+function register_monthly_generate_mha_popular_article_json_event() {
+    if( !wp_next_scheduled( 'generate_mha_popular_article_json' ) ) {
+        wp_schedule_event( time(), 'monthly', 'generate_mha_popular_article_json' );
+    }
+}
+
+add_action( 'generate_mha_popular_article_json', 'mha_monthly_pop_articles' );
+
+function mha_monthly_pop_articles( $read = null ){
+
+	// JSON Source File
+	$json = plugin_dir_path(__FILE__).'/tmp/pop_articles.json'; 
+
+	// Return JSON content if 
+	if($read == 'read'){		
+		if(file_exists($json)) {
+			$pop_data = file_get_contents($json);
+			$pop_return = json_decode( json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $pop_data), true ), true );
+			return $pop_return;
+		}
+	}
+
+	global $wpdb;
+	$month_range = date('Ym').','.date('Ym', strtotime("-1 months")).','.date('Ym', strtotime("-2 months")); // Last 3 months
+	$pop_articles_raw = $wpdb->get_results('
+		SELECT DISTINCT posts.ID, SUM(postview.count) as total
+		FROM '.$wpdb->prefix.'posts AS posts
+
+		INNER JOIN '.$wpdb->prefix.'post_views AS postview
+		ON posts.ID = postview.id
+
+		WHERE posts.post_status LIKE "publish"
+		AND posts.post_type LIKE "article" 
+		AND postview.period IN ('.$month_range.') 
+
+		GROUP BY posts.ID
+		ORDER BY total DESC
+		LIMIT 50'
+	);
+	$pop_articles = [];
+	foreach($pop_articles_raw as $pa){
+		$pop_articles[] = $pa->ID;
+	}
+	$pop_json = json_encode($pop_articles);
+		
+	$fp = fopen($json, 'w');
+	fwrite($fp, json_encode($pop_json));
+	fclose($fp);
+
+	return;
+	
+}

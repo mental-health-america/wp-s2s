@@ -1,4 +1,9 @@
 
+.single-screen .gform_wrapper {
+    display: block !important;
+    min-height: 100vh;
+}
+
 article.screen {
 
     // Default Colors
@@ -348,7 +353,7 @@ article.screen {
         padding: 20px 25px;
         margin: -20px 5px 30px 5px;
         line-height: 1.4em;
-        font-weight: 700;
+        @include noto(400);
         @include radius(20px);
         a {
             color: $white;

@@ -115,7 +115,13 @@ get_header();
 							 */
 							if(have_rows('more_links', $current)): 
 								echo '<div class="pl-2 mb-4">';
-								echo '<h4 class="thin">More Links</h4>';
+								
+								if(get_field('espanol',$current)){
+									echo '<h4 class="thin">Más recursos</h4>';
+								} else {
+									echo '<h4 class="thin">More Links</h4>';
+								}
+
 								while( have_rows('more_links', $current) ) : the_row();
 
 									$page = get_sub_field('page');
@@ -211,7 +217,13 @@ get_header();
 		?>
 			<div class="wrap normal">
 				<div class="article-right col-12 col-md-5 col-lg-4 pl-0 pr-0 pl-md-5 pt-3 mt-3 show-mobile">
-					<?php get_template_part( 'templates/blocks/article', 'sidebar' ); ?>
+					<?php 
+						if(get_field('espanol')){
+							get_template_part( 'templates/blocks/article', 'sidebar-espanol' ); 
+						} else {
+							get_template_part( 'templates/blocks/article', 'sidebar' ); 
+						}
+					?>
 				</div>	
 			</div>
 		<?php 
