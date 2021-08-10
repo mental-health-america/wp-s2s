@@ -128,15 +128,22 @@
             )
         );
         $loop = new WP_Query($args);
+        $counter = 0;
         if($loop->have_posts()):
         ?>     
             <div class="bubble orange thin round-big-tl mb-4">
             <div class="inner">    
-                <?php while($loop->have_posts()) : $loop->the_post(); ?>            
-                    <h4>Toma una <?php echo trim( preg_replace("/\([^)]+\)/","", get_the_title( get_the_ID() )) ); ?></h4>
-                    <div class="excerpt"><?php the_excerpt(); ?></div>
+                <?php 
+                    while($loop->have_posts()) : $loop->the_post();
+                    if($counter == 0): ?>
+                        <h4>Toma una prueba de salud mental</h4>
+                    <?php endif; ?>
+                    <div class="excerpt thin"><?php the_excerpt(); ?></div>
                     <div class="text-center pb-3 mb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Toma una <?php echo trim( preg_replace("/\([^)]+\)/","", get_the_title( get_the_ID() )) ); ?></a></div>
-                <?php endwhile; ?>
+                <?php 
+                    $counter++;
+                    endwhile; 
+                ?>
             </div>
             </div>
         <?php

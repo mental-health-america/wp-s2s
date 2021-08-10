@@ -9,7 +9,7 @@
         if(get_field('espanol')):
 
             // Spanish Breadcrumbs
-            echo '<span class="crumb">Recursos en español</span>';
+            echo '<span class="crumb">La salud mental—información y recursos</span>';
 
         else:
 

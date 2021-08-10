@@ -1,6 +1,7 @@
 <?php 
 /* Template Name: Path Collection */
 get_header(); 
+$espanol = get_field('espanol');
 ?>
 
 	<?php
@@ -339,22 +340,25 @@ get_header();
 		<div class="wrap normal">
 				
 			<div class="two-cols top cols-50">
-				<div class="left-col ">
-				<div class="bubble round-br dark-blue normal">
-					<div class="inner">			
-						<h3>
-							<?php 
-								if(get_field('custom_category_name', $tax.'_'.$tag)){
-									$term_name = get_field('custom_category_name', $tax.'_'.$tag);
-								} else {
-									$term_name = get_term($tag, $tax)->name;
-								}
-							?>
-							<a class="plain white" href="<?php echo get_term_link($tag, $tax); ?>">See All Articles Related to <?php echo $term_name; ?> &raquo;</a>
-						</h3>
+
+				<?php if(!$espanol): ?>
+					<div class="left-col ">
+					<div class="bubble round-br dark-blue normal">
+						<div class="inner">			
+							<h3>
+								<?php 
+									if(get_field('custom_category_name', $tax.'_'.$tag)){
+										$term_name = get_field('custom_category_name', $tax.'_'.$tag);
+									} else {
+										$term_name = get_term($tag, $tax)->name;
+									}
+								?>
+								<a class="plain white" href="<?php echo get_term_link($tag, $tax); ?>">See All Articles Related to <?php echo $term_name; ?> &raquo;</a>
+							</h3>
+						</div>
+					</div>    
 					</div>
-				</div>    
-				</div>
+				<?php endif; ?>
 
 				<div class="right-col">
 					<?php 

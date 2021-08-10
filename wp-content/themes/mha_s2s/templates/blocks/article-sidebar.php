@@ -38,6 +38,8 @@
     } 
     */
 
+    // Mental Health 101 tag override when no conditions present
+
     // Use assigned tags 
     if($terms_conditions && $terms_tags){
         $terms_all = array_merge($terms_conditions, $terms_tags);
@@ -47,6 +49,18 @@
     } else if(!$terms_conditions && $terms_tags){
         $terms_all = $terms_tags;
     }
+
+    if(empty($terms_conditions)){
+        $m101 = 0;
+        foreach($terms_tags as $tags){
+            if($tags->term_id == 116){
+                $m101++;
+            }
+        }
+        if($m101 == 0){
+            $terms_tags[] = get_term(116, 'post_tag');
+        }
+    }    
 
     if($terms_all):
     ?>
@@ -116,6 +130,7 @@
          */
 
         $primary_condition = get_field('primary_condition');
+        $has_screen_cta = 0;
 
         // Pathway override
         if(get_query_var('pathway')){
@@ -123,8 +138,9 @@
             if($path_terms){
                 $primary_condition = $path_terms[0]->term_id;
             }
+        } else {
+            $primary_condition = $primary_condition->term_id;
         }
-
 
         // Screens
         if($primary_condition){
@@ -141,7 +157,7 @@
                             'taxonomy'          => 'condition',
                             'include_children'  => false,
                             'field'             => 'term_id',
-                            'terms'             => $primary_condition->term_id
+                            'terms'             => $primary_condition
                         ),
                     ),
                     'meta_query' => array( 
@@ -172,12 +188,13 @@
                             }
                         ?>                         
                         <?php the_title('<h4>Take a'.$an_a,'</h4>'); ?>   
-                        <div class="excerpt"><?php the_excerpt(); ?></div>
+                        <div class="excerpt thin"><?php the_excerpt(); ?></div>
                         <div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
                     <?php endwhile; ?>
                     </div>
                     </div>
                 <?php
+                $has_screen_cta++;
                 endif;
                 wp_reset_query();
             }
@@ -234,6 +251,7 @@
                     </div>
                     </div>
                 <?php
+                $has_screen_cta++;
                 endif;
                 wp_reset_query();
             }
@@ -246,8 +264,9 @@
         /**
          * Related Articles
          */
+
         //$resources[] = 'condition';
-        if(count(array_intersect($article_type, $resources)) > 0){               
+        if(count(array_intersect($article_type, $resources)) > 0 || count( array_intersect($article_type, array(null,'condition')) ) > 0 && $has_screen_cta == 0 ){               
 
             $related_articles = [];
             $args = array(
@@ -258,7 +277,7 @@
                 'meta_query' => array(
                     array(
                         'key' => 'type',
-                        'value' => array('condition', 'diy'),
+                        'value' => array('condition', 'diy','connect','treatment','provider'),
                         'compare' => 'LIKE'
                     )
                 )
@@ -303,8 +322,13 @@
                 $new_tags = get_the_terms( $new_id, 'post_tag' );
                 $new_primary = get_field('primary_condition', $new_id);
 
+                // Skip local providers
+                if(get_field('area_served')){
+                    continue;
+                }
+
                 // Matching primary condition
-                if($new_primary && $primary_condition && $new_primary->term_id == $primary_condition->term_id){
+                if($new_primary && $primary_condition && $new_primary->term_id == $primary_condition){
                     $rel_score = $rel_score + 3;
                 }
 
@@ -313,22 +337,24 @@
                     $rel_score = $rel_score + 1;
                 }
 
+                // Matching Types
+                $rel_score = $rel_score + count(array_intersect($article_type, get_field('type', $new_id)));
+
                 // Matching conditions
                 foreach($new_cond as $nc){
                     if(in_array($nc->term_id, $terms_match)){
                         $rel_score = $rel_score + 1;
                     }
-                    if($nc->term_id == $primary_condition->term_id){
+                    if($nc->term_id == $primary_condition){
                         $rel_score = $rel_score + 2;
                     }
                 }
 
-                // Matching tags
                 foreach($new_tags as $nt){
                     if(in_array($nt->term_id, $terms_match)){
                         $rel_score = $rel_score + 1;
                     }
-                    if($nt->term_id == $primary_condition->term_id){
+                    if($nt->term_id == $primary_condition){
                         $rel_score = $rel_score + 2;
                     }
                 }
@@ -337,24 +363,29 @@
                 $related_articles[$new_id]['score'] = $rel_score;
                 $counter++;
             endwhile;
+            wp_reset_query(); // Reset the query here to be safe
 
             usort($related_articles, function ($item1, $item2) {
                 return $item2['score'] <=> $item1['score'];
             });
             $related_articles_display = array_slice($related_articles, 0, 6);
-            
-            if(count($related_articles_display) > 0 || $more_links):                     
+
+            if(count($related_articles_display) > 0 || $more_links):     
+                $related_color = 'coral';
+                if(count(array_intersect($article_type, array('condition'))) > 0){
+                    $related_color = 'teal';
+                }
             ?>
 
-                <div class="bubble coral thin round-big-tl mb-4">
+                <div class="bubble <?php echo $related_color; ?> thin round-big-tl mb-4">
                 <div class="inner">                        
                     <h4>Related Articles</h4>
                     <?php 
                         echo '<ol class="plain ml-2 ml-lg-5 mb-0">';                                             
 
                             // Manual Related Links
-                            if( have_rows('more_links') ):
-                            while( have_rows('more_links') ) : the_row();                                        
+                            if( have_rows('more_links', $article_id) ):
+                            while( have_rows('more_links', $article_id) ) : the_row();                                        
                                 $page = get_sub_field('page');
                                 if($page){
                                     echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink($page).'">';
@@ -373,7 +404,7 @@
                                 if($rad['id'] == $article_id){
                                     continue;// Skip if the same article
                                 }
-                                echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink($rad['id']).'">'.get_the_title($rad['id']).'</a> ('.$rad['score'].')</li>';
+                                echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink($rad['id']).'">'.get_the_title($rad['id']).'</a></li>';
                             }
 
                         echo '</ol>';

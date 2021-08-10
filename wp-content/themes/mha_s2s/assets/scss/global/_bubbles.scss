@@ -86,6 +86,9 @@
             color: $blue;
         }
         &.plain { background: none; color: $gray; }
+        a {
+            color: $white;
+        }
     }
 
     // Birhgt blue
@@ -248,6 +251,21 @@
         }
         &.bubble-border {
             border-color: $raz;
+        }
+        a {
+            color: $white;
+        }
+    }
+
+    // Teal
+    &.teal {
+        background: $teal;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $white;
         }
         a {
             color: $white;
