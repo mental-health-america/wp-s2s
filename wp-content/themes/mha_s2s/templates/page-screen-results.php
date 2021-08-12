@@ -9,13 +9,14 @@ $next_step_terms = [];
 $next_step_manual = [];
 $result_cta = [];
 $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
+$espanol = get_field('espanol', $user_screen_result['screen_id']);
 ?>
 
 <div class="wrap normal">
     <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
         <div class="page-heading plain">			
             <?php 
-                if(get_field('espanol', $user_screen_result['screen_id'])){
+                if($espanol){
                     echo '<h1 class="entry-title">Sus Resultados</h1>';
                 } else {
                     the_title( '<h1 class="entry-title">', '</h1>' ); 
@@ -31,7 +32,7 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
 <div class="wrap narrow">
 
     <?php 
-        if(get_field('espanol', $user_screen_result['screen_id'])){
+        if($espanol){
             echo '<ol class="screen-progress-bar clearfix step-3-of-3">
                 <li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
                 <li class="step-2"><span>Preguntas<br />Opcionales</span></li>
@@ -150,7 +151,7 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                             <div class="bubble thin teal round-small-bl mb-4">
                             <div class="inner">
                                 <div class="subtitle thin caps block pb-1">
-                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                    <?php if($espanol): ?>
                                         Su resultado para la <?php echo get_the_title($user_screen_result['screen_id']); ?> fue
                                     <?php else: ?>
                                         Your <?php echo get_the_title($user_screen_result['screen_id']); ?> score was
@@ -164,7 +165,7 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                                         
                             <div id="screen-result-buttons" class="button-grid pt-3 pb-3 pl-0 pr-0 pl-md-5 pr-md-5">
                                 <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">                                                                   
-                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                    <?php if($espanol): ?>
                                         Sobre su puntuación:
                                     <?php else: ?>
                                         About your Score:
@@ -173,7 +174,7 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                                 </button>
 
                                 <button id="screen-email" class="button mint round thin" type="button" data-toggle="collapse" data-target="#email-results" aria-expanded="false" aria-controls="email-results">                                    
-                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                    <?php if($espanol): ?>
                                         Enviar sus respuestas por correo electrónico
                                     <?php else: ?>
                                         Email Results
@@ -181,7 +182,7 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                                 </button>
 
                                 <button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">
-                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                    <?php if($espanol): ?>
                                         Sus respuestas
                                     <?php else: ?>
                                         Your Answers
@@ -199,7 +200,7 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                                     endif;
                                 ?>
                                 <a class="button mint round thin" id="screen-take" href="<?php echo $take_another_url; ?>">
-                                    <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                    <?php if($espanol): ?>
                                         Tomar otra prueba de salud mental
                                     <?php else: ?>
                                         Take Another Mental Health&nbsp;Test
@@ -233,7 +234,7 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                                                 <input type="hidden" name="nonce" value="<?php $nonce = wp_create_nonce('mhaScreenEmail'); echo $nonce; ?>" />
                                                 <input type="hidden" name="screen_id" value="<?php echo $user_screen_result['screen_id']; ?>" />
                                                 <input type="hidden" name="screen_user_id" value="<?php echo $user_screen_id; ?>" />                                                
-                                                <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                                <?php if($espanol): ?>
                                                     <input type="submit" class="submit button teal gform_button espanol" value="Enviar" />
                                                 <?php else: ?>
                                                     <input type="submit" class="submit button teal gform_button" value="Send Results" />
@@ -259,7 +260,7 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                                 <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="your-answers">
                                 <div class="inner small">
                                     <div class="container-fluid p-0">
-                                        <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
+                                        <?php if($espanol): ?>
                                             <h3 class="section-title dark-teal mb-4">Sus respuestas</h3>
                                         <?php else: ?>
                                             <h3 class="section-title dark-teal mb-4">Your Answers</h3>
@@ -356,7 +357,13 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
 
 <div class="wrap normal pt-5 pb-3">
 
-    <h2 class="section-title dark-blue bold">Next Steps</h2>
+    <h2 class="section-title dark-blue bold">
+        <?php if($espanol): ?>
+            Siguientes Pasos
+        <?php else: ?>
+            Next Steps
+        <?php endif; ?>
+    </h2>
     
     <div id="cta-col" class="cta-cols">
         <?php            
@@ -376,30 +383,32 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
             } 
             wp_reset_postdata();
             
-            // All Screen CTAs
-            if( have_rows('actions_global_screening', 'option') ):
-            while( have_rows('actions_global_screening', 'option') ) : the_row();  
-                $post_id = get_sub_field('action');
-                $post = get_post($post_id); 
-                if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
-                    setup_postdata($post);
-                    get_template_part( 'templates/blocks/block', 'cta' );  
-                    $result_cta[] = $post_id;
-                }
-            endwhile;
-            endif;
-            
-            // Global CTAs
-            if( have_rows('actions', 'option') ):
-            while( have_rows('actions', 'option') ) : the_row();  
-                $post_id = get_sub_field('action');
-                $post = get_post($post_id); 
-                if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
-                    setup_postdata($post);
-                    get_template_part( 'templates/blocks/block', 'cta' );  
-                }
-            endwhile;
-            endif;
+            if(!$espanol){
+                // All Screen CTAs
+                if( have_rows('actions_global_screening', 'option') ):
+                while( have_rows('actions_global_screening', 'option') ) : the_row();  
+                    $post_id = get_sub_field('action');
+                    $post = get_post($post_id); 
+                    if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
+                        setup_postdata($post);
+                        get_template_part( 'templates/blocks/block', 'cta' );  
+                        $result_cta[] = $post_id;
+                    }
+                endwhile;
+                endif;
+                
+                // Global CTAs
+                if( have_rows('actions', 'option') ):
+                while( have_rows('actions', 'option') ) : the_row();  
+                    $post_id = get_sub_field('action');
+                    $post = get_post($post_id); 
+                    if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
+                        setup_postdata($post);
+                        get_template_part( 'templates/blocks/block', 'cta' );  
+                    }
+                endwhile;
+                endif;
+            }
             wp_reset_postdata();
         ?>
     </div>
@@ -449,11 +458,22 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                 "posts_per_page" => $total_recs,
                 "meta_query" => array(
                     array(
-                        "key" => 'type',
-                        "value" => 'condition'
+                        "key"       => 'type',
+                        "value"     => 'condition',
+                        'compare'   => 'LIKE'
                     )
                 )
             );
+            
+            if($espanol){
+                $args['meta_query'] = array(
+                    array(
+                        "key" => 'espanol',
+                        "value" => 1
+                    )
+                );
+                //$args['meta_query']['relationship'] = 'AND';
+            }
 
             // Result based related tag steps
             if(isset($next_step_terms)){
