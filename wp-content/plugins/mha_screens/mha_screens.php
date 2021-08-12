@@ -64,9 +64,14 @@ function getUserScreenResults( $user_screen_id ) {
             // Get field object
             $field = GFFormsModel::get_field( $data['form_id'], $k );  
 
-            // Get referring screen ID                
+            // Get referring screen ID
             if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {  
                 $user_screen_results['screen_id'] = $v;
+            }
+
+            // Referrer/Source Code
+            if (isset($field->label) && strpos($field->label, 'Referer') !== false) {  
+                $user_screen_results['referer'] = $v;
             }
 
             // Get screen token                  

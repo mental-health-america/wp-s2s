@@ -60,4 +60,10 @@ jQuery(function ($) {
 
 	}
 
+
+	// Update button URLs to match
+	if($('#screen-take').length){
+		$('#main-menu-buttons li:first a').attr('href', $('#screen-take').attr('href'));
+	}
+
 });

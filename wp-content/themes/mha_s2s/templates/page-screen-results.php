@@ -187,8 +187,18 @@ $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
                                         Your Answers
                                     <?php endif; ?>
                                 </button>
-
-                                <a class="button mint round thin" id="screen-take" href="/screening-tools/" target="_blank">
+                                
+                                <?php
+                                    $take_another_url = '/screening-tools/';
+                                    if(
+                                        $user_screen_result['referer'] != '' &&
+                                        strpos($user_screen_result['referer'], 'screening.mhanational.org') === false &&
+                                        strpos($user_screen_result['referer'], 'mhanationalstg.wpengine.com') === false
+                                    ):
+                                        $take_another_url = add_query_arg( 'ref', $user_screen_result['referer'], $take_another_url );
+                                    endif;
+                                ?>
+                                <a class="button mint round thin" id="screen-take" href="<?php echo $take_another_url; ?>">
                                     <?php if(get_field('espanol', $user_screen_result['screen_id'])): ?>
                                         Tomar otra prueba de salud mental
                                     <?php else: ?>
