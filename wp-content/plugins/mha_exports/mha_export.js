@@ -17,7 +17,7 @@
             if(res.next_page != ''){
 
                 // Continue Paging
-                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&exclude=' + exclude;
+                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&exclude=' + exclude + '&start_date=' + res.start_date + '&end_date=' + res.end_date;
                 $.ajax({
                     type: "POST",
                     url: do_mhaThoughts.ajaxurl,
@@ -41,7 +41,7 @@
 
                 // Export is done
                 var download_link = res.download;
-                $('#submit-aggregate-data-export').prop('disabled', false).text('Download');	
+                $('#submit-aggregate-data-export').prop('disabled', false).text('Download Aggregate Data');	
                 $('#aggregate-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
 
             }
@@ -56,6 +56,7 @@
 
         // Vars
         var args = $('#aggregate-data-export').serialize();
+        console.log(args);
             
         // Disable flag button
         $('#submit-aggregate-data-export').prop('disabled', true).text('Processing...');
@@ -69,13 +70,22 @@
                 data: args + '&paged=1'
             },
             success: function( results ) {
-
-                var res = JSON.parse(results);
-                $('#aggregate-progress').slideDown();
-                $('#aggregate-progress .bar').css('width', res.percent+'%');
-                $('#aggregate-progress .label-number').html( res.percent );
-
-                aggregateLooper( results );                
+                console.log(results);
+                if(results){
+                    console.log('test');
+                    var res = JSON.parse(results);
+                    if(res.error){
+                        alert(res.error+' Please refresh this page and try again.');
+                    } else {
+                        $('#aggregate-progress').slideDown();
+                        $('#aggregate-progress .bar').css('width', res.percent+'%');
+                        $('#aggregate-progress .label-number').html( res.percent );        
+                        aggregateLooper( results );    
+                    }
+                } else {                    
+                    alert('No data available for this query. Your Please refresh this page and try again.');
+                }
+                
             },
             error: function(xhr, ajaxOptions, thrownError){                
                 console.error(xhr,thrownError);
@@ -92,7 +102,6 @@
      function screenExportDataLooper( results ){
 
         var res = JSON.parse(results);
-        console.log(res);
 
         if(res.error){
             // Error
@@ -142,7 +151,6 @@
                 
                 if(res.all_forms){
                     var all_forms_array = JSON.parse(res.all_forms);
-                    console.log(Object.keys(all_forms_array).length);
                     if(Object.keys(all_forms_array).length > 0 && res.all_forms_continue == 1){                    
                         var continue_params = [];
                             continue_params['all_forms'] = res.all_forms;
@@ -188,11 +196,19 @@
             },
             success: function( results ) {
                 
-                var res = JSON.parse(results);
-                $('#screen-exports-progress').slideDown();
-                $('#screen-exports-progress .bar').css('width', res.percent+'%');
-                $('#screen-exports-progress .label-number').html( res.percent );   
-                screenExportDataLooper( results );
+                if(results){
+                    var res = JSON.parse(results);
+                    if(res.error){
+                        alert(res.error+' Please refresh this page and try again.');
+                    } else {
+                        $('#screen-exports-progress').slideDown();
+                        $('#screen-exports-progress .bar').css('width', res.percent+'%');
+                        $('#screen-exports-progress .label-number').html( res.percent );   
+                        screenExportDataLooper( results );
+                    }
+                } else {                    
+                    alert('No data available for this query. Your Please refresh this page and try again.');
+                }
 
             },
             error: function(xhr, ajaxOptions, thrownError){                
@@ -238,7 +254,7 @@
             if(res.next_page != ''){
 
                 // Continue Paging
-                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&manual_users=' + res.manual_users;
+                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&manual_users=' + res.manual_users + '&start_date=' + res.start_date + '&end_date=' + res.end_date;
                 $.ajax({
                     type: "POST",
                     url: do_mhaThoughts.ajaxurl,
@@ -262,7 +278,7 @@
 
                 // Export is done
                 var download_link = res.download;
-                $('#submit-nonaggregate-data-export').prop('disabled', false).text('Download');	
+                $('#submit-nonaggregate-data-export').prop('disabled', false).text('Download Non-Aggregate Data');	
                 $('#nonaggregate-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
 
             }
@@ -290,13 +306,19 @@
                 data: args + '&paged=1'
             },
             success: function( results ) {
-
-                var res = JSON.parse(results);
-                $('#nonaggregate-progress').slideDown();
-                $('#nonaggregate-progress .bar').css('width', res.percent+'%');
-                $('#nonaggregate-progress .label-number').html( res.percent );
-
-                nonAggregateLooper( results );                
+                if(results){
+                    var res = JSON.parse(results);
+                    if(res.error){
+                        alert(res.error+' Please refresh this page and try again.');
+                    } else {
+                        $('#nonaggregate-progress').slideDown();
+                        $('#nonaggregate-progress .bar').css('width', res.percent+'%');
+                        $('#nonaggregate-progress .label-number').html( res.percent );
+                        nonAggregateLooper( results );  
+                    }
+                } else {                    
+                    alert('No data available for this query. Your Please refresh this page and try again.');
+                }
             },
             error: function(xhr, ajaxOptions, thrownError){                
                 console.error(xhr,thrownError);

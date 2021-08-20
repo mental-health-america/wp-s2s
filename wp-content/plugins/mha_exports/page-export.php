@@ -127,6 +127,18 @@ function mhathoughtexport(){
                     </td>
                 </tr>
                 <tr>
+                    <th scope="row"><label id="aggregate_start_date" >After</label> </th>
+                    <td>
+                        <input type="text" name="start_date" id="aggregate_start_date" value="" placeholder="<?php echo date('Y-m'); ?>-01" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label id="aggregate_end_date" >Before</label> </th>
+                    <td>
+                        <input type="text" name="end_date" id="aggregate_end_date" value="" placeholder="<?php echo date('Y-m-t'); ?>" />
+                    </td>
+                </tr>
+                <tr>
                     <td colspan="2">
                         <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
                         <button class="button button-primary" id="submit-aggregate-data-export">
@@ -156,9 +168,23 @@ function mhathoughtexport(){
             <table class="form-table" role="presentation">
             <tbody>
                 <tr>
-                    <th scope="row"><label id="manual_users" >User Selection</label> </th>
+                    <th scope="row">
+                        <label id="manual_users" >User Selection</label> 
+                    </th>
                     <td>
-                    <input type="text" name="manual_users" id="manual_users" value="" placeholder="e.g. 4, 12, 67" />
+                        <input type="text" name="manual_users" id="manual_users" value="" placeholder="e.g. 4, 12, 67" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label id="nonaggregate_start_date" >After</label> </th>
+                    <td>
+                        <input type="text" name="start_date" id="nonaggregate_start_date" value="" placeholder="<?php echo date('Y-m'); ?>-01" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label id="nonaggregate_end_date" >Before</label> </th>
+                    <td>
+                        <input type="text" name="end_date" id="nonaggregate_end_date" value="" placeholder="<?php echo date('Y-m-t'); ?>" />
                     </td>
                 </tr>
                 <tr>
@@ -194,6 +220,7 @@ function mha_aggregate_data_export(){
         
 	// General variables
     $result = array();
+    $timezone = new DateTimeZone('America/New_York');
 	
 	// Make serialized data readable
 	parse_str($_POST['data'], $data);  
@@ -227,6 +254,31 @@ function mha_aggregate_data_export(){
         "posts_per_page" => 200,
         'paged' => $paged
     );
+    
+    // Start/End Date Query
+    $start_date = '';
+    $end_date = '';
+    if($data['start_date'] != ''){
+        $start_date = date('F jS, Y', strtotime($data['start_date']));
+        $result['start_date'] = $start_date;
+    }
+    if($data['end_date'] != ''){
+        $end_date = date('F jS, Y', strtotime($data['end_date']));
+        $result['end_date'] = $end_date;
+    }
+    if($start_date != '' || $end_date != ''){
+        $args['date_query'] = array(
+            array(
+                'inclusive' => true
+            ),
+        );
+        if($start_date != ''){
+            $args['date_query'][]['after'] = $start_date;
+        }
+        if($end_date != ''){
+            $args['date_query'][]['before'] = $end_date;
+        }
+    }
     
     // Manual User Check
     $manual_users = sanitize_text_field($data['manual_users']);
@@ -354,8 +406,14 @@ function mha_aggregate_data_export(){
              * Login Data
              */
             $csv_data[$i]['Number of Logins'] = $total_logins;
-            $csv_data[$i]['Day of first login'] = $first_login;
-            $csv_data[$i]['Day of most recent login'] = $last_login;
+            
+            $temp_time = new DateTime($first_login);
+            $temp_time->setTimezone($timezone);
+            $csv_data[$i]['Day of first login'] = $temp_time->format("Y-m-d H:i:s");
+
+            $temp_time = new DateTime($last_login);
+            $temp_time->setTimezone($timezone);
+            $csv_data[$i]['Day of most recent login'] = $temp_time->format("Y-m-d H:i:s");
             
             $total_time = '';
             foreach($duration as $d){
@@ -503,6 +561,7 @@ function mha_nonaggregate_data_export(){
         
 	// General variables
     $result = array();
+    $timezone = new DateTimeZone('America/New_York');
 	
 	// Make serialized data readable
 	parse_str($_POST['data'], $data);  
@@ -527,6 +586,32 @@ function mha_nonaggregate_data_export(){
         "posts_per_page" => 50,
         'paged' => $paged
     );
+
+    // Start/End Date Query
+    $start_date = '';
+    $end_date = '';
+    if($data['start_date'] != ''){
+        $start_date = date('F jS, Y', strtotime($data['start_date']));
+        $result['start_date'] = $start_date;
+    }
+    if($data['end_date'] != ''){
+        $end_date = date('F jS, Y', strtotime($data['end_date']));
+        $result['end_date'] = $end_date;
+    }
+    if($start_date != '' || $end_date != ''){
+        $args['date_query'] = array(
+            array(
+                'inclusive' => true
+            ),
+        );
+        if($start_date != ''){
+            $args['date_query'][]['after'] = $start_date;
+        }
+        if($end_date != ''){
+            $args['date_query'][]['before'] = $end_date;
+        }
+    }
+
     
     // Manual User Check
     $manual_users = sanitize_text_field($data['manual_users']);
@@ -537,8 +622,16 @@ function mha_nonaggregate_data_export(){
     }
 
     $loop = new WP_Query($args);
+
+    if(!$loop->have_posts() || empty($loop)){
+        $result['error'] = 'No data available for this query.';
+        echo json_encode($result);
+        exit();        
+    }
+
     $max_pages = $loop->max_num_pages;
 
+    $result['loop'] = $loop;
     $result['paged'] = $paged;
     $result['max'] = $max_pages;
     $result['percent'] = round( ( ($paged / $max_pages) * 100 ), 2 );
@@ -557,6 +650,7 @@ function mha_nonaggregate_data_export(){
         
         // Set Up Headers    
         $response_data = [];
+        $response_data['pid'] = get_the_ID();
         $response_data['Participant Identifier'] = '';
         $response_data['Participant Email'] = '';
         $response_data['Total Logins'] = '';
@@ -623,7 +717,10 @@ function mha_nonaggregate_data_export(){
              * Login Data
              */
             $response_data['Total Logins'] = $total_logins;
-            $response_data['Last Login'] = $last_login;
+            
+            $temp_time = new DateTime($last_login);
+            $temp_time->setTimezone($timezone);
+            $response_data['Last Login'] = $temp_time->format("Y-m-d H:i:s");
             
             $total_time = '';
             foreach($duration as $d){
@@ -669,7 +766,10 @@ function mha_nonaggregate_data_export(){
         $response_data['Initial Thought'] = char_fix($responses[0]['response']);
         $response_data['Initial Thought - Admin'] = char_fix($initial_thought_admin);
         $response_data['Initial Thought - User'] = char_fix($initial_thought_user);
-        $response_data['Initial Thought - Time'] = $responses[0]['submitted'];
+        
+        $temp_time = new DateTime($responses[0]['submitted']);
+        $temp_time->setTimezone($timezone);
+        $response_data['Initial Thought - Time'] = $temp_time->format("Y-m-d H:i:s");
 
         /**
          * Follow Up Thoughts
@@ -680,7 +780,10 @@ function mha_nonaggregate_data_export(){
             if($resp['question'] > 0){
 
                 $response_data['Path '.($resp['path'] + 1).' - Question '.($resp['question'])] = $resp['response'];
-                $response_data['Path '.($resp['path'] + 1).' - Question '.($resp['question']).' - Time'] = $resp['submitted'];
+                
+                $temp_time = new DateTime($resp['submitted']);
+                $temp_time->setTimezone($timezone);
+                $response_data['Path '.($resp['path'] + 1).' - Question '.($resp['question']).' - Time'] = $temp_time->format("Y-m-d H:i:s");
 
                 // Likes
                 $total_likes = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_likes WHERE pid = '.$post_id.' AND row = '.$resp['question'].' AND unliked = 0');
@@ -734,7 +837,33 @@ function mha_nonaggregate_data_export(){
         /**
          * User Likes During this Thought
          */
-        $like_query = 'SELECT date, pid, row FROM thoughts_likes WHERE (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = "'.$post_id.'" AND unliked = 0) OR (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = 0 AND unliked = 0) ORDER BY date DESC';
+
+        // Set up max total related thought columns for the first entry
+        if($paged == 1){
+            $like_total_counter = 1;
+            $like_total_date = '';
+            /*
+            if($start_date && $end_date){
+                $like_total_date = 'AND date between "'.date('Y-m-d', strtotime($data['start_date'])).'" and "'.date('Y-m-d', strtotime($data['end_date'])).'"';
+            }
+            else if($start_date && !$end_date){
+                $like_total_date = 'AND date >  "'.date('Y-m-d', strtotime($data['start_date'])).'"';
+            }
+            else if(!$start_date && $end_date){
+                $like_total_date = 'AND date <  "'.date('Y-m-d', strtotime($data['end_date'])).'"';
+            }
+            */
+            $like_total_query = 'SELECT COUNT(ipiden) as total_count FROM thoughts_likes WHERE unliked = 0 '.$like_total_date.' GROUP BY ipiden, uid ORDER BY total_count DESC LIMIT 1';
+            $like_total_response = $wpdb->get_results( $like_total_query );
+            while ($like_total_counter <= $like_total_response[0]->total_count) {
+                $response_data['Related Thought '.$like_total_counter] = '';
+                $response_data['Related Thought '.$like_total_counter.' - Time'] = '';
+                $like_total_counter++;
+            }
+        }
+
+        // Get the rows with actual likes
+        $like_query = 'SELECT date, pid, row FROM thoughts_likes WHERE (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = "'.$post_id.'" AND unliked = 0) OR (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = 0 AND unliked = 0) ORDER BY date ASC';
         $user_likes = $wpdb->get_results( $like_query );
         $user_like_counter = 1;
         foreach($user_likes as $like){
@@ -743,11 +872,26 @@ function mha_nonaggregate_data_export(){
             $liked_response = get_field('responses', $pid);
             $thought_text = $liked_response[$row]['response'];
 
+            // Other thought override
+            if(trim($thought_text) == ''){
+                if(is_numeric($liked_response[$row]['admin_pre_seeded_thought'])){
+                    $activity_id = get_field('activity', $pid);
+                    $admin_thoughts = get_field('pre_generated_responses', $activity_id);
+                    $thought_text = $admin_thoughts[$liked_response[$row]['admin_pre_seeded_thought']]['response'];
+                } else if(is_numeric($liked_response[$row]['user_pre_seeded_thought'])){
+                    $user_thought = get_field('responses', $liked_response[$row]['user_pre_seeded_thought']);
+                    $thought_text = $user_thought[$row]['response'];
+                }
+            }
+            
             // Final likes
             $like_time = strtotime($like->date);
             if($like_time <= strtotime($responses[$last_key]['submitted']) && strtotime($started_thought) < $like_time){
                 $response_data['Related Thought '.$user_like_counter] = $thought_text;
-                $response_data['Related Thought '.$user_like_counter.' - Time'] = $like->date;
+
+                $temp_time = new DateTime($like->date);
+                $temp_time->setTimezone($timezone);
+                $response_data['Related Thought '.$user_like_counter.' - Time'] = $temp_time->format("Y-m-d H:i:s");
                 $user_like_counter++;
             }
         }
@@ -768,7 +912,10 @@ function mha_nonaggregate_data_export(){
             $flag_time = strtotime($flag->date);
             if($flag_time <= strtotime($responses[$last_key]['submitted']) && strtotime($started_thought) < $like_time){
                 $response_data['Flagged Thought '.$user_flag_counter] = $thought_text;
-                $response_data['Flagged Thought '.$user_flag_counter.' - Time'] = $flag->date;
+
+                $temp_time = new DateTime($flag->date);
+                $temp_time->setTimezone($timezone);
+                $response_data['Flagged Thought '.$user_flag_counter.' - Time'] = $temp_time->format("Y-m-d H:i:s");
                 $user_flag_counter++;
             }
         }
