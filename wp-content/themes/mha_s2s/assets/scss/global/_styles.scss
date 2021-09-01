@@ -874,6 +874,9 @@ ol,
 ul { 
     margin: 0 0 1.5em 4em; 
     padding: 0; 
+    @media only screen and (max-width: 767px){
+        margin-left: 2.5em; 
+    }
     li { 
         margin: 0 0 .5em 0; 
         padding: 0;

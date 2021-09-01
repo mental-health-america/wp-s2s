@@ -58,6 +58,7 @@ input[type="number"]{
     word-wrap: normal !important;
 }
 
+.page-intro a:not(.button),
 .page-content a:not(.button) {
 
     /* These are technically the same, but use both */

@@ -473,7 +473,7 @@ label {
 .single-screen .gform_page.demographics .gform_fields {
 
     li.optional {
-        padding: 0 0 0 50px;
+        //padding: 0 0 0 50px;
         margin-bottom: 25px;
         &.traditional {
             label {
@@ -519,5 +519,18 @@ label {
         color: $blue;
         max-width: 280px;
         padding: 15px;
+    }
+}
+
+
+.ginput_recaptcha  {
+    @media only screen and (max-width: 380px){
+        max-width: 100% !important;
+        & > div {
+            width: 100% !important;
+        }
+        iframe {
+            max-width: 100% !important;
+        }
     }
 }

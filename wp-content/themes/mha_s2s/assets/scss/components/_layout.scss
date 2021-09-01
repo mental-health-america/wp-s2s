@@ -164,9 +164,9 @@
     font-size: 1.6em;
     line-height: 1.7em;
     background: $white;
-    @media only screen and (max-width: 540px){
-        font-size: 1.5em;
-        line-height: 1.6em;
+    @media only screen and (max-width: 767px){
+        font-size: 1.7em;
+        line-height: 1.7em;
     }
 }
 

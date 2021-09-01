@@ -90,22 +90,6 @@ function mha_s2s_scripts() {
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
 	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
-	// Partner CSS Files
-	$partner_var = get_query_var('partner');
-	if(in_array($partner_var, mha_approved_partners() )){
-		switch ($partner_var) {
-			case 'own':
-				$partner_css = 'https://www.chongandkoster.com/test/example.css';
-				break;
-			default:
-				$partner_css = null;
-				break;
-		}
-		if($partner_css){
-			wp_enqueue_style( 'mha_s2s-partner-style', $partner_css, array(), date('mdy') ); // 24 hour cache
-		}
-	}
-
 	// Add print CSS.
 	// wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/print.css', null, '1.0', 'print' );
     
@@ -129,6 +113,27 @@ function mha_s2s_scripts() {
 
 	// Global Javascript
 	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), '1.0.0', true );
+	
+	// Partner Overrides
+	$partner_var = get_query_var('partner');
+	if(in_array($partner_var, mha_approved_partners() )){
+		switch ($partner_var) {
+			case 'own':
+				$partner_css = get_template_directory_uri() . '/assets/css/partner/own.css';
+				$partner_js = get_template_directory_uri() . '/assets/js/partner/own.js';
+				break;
+			default:
+				$partner_css = null;
+				$partner_js = null;
+				break;
+		}
+		if($partner_css){
+			wp_enqueue_style( 'mha_s2s-partner-style', $partner_css, array(), date('mdy') ); // 24 hour cache
+		}
+		if($partner_js){
+			wp_enqueue_script( 'mha_s2s-partner-js', $partner_js, array(), date('mdy'), false );
+		}
+	}
 	
 }
 add_action( 'wp_enqueue_scripts', 'mha_s2s_scripts' );

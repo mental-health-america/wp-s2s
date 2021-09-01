@@ -66,6 +66,7 @@ article.screen {
             -webkit-appearance: none;
             -moz-appearance: textfield;
             width: calc(100% - 30px);
+            max-width: 20em;
         }
     }
 
@@ -98,11 +99,11 @@ article.screen {
             padding: 0;
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-evenly;
+            //justify-content: space-evenly;
             flex-direction: row;
             align-items: stretch;
             @media only screen and (max-width: 767px){
-                flex-wrap: wrap;
+                //flex-wrap: wrap;
             }
 
             &:focus,
@@ -117,9 +118,8 @@ article.screen {
             li {
                 position: relative;
                 //flex: 1 1 calc(25% - 10px);
-                flex: 1 1 auto;
-                max-width: 50%;
-                
+                //flex: 1 1 auto;
+                //max-width: 50%;                
                 margin: 0 5px 5px 5px;
                 padding: 0;
                 opacity: 1;
@@ -129,11 +129,11 @@ article.screen {
                     label { background-color: $mint; }
                 }
                 @media only screen and (max-width: 767px){
-                    flex: 0 1 calc(50% - 10px);
+                    //flex: 0 1 calc(50% - 10px);
                 }
                 @media only screen and (max-width: 480px){
-                    flex: 1 1 calc(100% - 30px);
-                    margin: 0 15px 2px 15px;
+                    //flex: 1 1 calc(100% - 30px); 
+                    //margin: 0 15px 2px 15px; 
                 }
             }
 
@@ -142,7 +142,7 @@ article.screen {
                 text-align: center;
                 background: $grayLight2;
                 color: $darkTeal;
-                padding: 15px 10px 12px 10px;
+                padding: 15px 20px 12px;
                 height: calc(100% - 5px);
                 text-transform: uppercase;
                 font-size: .85em;
@@ -224,7 +224,7 @@ article.screen {
             li {
                 flex: 0 1 auto;
                 @media only screen and (max-width: 480px){
-                    flex: 1 1 calc(100% - 30px);
+                    //flex: 1 1 calc(100% - 30px);
                 }
                 label {
                     padding: 15px 35px 12px 35px;
@@ -307,7 +307,7 @@ article.screen {
             color: $blue;
             padding: 20px 20px;
             width: 100%;
-            max-width: 200px;
+            max-width: 50em;
             text-transform: none;
             font-size: .85em;
             line-height: 1em;
@@ -363,7 +363,7 @@ article.screen {
     // Submit buttons
     .gform_page_footer {
         text-align: right;
-        padding-top: 80px;
+        padding-top: 30px;
         @media only screen and (max-width: 480px){
             text-align: center;
         }
