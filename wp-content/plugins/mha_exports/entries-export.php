@@ -74,18 +74,19 @@ function mha_export_screen_data(){
     $form_slug = sanitize_title_with_dashes($gform['title']);
     $field_order = [];
     $field_order['Date'] = 'Date';                          // Manual additional field
-    $field_order['Spam Likely'] = 'Spam Likely';            // Manual additional field
+    $field_order['User IP'] = 'User IP';                    // Manual additional field
+    //$field_order['Spam Likely'] = 'Spam Likely';          // Manual additional field
     //$field_order['Item Counter'] = 'Item Counter';        // Manual additional field
 
     foreach($gform['fields'] as $gf){  
         $field = GFAPI::get_field( $form_id, $gf['id'] );
         if(
             isset($field->type) && $field->type == 'html' || 
-            isset($field->label) && $field->label == 'User IP' || 
+            //isset($field->label) && $field->label == 'User IP' || 
             isset($field->label) && $field->label == 'Token' || 
             isset($field->label) && $field->label == 'Screen ID' || 
             isset($field->label) && $field->label == 'Source URL' || 
-            isset($field->label) && $field->label == 'uid' || 
+            //isset($field->label) && $field->label == 'uid' || 
             isset($field->label) && $field->label == ''){
             continue; // Skip these columns
         } 
@@ -125,7 +126,8 @@ function mha_export_screen_data(){
         $row_date = new DateTime($gfdata['date_created']);
         $row_date->setTimezone($timezone);
         //$temp_array['Item Counter'] = $i;
-        $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");       
+        $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");     
+        $temp_array['User IP'] = $gfdata['ip'];     
 
         foreach($gfdata as $k => $v){           
             $field = GFAPI::get_field( $form_id, $k );
@@ -134,11 +136,11 @@ function mha_export_screen_data(){
             // Skip these columns
             if(
                 isset($field->type) && $field->type == 'html' || 
-                isset($field->label) && $field->label == 'User IP' || 
+                //isset($field->label) && $field->label == 'User IP' || 
                 isset($field->label) && $field->label == 'Token' || 
                 isset($field->label) && $field->label == 'Screen ID' || 
                 isset($field->label) && $field->label == 'Source URL' || 
-                isset($field->label) && $field->label == 'uid' || 
+                //isset($field->label) && $field->label == 'uid' || 
                 isset($field->label) && $field->label == ''){
                 continue;
             }
@@ -168,9 +170,9 @@ function mha_export_screen_data(){
         }
 
         if($spam_check > 0){
-            $temp_array['Spam Likely'] = 'yes';
+            //$temp_array['Spam Likely'] = 'yes';
         } else {
-            $temp_array['Spam Likely'] = 'no';
+            //$temp_array['Spam Likely'] = 'no';
         }
 
         if($exclude_spam == 1 && $spam_check > 0){

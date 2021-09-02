@@ -327,10 +327,10 @@ ol.next-steps {
     .screen-item {
         flex: 0 1 calc(33.333% - 20px);
         margin: 0 10px 20px 10px;
-        @media only screen and (max-width: 840px){
+        @media only screen and (max-width: 940px){
             flex: 0 1 calc(50% - 20px);
         }
-        @media only screen and (max-width: 580px){
+        @media only screen and (max-width: 720px){
             flex: 0 1 100%;
             margin: 0 0 15px 0;
         }
@@ -350,6 +350,7 @@ ol.next-steps {
         line-height: 40px;
         @include radius(50%);
         @include transitions( background-color 400ms ease, color 400ms ease, top 400ms ease);
+
         &.revealed,
         &:hover {
             background: $mint;
@@ -363,6 +364,17 @@ ol.next-steps {
     }
 
     .button {
+        min-height: 60px;
+        @media only screen and (max-width: 1060px){
+            min-height: 85px;
+        }
+        @media only screen and (max-width: 940px){
+            min-height: 60px;
+        }
+        @media only screen and (max-width: 720px){
+            min-height: 0px;
+        }
+
         @include radius(25px);
         @include transitions(all 400ms ease,border-radius 400ms ease);
         &.revealed {
