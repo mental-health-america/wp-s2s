@@ -2,6 +2,10 @@
 
 .iframe-mode {
 
+    #page {
+        padding-bottom: 40px;
+    }
+
     // General Hiding
     #utility-menu,
     #navigation,
@@ -11,20 +15,36 @@
     }
 
     // Header
-    #header #logo {
-        float: none;
-        margin: 0 auto;
-        text-align: center;
-        text-decoration: none;
-        border: 0;
-        &:before {
-            content: 'Powered by:';
-            display: block;
-            margin: 0 0 10px 0;
+    #header {
+        display: block;
+        position: fixed;
+        width: 100%;
+        height: auto;
+        padding: 10px 0;
+        bottom: 0;
+        left: 0;
+        z-index: 60;
+        background: $purple;
+        color: $white;
+        #logo {
+            float: none;
+            margin: 0 auto;
             text-align: center;
-            color: $gray;
-            font-size: 14px;
             text-decoration: none;
+            border: 0;
+            width: 100%;
+
+            &:before {
+                content: 'Powered by Mental Health America';
+                display: block;
+                margin: 0;
+                width: 100%;
+                text-align: center;
+                color: $white;
+                font-size: 14px;
+                text-decoration: none;
+            }
+            img { display: none; }
         }
     }
 

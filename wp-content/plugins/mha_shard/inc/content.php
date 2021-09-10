@@ -227,7 +227,7 @@ function mha_show_tests() {
 		$screen_id = 'screen-'.get_the_ID();
 		$screen_color = 'teal';
 		if(get_field('survey', get_the_ID())){
-			$screen_color = 'purple';
+			$screen_color = 'purple survey';
 		}
 
 		$screen_link_args = array(

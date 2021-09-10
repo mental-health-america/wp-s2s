@@ -210,6 +210,16 @@
 		// Reveal button toggle
 		$('.reveal-excerpt').on('click', function(event){
 			event.preventDefault();
+
+			// Close Others
+			var $thisScreen = $(this).parents('.screen-item');
+			$('.screen-item').not($thisScreen).each(function(e){
+				$(this).find('.reveal-excerpt').not(this).removeClass('revealed').attr('aria-expanded', 'false').text('+');
+				$(this).find('.excerpt.block').slideUp('200', 'easeInOutQuad').removeClass('show');
+				$(this).find('.button').removeClass('revealed');
+			});
+
+			// Expand This One
 			var reveal = $(this).attr('data-reveal');
 			$('#'+reveal).slideToggle('200', 'easeInOutQuad').toggleClass('show').parent('a').toggleClass('revealed');
 			

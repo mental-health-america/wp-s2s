@@ -385,6 +385,14 @@ ol.next-steps {
             .excerpt {
                 color: $blueDark;
             }
+            &.survey {
+                background: $purpleLight;
+            }
+        }
+        &.survey {
+            .excerpt {
+                color: $purple;
+            }
         }
 
         .excerpt-title {
