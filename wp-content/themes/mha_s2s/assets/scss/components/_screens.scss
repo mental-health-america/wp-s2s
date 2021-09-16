@@ -314,6 +314,9 @@ article.screen {
             border: 1px solid $silver;
             @include montserrat(600);
             @include radius(40px);
+            &.small {
+                max-width:  320px;
+            }
         }
     }
 

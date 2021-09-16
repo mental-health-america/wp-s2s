@@ -10,6 +10,8 @@ $next_step_manual = [];
 $result_cta = [];
 $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
 $espanol = get_field('espanol', $user_screen_result['screen_id']);
+$partner_var = get_query_var('partner');
+$iframe_var = get_query_var('iframe')
 ?>
 
 <div class="wrap normal">
@@ -214,14 +216,10 @@ $espanol = get_field('espanol', $user_screen_result['screen_id']);
                                     $take_another_url = add_query_arg( 'ref', $user_screen_result['referer'], $take_another_url );
                                 endif;
 
-                                $partner_var = get_query_var('partner');
-                                if($partner_var){     
-                                    if(in_array($partner_var, mha_approved_partners() )){                                    
-                                        $take_another_url = add_query_arg( 'partner', $partner_var, $take_another_url );
-                                    }
+                                if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
+                                    $take_another_url = add_query_arg( 'partner', $partner_var, $take_another_url );
                                 }
-
-                                if(get_query_var('iframe')){                                         
+                                if($iframe_var){                                         
                                     $take_another_url = add_query_arg( 'iframe','true', $take_another_url );
                                 }
                             ?>
@@ -454,7 +452,14 @@ $espanol = get_field('espanol', $user_screen_result['screen_id']);
             // Result based manual steps
             if(isset($next_step_manual)){
                 foreach($next_step_manual as $step){
-                    echo '<li><a class="dark-gray plain rec-result-manual" href="'.get_the_permalink($step).'">'.get_the_title($step).'</a></li>';
+                    $step_link = get_the_permalink($step);
+                    if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
+                        $step_link = add_query_arg( 'partner', $partner_var, $step_link );
+                    }
+                    if($iframe_var){                                         
+                        $step_link = add_query_arg( 'iframe','true', $step_link );
+                    }
+                    echo '<li><a class="dark-gray plain rec-result-manual" href="'.$step_link.'">'.get_the_title($step).'</a></li>';
                     $exclude_id[] = $step;
                 }
             }
@@ -464,7 +469,14 @@ $espanol = get_field('espanol', $user_screen_result['screen_id']);
             while( have_rows('featured_next_steps', $user_screen_result['screen_id']) ) : the_row();
                 $step = get_sub_field('link');
                 if($step && !in_array($step->id, $exclude_ids)){
-                    echo '<li><a class="dark-gray plain rec-screen-manual" href="'.get_the_permalink($step->ID).'">'.$step->post_title.'</a></li>';
+                    $manual_step_link = get_the_permalink($step->ID);
+                    if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
+                        $manual_step_link = add_query_arg( 'partner', $partner_var, $manual_step_link );
+                    }
+                    if($iframe_var){                                         
+                        $manual_step_link = add_query_arg( 'iframe','true', $manual_step_link );
+                    }
+                    echo '<li><a class="dark-gray plain rec-screen-manual" href="'.$manual_step_link.'">'.$step->post_title.'</a></li>';
                     $exclude_id[] = $step->ID;
                 }
             endwhile;        
@@ -557,16 +569,30 @@ $espanol = get_field('espanol', $user_screen_result['screen_id']);
             // Automatic Related Article Query
             $loop = new WP_Query($args);
             while($loop->have_posts()) : $loop->the_post();
-                echo '<li><a class="dark-gray plain rec-auto" href="'.get_the_permalink().'">'.get_the_title().'</a></li>';
+                $related_link = get_the_permalink();
+                if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
+                    $related_link = add_query_arg( 'partner', $partner_var, $related_link );
+                }
+                if($iframe_var){                                         
+                    $related_link = add_query_arg( 'iframe','true', $related_link );
+                }
+                echo '<li><a class="dark-gray plain rec-auto" href="'.$related_link.'">'.get_the_title().'</a></li>';
             endwhile;
 
             // See All Link
             if(get_field('see_all_link', $user_screen_result['screen_id'])){
                 $see_all_text = 'See All';
+                $see_all_link = get_field('see_all_link', $user_screen_result['screen_id']);
                 if(get_field('see_all_link_text', $user_screen_result['screen_id'])){
                     $see_all_text = get_field('see_all_link_text', $user_screen_result['screen_id']);
                 }
-                echo '<li><a class="caps cerulean plain" href="'.get_field('see_all_link', $user_screen_result['screen_id']).'">'.$see_all_text.'</a></li>';
+                if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
+                    $see_all_link = add_query_arg( 'partner', $partner_var, $see_all_link );
+                }
+                if($iframe_var){                                         
+                    $see_all_link = add_query_arg( 'iframe','true', $see_all_link );
+                }
+                echo '<li><a class="caps cerulean plain" href="'.$see_all_link.'">'.$see_all_text.'</a></li>';
             }
 
 

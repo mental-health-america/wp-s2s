@@ -35,14 +35,26 @@
             width: 100%;
 
             &:before {
-                content: 'Powered by Mental Health America';
-                display: block;
+                content: 'Powered by ';
+                display: inline;
+                vertical-align: middle;
                 margin: 0;
                 width: 100%;
                 text-align: center;
                 color: $white;
                 font-size: 14px;
                 text-decoration: none;
+            }
+
+            &:after {
+                content: '';
+                display: inline-block;
+                vertical-align: middle;
+                margin: 0 0 0 3px;
+                width: 110px;
+                height: 34px;
+                background: url('../images/mha-logo-white.png') center left no-repeat;
+                background-size: contain;
             }
             img { display: none; }
         }
