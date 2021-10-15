@@ -75,7 +75,7 @@ function mhathoughtexport(){
                             $gforms = GFAPI::get_forms(); 
                             echo '<select name="export_screen_form">';
                             foreach($gforms as $gf){
-                                if (strpos(strtolower($gf['title']), 'test') !== false || strpos(strtolower($gf['title']), 'survey') !== false) {
+                                if (strpos(strtolower($gf['title']), 'test') !== false || strpos(strtolower($gf['title']), 'survey') !== false || strpos(strtolower($gf['title']), 'quiz') !== false) {
                                     echo '<option name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</option>';                                    
                                     // Multiple Checkbox. TODO: Simply too much data for great exports, try again another time?
                                     //echo '<label for="gform-'.$gf['id'].'"><input id="gform-'.$gf['id'].'" type="checkbox" name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</label><br />';
@@ -109,6 +109,34 @@ function mhathoughtexport(){
     </form>
     <br />
 
+    <form id="mha-user-exports" action="#" method="POST">
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
+        
+            <div id="user-export-error"></div>
+            <h2>User Export</h2>
+                <tr>
+                    <td colspan="2">
+
+                        <p>
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_user_link"  value="Download Users">
+                        </p>
+                        
+                        <div id="user-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <ul id="user-exports-download" style="display: none;"></ul>      
+                        <br /><br />
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </form>
+    <br />
 
     <h1>UCI Data Exports</h1>		
 
@@ -966,6 +994,124 @@ function mha_nonaggregate_data_export(){
         }    
         $writer->insertAll(new ArrayIterator($csv_data));
 
+
+    } catch (CannotInsertRecord $e) {
+
+        $result['error'] = $e->getRecords();
+
+    }
+
+    echo json_encode($result);
+    exit();
+}
+
+/**
+ * User Exporter
+ */
+add_action( 'wp_ajax_mha_user_data_export', 'mha_user_data_export' );
+function mha_user_data_export(){
+        
+	// General variables
+    $result = array();
+    $timezone = new DateTimeZone('America/New_York');
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);  
+    $isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
+    $paged = intval($data['paged']);
+
+    // General Vars
+    global $wpdb;
+    $csv_header = [];
+    $csv_data = [];
+    $result = [];
+    $per_page = 1000;
+    $i = 0;    
+
+
+    // Get the users
+    $total_users = count_users();
+    $headers = array( 'user_registered', 'display_name', 'user_email' );
+    $users = get_users( 
+        array( 
+            'fields' => $headers
+        ) 
+    );    
+    
+    $max_pages = round( $total_users['total_users'] / $per_page );
+    if($max_pages < 1){
+        $max_pages = 1;
+    }
+    $result['paged'] = $paged;
+    $result['max'] = $max_pages;
+    $result['percent'] = round( ( ($paged / $max_pages) * 100 ), 2 );
+    if($paged >= $max_pages){
+        $result['next_page'] = '' ;
+    } else {
+        $result['next_page'] = $paged + 1;
+    }
+
+    $start = $per_page * $paged;
+    $end = $per_page * ($paged + 1);
+    if($end > $total_users['total_users']){
+        $end = $total_users['total_users'];
+    }
+    
+    foreach($users as $user){
+        if($i >= $start){
+            foreach($headers as $k){
+                if($k == 'user_registered'){
+                    $temp_time = new DateTime($user->$k);
+                    $temp_time->setTimezone($timezone);
+                    $csv_data[$i][$k] = $temp_time->format("Y-m-d H:i:s");
+                } else {
+                    $csv_data[$i][$k] = $user->$k;
+                }
+                    
+            }
+        }
+        $i++;
+        if($i >= $end){
+            break;
+        }
+    }
+
+    $result['i'] = $i;
+    $result['start'] = $start;
+    $result['end'] = $end;
+    
+    /**
+     * Write Data
+     */
+    try {
+
+        // Create CSV
+        if($data['filename']){
+            // Update existing file
+            $filename = $data['filename'];
+            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
+        } else {
+            // Create file
+            $filename = 'mhauser-export-'.date('U').'.csv';
+            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
+        }
+        //$writer->addFormatter($encoder);
+        
+        $result['filename'] = $filename;
+        if($paged >= $max_pages){
+            // Final page
+            $result['download'] = plugin_dir_url(__FILE__).'tmp/'.$filename;
+        }
+        
+        // Headers only on page 1
+        if($paged == 0){
+            $csv_headers = [];
+            foreach($csv_data[0] as $k => $v){
+                $csv_headers[] = $k;
+            }
+            $writer->insertOne($csv_headers);
+        }    
+        $writer->insertAll(new ArrayIterator($csv_data));
 
     } catch (CannotInsertRecord $e) {
 

@@ -58,6 +58,8 @@ input[type="number"]{
     word-wrap: normal !important;
 }
 
+.wrap.narrow p a:not(.button),
+.bubble.thick a:not(.button),
 .page-intro a:not(.button),
 .page-content a:not(.button) {
 

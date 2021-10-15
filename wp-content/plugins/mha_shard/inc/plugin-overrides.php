@@ -10,7 +10,11 @@
  * Add an ACF Options page for site configuration
  */
 if( function_exists('acf_add_options_page') ) {
-	acf_add_options_page();	
+	$settings = array(
+		'page_title' => __('MHA Global Options'),
+		'icon_url' => '/wp-content/themes/mha_s2s/assets/images/mha_icon.png',
+	);
+	acf_add_options_page( $settings );	
 }
 
 

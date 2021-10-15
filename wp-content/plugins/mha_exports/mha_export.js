@@ -56,7 +56,6 @@
 
         // Vars
         var args = $('#aggregate-data-export').serialize();
-        console.log(args);
             
         // Disable flag button
         $('#submit-aggregate-data-export').prop('disabled', true).text('Processing...');
@@ -70,9 +69,7 @@
                 data: args + '&paged=1'
             },
             success: function( results ) {
-                console.log(results);
                 if(results){
-                    console.log('test');
                     var res = JSON.parse(results);
                     if(res.error){
                         alert(res.error+' Please refresh this page and try again.');
@@ -83,7 +80,7 @@
                         aggregateLooper( results );    
                     }
                 } else {                    
-                    alert('No data available for this query. Your Please refresh this page and try again.');
+                    alert('No data available for this query. Please refresh this page and try again.');
                 }
                 
             },
@@ -180,8 +177,6 @@
             args += '&all_forms=' + params.all_forms;
         }
 
-        console.log(args);
-
         $('#export_screen_link').prop('disabled', true).text('Processing...');
         $('#screen-exports-progress .bar').css('background-color', '');
         $('#screen-exports-progress .label-number').html( 'Calculating...' );  
@@ -207,7 +202,7 @@
                         screenExportDataLooper( results );
                     }
                 } else {                    
-                    alert('No data available for this query. Your Please refresh this page and try again.');
+                    alert('No data available for this query. Please refresh this page and try again.');
                 }
 
             },
@@ -317,8 +312,98 @@
                         nonAggregateLooper( results );  
                     }
                 } else {                    
-                    alert('No data available for this query. Your Please refresh this page and try again.');
+                    alert('No data available for this query. Please refresh this page and try again.');
                 }
+            },
+            error: function(xhr, ajaxOptions, thrownError){                
+                console.error(xhr,thrownError);
+            }
+        });	
+
+    });
+
+
+    
+    function userExportLooper( results ){
+
+        var res = JSON.parse(results);
+        console.log(res);
+            
+        if(res.error){
+            // Error
+            $('#user-export-error').html(res.error);            
+        } else {
+            
+            if(res.next_page != ''){
+
+                // Continue Paging
+                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename;
+                $.ajax({
+                    type: "POST",
+                    url: do_mhaThoughts.ajaxurl,
+                    data: { 
+                        action: 'mha_user_data_export',
+                        data: args_2
+                    },
+                    success: function( results_2 ) {  
+                        var res = JSON.parse(results_2);	
+                        $('#user-exports-progress').slideDown();
+                        $('#user-exports-progress .bar').css('width', res.percent+'%');
+                        $('#user-exports-progress .label-number').html( res.percent );           
+                        userExportLooper( results_2 );
+                    },
+                    error: function(xhr, ajaxOptions, thrownError){                        
+                        console.error(xhr,thrownError);        
+                    }
+                });	
+
+            } else {
+
+                // Export is done
+                var download_link = res.download;
+                $('#export_user_link').prop('disabled', false).text('Download User Data');	
+                $('#user-exports-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
+
+            }
+
+        }
+    }
+
+    $(document).on('click', '#export_user_link', function(event){
+
+        // Disable default form submit
+        event.preventDefault();
+
+        // Vars
+        var args = $('#mha-user-exports').serialize();
+            
+        // Disable flag button
+        $('#export_user_link').prop('disabled', true).text('Processing...');
+        $('#user-export-error').html('');
+        
+        $.ajax({
+            type: "POST",
+            url: do_mhaThoughts.ajaxurl,
+            data: { 
+                action: 'mha_user_data_export',
+                data: args + '&paged=0'
+            },
+            success: function( results ) {
+                console.log(results);
+                if(results){
+                    var res = JSON.parse(results);
+                    if(res.error){
+                        alert(res.error+' Please refresh this page and try again.');
+                    } else {
+                        $('#user-exports-progress').slideDown();
+                        $('#user-exports-progress .bar').css('width', res.percent+'%');
+                        $('#user-exports-progress .label-number').html( res.percent );        
+                        userExportLooper( results );    
+                    }
+                } else {                    
+                    alert('No data available for this query. Please refresh this page and try again.');
+                }
+                
             },
             error: function(xhr, ajaxOptions, thrownError){                
                 console.error(xhr,thrownError);

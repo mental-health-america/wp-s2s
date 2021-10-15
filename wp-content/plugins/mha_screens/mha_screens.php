@@ -715,3 +715,6 @@ function mha_screening_pre_submission_handler( $form ) {
     $_POST['input_38'] = wp_generate_uuid4();
 }
 
+
+// Other Files
+include_once 'demographic_steps.php';

@@ -16,3 +16,35 @@ add_action( 'wp_before_admin_bar_render', 'remove_comments' );
 
 // Disabmle xmlrpc.php access
 add_filter( 'xmlrpc_enabled', '__return_false' );
+
+
+// Dynamically Populate the "Demographic Based Next Steps" Key Field
+/*
+function my_acf_load_field( $field ) {
+    
+    // reset choices
+    $field['choices'] = array();    
+
+    // Get demo labels
+    $forms = GFAPI::get_forms();  
+    $demo_labels = [];
+    foreach($forms as $form){
+        foreach($form['fields'] as $field){
+            if(strpos($field->cssClass, 'optional') !== false){
+                $demo_labels[] = $field->label;
+            }
+        }
+    }
+    $demo_labels = array_unique($demo_labels);
+    $demo_labels = array_values($demo_labels);
+    
+    foreach( $demo_labels as $choice ) {            
+        $field['choices'] = $demo_labels;            
+    }   
+
+    return $field;
+    
+}
+
+add_filter('acf/load_field/name=key_test', 'acf_load_screen_field_choices');
+*/

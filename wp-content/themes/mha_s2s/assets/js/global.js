@@ -97,14 +97,15 @@
 
 
 		// Anchor Jump Buttons
-		$('.anchor-button').on('click', function(event){
-			var id = $(this).attr('data-target');
-			if($(this).hasClass('active')){
-				$('html, body').animate({
-					scrollTop: $(id).offset().top
-				}, 1000);
-			}
-		});
+		$('.anchor-button').each(function(event){
+			$(this).addEventListener('click', function(ev) {
+				window.parent.postMessage(JSON.stringify({
+					eventName: 'scroll',
+					scrollY: window.scrollY,
+					rect: expandingElement.getBoundingClientRect()
+				}), '*');
+			});
+		})
 
 		// Account Confirmation Message Check Display
 		if($('#account-settings-form').length){
@@ -268,12 +269,10 @@
 		 * Iframe mode options
 		 */
 		// Open links out of iframes
-		$('.iframe-mode a').each(function(){
-			if(!$(this).parent('.screen-item')){ // Don't do this on the screen listing page
-				$(this).click(function(event) {
-					event.preventDefault();
-					window.open(this.href, '_blank');
-				});
+		$('.iframe-mode #page a').each(function(){
+			$parent = $(this).parent();
+			if(!$parent.hasClass('screen-item') && $(this).attr('id') != 'screen-take'){
+				$(this).attr('target', '_blank');
 			}
 		});
 

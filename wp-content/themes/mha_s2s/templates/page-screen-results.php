@@ -7,11 +7,14 @@ $user_screen_id = get_query_var('sid');
 $user_screen_result = getUserScreenResults( $user_screen_id );  
 $next_step_terms = [];
 $next_step_manual = [];
+$exclude_ids = [];
 $result_cta = [];
+$demo_steps = [];
+$result_title = '';
 $max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
 $espanol = get_field('espanol', $user_screen_result['screen_id']);
 $partner_var = get_query_var('partner');
-$iframe_var = get_query_var('iframe')
+$iframe_var = get_query_var('iframe');
 ?>
 
 <div class="wrap normal">
@@ -54,9 +57,16 @@ $iframe_var = get_query_var('iframe')
             <div id="screen-save">
                 <div class="bubble round blue thin mb-3">
                 <div class="inner bold text-center">
-                    <a class="append-thought-id text-white" href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$user_screen_result['result_id'] ?>">Log in</a>
+                    <?php 
+                        if($iframe_var){    
+                            $login_target = ' target="_blank"';
+                        } else {
+                            $login_target = '';
+                        }
+                    ?>
+                    <a class="append-thought-id text-white"<?php echo $login_target; ?> href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$user_screen_result['result_id'] ?>">Log in</a>
                     or
-                    <a class="append-thought-id text-white" href="/sign-up/?action=save_screen_<?php echo $user_screen_result['result_id']; ?>">register for an account</a>
+                    <a class="append-thought-id text-white"<?php echo $login_target; ?> href="/sign-up/?action=save_screen_<?php echo $user_screen_result['result_id']; ?>">register for an account</a>
                     to save this result to your account.
                 </div>
                 </div>
@@ -141,7 +151,7 @@ $iframe_var = get_query_var('iframe')
                                     <div class="bubble thin teal round-small-bl mb-4">
                                     <div class="inner">
                                         <h2 class="white small m-0">
-                                            <strong><?php echo $result[0]['result_title']; ?></strong>
+                                            <strong><?php echo $result[0]['result_title']; $result_title = $result[0]['result_title']; ?></strong>
                                         </h2>
                                     </div>
                                     </div>
@@ -161,7 +171,7 @@ $iframe_var = get_query_var('iframe')
                                             <?php endif; ?>
                                         </div>
                                         <h2 class="white small m-0">
-                                            <strong><?php the_sub_field('result_title'); ?></strong>
+                                            <strong><?php the_sub_field('result_title'); $result_title = get_sub_field('result_title'); ?></strong>
                                         </h2>
                                     </div>
                                     </div>
@@ -392,8 +402,55 @@ $iframe_var = get_query_var('iframe')
     </h2>
     
     <div id="cta-col" class="cta-cols">
-        <?php            
-            // Screen Specific CTAs
+        <?php       
+            /**
+             * Demographic Based Next Steps
+             */
+                // Get the user's answered demographic questions
+                $entry_data = GFAPI::get_entry( $user_screen_result['result_id'] );
+                $answered_demos = [];
+                if(!is_wp_error($entry_data)){
+                    foreach($entry_data as $k => $v){            
+                        $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
+                        if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {
+                            if(trim($entry_data[$k]) != ''){
+                                $answered_demos[$field->label][] = $entry_data[$k];
+                            }
+                        }
+                    }        
+                }
+
+                // Additional custom demo results to reference
+                $answered_demos['user_result'] = array($result_title);
+                $answered_demos['screen_id'] = array($user_screen_result['screen_id']);
+
+                // Screen specific demo steps/CTAs
+                $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );
+                foreach($demo_data['demo_steps'] as $e){
+                    $demo_steps[] = $e;
+                }
+                foreach($demo_data['exclude_ids'] as $e){
+                    $exclude_ids[] = $e;
+                }
+                foreach($demo_data['ctas'] as $e){
+                    $result_cta[] = $e;
+                }
+
+                // Global demo steps/CTAs
+                $demo_data_global = get_mha_demo_steps( 'options', $answered_demos );
+                foreach($demo_data_global['demo_steps'] as $e){
+                    $demo_steps[] = $e;
+                }
+                foreach($demo_data_global['exclude_ids'] as $e){
+                    $exclude_ids[] = $e;
+                }
+                foreach($demo_data_global['ctas'] as $e){
+                    $result_cta[] = $e;
+                }
+                
+            /*
+             * Screen Specific CTAs
+             */
             $screen_specific_cta = get_field('call_to_actions_all_results', $user_screen_result['screen_id']);
             if($screen_specific_cta){
                 foreach($screen_specific_cta as $cta){
@@ -401,9 +458,12 @@ $iframe_var = get_query_var('iframe')
                 }
             }
 
-            // Result specific CTA
+            /*
+             * Result specific CTA
+             */
             global $post;
-            foreach($result_cta as $cta){
+            $unique_result_cta = array_unique($result_cta);
+            foreach($unique_result_cta as $cta){
                 $post = get_post($cta); 
                 get_template_part( 'templates/blocks/block', 'cta' );  
             } 
@@ -447,43 +507,62 @@ $iframe_var = get_query_var('iframe')
 <div class="wrap narrow mb-5">
     <ol class="next-steps">        
         <?php
-            $exclude_ids = [];
-
-            // Result based manual steps
-            if(isset($next_step_manual)){
-                foreach($next_step_manual as $step){
-                    $step_link = get_the_permalink($step);
-                    if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
-                        $step_link = add_query_arg( 'partner', $partner_var, $step_link );
-                    }
-                    if($iframe_var){                                         
-                        $step_link = add_query_arg( 'iframe','true', $step_link );
-                    }
-                    echo '<li><a class="dark-gray plain rec-result-manual" href="'.$step_link.'">'.get_the_title($step).'</a></li>';
-                    $exclude_id[] = $step;
-                }
+            
+            /**
+             * Demo Based Steps
+             */
+            foreach($demo_steps as $link){
+                echo '<li><a class="dark-gray plain rec-screen-demobased" href="'.get_the_permalink($link->ID).'">'.$link->post_title.'</a>';
             }
 
-            // Manual steps
-            if( have_rows('featured_next_steps', $user_screen_result['screen_id']) ):
-            while( have_rows('featured_next_steps', $user_screen_result['screen_id']) ) : the_row();
-                $step = get_sub_field('link');
-                if($step && !in_array($step->id, $exclude_ids)){
-                    $manual_step_link = get_the_permalink($step->ID);
-                    if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
-                        $manual_step_link = add_query_arg( 'partner', $partner_var, $manual_step_link );
+            /**
+             * Result Based Manual Steps
+             */
+                if(isset($next_step_manual)){
+                    foreach($next_step_manual as $step){
+                        $step_link = get_the_permalink($step);
+                        $step_link_target = '';
+                        if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
+                            //$step_link = add_query_arg( 'partner', $partner_var, $step_link );
+                        }
+                        if($iframe_var){                                         
+                            //$step_link = add_query_arg( 'iframe','true', $step_link );
+                            $step_link_target = ' target="_blank"';
+                        }
+                        if(!in_array($step, $exclude_ids)){
+                            echo '<li><a class="dark-gray plain rec-result-manual"'.$step_link_target.' href="'.$step_link.'">'.get_the_title($step).'</a></li>';
+                            $exclude_id[] = $step;
+                        }
                     }
-                    if($iframe_var){                                         
-                        $manual_step_link = add_query_arg( 'iframe','true', $manual_step_link );
-                    }
-                    echo '<li><a class="dark-gray plain rec-screen-manual" href="'.$manual_step_link.'">'.$step->post_title.'</a></li>';
-                    $exclude_id[] = $step->ID;
                 }
-            endwhile;        
-            endif;
 
 
-            // Automatic query args
+            /**
+             * Manual Steps
+             */
+                if( have_rows('featured_next_steps', $user_screen_result['screen_id']) ):
+                while( have_rows('featured_next_steps', $user_screen_result['screen_id']) ) : the_row();
+                    $step = get_sub_field('link');
+                    if($step && !in_array($step->id, $exclude_ids)){
+                        $manual_step_link = get_the_permalink($step->ID);
+                        $manual_step_target = '';
+                        if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
+                            //$manual_step_link = add_query_arg( 'partner', $partner_var, $manual_step_link );
+                        }
+                        if($iframe_var){                                         
+                            //$manual_step_link = add_query_arg( 'iframe','true', $manual_step_link );
+                            $manual_step_target = ' target="_blank"';
+                        }
+                        echo '<li><a class="dark-gray plain rec-screen-manual"'.$manual_step_target.' href="'.$manual_step_link.'">'.$step->post_title.'</a></li>';
+                        $exclude_id[] = $step->ID;
+                    }
+                endwhile;        
+                endif;
+
+
+            /**
+             * Automatic Query Args
+             */
             if(!empty($exclude_id)){
                 $total_exclude = count($exclude_id);
             } else {
@@ -515,7 +594,9 @@ $iframe_var = get_query_var('iframe')
                 //$args['meta_query']['relationship'] = 'AND';
             }
 
-            // Result based related tag steps
+            /**
+             * Result Based Next Steps
+             */
             if(isset($next_step_terms)){
                 $next_step_terms = array_unique($next_step_terms);
                 $taxonomy_query = [];
@@ -570,31 +651,36 @@ $iframe_var = get_query_var('iframe')
             $loop = new WP_Query($args);
             while($loop->have_posts()) : $loop->the_post();
                 $related_link = get_the_permalink();
+                $related_link_target = '';
                 if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
-                    $related_link = add_query_arg( 'partner', $partner_var, $related_link );
+                    //$related_link = add_query_arg( 'partner', $partner_var, $related_link );
                 }
                 if($iframe_var){                                         
-                    $related_link = add_query_arg( 'iframe','true', $related_link );
+                    //$related_link = add_query_arg( 'iframe','true', $related_link );
+                    $related_link_target = ' target="_blank"';
                 }
-                echo '<li><a class="dark-gray plain rec-auto" href="'.$related_link.'">'.get_the_title().'</a></li>';
+                if(!in_array(get_the_ID(), $exclude_ids)){
+                    echo '<li><a class="dark-gray plain rec-auto"'.$related_link_target.' href="'.$related_link.'">'.get_the_title().'</a></li>';
+                }
             endwhile;
 
             // See All Link
             if(get_field('see_all_link', $user_screen_result['screen_id'])){
                 $see_all_text = 'See All';
                 $see_all_link = get_field('see_all_link', $user_screen_result['screen_id']);
+                $see_all_target = '';
                 if(get_field('see_all_link_text', $user_screen_result['screen_id'])){
                     $see_all_text = get_field('see_all_link_text', $user_screen_result['screen_id']);
                 }
                 if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
-                    $see_all_link = add_query_arg( 'partner', $partner_var, $see_all_link );
+                    //$see_all_link = add_query_arg( 'partner', $partner_var, $see_all_link );
                 }
                 if($iframe_var){                                         
-                    $see_all_link = add_query_arg( 'iframe','true', $see_all_link );
+                    //$see_all_link = add_query_arg( 'iframe','true', $see_all_link );
+                    $see_all_target = ' target="_blank"';
                 }
-                echo '<li><a class="caps cerulean plain" href="'.$see_all_link.'">'.$see_all_text.'</a></li>';
+                echo '<li><a class="caps cerulean plain"'.$see_all_target.' href="'.$see_all_link.'">'.$see_all_text.'</a></li>';
             }
-
 
         ?>
     </ol>
