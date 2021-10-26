@@ -708,13 +708,17 @@ function get_articles( $options ){
 		unset($geo_args['geo_query']);
 		$geo_args['meta_query'][] = array(
 			'key'	 	=> 'whole_state',
-			'value'	  	=> $options['geo']['state'],
-			'compare'	=> 'LIKE'
+			'value'	  	=> '',
+			'compare'	=> '!='
 		);
 		$geo_state_query = new WP_Query($geo_args);
 		foreach($geo_state_query->posts as $p){
-			$type = get_field('type');
-			if(in_array($option['type'], $type)){
+			// Get matching type and state
+			$type = get_field('type',$p->ID);			
+			$state_lower = strtolower(get_field('whole_state',$p->ID) );
+			$whole_state = array_map('trim', explode(',', $state_lower));
+
+			if(in_array($options['type'], $type) && in_array(strtolower($options['geo']['state']), $whole_state)){
 				$geo_posts[] = $p->ID;
 			}
 		}
@@ -878,10 +882,29 @@ function update_article( $post_id ){
 				curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
 				$output = json_decode(curl_exec($handle), true);
 				curl_close($handle);
-				
+
+				// Get the city/state for display purposes				
+				$city = '';
+				$state = '';
+				foreach($output['results'][0]['address_components'] as $ac){
+					if($ac['types'][0] == 'locality'){
+						$city = $ac['long_name'];
+					}
+					if($ac['types'][0] == 'administrative_area_level_1'){
+						$state = $ac['long_name'];
+					}
+				}
+								
 				// Update values
 				update_post_meta($post_id, 'location_'.$i.'_latitude', sanitize_text_field($output['results'][0]['geometry']['location']['lat']));
 				update_post_meta($post_id, 'location_'.$i.'_longitude', sanitize_text_field($output['results'][0]['geometry']['location']['lng']));
+				if($city != '' && !isset($_POST['acf']['field_5feca600b09ad']) ){
+					update_post_meta($post_id, 'location_'.$i.'_city', sanitize_text_field($city));
+				}
+				if($state != '' && !isset($_POST['acf']['field_5feca604b09ae']) ){
+					update_post_meta($post_id, 'location_'.$i.'_state', sanitize_text_field($state));
+				}
+
 			}
 
 		}
@@ -928,71 +951,6 @@ function attach_remote_image_to_post($image_url, $parent_id, $alt = ''){
 function term_sort_name($a, $b) {
 	return strcmp($a->name, $b->name);
 }
-
-
-
-/**
- * Custom Article Submission Form
- */
-function mha_submit_article_form_display(){
-	
-	parse_str($_POST['data'], $data);  
-    $isAuthentic = wp_verify_nonce( $data['snonce'], 'showForm');
-	
-	$captcha_verify = 'https://www.google.com/recaptcha/api/siteverify?secret=6LftXuYZAAAAAPlFM99le3nsKdZOrySkjVaSOInT&response='.$data['g-recaptcha-response'].'&remoteip=user_ip_address';
-	$captcha_response = wp_remote_get($captcha_verify);
-	$captcha_body = wp_remote_retrieve_body( $captcha_response );
-	$captcha_result = json_decode( $captcha_body );
-
-	// Submission is good, proceed
-	if($isAuthentic && $captcha_result->success){
-		acf_form(array(
-			'post_id'           => 'new_post',                
-			'post_content'      => true,
-			'post_title'        => true,
-			'honeypot'          => true,
-			'return' 			=> esc_url_raw($data['return']),
-			'new_post'          => array(
-				'post_type'     => 'article',
-				'post_status'   => 'draft'
-			),
-			'fields' => array(
-				'field_5fd3eec524b34', // Type
-				'field_5fd3f1a935255', // DIY Type
-				'field_5fea345c4d25c', // DIY Issue
-				'field_5fd3f7a3951ad', // Treatment Type
-				'field_5fd3eef624b35', // Area Served
-				'field_5fdc0a1448b13', // Service Type
-				'field_5fd3ef47dab98', // Location
-
-				'field_5fea2f2863cdb', // Condition
-				'field_5fea2f4463cdc', // Age
-
-				'field_5fea2f6663cdd', // Featured Image
-				//'field_5fea2f7063cde', // Link
-				//'field_5fedf6b5b7dc2', // Link Text
-
-				'pricing_information', // Pricing
-				'field_5fea3372584f9', // Privacy
-				'field_5fea337d584fa', // Disclaimer
-				'field_5fea327fa3cc0', // Accolades
-				
-				'field_5fea2e5763cd8', // Contact Name
-				'field_5fea359ded711', // Contact Title
-				'field_5fea2ee063cd9', // Contact Email
-				'field_5fea2ee963cda', // Contact Phone
-
-			),
-			'submit_value'  => 'Submit Article for Review'
-		)); 
-	} else {
-		echo 'Verification failed. Please try later.';
-	}
-
-	exit();
-}
-add_action("wp_ajax_nopriv_mha_submit_article_form_display", "mha_submit_article_form_display");
-add_action("wp_ajax_mha_submit_article_form_display", "mha_submit_article_form_display");
 
 
 /**

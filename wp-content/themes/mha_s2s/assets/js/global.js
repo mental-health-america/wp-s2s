@@ -97,15 +97,14 @@
 
 
 		// Anchor Jump Buttons
-		$('.anchor-button').each(function(event){
-			$(this).addEventListener('click', function(ev) {
-				window.parent.postMessage(JSON.stringify({
-					eventName: 'scroll',
-					scrollY: window.scrollY,
-					rect: expandingElement.getBoundingClientRect()
-				}), '*');
-			});
-		})
+		$('.anchor-button').on('click', function(event){
+			var id = $(this).attr('data-target');
+			if($(this).hasClass('active')){
+				$('html, body').animate({
+					scrollTop: $(id).offset().top
+				}, 1000);
+			}
+		});
 
 		// Account Confirmation Message Check Display
 		if($('#account-settings-form').length){
@@ -122,7 +121,7 @@
 			if($(event.target).hasClass('anchor-content')){
 				$('html, body').animate({
 					scrollTop: $(event.target).offset().top
-				}, 1000, 'easeInOutQuad');		
+				}, 1000, 'easeInOutQuad');	
 			}
 
 			if($(event.target).hasClass('all-screen-results')){

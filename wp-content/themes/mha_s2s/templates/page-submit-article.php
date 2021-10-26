@@ -24,7 +24,7 @@ get_header();
             echo '<div id="message" class="updated">';
             the_field('thank_you_message');
             echo '</div>';
-        else:
+        else:            
         ?>
             <form id="article-submit-recaptcha-confirm" class="text-center" action="?" method="POST">
                 <div id="recaptcha-error" class="bubble round coral hidden thinner mb-4"><div class="inner"></div></div>

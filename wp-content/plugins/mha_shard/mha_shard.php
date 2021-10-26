@@ -23,6 +23,12 @@ include_once 'inc/plugin-overrides.php';
 // Content Specific Functions
 include_once 'inc/content.php';
 
+// Article Specific Functions
+include_once 'inc/articles.php';
+
+// Submit Resources
+include_once 'inc/submit-resources.php';
+
 // Custom Admin Widgets
 include_once 'inc/widgets.php';
 

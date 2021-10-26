@@ -35,11 +35,11 @@ $search_term = get_query_var('search_term');
 
 				<div class="bubble cerulean thin round-bl mb-5">
 				<div class="inner">
-                	<form method="GET" action="<?php echo get_term_link($term); ?>#ac" class="form-container line-form blue">
+					<form method="GET" action="<?php echo get_term_link($term); ?>#ac" class="form-container line-form blue">
 						<div class="container-fluid">
 						<div class="row">
 
-                        	<div class="col-12 col-md-6">
+							<div class="col-12 col-md-6">
 								<p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Search <?php echo $term->name; ?> articles" type="text" /></p>
 							</div>
 
@@ -54,10 +54,29 @@ $search_term = get_query_var('search_term');
 							<div class="col-12 col-md-3 mt-3 mt-md-0 pl-1 pr-1">								
 								<div class="dropdown text-right pr-0 pr-md-4">
 									<button class="button cerulean round dropdown-toggle normal-case mobile-wide block" type="button" id="archiveOrder" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
-										Sort
+										<?php
+											if($orderby == 'title' && $order == 'ASC'){
+												echo 'A-Z';
+											} elseif($orderby == 'title' && $order == 'DESC'){
+												echo 'Z-A';
+											} elseif($orderby == 'date' && $order == 'ASC'){
+												echo 'Oldest';
+											} elseif($orderby == 'date' && $order == 'DESC'){
+												echo 'Newest';
+											} else {
+												echo 'Sort';
+											}
+										?>
 									</button>
 									<div class="dropdown-menu" aria-labelledby="orderSelection">
-										<a href="<?php get_term_link($term); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="DESC" value="featured">Default</a>
+										<a href="<?php echo add_query_arg(
+											array( 
+												'search' => get_query_var('search'), 
+												'search_tag' => get_query_var('search_tag'), 
+												'search_taxonomy' => get_query_var('search_taxonomy'), 
+												'order' => 'DESC',  
+												'orderby' => 'default'
+											), get_term_link($term)); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="" value="">Default</a>
 										<a href="<?php echo add_query_arg(
 											array( 
 												'search' => get_query_var('search'), 
@@ -101,128 +120,8 @@ $search_term = get_query_var('search_term');
 				</div>
 
 				<?php	
-					/**
-					 * Query Override
-					 * We need to include "All Conditions" articles after the taxonomy specific posts
-					 */
-
-					wp_reset_query();
-
-					// Current query
-					global $wp_query;
-
-					// All Condition articles
-					/*
-					$allCondition_args = array(
-						"post_type" 	 => 'article',
-						"post_status" 	 => 'publish', // Incomplete thoughts only
-						"posts_per_page" => -1,
-						"orderby" => 'meta_value_num',
-						"order" => 'ASC',
-						"meta_key" => 'featured',
-						"meta_query"	 => array(
-							'relation'	 	=> 'AND',
-							array(
-								'key'		=> 'all_conditions',
-								'value'		=> 1
-							),
-							array(
-								'key'		=> 'type',
-								'value'		=> array('provider'),
-								'compare'	=> 'NOT IN'
-							),
-						)
-					);
-
-					// Special Conditions
-					if(get_query_var('search')){
-						$allCondition_args['s'] = get_query_var('search');
-					}
-					*/
-
-					/**
-					 * Update to NOT show other articles tagged "all conditions"
-					 */
-					//$allConditions = new WP_Query($allCondition_args);
-					//$new_query = array_unique( array_merge( $wp_query->posts, $allConditions->posts ), SORT_REGULAR);
-					$new_query = $wp_query->posts;
-
-					// Custom meta queries are janky so we'll do it this way
-					/*
-					$new_query = [];
-					foreach($wp_query->posts as $item){
-						if( !get_field('espanol', $item->ID) && get_field('type', $item->ID) != 'provider' && get_post_type($item->ID) == 'article' ){
-							$new_query[] = $item;
-						}
-					}
-					*/
-
-					// Title Ordering
-					if(get_query_var('orderby') == 'title'){
-						usort($new_query, function ($item1, $item2) {
-							if(get_query_var('order') == 'DESC'){
-								// DESC
-								return strtolower($item2->post_title) <=> strtolower($item1->post_title);
-							} else {
-								// ASC
-								return strtolower($item1->post_title) <=> strtolower($item2->post_title);
-							}
-						});
-					}
-					
-					// Date Ordering
-					if(get_query_var('orderby') == 'date'){
-						usort($new_query, function ($item1, $item2) {
-							if(get_query_var('order') == 'DESC'){
-								// DESC
-								return $item2->post_date <=> $item1->post_date;
-							} else {
-								// ASC
-								return $item1->post_date <=> $item2->post_date;
-							}
-						});
-					}					
-					
-					// General Vars
-					$current_page = (get_query_var('paged')) ? get_query_var('paged') : 1;
-					$posts_per_page = 40;
-					$total_posts = count($new_query);
-					$max_pages = ceil($total_posts / $posts_per_page);
-					$offset = ($current_page - 1) * $posts_per_page;
-					$offset_ceil = $current_page * $posts_per_page;
-					
-					echo '<ol class="plain mb-0">';
-					$counter = 1;
-					foreach($new_query as $post):	
-
-                        if($counter >= $offset && $counter <= $offset_ceil){
-							setup_postdata($post);				
-								$type = get_field('type');                        
-								$article_type = get_field('type');
-							?>
-								<li class="mb-4">
-									<p class="mb-2">	
-										<a class="dark-gray plain" href="<?php echo add_query_arg('ref', $term->term_id, get_the_permalink()); ?>"><?php the_title(); ?></a>
-									</p>
-									<!--<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>-->
-								</li>
-							<?php
-						}
-						$counter++;
-
-					endforeach;
-					echo '</ol>';
-					
-					$big = 999999999;
-					echo '<div class="navigation pagination">';
-					echo paginate_links( array(
-						'format' => '?paged=%#%',
-						'current' => $current_page,
-						'total' => $max_pages
-					) );	
-					echo '</div>';
-
-					wp_reset_postdata();
+					// Display related articles
+					echo get_condition_articles($term->taxonomy, $term->term_id, $search_query);
 				?>
 
 			</div>

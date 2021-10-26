@@ -593,6 +593,7 @@ add_action( 'pre_get_posts', 'wpse331647_alter_query' );
 // Column Set
 add_filter( 'manage_article_posts_columns', 'mha_s2s_filter_posts_columns' );
 function mha_s2s_filter_posts_columns( $columns ) {
+	$columns['tags'] = __( 'Tags' );
 	$columns['type'] = __( 'Type' );
 	return $columns;
 }
@@ -621,6 +622,7 @@ function mha_s2s_realestate_column( $column, $post_id ) {
 add_filter( 'manage_edit-article_sortable_columns', 'mha_s2s_article_sortable_columns');
 function mha_s2s_article_sortable_columns( $columns ) {
 	$columns['type'] = 'type';
+	$columns['tags'] = 'tags';
 	return $columns;
 }
 
@@ -894,3 +896,63 @@ function mha_language_attributes($lang){
     return $lang;
 }
 add_filter('language_attributes', 'mha_language_attributes');
+
+
+
+/**
+ * Modify fields before printing on the submit form
+ */
+
+// Change the Content field label
+function mha_submit_resource_content( $field ) {	
+	if ( wp_doing_ajax() || is_page_template('templates/page-submit-article.php') ) { 
+		$field['label'] = "Describe your resource in 150 words or less."; 
+	}    
+	if ( $field ) { return $field; } else { exit; } 
+}
+add_filter('acf/prepare_field/name=_post_content', 'mha_submit_resource_content');
+
+// All Conditions headings
+function mha_submit_resource_all_conditions( $field ) {	
+	if ( wp_doing_ajax() || is_page_template('templates/page-submit-article.php') ) { 
+		echo '<div class="acf-field pb-0"><strong class="large">Related Mental Health Conditions</strong></div>';
+		$field['instructions'] = "Think about the mental health conditions that your resource can help with. <strong>Check this box if your resource is helpful for all common mental health conditions</strong>."; 
+	}    
+	if ( $field ) { return $field; } else { exit; } 
+}
+add_filter('acf/prepare_field/name=all_conditions', 'mha_submit_resource_all_conditions');
+
+// Condition headings
+function mha_submit_resource_conditions( $field ) {	
+	if ( wp_doing_ajax() || is_page_template('templates/page-submit-article.php') ) { 
+		$field['label'] = "Specializations"; 
+		$field['instructions'] = "Which of the following mental health conditions does your resource <strong>specialize</strong> in?<br /><em>Please note: if your resource is not appropriate for all of the common conditions listed below, please uncheck the \"All Conditions\" box above.</em>"; 
+	}    
+	if ( $field ) { return $field; } else { exit; } 
+}
+add_filter('acf/prepare_field/name=related_condition', 'mha_submit_resource_conditions');
+
+// Remove Condition and Treatment from the Type options
+function mha_submit_resource_type( $field ) {
+	if ( wp_doing_ajax() || is_page_template('templates/page-submit-article.php') ) {
+		unset($field['choices']['condition']);
+		unset($field['choices']['treatment']);		
+	}    
+	if ( $field ) { return $field; } else { exit; } 
+}
+add_filter('acf/prepare_field/name=type', 'mha_submit_resource_type');
+
+// Update the excerpt on article saves
+add_action('acf/save_post', 'mha_save_resource_article');
+function mha_save_resource_article( $post_id ) {
+	if(get_post_type($post_id) == 'article'){
+		// Update excerpt from user's submitted tagline if the excerpt is empty
+		if(get_field('tagline', $post_id) && !has_excerpt($post_id)){
+			$the_post = array(
+				'ID'           => $post_id,
+				'post_excerpt' => get_field('tagline', $post_id),
+			);
+			wp_update_post( $the_post );
+		}			
+	}
+}

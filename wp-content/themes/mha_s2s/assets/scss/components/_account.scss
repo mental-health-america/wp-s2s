@@ -107,11 +107,17 @@
 
     // Field Overrides
     td[data-name="address"],
-    th[data-name="address"] {
-        width: 100% !important;
+    th[data-name="address"],
+    td[data-name="phone"],
+    th[data-name="phone"] {
+        width: 50% !important;
     }
 
     // Hidden Fields
+    th[data-name="city"],
+    td[data-name="city"],
+    th[data-name="state"],
+    td[data-name="state"],
     td[data-name="latitude"],
     th[data-name="latitude"],
     td[data-name="longitude"],

@@ -57,9 +57,10 @@ $espanol = get_field('espanol');
 					)
 				);
 				$loop = new WP_Query($args);
+				$has_reading_path = false;
 				$zebra = 'odd';
 				if($loop->have_posts()):
-					
+					$has_reading_path = true;
 					while($loop->have_posts()) : $loop->the_post();
 						$path_id = get_the_ID();
 						$delay = 0;
@@ -164,7 +165,19 @@ $espanol = get_field('espanol');
 											<div class="col-12 col-md-3 mt-3 mt-md-0 pl-1 pr-1">								
 												<div class="dropdown text-right pr-0 pr-md-4">
 													<button class="button cerulean round dropdown-toggle normal-case mobile-wide block" type="button" id="archiveOrder" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
-														Sort
+														<?php
+															if($orderby == 'title' && $order == 'ASC'){
+																echo 'A-Z';
+															} elseif($orderby == 'title' && $order == 'DESC'){
+																echo 'Z-A';
+															} elseif($orderby == 'date' && $order == 'ASC'){
+																echo 'Oldest';
+															} elseif($orderby == 'date' && $order == 'DESC'){
+																echo 'Newest';
+															} else {
+																echo 'Sort';
+															}
+														?>
 													</button>
 													<div class="dropdown-menu" aria-labelledby="orderSelection">
 														<a href="<?php echo add_query_arg(
@@ -172,8 +185,8 @@ $espanol = get_field('espanol');
 																'search' => get_query_var('search'), 
 																'search_tag' => get_query_var('search_tag'), 
 																'search_taxonomy' => get_query_var('search_taxonomy'), 
-																'order' => 'ASC',  
-																'orderby' => 'title'
+																'order' => 'DESC',  
+																'orderby' => 'default'
 															), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="" value="">Default</a>
 														<a href="<?php echo add_query_arg(
 															array( 
@@ -217,115 +230,9 @@ $espanol = get_field('espanol');
 								</div>
 								</div>
 								
-								<?php		
-									if(get_query_var('order')){
-										$order = get_query_var('order');
-									} else {
-										$order = 'DESC';
-									}
-
-									if(get_query_var('orderby')){
-										$orderby = get_query_var('orderby');
-									} else {
-										$orderby = array('meta_value' => 'DESC', 'date' => 'DESC');
-									}
-
-									$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
-									$args = array(
-										"post_type" => 'article',
-										'paged' => $paged,
-										"orderby" => $orderby,
-										"order"	=> $order,
-										"post_status" => 'publish',
-										"posts_per_page" => 40,
-										"meta_query" => array(
-											'relation' => 'AND',
-											array(
-												'relation' => 'OR',
-												array(
-													'key' => 'type',
-													'value' => 'condition',
-													'compare' => 'LIKE'
-												),
-												array(
-													'key' => 'type',
-													'value' => 'treatment',
-													'compare' => 'LIKE'
-												),
-												array(
-													'key' => 'type',
-													'value' => 'connect',
-													'compare' => 'LIKE'
-												),
-												array(
-													'key' => 'type',
-													'value' => 'diy',
-													'compare' => 'LIKE'
-												)
-											),
-											array(
-												'relation' => 'OR',
-												array(
-													'key' => 'espanol',
-													'value' => '1',
-													'compare' => '!='
-												),
-												array(
-													'key' => 'espanol',
-													'value' => '1',
-													'compare' => 'NOT EXISTS'
-												)
-											)
-										),
-										"tax_query" => array(
-											array(
-												'taxonomy' => $tax,
-												'field'    => 'id',
-												'terms'    => $tag
-											)
-										)
-									);
-									if($search_query){
-										$args['s'] = $search_query;
-									}
-									$loop = new WP_Query($args);
-									if ( $loop->have_posts() ) :	
-										$resources = array('condition');
-										echo '<ol class="plain mb-0">';
-										while($loop->have_posts()) : $loop->the_post();					
-											$type = get_field('type');                        
-											$article_type = get_field('type');
-											?>
-											<li class="mb-4">
-												<p class="mb-2">	
-													<a class="dark-gray plain" href="<?php echo add_query_arg('ref', $tag, get_the_permalink()); ?>"><?php the_title(); ?></a>
-												</p>
-												<!--<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>-->
-											</li>
-										<?php
-										endwhile;
-										echo '</ol>';
-
-										echo '<div class="navigation pagination pt-5">';
-										echo paginate_links( array(
-											'base'         => str_replace( 999999999, '%#%', esc_url( get_pagenum_link( 999999999 ) ) ),
-											'total'        => $loop->max_num_pages,
-											'current'      => max( 1, $paged ),
-											'format'       => '?paged=%#%',
-											'show_all'     => false,
-											'type'         => 'plain',
-											'end_size'     => 2,
-											'mid_size'     => 1,
-											'prev_next'    => true,
-											'prev_text'    => sprintf( '<i></i> %1$s', __( 'Previous', 'text-domain' ) ),
-											'next_text'    => sprintf( '%1$s <i></i>', __( 'Next', 'text-domain' ) ),
-											'add_args'     => false,
-											'add_fragment' => '',
-										) );
-										echo '</div>';
-										
-									endif; 
-									wp_reset_query();
+								<?php	
+									// Display related articles
+									echo get_condition_articles($tax, $tag, $search_query);
 								?>
 								
 							</div>
@@ -344,7 +251,10 @@ $espanol = get_field('espanol');
 				<?php if(!$espanol): ?>
 					<div class="left-col ">
 					<div class="bubble round-br dark-blue normal">
-						<div class="inner">			
+						<div class="inner">		
+							<?php 
+								if($has_reading_path): 
+							?>	
 							<h3>
 								<?php 
 									if(get_field('custom_category_name', $tax.'_'.$tag)){
@@ -355,6 +265,27 @@ $espanol = get_field('espanol');
 								?>
 								<a class="plain white" href="<?php echo get_term_link($tag, $tax); ?>">See All Articles Related to <?php echo $term_name; ?> &raquo;</a>
 							</h3>
+							<?php 
+								else: 
+									$related_conditions = get_field('related_conditions', $term);
+									if($related_conditions && count($related_conditions) > 0 ){
+										echo '<h3>Learn About Other Related Mental Health Conditions</h3>';
+										echo '<div class="conditions-list">';
+										$rc_counter = 1;
+										foreach($related_conditions as $rc){
+											echo '<a class="plain cerulean" href="'.get_term_link($rc).'">'.$rc->name.'</a>';	 
+											if($rc_counter < count($related_conditions)){
+												echo ' &nbsp;<span class="noto">|</span>&nbsp; ';
+											}
+											$rc_counter++;
+										}
+										echo '</div>';
+									} else {
+										echo '<h3>Learn About Mental Health Conditions</h3>';
+										echo do_shortcode('[mha_conditions]'); 
+									}
+								endif;
+							?>
 						</div>
 					</div>    
 					</div>
