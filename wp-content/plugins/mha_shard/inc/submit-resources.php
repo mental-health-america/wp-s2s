@@ -28,7 +28,7 @@ function mha_submit_article_form_display(){
 				'post_status'   => 'draft'
 			),
 			'fields' => array(
-				'field_616dd717809c1', // Excerpt **
+				'field_617af23c120d6', // Excerpt/Tagline
 
 				'field_5fd3eec524b34', // Type
 				'field_5fd3f1a935255', // DIY Type
@@ -42,7 +42,7 @@ function mha_submit_article_form_display(){
 				'field_60077079157b4', // All Conditions
 				'field_5fea2f2863cdb', // Condition
 
-				'field_616f23c49f9db', // Tags **
+				'field_617af34ddeeec', // Tags
 				'field_5fea2f4463cdc', // Age
 
 				'field_5fea2f6663cdd', // Featured Image
@@ -63,6 +63,8 @@ function mha_submit_article_form_display(){
 				'field_5fea359ded711', // Contact Title
 				'field_5fea2ee063cd9', // Contact Email
 				'field_5fea2ee963cda', // Contact Phone
+
+				'field_617af252120d7', // Trial Code
 
 			),
 			'submit_value'  => 'Submit Resource for Review'

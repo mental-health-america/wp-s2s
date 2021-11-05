@@ -412,7 +412,7 @@ $iframe_var = get_query_var('iframe');
                 if(!is_wp_error($entry_data)){
                     foreach($entry_data as $k => $v){            
                         $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
-                        if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {
+                        if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
                             if(trim($entry_data[$k]) != ''){
                                 $answered_demos[$field->label][] = $entry_data[$k];
                             }
@@ -423,6 +423,7 @@ $iframe_var = get_query_var('iframe');
                 // Additional custom demo results to reference
                 $answered_demos['user_result'] = array($result_title);
                 $answered_demos['screen_id'] = array($user_screen_result['screen_id']);
+                $answered_demos['result_id'] = array($user_screen_result['result_id']);
 
                 // Screen specific demo steps/CTAs
                 $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );

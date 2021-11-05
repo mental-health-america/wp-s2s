@@ -3,7 +3,7 @@
 
 add_action('init', 'mhaContentScripts');
 function mhaContentScripts() {
-	wp_enqueue_script('process_mhaContent', plugin_dir_url( __FILE__ ).'js/scripts.js', 'jquery', '1.12', true);
+	wp_enqueue_script('process_mhaContent', plugin_dir_url( __FILE__ ).'js/scripts.js', 'jquery', '1.13', true);
 	wp_localize_script('process_mhaContent', 'do_mhaContent', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 
@@ -820,7 +820,10 @@ function get_articles( $options ){
 	if(count($articles) > 0 ){
 		
 		if($get_national_results == 1){
-			echo '<div class="bubble round thin orange mb-4" style="width: 100%;"><div class="inner text-center"><strong>No local results were found based on your search, but here are some relevant National supporters that may be of assistance.</strong></div></div>';
+			//echo '<div class="bubble round thin orange mb-4" style="width: 100%;"><div class="inner text-center"><strong>No local results were found based on your search, but here are some relevant National supporters that may be of assistance.</strong></div></div>';
+			echo '<div class="bubble round thin orange mb-4" style="width: 100%;"><div class="inner text-center"><strong>';
+			echo 'To find local resources for the ZIP code you entered, please use the <a href="https://findtreatment.samhsa.gov/" target="_blank">SAMHSA Treatment Locator</a>. Or, look at the nationwide resources listed below.';
+			echo '</strong></div></div>';
 		}
 
 		// Display Articles

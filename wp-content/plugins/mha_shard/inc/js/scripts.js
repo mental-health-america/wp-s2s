@@ -192,9 +192,18 @@ jQuery(function ($) {
 					data: args
 				},
 				success: function( result ) {
-					
+
+					// Insert the form HTML
 					$('#article-submit-container').html(result);
+					
+					// Reorder fields before displaying
+					var contentField = $('div[data-name="_post_content"]');
+					$('div[data-name="_post_content"]').remove();
+					$('div[data-name="tagline"]').after(contentField);
+					
+					// Initialize ACF form
 					acf.do_action('append', $('#article-submit-container'));
+
 
 				},
 				error: function(xhr, ajaxOptions, thrownError){		
