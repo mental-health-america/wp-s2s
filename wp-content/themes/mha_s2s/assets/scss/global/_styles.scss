@@ -366,6 +366,34 @@ input[type="button"] {
         background-repeat: no-repeat;
     }
 
+
+    // Carets
+    &.caret {
+        padding-left: 50px;
+        position: relative;
+        &:before {
+            content: "";
+            width: 20px;
+            height: 20px;
+            background-image: url('../images/arrow-right-white.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: contain;
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            margin: auto 0;
+            transform: rotate(-90deg);
+            @include transitions(transform 150ms ease);
+        }
+        &.collapsed {
+            &:before {
+                transform: rotate(90deg);
+            }
+        }
+    }
+
 }
 
 button.accordion-button {

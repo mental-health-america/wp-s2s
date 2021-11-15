@@ -105,14 +105,16 @@ function mha_s2s_scripts() {
 		wp_enqueue_script( 'mha_s2s-chart-js', get_template_directory_uri() . '/assets/js/chart.js', array(), '2.7.2', false );
 	}
 
-	wp_enqueue_script( 'mha_s2s-sticky', get_template_directory_uri() . '/assets/js/jquery.sticky-kit.js', array(), '1.1.2', true );
+	//wp_enqueue_script( 'mha_s2s-sticky', get_template_directory_uri() . '/assets/js/jquery.sticky-kit.js', array(), '1.1.2', true );
+	wp_enqueue_script( 'mha_s2s-sticky', get_template_directory_uri() . '/assets/js/jquery.sticky-sidebar.min.js', array(), '3.3.1', true );
 
 	// Load the html5 shiv.
 	wp_enqueue_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '3.7.3' );
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), '1.1.3', true );
+	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), '1.1.3', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
@@ -945,7 +947,10 @@ add_filter('acf/prepare_field/name=type', 'mha_submit_resource_type');
 // Update the excerpt on article saves
 add_action('acf/save_post', 'mha_save_resource_article');
 function mha_save_resource_article( $post_id ) {
+	
+	/** Articles */
 	if(get_post_type($post_id) == 'article'){
+		
 		// Update excerpt from user's submitted tagline if the excerpt is empty
 		if(get_field('tagline', $post_id) && !has_excerpt($post_id)){
 			$the_post = array(
@@ -953,6 +958,17 @@ function mha_save_resource_article( $post_id ) {
 				'post_excerpt' => get_field('tagline', $post_id),
 			);
 			wp_update_post( $the_post );
-		}			
+		}		
+		
+		// Send email notification
+		if( !current_user_can('editor') && !current_user_can('administrator') ) {
+			$to = 'screening@mhanational.org';
+			$subject = 'MHA Screening Resource Submission';
+			$body = '<p>The following resource was submitted for review:<br /><a href="https://screening.mhanational.org/wp-admin/post.php?post='.$post_id.'&action=edit">'.get_the_title($post_id).'</a>';
+			$headers = array('Content-Type: text/html; charset=UTF-8');
+			wp_mail( $to, $subject, $body, $headers );
+		}
+
 	}
 }
+

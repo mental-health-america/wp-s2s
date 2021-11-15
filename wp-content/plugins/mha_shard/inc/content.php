@@ -665,7 +665,10 @@ function get_articles( $options ){
 	 * Geo Search
 	 */
 	$get_national_results = 0;
+	$geo_search = false;
 	if($options['geo']){
+
+		$geo_search = true;
 
 		/**
 		 * Nearby Results
@@ -730,6 +733,10 @@ function get_articles( $options ){
 		 */
 		if(count($geo_posts) == 0){
 			$get_national_results = 1;
+			$geo_args['orderby'] = array( 
+				'meta_value' 	 	=> 'DESC',
+				'date'       	 	=> 'DESC', 
+			);
 			$geo_args['meta_query'] = array(	
 				'relation' => 'AND',
 				array(
@@ -824,6 +831,13 @@ function get_articles( $options ){
 			echo '<div class="bubble round thin orange mb-4" style="width: 100%;"><div class="inner text-center"><strong>';
 			echo 'To find local resources for the ZIP code you entered, please use the <a href="https://findtreatment.samhsa.gov/" target="_blank">SAMHSA Treatment Locator</a>. Or, look at the nationwide resources listed below.';
 			echo '</strong></div></div>';
+		} else {
+			// Geo search with results
+			if($geo_search === true){
+				echo '<div class="bubble round thin orange mb-4" style="width: 100%;"><div class="inner text-center"><strong>';
+				echo 'To find more local resources for the ZIP code you entered, please use the <a href="https://findtreatment.samhsa.gov/" target="_blank">SAMHSA Treatment Locator</a>. To see nationwide resources, <a href="https://screening.mhanational.org/get-help/">click here</a> or refresh the page.';
+				echo '</strong></div></div>';
+			}
 		}
 
 		// Display Articles

@@ -150,6 +150,32 @@
 
 		});
 
+		
+		// Accordion Toggle Overrides
+		// Switch between original text and toggle text on show/hide
+		$('.button[data-toggle="collapse"]').each(function(event){
+			var ogText = $(this).text();
+			$(this).addClass('toggle-switcher').attr('data-original-text', ogText);
+		});
+		$(document).on('hide.bs.collapse', function(event) {
+			if($(event.currentTarget.activeElement).hasClass('toggle-switcher')){
+				$(event.currentTarget.activeElement).text($(event.currentTarget.activeElement).attr('data-original-text'));
+			}
+		});
+		$(document).on('show.bs.collapse', function(event) {
+			if($(event.currentTarget.activeElement).hasClass('toggle-switcher')){
+				$(event.currentTarget.activeElement).text($(event.currentTarget.activeElement).attr('data-toggle-text'));
+			}
+		});
+
+		// Replace + and - on click for expanding buttons
+		$('button').click(function(){ //you can give id or class name here for $('button')
+			$(this).text(function(i,old){
+				return old=='+' ?  '-' : '+';
+			});
+		});
+
+
 		// Checkbox Limiter
 		$.fn.limit = function(n) {
 			var self = this;
@@ -261,7 +287,11 @@
 		});
 
 		// Sticky Sidebars		
-		$("aside.article-right .sticky").stick_in_parent();
+		//$("aside.article-right .sticky").stick_in_parent();
+		$('aside.article-right .sticky').stickySidebar({
+			topSpacing: 24,
+			bottomSpacing: 24
+		});
 
 
 		/**

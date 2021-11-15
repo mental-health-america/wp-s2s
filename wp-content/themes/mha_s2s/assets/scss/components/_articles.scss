@@ -118,6 +118,14 @@
             }
         }
 
+        &.blue {
+            background-color: $cerulean;
+            &:hover {
+                color: $white;
+                background: $blueDark;
+            }
+        }
+
         &.text-orange {
             color: $orange;
             &:hover {
