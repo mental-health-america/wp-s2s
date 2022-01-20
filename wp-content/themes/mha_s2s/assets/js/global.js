@@ -169,9 +169,9 @@
 		});
 
 		// Replace + and - on click for expanding buttons
-		$('button').click(function(){ //you can give id or class name here for $('button')
+		$('button.toggle-switcher').click(function(){
 			$(this).text(function(i,old){
-				return old=='+' ?  '-' : '+';
+				return old == '+' ?  '-' : '+';
 			});
 		});
 

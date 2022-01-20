@@ -113,8 +113,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), '1.1.3', true );
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), '1.2', true );
 	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
@@ -913,6 +912,17 @@ function mha_submit_resource_content( $field ) {
 	if ( $field ) { return $field; } else { exit; } 
 }
 add_filter('acf/prepare_field/name=_post_content', 'mha_submit_resource_content');
+
+
+// Change the featured image label
+function mha_submit_resource_featured_image( $field ) {	
+	if ( wp_doing_ajax() || is_page_template('templates/page-submit-article.php') ) { 
+		$field['label'] = "Featured Image (logo or thumbnail)</label><p class=\"description\">Please provide a high-quality, high-resolution image.</p>"; 
+	}    
+	if ( $field ) { return $field; } else { exit; } 
+}
+add_filter('acf/prepare_field/name=featured_image', 'mha_submit_resource_featured_image');
+
 
 // All Conditions headings
 function mha_submit_resource_all_conditions( $field ) {	
