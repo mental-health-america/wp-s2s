@@ -120,7 +120,7 @@ function mha_result_updater_looper(){
             continue;
         }
 
-        $user_screen_result = getUserScreenResults( $user_screen_id ); 
+        $user_screen_result = getUserScreenResults( $entry['id'] ); 
         if( have_rows('results', $user_screen_result['screen_id']) ):
         while( have_rows('results', $user_screen_result['screen_id']) ) : the_row();
             $min = get_sub_field('score_range_minimum');
@@ -180,7 +180,7 @@ function mha_result_updater_looper(){
         if($user_score_old != $gfdata[$user_score_id] || $user_result_old != $gfdata[$user_result_id]){
             $changed = '[CHANGED]';
         }
-        $result['append'] .= '<li>Updating... '.$user_screen_id.' '.$changed.' -- '.$update_result.'</li>';
+        $result['append'] .= '<li>Updating... '.$entry['id'].' '.$changed.' -- '.$update_result.'</li>';
         
     }
     
