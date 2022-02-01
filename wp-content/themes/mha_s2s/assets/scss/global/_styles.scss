@@ -24,6 +24,13 @@ a {
         text-decoration: none;
     } 
 
+    .site-content & {
+        font-weight: 600;
+        &:visited {
+            color: #055596;
+        } 
+    }
+
     // Styles
     &.plain {
         text-decoration: none;
@@ -857,10 +864,10 @@ tr.odd,
     background-color: transparent; 
 }
 .table-striped th { 
-    background-color: $redLight; 
+    background-color: $ceruleanLight; 
 }
 .table-striped tbody tr:nth-of-type(even) { 
-    background-color: $grayLight; 
+    background-color: $ceruleanPale; 
 }
 .table-bordered td, 
 .table-bordered th { 
@@ -869,14 +876,14 @@ tr.odd,
 
 .content-red {
     .table-striped th { 
-        background-color: $redLight; 
+        background-color: #fadddc; 
     }
     .table-striped tbody tr:nth-of-type(even) { 
         background-color: $redLight; 
     }
     .table-bordered td, 
     .table-bordered th { 
-        border-color: $redLight; 
+        border-color: #fddddd; 
     }
 }
 

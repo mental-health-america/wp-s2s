@@ -100,11 +100,11 @@
                         if($loop->have_posts()):
                             while($loop->have_posts()) : $loop->the_post();  
                                 // Link to path collection page if applicable   
-                                echo '<li><a class="plain bold caps montserrat bold" href="'.get_the_permalink().'">'.$term_name.'</a></li>';
+                                echo '<li><a class="plain bold montserrat bold" href="'.get_the_permalink().'">'.$term_name.'</a></li>';
                             endwhile;
                         else:   
                             // Otherwise just go to the archive   
-                            echo '<li><a class="plain bold caps montserrat bold" href="'.get_term_link($c->term_id).'">'.$term_name.'</a></li>';
+                            echo '<li><a class="plain bold montserrat bold" href="'.get_term_link($c->term_id).'">'.$term_name.'</a></li>';
                         endif;
                         wp_reset_query();
 
@@ -312,7 +312,7 @@
                 $terms_match[] = $ta->term_id;
             }
 
-            // Get populart articles for later
+            // Get popular articles for later
             $pop_array = mha_monthly_pop_articles( 'read' );
 
             while($loop->have_posts()) : $loop->the_post();
@@ -324,6 +324,11 @@
 
                 // Skip local providers
                 if(get_field('area_served')){
+                    continue;
+                }
+
+                // Skip Spanish Articles
+                if(get_field('espanol')){
                     continue;
                 }
 
@@ -388,7 +393,7 @@
                             while( have_rows('more_links', $article_id) ) : the_row();                                        
                                 $page = get_sub_field('page');
                                 if($page){
-                                    echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink($page).'">';
+                                    echo '<li><a class="plain white bold montserrat bold" href="'.get_the_permalink($page).'">';
                                         if(get_sub_field('custom_title')){
                                             the_sub_field('custom_title');
                                         } else {
@@ -404,7 +409,7 @@
                                 if($rad['id'] == $article_id){
                                     continue;// Skip if the same article
                                 }
-                                echo '<li><a class="plain white bold caps montserrat bold" href="'.get_the_permalink($rad['id']).'">'.get_the_title($rad['id']).'</a></li>';
+                                echo '<li><a class="plain white bold montserrat bold" href="'.get_the_permalink($rad['id']).'">'.get_the_title($rad['id']).'</a></li>';
                             }
 
                         echo '</ol>';

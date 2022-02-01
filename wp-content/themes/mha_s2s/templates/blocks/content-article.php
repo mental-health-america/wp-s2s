@@ -85,21 +85,33 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                         if(!get_field('hide_locations')){
                             $location = get_field('location');                        
                             if( $location && $location[0]['address'] != '') {
+
                                 if(count($location) > 1){ 
+
+                                    // Check to hide or display the phone column
+                                    $hasPhones = 0;
+                                    foreach( $location as $row ) {
+                                        if(trim($row['phone']) != ''){
+                                            $hasPhones++;
+                                        }
+                                    }
+
                                     echo '<h2>Locations</h2>';
 
                                     echo '<div class="table-wrapper" style="overflow-x: auto;"><table class="table table-bordered table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Address</th>
-                                            <th>Phone</th>
-                                        </tr>
+                                            <th>Address</th>';
+                                            if($hasPhones > 0){ 
+                                                echo '<th>Phone</th>'; 
+                                            }
+                                        echo '</tr>
                                     </thead>
                                     <tbody>';
                                     foreach( $location as $row ) {
                                         echo '<tr>';
                                             echo '<td>'.$row['address'].'</td>';
-                                            echo '<td><a href="tel:'.$row['phone'].'">'.$row['phone'].'</a></td>';
+                                            if($hasPhones > 0){ echo '<td><a href="tel:'.$row['phone'].'">'.$row['phone'].'</a></td>'; }
                                         echo '</tr>';
                                     }
                                     echo '</tbody>
@@ -112,7 +124,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                                             echo $row['address'].'<br />'; 
                                         }
                                         if($row['phone'] != ''){ 
-                                            echo '<a href="tel:'.$row['phone'].'">'.$row['phone'].'</a>'; 
+                                            echo '<a class="text-nowrap" href="tel:'.$row['phone'].'">'.$row['phone'].'</a>'; 
                                         }
                                     }
                                     echo '</p>';
