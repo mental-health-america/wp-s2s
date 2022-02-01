@@ -95,6 +95,42 @@ function mhacleanuppage(){
             </div>
         </form>
 
+        
+        <form id="mha-usercleanup" action="#" method="POST">
+            <div class="acf-columns-2">
+            <div class="acf-column-1">
+            
+                <div id="mha-usercleanup-error" class="error fade hidden"></div>
+
+                <h2>User Data Removal Tool</h2>
+                <p>Enter the user's ID or email address to delete that user and remove their data.</p>
+                
+                <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row"><label for="user_data">User ID or Email Address</label></th>
+                        <td>
+                            <input type="text" name="user_data" id="user_data" value="" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">    
+                            <p>
+                                <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhausercleanupsnonce'); ?>" />
+                                <button id="mha-start-userclean-up" class="button button-primary button-large">Remove User Data</button>
+                                <button id="mha-usercleanup-data-begin" type="submit" class="button button-secondary button-large hidden">Are you Sure?</button>
+                            </p>
+                            <div id="usercleanup-status" class="hidden"></div>      
+
+                            <br /><br />
+                        </td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+            </div>
+        </form>
+
         <div id="cleanup-json-storage" style="display: none;"></div>
     
     </div>	

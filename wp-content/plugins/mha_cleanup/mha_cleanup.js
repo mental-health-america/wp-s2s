@@ -234,4 +234,62 @@ jQuery(function ($) {
         $('#mha-start-clean-up').removeClass('hidden');
     }
 
+
+    /**
+     * User Cleanup
+     */
+    
+    
+    /**
+     * Confirmation button click
+     */
+     $(document).on('click', '#mha-start-userclean-up', function(event){
+        event.preventDefault();
+        $('#mha-start-userclean-up').addClass('hidden');
+        $('#mha-usercleanup-data-begin').removeClass('hidden');
+    });
+
+    /**
+     * Start cleanup
+     */
+     $(document).on('click', '#mha-usercleanup-data-begin', function(event){
+
+        // Disable default form submit
+        event.preventDefault();
+
+        // Vars
+        var args = $('#mha-usercleanup').serialize();
+            
+        // Disable flag button
+        $('#mha-usercleanup-data-begin').prop('disabled', true).text('Processing...');
+        $('#mha-usercleanup-error').html('').addClass('hidden');
+
+        $.ajax({
+            type: "POST",
+            url: do_mhacleanups.ajaxurl,
+            data: { 
+                action: 'mhausercleanupper',
+                data: args
+            },
+            success: function( results ) {
+                var res = JSON.parse(results); 
+                console.log(res);
+                if(results){
+                    if(!res.error){
+                        $('#usercleanup-status').removeClass('notice-error').addClass('notice-success').html(res.message).removeClass('hidden');  
+                        $('#mha-usercleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
+                        $('#mha-start-userclean-up').removeClass('hidden');
+                    } else {
+                        // Spit out JSON for later 
+                        $('#usercleanup-status').removeClass('notice-success').addClass('notice-error').html('<p>'+res.error+'</p>').removeClass('hidden');  
+                    }
+                }
+            },
+            error: function(xhr, ajaxOptions, thrownError){                
+                console.error(xhr,thrownError);
+            }
+        });	
+
+    });
+
 });

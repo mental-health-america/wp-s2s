@@ -11,7 +11,7 @@
 // Enqueing Scripts
 add_action('init', 'mhaActivityScripts');
 function mhaActivityScripts() {
-	wp_enqueue_script('process_mhaActivity', plugin_dir_url( __FILE__ ).'mha_activity.js', 'jquery', '1.0', true);
+	wp_enqueue_script('process_mhaActivity', plugin_dir_url( __FILE__ ).'mha_activity.js', 'jquery', time(), true);
 	wp_localize_script('process_mhaActivity', 'do_mhaActivity', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 

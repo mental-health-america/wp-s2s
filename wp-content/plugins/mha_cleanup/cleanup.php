@@ -141,3 +141,107 @@ function mhaCleanerJsonScrubber() {
     exit();
 
 }
+
+
+/**
+ * User Cleaner
+ */
+add_action( 'wp_ajax_mhausercleanupper', 'mhausercleanupper' );
+function mhausercleanupper() {
+
+    // Admin check
+    if(!current_user_can( 'manage_options' )){
+        exit();
+    }
+
+    // Prep response
+    $response = [];
+
+    // Check user
+    parse_str($_POST['data'], $data);  
+    // $response['data'] = $data;
+
+    $user_data = $data['user_data'];
+    $response['user_data'] = $data['user_data'];
+
+    // User ID was submitted
+    $user = false;
+    if(intval($data['user_data'])){
+        $user = get_user_by( 'ID', intval($user_data) );
+    } else if(filter_var($user_data, FILTER_VALIDATE_EMAIL)) {
+        $user = get_user_by( 'email', sanitize_text_field($user_data) );
+    }
+
+    if($user){
+        $response['user'] = $user;
+        $response['error'] = '';
+        $response['message'] = '';
+
+        // Handle deleting the user
+        $user_id = $user->ID;
+        $user_info = get_userdata( $user_id );
+        $this_user_roles = $user_info->roles;
+
+        //For wp_delete_user() function
+        require_once(ABSPATH.'wp-admin/includes/user.php' );
+
+        if( in_array( "administrator", $this_user_roles) ) {
+            $response['error'] = '<hr />This user is admin and cannot be deleted via this method.';
+        } else {
+            $delete_user = wp_delete_user( $user_id, null );
+            if( $delete_user ){
+
+                $response['message'] = '<hr />User ID #'.$user_id.' successfully removed.<br />';
+
+                // Get likes, flags, and hides
+                global $wpdb;
+                $results_1 = $wpdb->get_results( "SELECT id FROM article_likes WHERE uid = ".$user_id."", OBJECT );   
+                $response['message'] .= '<br /><strong>'.count($results_1).'</strong> Article Likes removed.';
+                foreach($results_1 as $eid1){
+                    $response['eid1_status'] = $wpdb->delete( 'article_likes', array( 'id' => $eid1->id ) );
+                }
+
+                $results_2 = $wpdb->get_results( "SELECT id FROM screens_hidden WHERE uid = ".$user_id."", OBJECT );
+                $response['message'] .= '<br /><strong>'.count($results_2).'</strong> Screens Hidden removed.';
+                foreach($results_2 as $eid2){
+                    $wpdb->delete( 'screens_hidden', array( 'id' => $eid2->id ) );
+                }
+
+                $results_3 = $wpdb->get_results( "SELECT id FROM thoughts_flags WHERE uid = ".$user_id."", OBJECT ); 
+                $response['message'] .= '<br /><strong>'.count($results_3).'</strong> Thought Flags removed.';
+                foreach($results_3 as $eid3){
+                    $wpdb->delete( 'thoughts_flags', array( 'id' => $eid3->id ) );
+                }
+
+                $results_4 = $wpdb->get_results( "SELECT id FROM thoughts_hidden WHERE uid = ".$user_id."", OBJECT );  
+                $response['message'] .= '<br /><strong>'.count($results_4).'</strong> Thoughts Hidden removed.';
+                foreach($results_4 as $eid4){
+                    $wpdb->delete( 'thoughts_hidden', array( 'id' => $eid4->id ) );
+                }
+
+                $results_5 = $wpdb->get_results( "SELECT id FROM thoughts_likes WHERE uid = ".$user_id."", OBJECT );   
+                $response['message'] .= '<br /><strong>'.count($results_5).'</strong> Thought Likes removed.'; 
+                foreach($results_5 as $eid5){
+                    $wpdb->delete( 'thoughts_likes', array( 'id' => $eid5->id ) );
+                }
+
+                $results_6 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}gf_entry WHERE created_by = ".$user_id."", OBJECT ); 
+                $response['message'] .= '<br /><strong>'.count($results_6).'</strong> Screening Tests removed.';
+                foreach($results_6 as $eid6){
+                    GFAPI::delete_entry( $eid6->id );
+                }
+
+            } else {
+                $response['error'] = 'There is a problem while deleting the user. Please contact your developer.';
+            }
+        }
+
+    } else {
+        $response['error'] = '<hr />No users match this query. Please confirm that the ID or email address you entered was correct.';
+    }
+
+    // Return our responses
+    echo json_encode($response);
+    exit();
+
+}
