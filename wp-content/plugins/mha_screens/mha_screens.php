@@ -37,18 +37,13 @@ function getUserScreenResults( $user_screen_id ) {
     $user_screen_results['general_score_data'] = []; 
     $user_screen_results['graph_data'] = []; 
     
-    // Use GFAPI instead of the REST API
-    $search_criteria = array();
-    $search_criteria['field_filters'][] = array( 
-        'key' => '38', 
-        'value' => $user_screen_id
-    );
-    $search_entries = GFAPI::get_entries( '0', $search_criteria );
+    // Get entry object
+    $search_entries = GFAPI::get_entry( $user_screen_id );
 
-    if(count($search_entries) > 0){
+    if($search_entries){
 
         // Got a good response, proceed!
-        $data = $search_entries[0];
+        $data = $search_entries;
         
         // Text
         $label = '';

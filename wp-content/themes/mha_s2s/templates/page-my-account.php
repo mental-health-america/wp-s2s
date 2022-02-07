@@ -38,17 +38,6 @@ if (strpos($account_action, 'save_screen_') !== false) {
     $screen_id = str_replace('save_screen_', '', $account_action);
     $screen_ipiden = get_ipiden();
 
-    /*
-    $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
-    $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
-    $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/'.$screen_id, array( 'headers' => $headers, 'timeout' => 120 ) );
-    
-    if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
-        // Error!
-    } else {
-    */
-
     $entry = GFAPI::get_entry( $screen_id );
 
     if(!is_wp_error($entry)){
@@ -181,229 +170,207 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
 
                 <?php
-                    $current_user = wp_get_current_user();
-                    /*
-                    $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
-                    $consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
-                    $headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-                    $response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?paging[page_size]=100&search={"field_filters": [{"key":41,"value":"'.$current_user->user_email.'","operator":"contains"}]}', array( 'headers' => $headers, 'timeout' => 120 ) );
-                    */
-                    
-                    // Check the response code.
-                    /*
-                    if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
-                        
-                        // Error!
-                        // echo '<div class="col-12">';
-                        // echo '<p>There was a problem displaying to your results. Try refreshing this page or please contact us if the issue persists.</p>';
-                        // echo '<p><strong>Response Error:</strong>'.wp_remote_retrieve_response_code( $response ).'<br />';
-                        // echo '<strong>ID:</strong>'.$current_user->ID.'</p>';
-                        // echo '</div>';
+                // Get all of the user's test IDs and form IDs
+                    $info = $wpdb->get_results("SELECT form_id, entry_id FROM wp_gf_entry_meta WHERE meta_key = 41 AND meta_value = '$current_user->user_email' ORDER BY id DESC"); 
 
-                    } else {
-                    */
-                    
+                    /*
                     $search_criteria = array();
                     $search_criteria['field_filters'][] = array( 
                         'key' => '41', 
                         'value' => $current_user->user_email
                     );
                     $info = GFAPI::get_entries( '0', $search_criteria);
-                    //if(count($info) > 0){
+                    */
 
-                        // Got a good response, proceed!
-                        /*
-                        $json = wp_remote_retrieve_body($response);
-                        $info = json_decode($json); 
-                        */
+                    $total_results = count($info); 
+                    $count_results = 1;
+                    $graph_data = [];
+                    $pre_data = [];
+                    $your_results_display = [];
+                    $advanced_conditions_data = []; 
+                    $general_score_data = [];                     
+                    
+                    if($total_results > 0):
+                        foreach($info as $i){
 
-                        //$total_results = $info->total_count;    
-                        $total_results = count($info);    
-                        $count_results = 1;
-                        $graph_data = [];
-                        $pre_data = [];
-                        $your_results_display = [];
-                        $advanced_conditions_data = []; 
-                        $general_score_data = []; 
-                        
-                        if($total_results > 0):
-                            foreach($info as $data){
+                            // Skip hidden screens
+                            if(in_array($i->entry_id, $hide_screens)) {
+                                continue;
+                            }
 
-                                // Skip hidden screens
-                                if(in_array($data['id'], $hide_screens)) {
-                                    continue;
+                            // Get individual screen data
+                            $data = GFAPI::get_entry( $i->entry_id );
+
+                            $total_score = 0;
+                            $test_id = '';
+                            foreach($data as $k => $v):
+                                
+                                // Get field object
+                                $field = GFFormsModel::get_field( $i->form_id, $k );
+
+                                // Get referring screen ID                    
+                                if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {     
+                                    $screen_id = $v;
                                 }
 
-                                $total_score = 0;
-                                $test_id = '';
-                                foreach($data as $k => $v):
-                                    // Get field object
-                                    $field = GFFormsModel::get_field( $data['form_id'], $k );
+                                // Get screen token                  
+                                if (isset($field->label) && strpos($field->label, 'Token') !== false) {     
+                                    $test_id = $v;
+                                }
 
-                                    // Get referring screen ID                    
-                                    if (isset($field->label) && strpos($field->label, 'Screen ID') !== false) {     
-                                        $screen_id = $v;
+                                //Screening Questions
+                                if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {   
+                                    
+                                    if(strpos($field->cssClass, 'exclude') === false){                                 
+                                        $total_score = $total_score + intval($v); // Add to total score                                        
                                     }
-
-                                    // Get screen token                  
-                                    if (isset($field->label) && strpos($field->label, 'Token') !== false) {     
-                                        $test_id = $v;
-                                    }
-
-                                    //Screening Questions
-                                    if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {   
-                                        
-                                        if(strpos($field->cssClass, 'exclude') === false){                                 
-                                            $total_score = $total_score + intval($v); // Add to total score                                        
+                                    
+                                    // Advanced Conditions Check
+                                    $get_results = get_field('results', $screen_id);
+                                    if( $get_results ) {
+                                        foreach($get_results as $result){
+                                            if($result['advanced_conditions']){
+                                                foreach($result['advanced_conditions'] as $ac){
+                                                    if($ac['question_id'] == $field->id){
+                                                        $advanced_conditions_data[$field->id] = $v; 
+                                                    }                                
+                                                }
+                                            }
                                         }
+                                    }
+                                    
+                                    $general_score_data[$field->id] = $v; 
+                                }                            
+                            endforeach;
+
+                            // Vars for later
+                            $test_title = get_the_title($screen_id);
+                            $test_date = date('M j, Y', strtotime($data['date_created']));
+                            $screen_results = get_field('results', $screen_id);
+
+                            // Custom Logic Override
+                            $custom_results_logic = get_field('custom_results_logic', $screen_id);
+                            $custom_result_row = '';
+                            if($custom_results_logic){
+                                $custom_result_logic_data = custom_logic_checker($general_score_data, $custom_results_logic);
+                                $total_score = $custom_result_logic_data['total_score'];
+                                $custom_result_row = $custom_result_logic_data['custom_result_row'];
+                            }
+
+                            // Min/Max
+                            $min_score = 0;
+                            $max_score = get_field('overall_max_score', $screen_id);
+                            if($total_score >= $max_score){
+                                $total_score = $max_score;
+                            }
+
+                            // Limit results
+                            //if(count($graph_data[$test_title]['labels']) < 21){   
+                            if(!get_field('survey', $screen_id)){
+                                $graph_data[$test_title]['labels'][] = date('M', strtotime($data['date_created']));
+                                $graph_data[$test_title]['scores'][] = $total_score;
+                                $graph_data[$test_title]['max'] = $max_score;
+                                $graph_data[$test_title]['steps'] = get_field('chart_steps', $screen_id);
+                            }
+                            //}
+
+                            if(!get_field('survey', $screen_id)){
+                                $your_results_display[$test_title][$count_results]['test_id'] = $data['entry_id'];     
+                                $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
+                                $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
+                                $your_results_display[$test_title][$count_results]['total_score'] = $total_score;
+                                $your_results_display[$test_title][$count_results]['max_score'] = $max_score;
+                                $your_results_display[$test_title][$count_results]['test_link'] = $test_id;     
+                            }
+
+                            if($total_score >= $min_score && $total_score <= $max_score){
+                                if(get_sub_field('required_tags')){
+                                    $req = get_sub_field('required_tags');
+                                    foreach($req as $t){
+                                        if(in_multiarray($t, $result_terms)){
+                                            $required_result_tags[] = $t;
+                                        }
+                                    }
+                                }
+                            }
+                    
+                            $has_advanced_conditions = 0;
+                            $advanced_condition_row = '';   
+                            $required_check = '0';
+                            $advanced_counter = '';
+
+                            if( have_rows('results', $screen_id) ):
+                                
+                                // Advanced Conditions
+                                while( have_rows('results', $screen_id) ) : the_row();   
+                                    $advanced_conditions = get_sub_field('advanced_conditions');
+                                    if($advanced_conditions && count($advanced_conditions) > 1){
                                         
-                                        // Advanced Conditions Check
-                                        $get_results = get_field('results', $screen_id);
-                                        if( $get_results ) {
-                                            foreach($get_results as $result){
-                                                if($result['advanced_conditions']){
-                                                    foreach($result['advanced_conditions'] as $ac){
-                                                        if($ac['question_id'] == $field->id){
-                                                            $advanced_conditions_data[$field->id] = $v; 
-                                                        }                                
+                                        $advanced_counter = count($advanced_conditions);
+
+                                        foreach($advanced_conditions as $ac){
+                                            $advanced_min = $ac['score_range_minimum'];
+                                            $advanced_max = $ac['score_range_max'];
+                                            $advanced_id = $ac['question_id'];  
+                                            if(isset($advanced_conditions_data[$advanced_id])){
+                                                if($advanced_max && $advanced_min){
+                                                    if($advanced_conditions_data[$advanced_id] >= $advanced_min && $advanced_conditions_data[$advanced_id] <= $advanced_max ){
+                                                        $advanced_condition_row = get_row_index();
+                                                        $has_advanced_conditions++;
+                                                    }
+                                                } else if($advanced_min) {
+                                                    if($advanced_conditions_data[$advanced_id] == $advanced_min){
+                                                        $advanced_condition_row = get_row_index();
+                                                        $has_advanced_conditions++;
                                                     }
                                                 }
                                             }
                                         }
-                                        
-                                        $general_score_data[$field->id] = $v; 
-                                    }                            
-                                endforeach;
 
-                                // Vars for later
-                                $test_title = get_the_title($screen_id);
-                                $test_date = date('M j, Y', strtotime($data['date_created']));
-                                $screen_results = get_field('results', $screen_id);
-
-                                // Custom Logic Override
-                                $custom_results_logic = get_field('custom_results_logic', $screen_id);
-                                $custom_result_row = '';
-                                if($custom_results_logic){
-                                    $custom_result_logic_data = custom_logic_checker($general_score_data, $custom_results_logic);
-                                    $total_score = $custom_result_logic_data['total_score'];
-                                    $custom_result_row = $custom_result_logic_data['custom_result_row'];
-                                }
-
-                                // Min/Max
-                                $min_score = 0;
-                                $max_score = get_field('overall_max_score', $screen_id);
-                                if($total_score >= $max_score){
-                                    $total_score = $max_score;
-                                }
-
-                                // Limit results
-                                //if(count($graph_data[$test_title]['labels']) < 21){   
-                                if(!get_field('survey', $screen_id)){
-                                    $graph_data[$test_title]['labels'][] = date('M', strtotime($data['date_created']));
-                                    $graph_data[$test_title]['scores'][] = $total_score;
-                                    $graph_data[$test_title]['max'] = $max_score;
-                                    $graph_data[$test_title]['steps'] = get_field('chart_steps', $screen_id);
-                                }
-                                //}
-
-                                if(!get_field('survey', $screen_id)){
-                                    $your_results_display[$test_title][$count_results]['test_id'] = $data['id'];     
-                                    $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
-                                    $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
-                                    $your_results_display[$test_title][$count_results]['total_score'] = $total_score;
-                                    $your_results_display[$test_title][$count_results]['max_score'] = $max_score;
-                                    $your_results_display[$test_title][$count_results]['test_link'] = $test_id;     
-                                }
-
-                                if($total_score >= $min_score && $total_score <= $max_score){
-                                    if(get_sub_field('required_tags')){
-                                        $req = get_sub_field('required_tags');
-                                        foreach($req as $t){
-                                            if(in_multiarray($t, $result_terms)){
-                                                $required_result_tags[] = $t;
-                                            }
-                                        }
                                     }
+                                endwhile;
+                                
+                                // If the total advanced conditions don't match the positive matches, reset to the first result
+                                if($has_advanced_conditions != $advanced_counter){
+                                    $advanced_condition_row = 0;
                                 }
-                        
-                                $has_advanced_conditions = 0;
-                                $advanced_condition_row = '';   
-                                $required_check = '0';
-                                $advanced_counter = '';
+                                
+                                // Display Results
+                                while( have_rows('results', $screen_id) ) : the_row();                                    
+                                    $min = get_sub_field('score_range_minimum');
+                                    $max = get_sub_field('score_range_max'); 
+                                    $custom_logic_condition_row = get_sub_field('custom_logic_condition');
 
-                                if( have_rows('results', $screen_id) ):
-                                    
-                                    // Advanced Conditions
-                                    while( have_rows('results', $screen_id) ) : the_row();   
-                                        $advanced_conditions = get_sub_field('advanced_conditions');
-                                        if($advanced_conditions && count($advanced_conditions) > 1){
+                                    if($total_score >= $min && $total_score <= $max || $has_advanced_conditions > 0 && $advanced_condition_row == get_row_index() || $custom_results_logic != '' && $custom_result_row == $custom_logic_condition_row ){  
                                             
-                                            $advanced_counter = count($advanced_conditions);
-
-                                            foreach($advanced_conditions as $ac){
-                                                $advanced_min = $ac['score_range_minimum'];
-                                                $advanced_max = $ac['score_range_max'];
-                                                $advanced_id = $ac['question_id'];  
-                                                if(isset($advanced_conditions_data[$advanced_id])){
-                                                    if($advanced_max && $advanced_min){
-                                                        if($advanced_conditions_data[$advanced_id] >= $advanced_min && $advanced_conditions_data[$advanced_id] <= $advanced_max ){
-                                                            $advanced_condition_row = get_row_index();
-                                                            $has_advanced_conditions++;
-                                                        }
-                                                    } else if($advanced_min) {
-                                                        if($advanced_conditions_data[$advanced_id] == $advanced_min){
-                                                            $advanced_condition_row = get_row_index();
-                                                            $has_advanced_conditions++;
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                        }
-                                    endwhile;
-                                    
-                                    // If the total advanced conditions don't match the positive matches, reset to the first result
-                                    if($has_advanced_conditions != $advanced_counter){
-                                        $advanced_condition_row = 0;
-                                    }
-                                    
-                                    // Display Results
-                                    while( have_rows('results', $screen_id) ) : the_row();                                    
-                                        $min = get_sub_field('score_range_minimum');
-                                        $max = get_sub_field('score_range_max'); 
-                                        $custom_logic_condition_row = get_sub_field('custom_logic_condition');
-
-                                        if($total_score >= $min && $total_score <= $max || $has_advanced_conditions > 0 && $advanced_condition_row == get_row_index() || $custom_results_logic != '' && $custom_result_row == $custom_logic_condition_row ){  
-                                                
-                                            // Advanced Condition Double Check (in case score condition passes)
-                                            if($has_advanced_conditions > 0){
-                                                if($advanced_condition_row != get_row_index()){ 
-                                                    continue;
-                                                }
-                                            }
-
-                                            // Custom Condition Double Check (in case score condition passes)
-                                            if($custom_results_logic != ''){
-                                                if($custom_result_row != $custom_logic_condition_row){ 
-                                                    continue;
-                                                }
-                                            }
-                                                                                    
-                                            if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
+                                        // Advanced Condition Double Check (in case score condition passes)
+                                        if($has_advanced_conditions > 0){
+                                            if($advanced_condition_row != get_row_index()){ 
                                                 continue;
                                             }
-                                            
-                                            if(!get_field('survey', $screen_id)){
-                                                $your_results_display[$test_title][$count_results]['result_title'] = get_sub_field('result_title');
+                                        }
+
+                                        // Custom Condition Double Check (in case score condition passes)
+                                        if($custom_results_logic != ''){
+                                            if($custom_result_row != $custom_logic_condition_row){ 
+                                                continue;
                                             }
                                         }
-                                    endwhile;
-                                endif;
+                                                                                
+                                        if(empty($required_result_tags) && !empty(get_sub_field('required_tags'))){
+                                            continue;
+                                        }
+                                        
+                                        if(!get_field('survey', $screen_id)){
+                                            $your_results_display[$test_title][$count_results]['result_title'] = get_sub_field('result_title');
+                                        }
+                                    }
+                                endwhile;
+                            endif;
 
-                                $count_results++;
-                            }
-                        endif;
-                    //}
+                            $count_results++;
+                        }
+                    endif;
                 ?>
                 </div>
 

@@ -1,10 +1,16 @@
 <?php 
 /* Template Name: Screen Results */
 get_header(); 
+global $wpdb;
+
+ // The user's obfuscated custom ID
+$user_screen_id = get_query_var('sid');
+
+// Get the gravity forms entry ID for easier lookups
+$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC"); 
 
 // Get Screen Results
-$user_screen_id = get_query_var('sid');
-$user_screen_result = getUserScreenResults( $user_screen_id );  
+$user_screen_result = getUserScreenResults( $entry_id );  
 $next_step_terms = [];
 $next_step_manual = [];
 $exclude_ids = [];
