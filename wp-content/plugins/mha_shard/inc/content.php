@@ -115,7 +115,7 @@ function mha_popular_articles( $options ) {
 		
 		foreach($articles as $a){
 			
-			$item_link = '<a class="plain gray-dark montserrat semi" href="'.get_the_permalink($a->ID).'">'.get_the_title($a->ID).'</a>';
+			$item_link = '<a class="plain montserrat semi" href="'.get_the_permalink($a->ID).'">'.get_the_title($a->ID).'</a>';
 
 			if($atts['style'] == 'inline'){
 				$inline_list[] = $item_link;
