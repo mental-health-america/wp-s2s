@@ -28,11 +28,11 @@ get_header();
             <form action="#" method="POST" id="provider-filter" class="search-filters form-container collapse show">
 
                 <a href="/get-help" class="right plain pt-1 red small bold">Clear All</a>
-                <p class="bold text-dark-blue caps nb-3 intro-label">Filters</p>
+                <p class="bold text-dark-blue caps nb-3 intro-label montserrat">Filters</p>
 
                 <p><input id="keyword-search" type="text" name="search" class="gray input-text" placeholder="Keyword Search" /></p>
                 
-                <label for="zip" class="text-blue-dark">Location Search</label>
+                <label for="zip-search" class="text-blue-dark">Location Search</label>
                 <p><input id="zip-search" type="number" id="zip" name="zip" class="gray input-text" placeholder="Enter your zip code" value="<?php echo get_query_var('geo'); ?>" /></p>
                 
                 <input id="area-national" type="hidden" value="national" name="area_served[]" />

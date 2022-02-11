@@ -35,7 +35,7 @@ get_header();
                 }
                 $args = array( 
                     'label_username' => 'Email Address',
-                    'remember' => false,
+                    'remember' => true,
                     'redirect' => $redirect
                 );
                 wp_login_form($args); 

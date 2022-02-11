@@ -28,7 +28,7 @@ get_header();
             <form action="#" method="POST" id="connect-filter" class="search-filters form-container collapse show">
 
                 <a href="/connect" class="right plain pt-1 red small bold">Clear All</a>
-                <p class="bold text-dark-blue caps nb-3 intro-label">FILTERS</p>
+                <p class="bold text-dark-blue caps nb-3 intro-label montserrat">FILTERS</p>
 
                 <p><input type="text" name="search" class="gray" placeholder="Search" /></p>
                 
