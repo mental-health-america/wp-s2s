@@ -377,7 +377,7 @@ $iframe_var = get_query_var('iframe');
                         'key' => 38, 
                         'value' => $user_screen_id
                     );
-                    $search_entries = GFAPI::get_entries( '0', $search_criteria, $sorting );   
+                    $search_entries = GFAPI::get_entries( '0', $search_criteria );   
                     usort($search_entries, array_key_sorter('id'));
                     $search_counter = 0;
                     foreach($search_entries as $item){
