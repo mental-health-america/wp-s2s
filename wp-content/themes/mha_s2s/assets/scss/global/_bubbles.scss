@@ -88,6 +88,9 @@
         &.plain { background: none; color: $gray; }
         a {
             color: $white;
+            &:visited {
+                color: $white;
+            }
         }
     }
 
@@ -115,6 +118,9 @@
         }
         a {
             color: $white;
+            &:visited {
+                color: $white;
+            }
         }
     }
     
@@ -204,6 +210,9 @@
         }
         a {
             color: $white;
+            &:visited {
+                color: $white;
+            }
         }
     }
 
@@ -254,6 +263,9 @@
         }
         a {
             color: $white;
+            &:visited {
+                color: $white;
+            }
         }
     }
 
@@ -269,6 +281,9 @@
         }
         a {
             color: $white;
+            &:visited {
+                color: $white;
+            }
         }
     }
 

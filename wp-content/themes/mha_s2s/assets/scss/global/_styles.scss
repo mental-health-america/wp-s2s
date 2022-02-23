@@ -87,19 +87,39 @@ a {
     // Colors
     &.cerulean {
         color: $cerulean;
+        .site-content &:visited,
+        &:visited {
+            color: $cerulean;
+        } 
     }
     &.bright-blue {
         color: $brightBlue;
+        .site-content &:visited,
+        &:visited {
+            color: $brightBlue;
+        } 
     }    
     &.gray {
         color: $grayMedium;
+        .site-content &:visited,
+        &:visited {
+            color: $grayMedium;
+        } 
     }
     &.dark-gray,
     &.gray-dark {
         color: $gray;
+        .site-content &:visited,
+        &:visited {
+            color: $gray;
+        } 
     }
     &.red {
         color: $red;
+        .site-content &:visited,
+        &:visited {
+            color: $red;
+        } 
     }
 }
 
@@ -137,6 +157,12 @@ input[type="button"] {
     &.active {
         background: $blueDark;
     }
+    
+    .site-content &:visited,
+    &:visited {
+        color: $white;
+    } 
+
     &.block {
         display: block;
         width: 100%;
@@ -197,6 +223,10 @@ input[type="button"] {
         &:hover {
             background-color: $orange;
         }
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
     }
     &.red {
         background: $red;
@@ -206,6 +236,10 @@ input[type="button"] {
         &:hover {
             background-color: $blueDark;
         }
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
     }
 
     &.mint {
@@ -217,6 +251,10 @@ input[type="button"] {
             color: $white;
             background-color: $blueDark;
         }
+        .site-content &:visited,
+        &:visited {
+            color: $blueDark;
+        } 
     }
 
     &.gray {
@@ -228,6 +266,10 @@ input[type="button"] {
             color: $white;
             background-color: $blueDark;
         }
+        .site-content &:visited,
+        &:visited {
+            color: $blueDark;
+        } 
     }
 
     &.teal,
@@ -240,6 +282,10 @@ input[type="button"] {
             color: $white;
             background-color: $blueDark;
         }
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
     }
 
     &.purple {
@@ -251,6 +297,10 @@ input[type="button"] {
             color: $white;
             background-color: $tealDark;
         }
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
     }
 
     // Color OVerrides   
@@ -264,6 +314,10 @@ input[type="button"] {
                 color: $white;
                 background: $blueDark;
             }
+            .site-content &:visited,
+            &:visited {
+                color: $orange;
+            } 
         }
 
         &.text-orange {
@@ -274,6 +328,10 @@ input[type="button"] {
                 color: $white;
                 background: $blueDark;
             }
+            .site-content &:visited,
+            &:visited {
+                color: $orange;
+            } 
         }
     }
 

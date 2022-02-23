@@ -48,11 +48,16 @@
                 color: $darkTeal;
             }
         }
-        .button.green:nth-child(even){
-            background-color: $darkTeal;
-            &:hover {
-                background: $white;
-                color: $darkTeal;
+    }
+
+    &:not(.normal-buttons){
+        .hero-buttons {
+            .button.green:nth-child(even){
+                background-color: $darkTeal;
+                &:hover {
+                    background: $white;
+                    color: $darkTeal;
+                }
             }
         }
     }
