@@ -230,6 +230,11 @@ function mha_show_tests() {
 			$screen_color = 'purple survey';
 		}
 
+		// Hide from listing pages
+		if(get_field('invisible', get_the_ID())){
+			continue;
+		}
+
 		$screen_link_args = array(
 			'ref' => $referrer
 		);
