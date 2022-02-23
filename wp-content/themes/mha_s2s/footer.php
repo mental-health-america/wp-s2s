@@ -62,7 +62,7 @@
 						// Footer Menu
 						wp_nav_menu([
 							'menu'           => 'social-icons',
-							'menu_id'        => 'social-menu',
+							'menu_id'        => 'social-menu-top',
 						]);
 					?>
 				</div>
@@ -85,7 +85,7 @@
 					// Footer Menu
 					wp_nav_menu([
 						'menu'           => 'social-icons',
-						'menu_id'        => 'social-menu',
+						'menu_id'        => 'social-menu-bottom',
 					]);
 				?>
 			</div>
