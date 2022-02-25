@@ -139,6 +139,8 @@ $espanol = get_field('espanol');
 
 					// No reading paths, just display articles
 					$search_query = get_query_var('search');
+					$order = get_query_var('order');
+					$orderby = get_query_var('orderby');
 					?>
 						<div class="wrap medium" id="ac">
 							<div class="bubble pale-blue bubble-border round-small mb-5">
@@ -157,8 +159,8 @@ $espanol = get_field('espanol');
 											<div class="col-12 col-md-3 mt-3 mt-md-0 pl-1 pr-1">
 												<input type="hidden" name="search_tag" value="<?php echo $term->term_id; ?>" />
 												<input type="hidden" name="search_taxonomy" value="<?php echo $term->taxonomy; ?>" />
-												<input type="hidden" name="order" value="<?php echo get_query_var('order'); ?>" />
-												<input type="hidden" name="orderby" value="<?php echo get_query_var('orderby'); ?>" />
+												<input type="hidden" name="order" value="<?php echo $order; ?>" />
+												<input type="hidden" name="orderby" value="<?php echo $orderby; ?>" />
 												<p class="m-0 wide block"><input type="submit" class="button gform_button white block pl-0 pr-0" value="Search" /></p>
 											</div>
 
@@ -266,7 +268,8 @@ $espanol = get_field('espanol');
 								<a class="plain white" href="<?php echo get_term_link($tag, $tax); ?>">See All Articles Related to <?php echo $term_name; ?> &raquo;</a>
 							</h3>
 							<?php 
-								else: 
+								else: 									
+									$term = get_term($tag, $tax)->ID;
 									$related_conditions = get_field('related_conditions', $term);
 									if($related_conditions && count($related_conditions) > 0 ){
 										echo '<h3>Learn About Other Related Mental Health Conditions</h3>';

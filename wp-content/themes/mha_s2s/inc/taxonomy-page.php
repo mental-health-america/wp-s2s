@@ -28,7 +28,11 @@ $search_term = get_query_var('search_term');
 			
 		<div class="wrap medium" id="ac">	
 
-			<?php the_archive_description(); ?>		
+			<?php 
+				the_archive_description(); 
+				$order = get_query_var('order');
+				$orderby = get_query_var('orderby');
+			?>		
 
 			<div class="bubble pale-blue bubble-border round-small">
 			<div class="inner">	
@@ -46,8 +50,8 @@ $search_term = get_query_var('search_term');
 							<div class="col-12 col-md-3 mt-3 mt-md-0">
 								<input type="hidden" name="search_tag" value="<?php echo $term->term_id; ?>" />
 								<input type="hidden" name="search_taxonomy" value="<?php echo $term->taxonomy; ?>" />
-								<input type="hidden" name="order" value="<?php echo get_query_var('order'); ?>" />
-								<input type="hidden" name="orderby" value="<?php echo get_query_var('orderby'); ?>" />
+								<input type="hidden" name="order" value="<?php echo $order; ?>" />
+								<input type="hidden" name="orderby" value="<?php echo $orderby; ?>" />
 								<p class="m-0 wide block"><input type="submit" class="button gform_button white block pl-0 pr-0" value="Search" /></p>
 							</div>
 

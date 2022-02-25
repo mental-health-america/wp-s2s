@@ -95,6 +95,9 @@ label {
             &.wide {
                 width: 100%;
             }
+            @media only screen and (max-width: 480px){
+                width: auto;
+            }
         }
 
         .gform_fields li {
@@ -334,6 +337,9 @@ label {
             input {
                 color: $blue;
                 border-bottom: 4px solid $blue;
+            }
+            input[type="checkbox"] {
+                width: auto;
             }
             label {
                 &:before {

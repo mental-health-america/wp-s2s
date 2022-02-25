@@ -34,3 +34,8 @@ body {
 a {
     font-weight: 700;
 }
+
+// Overrides
+.collapse {
+    display: block !important;
+}

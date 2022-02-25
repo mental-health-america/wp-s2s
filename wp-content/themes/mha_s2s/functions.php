@@ -88,10 +88,10 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220225' );
 	
 	// Add print CSS.
-	// wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/print.css', null, '1.0', 'print' );
+	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20220225', 'print' );
     
 	// Scripts
 	wp_enqueue_script( 'mha_s2s-skip-link-focus-fix', get_template_directory_uri() . '/assets/js/skip-link-focus-fix.js', array(), '1.0', true );
@@ -208,7 +208,7 @@ add_filter( 'tiny_mce_before_init', 'my_mce_before_init_insert_formats' );
 
  // Shim for new wp_body_open() function
  // https://make.wordpress.org/themes/2019/03/29/addition-of-new-wp_body_open-hook/
- if ( ! function_exists( 'wp_body_open' ) ) {
+if ( ! function_exists( 'wp_body_open' ) ) {
 	function wp_body_open() {
 		do_action( 'wp_body_open' );
 	}
@@ -219,11 +219,11 @@ add_filter( 'tiny_mce_before_init', 'my_mce_before_init_insert_formats' );
  */
 function wp_body_classes( $classes ) {
 	if(isset($_GET['iframe']) && $_GET['iframe'] == 'true'){
-    	$classes[] = 'iframe-mode';
+		$classes[] = 'iframe-mode';
 	}      
 	$partner_var = get_query_var('partner');
 	if(isset($_GET['partner']) && in_array($partner_var, mha_approved_partners() )){
-    	$classes[] = 'partner-'.$partner_var;
+		$classes[] = 'partner-'.$partner_var;
 	}      
     return $classes;
 }
@@ -380,7 +380,7 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 			<li class="step-3"><span>Your<br />Results</span></li>
 		</ol>';
 	}
- 
+
     return $progress_bar;
 }
 
@@ -562,6 +562,7 @@ function mha_s2s_term_permalink( $url, $term, $taxonomy ){
 }
 */
 
+
 /**
  * Search Post Type Filter
  */
@@ -569,7 +570,16 @@ function wpse331647_alter_query($query) {
 	
 	// Search result overrides
     if ($query->is_search && !is_admin() ) {
+
+		// Show only specific post types
         $query->set('post_type',array('page','article','screen','thought_activity'));
+		
+		// Exclude specific pages
+		$exclude_ids = get_field('exclude_from_search', 'options');
+		if($exclude_ids){
+			$query->set('post__not_in', $exclude_ids);
+		}
+
 	}
 	
 	if ( !is_admin() && $query->is_main_query() ) {
@@ -580,12 +590,11 @@ function wpse331647_alter_query($query) {
 			$query->set( 'orderby', get_query_var('filter_orderby') );
 		}
 	}
-	 
+
 	return $query;
 }
 
 add_action( 'pre_get_posts', 'wpse331647_alter_query' ); 
-//add_filter( 'pre_get_posts', 'searchfilter');
 
 
 /**
@@ -982,3 +991,11 @@ function mha_save_resource_article( $post_id ) {
 	}
 }
 
+
+/**
+ * Custom Session Length override exemption for admins
+ */
+function loginpress_exclude_role_session_callback() {
+	return array( 'administrator', 'editor', 'contributor' );
+}
+add_filter( 'loginpress_exclude_role_session', 'loginpress_exclude_role_session_callback' );

@@ -66,7 +66,7 @@ function get_condition_articles($tax = null, $tag = null, $search_query = null){
         $article_conditions = get_the_terms(get_the_ID(), 'condition');
 
         // Primary or Only Condition (+2)
-        if(get_field('primary_condition') == $tag || count($article_conditions) == 1 && $article_conditions[0]->term_id == $tag) {
+        if(get_field('primary_condition') == $tag || $article_conditions && count($article_conditions) == 1 && $article_conditions[0]->term_id == $tag) {
             $score = $score + 2;
         }
 
@@ -180,7 +180,7 @@ function get_condition_articles($tax = null, $tag = null, $search_query = null){
     endif;
     
     // Print articles
-    $html .= '<ol class="plain mb-0">';        
+    $html = '<ol class="plain mb-0">';        
         $i = 0;
         foreach($article_array as $a):
             if($i >= $offset && $i < $offset_ceil){

@@ -1,165 +1,354 @@
 @charset "UTF-8";
 
-/*
-Theme Name: Twenty Twenty
-Adding print support. The print styles are based on the the great work of
-Andreas Hecht in https://www.jotform.com/blog/css-perfect-print-stylesheet-98272/.
-*/
-
-/*--------------------------------------------------------------
->>> TABLE OF CONTENTS:
-----------------------------------------------------------------
-# Margins
-# Paddings
-# Width
-# Typography
-# Page breaks
-# Links
-# Visibility
---------------------------------------------------------------*/
 @media print {
 
-  /* Margins */
+    /* Bootstrap Base Print Styles */
+    *,::after,::before{text-shadow:none!important;box-shadow:none!important}a:not(.btn){text-decoration:underline}abbr[title]::after{content:" (" attr(title) ")"}pre{white-space:pre-wrap!important}blockquote,pre{border:1px solid #adb5bd;page-break-inside:avoid}img,tr{page-break-inside:avoid}h2,h3,p{orphans:3;widows:3}h2,h3{page-break-after:avoid}@page{size:a3}body{min-width:992px!important}.container{min-width:992px!important}.badge{border:1px solid #000}.table{border-collapse:collapse!important}.table td,.table th{background-color:#fff!important}.table-bordered td,.table-bordered th{border:1px solid #dee2e6!important}.table-dark{color:inherit}.table-dark tbody+tbody,.table-dark td,.table-dark th,.table-dark thead th{border-color:#dee2e6}
 
-  @page {
-    margin: 2cm;
-  }
 
-  .entry-header,
-  .site-footer {
-    margin: 0;
-  }
+    /* GLobal Show/Hides Overrides */
+    
+    .next-article,
+    .screen-progress-bar,
+    #screen-save,
+    #filters-container .dropdown,
+    #filters-container #filters {
+        display: none !important;
+    }
+    
+    #score-interpretation,
+    #your-answers,
+    #screen-result-buttons {
+        display: block;
+    }
 
-  /* Paddings */
+    .wow {
+        animation-name: none !important;
+        visibility: visible !important;
+    }
+        
+    /* General Design Overrides */
 
-  .posts {
-    padding: 0;
-  }
-  
-  /* Width */
+    /* Margins */
 
-  .entry-content,
-  .entry-content p,
-  .section-inner,
-  .section-inner.max-percentage,
-  .section-inner.medium,
-  .section-inner.small,
-  .section-inner.thin {
-    max-width: 100%;
-    width: 100%;
-  }
+    @page {
+        margin: 2cm;
+    }
 
-  /* Fonts */
+    .entry-header,
+    .site-footer {
+        margin: 0;
+    }
 
-  body {
-    background: #fff !important;
-    color: #000;
-    font: 13pt Georgia, "Times New Roman", Times, serif;
-    line-height: 1.3;
-  }
+    /* Paddings */
 
-  h1 {
-    font-size: 20pt;
-  }
+    .posts {
+        padding: 0;
+    }
 
-  h2,
-  h2.entry-title,
-  h3,
-  h4,
-  .has-normal-font-size,
-  .has-regular-font-size,
-  .has-large-font-size,
-  .comments-header {
-    font-size: 14pt;
-    margin-top: 1cm;
-  }
+    .bubble .inner {
+        padding: 20px !important;
+    }
 
-  /* Page breaks */
+    /* Width */
 
-  a {
-    page-break-inside: avoid;
-  }
+    .entry-content,
+    .entry-content p,
+    .section-inner,
+    .section-inner.max-percentage,
+    .section-inner.medium,
+    .section-inner.small,
+    .section-inner.thin {
+        max-width: 100%;
+        width: 100%;
+    }
 
-  blockquote {
-    page-break-inside: avoid;
-  }
+    #filters-content .filter-bubble {
+        flex: 0 1 100%;
+        margin: 0 0 20px 0;
+        padding-bottom: 10px;
+        overflow: visible;
+    }
+    #filters-content .filter-bubble .title-image {
+        height: auto;
+    }
+    #filters-content .filter-bubble .excerpt {
+        padding-bottom: 0 !important;
+    }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    page-break-after: avoid;
-    page-break-inside: avoid;
-  }
+    #filters-content .filter-bubble:after {
+        padding-left: 20px;
+    }
+    
+    #filters-container #filters-content-container {
+        float: none;
+        width: 100%;
+    }
 
-  img {
-    page-break-inside: avoid;
-    page-break-after: avoid;
-  }
+    /* Colors */
+    .page-heading.bar {
+        background: none !important;
+        padding: 0 0 20px 0;
+    }
+    .page-heading.bar h1 {
+        color: #000 !important;
+    }
 
-  table,
-  pre {
-    page-break-inside: avoid;
-  }
 
-  ul,
-  ol,
-  dl {
-    page-break-before: avoid;
-  }
+    /* Fonts */
 
-  /* Links */
-  
-  a:link,
-  a:visited,
-  a {
-    background: transparent;
-    font-weight: bold;
-    text-decoration: underline;
-  }
+    body {
+        background: #fff !important;
+        color: #000;
 
-  a {
-    page-break-inside: avoid;
-  }
+        /* IE4-8 and 9 (deprecated). */
+        filter: Gray();
+        /* SVG version for IE10, Chrome 17, FF3.5, 
+       Safari 5.2 and Opera 11.6 */
+        filter: url('#grayscale');
+        /* CSS3 filter, at the moment Webkit only. Prefix it for
+       future implementations */
+        -webkit-filter: grayscale(100%);
+        filter: grayscale(100%);
+        /* future-proof */
+    }
 
-  a[href^="http"]:after {
-    content: " < " attr(href) "> ";
-  }
+    * {
+        font-family: Arial, Helvetica, sans-serif !important;
+    }
 
-  a:after > img {
-    content: "";
-  }
+    .wrap {
+        margin: 0 20px !important;
+        width: auto !important;
+    }
 
-  article a[href^="#"]:after {
-    content: "";
-  }
+    h1 {
+        font-size: 20pt;
+    }
 
-  a:not(:local-link):after {
-    content: " < " attr(href) "> ";
-  }
+    h2,
+    h2.entry-title,
+    h3,
+    h4,
+    .has-normal-font-size,
+    .has-regular-font-size,
+    .has-large-font-size,
+    .comments-header {
+        font-size: 14pt;
+        margin-top: 1cm;
+    }
 
-  /* Visibility */
+    /* Page breaks */
 
-  #site-header,
-  .comment-form,
-  .comments-wrapper,
-  .comment .comment-metadata,
-  .footer-social-wrapper,
-  .footer-widgets-outer-wrapper,
-  .header-navigation-wrapper,
-  .pagination-wrapper,
-  .post-meta-wrapper.post-meta-single-bottom,
-  .post-separator,
-  .site-logo img {
-    display: none;
-  }
+    a {
+        page-break-inside: avoid;
+    }
 
-  .entry-content .wp-block-button .wp-block-button__link,
-  .entry-content .wp-block-button .wp-block-file__button,
-  .entry-content .button {
-    background: none;
-    color: #000;
-  }
+    blockquote {
+        page-break-inside: avoid;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        page-break-after: avoid;
+        page-break-inside: avoid;
+    }
+
+    img {
+        page-break-inside: avoid;
+        page-break-after: avoid;
+    }
+
+    table,
+    pre {
+        page-break-inside: avoid;
+    }
+
+    ul,
+    ol,
+    dl {
+        page-break-before: avoid;
+    }
+
+    /* Links */
+
+    a:link,
+    a:visited,
+    a {
+        background: transparent;
+        font-weight: bold;
+        text-decoration: underline;
+    }
+
+    a {
+        page-break-inside: avoid;
+    }
+
+    #content a:after {
+        content: " ("attr(href) ") ";
+        font-size: .75em;
+        line-height: normal;
+        background: none !important;
+    }
+    a[href^="/"]:after {
+        content: " (https://screening.mhanational.org"attr(href) ") ";
+    }
+
+    a:after>img {
+        content: "";
+    }
+
+    article a[href^="#"]:after {
+        content: "";
+    }
+
+    h2 a.plain::after, h3 a.plain::after, h4 a.plain::after {
+        height: auto;
+        width: auto;
+    }
+
+    .path-list .path-item .button, .path-list .path-item #download-here, .path-list .path-item .btn-blue a, .btn-blue .path-list .path-item a, .path-list .path-item .btn-download a, .btn-download .path-list .path-item a, .path-list .path-item #search-form-interior .search-submit, #search-form-interior .path-list .path-item .search-submit, .path-list .path-item #navigation #main-menu-buttons a, #navigation #main-menu-buttons .path-list .path-item a {
+        height: auto;
+        width: auto;
+    }
+
+    /* Visibility */
+
+    #site-header,
+    .comment-form,
+    .comments-wrapper,
+    .comment .comment-metadata,
+    .footer-social-wrapper,
+    .footer-widgets-outer-wrapper,
+    .header-navigation-wrapper,
+    .pagination-wrapper,
+    .post-meta-wrapper.post-meta-single-bottom,
+    .post-separator,
+    .site-logo img {
+        display: none;
+    }
+
+    .entry-content .wp-block-button .wp-block-button__link,
+    .entry-content .wp-block-button .wp-block-file__button,
+    .entry-content .button {
+        background: none;
+        color: #000;
+    }
+
+
+
+    /*Feb 2022 Edits*/
+
+    /*general*/
+    [class*='col-'] {
+        width: 100%;
+        max-width: 100%;
+        flex-basis: 100%
+    }
+
+    .hide-mobile {
+        display: none;
+    }
+
+    iframe {
+        display: none;
+    }
+
+    .grid-item-inner {
+        display: block !important;
+    }
+
+    .text-button:after {
+        width: auto;
+    }
+
+    .bubble.short,
+    .form-container.line-form label.short.error,
+    .form-container.line-form .short.validation_error,
+    .form-container.line-form .short.gfield_password_strength {
+        max-width: 100%;
+    }
+
+    /*header*/
+    #utility-menu,
+    #navigation {
+        display: none;
+    }
+
+    #logo {
+        float: none !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /*Hero*/
+    #breadcrumbs {
+        display: none;
+    }
+
+    .page-heading.bar h1 {
+        max-width: 100%;
+        font-size: 1.5em;
+    }
+
+    /*content*/
+    #content {
+        padding-bottom: 0;
+    }
+
+    /*footer*/
+    #smart-footer {
+        display: none;
+    }
+
+    /*articles*/
+
+    .page-content a[href^="http"]:after {
+        font-size: 14px;
+        word-break: break-all !important;
+    }
+
+
+    #screen-about {
+        width: 100%;
+    }
+
+    #screen-email,
+    #screen-answers,
+    #screen-take,
+    #email-results {
+        display: none;
+    }
+
+    ol.next-steps {
+        column-count: 1
+    }
+
+    ol.next-steps a[href^="http"]:after {
+        display: block;
+        font-size: 12px;
+    }
+
+    #cta-col {
+        display: none;
+    }
+
+    /*Home Page*/
+    .secondary-buttons {
+        display: block;
+    }
+
+    .content-block .two-cols {
+        display: block;
+    }
+
+    /*path collection*/
+    .conditions-list a {
+        white-space: normal;
+    }
+
 }

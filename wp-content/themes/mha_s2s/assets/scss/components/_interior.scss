@@ -74,8 +74,8 @@
     padding: 0;
     @include montserrat(600);
     color: $brightBlue;
-    font-size: 14px;
-    line-height: 1.1em;
+    font-size: .875em;
+    line-height: 1.4em;
 
     .crumb {
         text-decoration: none;
@@ -890,6 +890,10 @@ button.icon.like-button {
                     left: 15px;
                 }
             }
+
+            .title {
+                line-height: 1.1em;
+            }
         }
 
         .image {
@@ -943,7 +947,7 @@ button.icon.like-button {
 
         .title-image {
             width: 100%;
-            font-size: 1.1em;
+            font-size: .9em;
             line-height: 1.1em;
             height: 160px;
             //overflow: hidden;

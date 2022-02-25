@@ -227,10 +227,10 @@
     }
     a {
         color: $gray;
-        text-decoration: none;
+        text-decoration: underline;
         &:hover {
             color: $blue;
-            text-decoration: underline;
+            text-decoration: none;
         }
     }
 }

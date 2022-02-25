@@ -36,7 +36,7 @@ get_header();
 		while ( have_posts() ) : the_post();
 		?>
 			<div class="wrap normal show-mobile mt-4">
-				<?php get_template_part( 'templates/blocks/article', 'actions' ); ?>
+				<?php get_template_part( 'templates/blocks/article', 'actions', array( 'placement' => 'mobile' ) ); ?>
 			</div>
 		<?php 
 		endwhile;

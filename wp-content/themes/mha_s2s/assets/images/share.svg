@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="31" height="31" viewBox="0 0 31 31">
   <defs>
-    <clipPath id="clip-path">
-      <rect id="Rectangle_353" data-name="Rectangle 353" width="31" height="31" transform="translate(0 -0.233)" fill="#055596"/>
+    <clipPath>
+      <rect width="31" height="31" transform="translate(0 -0.233)" fill="#055596"/>
     </clipPath>
   </defs>
   <g data-name="Bookmark" transform="translate(0 0.355)">

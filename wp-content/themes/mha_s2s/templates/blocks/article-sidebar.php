@@ -139,7 +139,9 @@
                 $primary_condition = $path_terms[0]->term_id;
             }
         } else {
-            $primary_condition = $primary_condition->term_id;
+            if($primary_condition){
+                $primary_condition = $primary_condition->term_id;
+            }
         }
 
         // Screens
@@ -425,7 +427,7 @@
     ?>
 
     <div class="hide-mobile">
-        <?php get_template_part( 'templates/blocks/article', 'actions' ); ?>
+        <?php get_template_part( 'templates/blocks/article', 'actions', array( 'placement' => 'desktop' ) ); ?>
     </div>
     
 </div>

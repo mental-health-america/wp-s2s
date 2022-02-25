@@ -54,11 +54,11 @@
         }
     ?>
     <div class="dropdown">
-        <button class="icon share-button dropdown-toggle" type="button" id="shareOptions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="icon share-button dropdown-toggle" type="button" id="shareOptions<?php echo $args['placement']; ?>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="image"><?php include get_theme_file_path("assets/images/share.svg"); ?></span>                        
             <span class="text blue caps light">Share</span>
         </button>
-        <div class="dropdown-menu" aria-labelledby="shareOptions">
+        <div class="dropdown-menu" aria-labelledby="shareOptions<?php echo $args['placement']; ?>">
             <a class="dropdown-item social-share" href="<?php echo formatTwitter(get_the_title(), $share_url); ?>">Share on Twitter</a>
             <a class="dropdown-item social-share" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $share_url; ?>">Share on Facebook</a>
         </div>

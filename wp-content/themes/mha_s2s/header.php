@@ -71,7 +71,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 						aria-controls="sign-in-container">			
 						<strong>Log In</strong>
 					</button>
-					<div id="sign-in-hover" aria-controls="sign-in-toggle" aria-label="Toggle Sign In Form" aria-expanded="false">
+					<div id="sign-in-hover" aria-controls="sign-in-toggle" aria-label="Toggle Sign In Form">
 						<div class="bubble round-tr bubble-border narrow dark light-blue">
 						<div class="inner clearfix">
 							<div class="sign-up-form form-container line-form blue text-left wide">	
@@ -81,7 +81,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 								<?php
 									$args = array( 
 										'label_username' => 'Email Address',
-										'remember' => false,
+										'remember' => true,
 										'echo' => false
 									);
 									$login_form = wp_login_form($args); 
