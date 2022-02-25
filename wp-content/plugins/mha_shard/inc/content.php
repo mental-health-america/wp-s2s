@@ -411,7 +411,7 @@ function get_geo( $zip ){
 		// Get lat/long from Google
 		$address_url = urlencode( $zip );		
 		$handle = curl_init(); 
-		$url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address_url&key=AIzaSyAi7OToMkshpA4zFYbj_MsWh3QOREESaxc";
+		$url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address_url&key=".GOOGLE_API_KEY;
 		curl_setopt($handle, CURLOPT_URL, $url);
 		curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
 		$output = json_decode(curl_exec($handle), true);
@@ -899,7 +899,7 @@ function update_article( $post_id ){
 				// Connect to Google
 				$address_url = urlencode( $check_address );		
 				$handle = curl_init(); 
-				$url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address_url&key=AIzaSyAi7OToMkshpA4zFYbj_MsWh3QOREESaxc";
+				$url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address_url&key=".GOOGLE_API_KEY;
 				curl_setopt($handle, CURLOPT_URL, $url);
 				curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
 				$output = json_decode(curl_exec($handle), true);

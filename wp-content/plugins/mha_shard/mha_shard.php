@@ -8,6 +8,9 @@
  * Description: A companion plugin for the MHA theme.
  */
 
+//General Keys
+include_once 'keys.php';
+
 // General Wordpress Options
 include_once 'inc/wp-cleanup.php';
 

@@ -158,8 +158,9 @@ wp-content/mysql.sql
 *.wmv
 *.avi
 
-# c+k stuff/overrides
+# MHA specific overrides
 !/wp-content/plugins/mha_shard
+/wp-content/plugins/mha_shard/keys.php
 !/wp-content/plugins/mha_activity
 !/wp-content/plugins/mha_screens
 !/wp-content/plugins/mha_exports
