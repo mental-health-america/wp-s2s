@@ -226,11 +226,11 @@
         padding-bottom: 60px;
     }
     a {
-        color: $gray;
-        text-decoration: underline;
+        color: $black;
+        text-decoration: underline dotted;
         &:hover {
-            color: $blue;
-            text-decoration: none;
+            color: $darkBlue;
+            text-decoration: underline;
         }
     }
 }

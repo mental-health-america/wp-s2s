@@ -97,7 +97,7 @@ get_header();
 					</p>
 					<?php endif; ?>
 
-					<div class="bubble round-tl <?php echo $bubble_color; ?> mb-5 bubble-border path-container mt-5">
+					<div class="bubble round-tl <?php echo $bubble_color; ?> mb-5 bubble-border path-container mt-5" role="complementary">
 					<div class="inner">
 
 						<?php 
@@ -150,7 +150,7 @@ get_header();
 
 						<?php if($path_id): ?>
 							<h3><?php echo get_the_title($path_id); ?></h3>
-							<ol class="path-list">
+							<ol class="path-list hidden-list" aria-hidden="true">
 								<?php
 									$counter = 0;
 									$delay = 0;

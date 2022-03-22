@@ -73,11 +73,11 @@ $espanol = get_field('espanol');
 						}
 					?>  
 
-						<div class="bubble round-tl mb-5 <?php echo $pathColor; ?> path-container wow fadeIn">
+						<div class="bubble round-tl mb-5 <?php echo $pathColor; ?> path-container wow fadeIn" role="complementary">
 						<div class="inner">
 							<?php the_title('<h3>','</h3>'); ?> 
 							
-							<ol class="path-list">
+							<ol class="path-list hidden-list" aria-hidden="true">
 								<?php
 									$counter = 0;
 									$spacer_counter_wide = 0;

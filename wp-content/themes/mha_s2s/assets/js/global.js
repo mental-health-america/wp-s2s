@@ -1,7 +1,20 @@
 (function( $ ) {
 	
 	// Wow implementation
-	new WOW().init(); 
+	var wow = new WOW({
+		callback: function(el) {
+			// Update aria-hidden when all items are visible for a list
+			if(!$(el).hasClass('wow-complete')){
+				$(el).addClass('wow-complete');
+			}			
+			var totalList = $('.hidden-list .wow.path-item').length,
+				totalListVisible = $('.hidden-list .wow.path-item.wow-complete').length;
+			if(totalListVisible == totalList){
+				$('.hidden-list').attr('aria-hidden', 'false');
+			}
+		}
+	});
+	wow.init();
 
 	// Show/Hide filter on mobile
 	function showFilters() {

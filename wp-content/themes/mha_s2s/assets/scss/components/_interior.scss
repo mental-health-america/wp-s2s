@@ -75,7 +75,7 @@
     @include montserrat(600);
     color: $brightBlue;
     font-size: .875em;
-    line-height: 1.4em;
+    line-height: 1.5em;
 
     .crumb {
         text-decoration: none;
@@ -100,6 +100,9 @@
             &:hover {
                 color: $blueDark;
                 text-decoration: none;
+            }
+            .text {
+                text-decoration: underline;
             }
         }
     }

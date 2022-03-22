@@ -35,6 +35,10 @@ get_header();
                 }
                 $args = array( 
                     'label_username' => 'Email Address',
+                    'id_username' => 'user_login_page',
+                    'id_password' => 'user_pass_page',
+                    'id_remember' => 'user_page_remember',
+                    'id_submit' => 'user_page_submit',
                     'remember' => true,
                     'redirect' => $redirect
                 );
