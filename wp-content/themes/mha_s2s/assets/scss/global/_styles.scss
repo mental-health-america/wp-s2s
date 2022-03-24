@@ -245,16 +245,17 @@ input[type="button"] {
     &.mint {
         color: $blueDark;
         background: $mint;
-        &.active,
-        &:focus,
-        &:hover {
-            color: $white;
-            background-color: $blueDark;
-        }
         .site-content &:visited,
         &:visited {
             color: $blueDark;
         } 
+        &.active,
+        &:focus,
+        &:hover,
+        .site-content &:hover {
+            color: $white;
+            background-color: $blueDark;
+        }
     }
 
     &.gray {

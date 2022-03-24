@@ -184,7 +184,9 @@
 		// Replace + and - on click for expanding buttons
 		$('button.toggle-switcher').click(function(){
 			$(this).text(function(i,old){
-				return old == '+' ?  '-' : '+';
+				if(old.includes("+") || old.includes("-")){
+					return old == '+' ?  '-' : '+';
+				}
 			});
 		});
 

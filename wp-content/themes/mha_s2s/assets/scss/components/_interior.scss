@@ -79,10 +79,10 @@
 
     .crumb {
         text-decoration: none;
-        color: $brightBlue;
+        color: $cerulean;
         &:after {
             content: " > ";
-            color: $brightBlue;
+            color: $cerulean;
         }
         &:last-child {
             &:after {
@@ -94,7 +94,7 @@
     a,
     a.crumb {
         text-decoration: none;
-        color: $brightBlue;
+        color: $cerulean;
         @include transitions(color 150ms ease);
         &:hover {
             &:hover {
@@ -188,7 +188,7 @@
     
     // Bar Style
     &.bar {
-        background: $ceruleanLight;
+        background: rgba(203,232,255,.2);
         padding: 70px 0;
         margin: 0 0 40px 0;       
         @media only screen and (max-width: 767px){
@@ -213,6 +213,7 @@
         // Colors
         &.red {
             background: $pink;
+            background: rgba(254,246,246,.75);
             h1 { color: $red; }
             #breadcrumbs,
             #breadcrumbs .crumb {
@@ -905,7 +906,7 @@ button.icon.like-button {
             background-repeat: no-repeat;
             background-color: $white;
             height: 160px;
-            overflow: hidden;
+            //overflow: hidden;
             text-align: center;
             @media only screen and (max-width: 540px){
                 height: 120px;

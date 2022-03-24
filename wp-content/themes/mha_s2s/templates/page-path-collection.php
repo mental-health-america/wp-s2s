@@ -278,7 +278,7 @@ $espanol = get_field('espanol');
 										foreach($related_conditions as $rc){
 											echo '<a class="plain cerulean" href="'.get_term_link($rc).'">'.$rc->name.'</a>';	 
 											if($rc_counter < count($related_conditions)){
-												echo ' &nbsp;<span class="noto">|</span>&nbsp; ';
+												echo ' &nbsp;<span class="noto" role="separator">|</span>&nbsp; ';
 											}
 											$rc_counter++;
 										}

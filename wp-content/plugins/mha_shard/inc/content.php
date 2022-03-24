@@ -126,7 +126,7 @@ function mha_popular_articles( $options ) {
 
 		if($atts['style'] == 'inline'){
 			
-			$html .= implode('&nbsp;<span class="noto">|</span>&nbsp; ', $inline_list);
+			$html .= implode('&nbsp;<span class="noto" role="separator">|</span>&nbsp; ', $inline_list);
 			$html .= '</div>';
 		} else {
 			$html .= '</ol>';
@@ -161,7 +161,7 @@ function mha_conditions() {
 			}
 		}
 		$html = '<div class="conditions-list">';
-		$html .= implode('&nbsp;<span class="noto">|</span>&nbsp; ', $conditions);
+		$html .= implode('&nbsp;<span class="noto" role="separator">|</span>&nbsp; ', $conditions);
 		$html .= '</div>';
 		return $html;
 	}
