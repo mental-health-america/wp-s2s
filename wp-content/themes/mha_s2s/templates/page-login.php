@@ -18,7 +18,13 @@ get_header();
         <div id="sign-up-form" class="form-container line-form blue">
 
             <div class="existing-account right">
-                <a href="/sign-up">Don't have an account? <strong>Register here</strong></a>
+                <?php 
+                    $signup_url = '/sign-up';
+                    if(get_query_var('redirect_to')){
+                        $signup_url = add_query_arg( 'redirect_to', get_query_var('redirect_to'), $signup_url ); 
+                    }
+                ?>
+                <a href="<?php echo $signup_url; ?>">Don't have an account? <strong>Register here</strong></a>
             </div>
             
             <?php if( isset( $_GET['login_error'] ) && $_GET['login_error'] == 'true' ): ?>

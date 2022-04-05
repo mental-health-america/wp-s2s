@@ -17,10 +17,37 @@ $exclude_ids = [];
 $result_cta = [];
 $demo_steps = [];
 $result_title = '';
-$max_score = get_field('overall_max_score', $user_screen_result['screen_id']);
-$espanol = get_field('espanol', $user_screen_result['screen_id']);
-$partner_var = get_query_var('partner');
-$iframe_var = get_query_var('iframe');
+$max_score = get_field('overall_max_score', $user_screen_result['screen_id']); // Get the screen's overall max score
+$espanol = get_field('espanol', $user_screen_result['screen_id']); // Spanish page?
+$partner_var = get_query_var('partner'); // Partner layout overrides
+$iframe_var = get_query_var('iframe'); // Template flags when site is viewed in an iframe
+
+// A/B Testing
+$layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
+$valid_variants = array(
+    'actions_a', 
+    'actions_b', 
+    'actions_c', 
+    'actions_d', 
+    'actions_e'
+);
+
+// "Take another test" button URL
+$take_another_url = '/screening-tools/';
+if(
+    $user_screen_result['referer'] != '' &&
+    strpos($user_screen_result['referer'], 'screening.mhanational.org') === false &&
+    strpos($user_screen_result['referer'], 'mhanationalstg.wpengine.com') === false
+):
+    $take_another_url = add_query_arg( 'ref', $user_screen_result['referer'], $take_another_url );
+endif;
+
+if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
+    $take_another_url = add_query_arg( 'partner', $partner_var, $take_another_url );
+}
+if($iframe_var){                                         
+    $take_another_url = add_query_arg( 'iframe','true', $take_another_url );
+}
 ?>
 
 <div class="wrap normal">
@@ -43,6 +70,9 @@ $iframe_var = get_query_var('iframe');
 <div class="wrap narrow">
 
     <?php 
+        /**
+         * Current Step
+         */
         if($espanol){
             echo '<ol class="screen-progress-bar clearfix step-3-of-3">
                 <li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
@@ -56,36 +86,17 @@ $iframe_var = get_query_var('iframe');
                 <li class="step-3"><span>Your<br />Results</span></li>
             </ol>';
         }
-    ?>
-    
-    <?php if(!is_user_logged_in()): ?>
-        <div class="wrap narrow">
-            <div id="screen-save">
-                <div class="bubble round blue thin mb-3">
-                <div class="inner bold text-center">
-                    <?php 
-                        if($iframe_var){    
-                            $login_target = ' target="_blank"';
-                        } else {
-                            $login_target = '';
-                        }
-                    ?>
-                    <a class="append-thought-id text-white"<?php echo $login_target; ?> href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$user_screen_result['result_id'] ?>">Log in</a>
-                    or
-                    <a class="append-thought-id text-white"<?php echo $login_target; ?> href="/sign-up/?action=save_screen_<?php echo $user_screen_result['result_id']; ?>">register for an account</a>
-                    to save this result to your account.
-                </div>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
-    
-    <?php
+        
+        /**
+         * Login/Register Prompt
+         */
+        if(!count(array_intersect( array('actions_c', 'actions_d', 'actions_e'), $layout))):
+            get_template_part( 'templates/results/cta', 'login', array( 'id' => $user_screen_result['result_id'] ) ); 
+        endif;
 
         /**
          * Screening Results
-         */         
-
+         */
         if( have_rows('results', $user_screen_result['screen_id']) ):
                             
             // Result Display
@@ -189,104 +200,45 @@ $iframe_var = get_query_var('iframe');
                         <div id="screen-result-buttons" class="button-grid pt-3 pb-3 pl-0 pr-0 pl-md-5 pr-md-5">
 
                             <?php 
-                                // Hide these buttons on normal surveys 
                                 if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                                    //
+                                    // Hide these buttons on normal surveys 
                                 else :
                                 ?>
-                                <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">                                                                   
-                                    <?php if($espanol): ?>
-                                        Sobre su puntuación:
-                                    <?php else: ?>
-                                        About your Score:
-                                    <?php endif; ?>
-                                    <?php echo $user_screen_result['total_score']; ?> / <?php echo $max_score; ?>    
-                                </button>
+                                    <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">       
+                                        <?php 
+                                            echo ($espanol ? 'Sobre su puntuación: ' : 'About your Score: '); 
+                                            echo $user_screen_result['total_score'].' / '.$max_score; 
+                                        ?>    
+                                    </button>
 
-                                <button id="screen-email" class="button mint round thin" type="button" data-toggle="collapse" data-target="#email-results" aria-expanded="false" aria-controls="email-results">                                    
-                                    <?php if($espanol): ?>
-                                        Enviar sus respuestas por correo electrónico
-                                    <?php else: ?>
-                                        Email Results
-                                    <?php endif; ?>
-                                </button>
+                                    <?php
+                                        if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d'), $layout))){
+                                            get_template_part( 'templates/results/action', 'email_button', array( 'espanol' => $espanol ) ); 
+                                        }
+                                    ?>
                                 <?php 
                                 endif; 
                             ?>
 
                             <button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">
-                                <?php if($espanol): ?>
-                                    Sus respuestas
-                                <?php else: ?>
-                                    Your Answers
-                                <?php endif; ?>
+                                <?php echo ($espanol ? 'Sus respuestas' : 'Your Answers'); ?>
                             </button>
                             
                             <?php
-                                $take_another_url = '/screening-tools/';
-                                if(
-                                    $user_screen_result['referer'] != '' &&
-                                    strpos($user_screen_result['referer'], 'screening.mhanational.org') === false &&
-                                    strpos($user_screen_result['referer'], 'mhanationalstg.wpengine.com') === false
-                                ):
-                                    $take_another_url = add_query_arg( 'ref', $user_screen_result['referer'], $take_another_url );
-                                endif;
-
-                                if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
-                                    $take_another_url = add_query_arg( 'partner', $partner_var, $take_another_url );
-                                }
-                                if($iframe_var){                                         
-                                    $take_another_url = add_query_arg( 'iframe','true', $take_another_url );
+                                if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d'), $layout))){
+                                    get_template_part( 'templates/results/action', 'take_test', array( 'url' => $take_another_url, 'espanol' => $espanol ) ); 
                                 }
                             ?>
-                            <a class="button mint round thin" id="screen-take" href="<?php echo $take_another_url; ?>">
-                                <?php if($espanol): ?>
-                                    Tomar otra prueba de salud mental
-                                <?php else: ?>
-                                    Take Another Mental Health&nbsp;Test
-                                <?php endif; ?>
-                            </a>
 
                         </div>
 
                         <div class="pt-4">
 
-                            <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="email-results">
-                            <div class="inner small">
-                                <div class="container-fluid">
-                                    
-                                    <form id="email-screening-results" action="#" method="POST" class="form-container line-form wide blue" autocomplete="off">   
-
-                                    <div class="form-message" style="display: none;"></div>
-                                    <div class="form-content">
-
-                                        <p class="form-group float-label mb-0">
-                                            <label class="form-label" for="email">email</label>
-                                            <input type="text" name="email" id="email" class="form-input required" />
-                                            <input type="text" autocomplete="off" name="email_doublecheck" value="" class="email_doublecheck" tabindex="-1" />
-                                        </p>
-
-                                        <?php 					
-                                            global $post;
-                                            $postSlug = $post->post_name;
-                                        ?>
-                                        <div class="form-actions pt-3">
-                                            <input type="hidden" name="nonce" value="<?php $nonce = wp_create_nonce('mhaScreenEmail'); echo $nonce; ?>" />
-                                            <input type="hidden" name="screen_id" value="<?php echo $user_screen_result['screen_id']; ?>" />
-                                            <input type="hidden" name="screen_user_id" value="<?php echo $user_screen_id; ?>" />                                                
-                                            <?php if($espanol): ?>
-                                                <input type="submit" class="submit button teal gform_button espanol" value="Enviar" />
-                                            <?php else: ?>
-                                                <input type="submit" class="submit button teal gform_button" value="Send Results" />
-                                            <?php endif; ?>
-                                        </div>
-
-                                    </div>
-                                    </form>
-
-                                </div>
-                            </div>
-                            </div>
+                            <?php
+                                if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d'), $layout))){
+                                    get_template_part( 'templates/results/action', 'email_display', array( 'width' => 'normal' ) ); 
+                                }
+                            ?>
                             
                             <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="score-interpretation">
                             <div class="inner small">
@@ -300,43 +252,43 @@ $iframe_var = get_query_var('iframe');
                             <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="your-answers">
                             <div class="inner small">
                                 <div class="container-fluid p-0">
-                                    <?php if($espanol): ?>
-                                        <h3 class="section-title dark-teal mb-4">Sus respuestas</h3>
-                                    <?php else: ?>
-                                        <h3 class="section-title dark-teal mb-4">Your Answers</h3>
-                                    <?php endif; ?>                                        
-                                    <?php echo $user_screen_result['your_answers']; ?>
+                                    <?php 
+                                        echo ($espanol ? '<h3 class="section-title dark-teal mb-4">Sus respuestas</h3>' : '<h3 class="section-title dark-teal mb-4">Your Answers</h3>');
+                                        echo $user_screen_result['your_answers']; 
+                                    ?>
                                 </div>
                             </div>
                             </div>                   
                         
+
                             <?php
+                                /**
+                                 * Begin Result Content
+                                 */
                                 // Alert message
                                 if($user_screen_result['alert'] > 0){
-                                    //echo '<div class="bubble coral round-tl mb-4 narrow"><div class="inner bold">';
                                     echo '<div class="bold warning-message mb-4">';
                                     echo get_field('warning_message', $user_screen_result['screen_id']);
                                     echo '</div>';
-                                    //echo '</div></div>';
                                 }
 
                                 // Additional scores to display
                                 $additional_scores = array();
                                 if(have_rows('additional_results', $user_screen_result['screen_id'])):
-                                echo '<p>';
-                                    echo '<strong>Overall Score:</strong> '.$user_screen_result['total_score'].'<br />';
-                                    while( have_rows('additional_results', $user_screen_result['screen_id']) ) : the_row();  
-                                        $add_scores = get_sub_field('scores');
-                                        $add_score_total = 0;
-                                        foreach($add_scores as $score){
-                                            $add_score_total = $user_screen_result['general_score_data'][$score['question_id']] + $add_score_total;
-                                        }
+                                    echo '<p>';
+                                        echo '<strong>Overall Score:</strong> '.$user_screen_result['total_score'].'<br />';
+                                        while( have_rows('additional_results', $user_screen_result['screen_id']) ) : the_row();  
+                                            $add_scores = get_sub_field('scores');
+                                            $add_score_total = 0;
+                                            foreach($add_scores as $score){
+                                                $add_score_total = $user_screen_result['general_score_data'][$score['question_id']] + $add_score_total;
+                                            }
 
-                                        echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.'<br />';
-                                        
-                                        $additional_scores[] = strval($add_score_total);
+                                            echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.'<br />';
+                                            
+                                            $additional_scores[] = strval($add_score_total);
 
-                                    endwhile;
+                                        endwhile;
                                     echo '</p>';
                                 endif;
 
@@ -406,54 +358,196 @@ $iframe_var = get_query_var('iframe');
             Next Steps
         <?php endif; ?>
     </h2>
+
+    <?php 
+        /**
+         * A/B Variant
+         * Layout: actions_a
+         */
+        if(in_array('actions_a', $layout)):
+            get_template_part( 'templates/results/cta', 'login', array( 'width' => 'narrow', 'corners' => '', 'id' => $user_screen_result['result_id'] ) );
+        endif; 
+    ?>        
+
+    <?php 
+        /**
+         * A/B Variant
+         * Layout: actions_b
+         */
+        if(in_array('actions_b', $layout)):
+        ?>
+            <div class="wrap narrow" id="layout-action_b">
+                <div id="screen-result-buttons-next_steps" class="button-grid pt-3 pb-3 px-0">
+                    <?php 
+                        if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
+                            // Hide these buttons on normal surveys 
+                        else :
+                            get_template_part( 'templates/results/action', 'email_button', array( 
+                                'espanol' => $espanol 
+                                ) ); 
+                            get_template_part( 'templates/results/action', 'take_test', array( 
+                                'url' => $take_another_url, 
+                                'espanol' => $espanol 
+                            ) ); 
+                        endif; 
+                    ?>
+                </div>
+                <?php get_template_part( 'templates/results/action', 'email_display', array( 'width' => 'normal' ) ); ?>
+            </div>        
+        <?php 
+        endif; 
+    ?>    
+
+    <?php 
+        /**
+         * A/B Variant
+         * Layout: actions_c
+         */
+        if(in_array('actions_c', $layout)): 
+        ?>        
+        <div class="wrap narrow" id="layout-action_c">
+            <div id="screen-result-buttons-next_steps" class="button-grid pt-3 pb-3 px-0">
+                <?php 
+                    if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
+                        // Hide these buttons on normal surveys 
+                    else :
+                        get_template_part( 'templates/results/action', 'login_email_button', array( 
+                            'espanol' => $espanol, 
+                            'with_email' => true 
+                        ) ); 
+                        get_template_part( 'templates/results/action', 'take_test', array( 
+                            'url' => $take_another_url, 
+                            'espanol' => $espanol 
+                        ) ); 
+                    endif; 
+                ?>
+            </div>
+            <div id="login-email-results" class="collapse">
+                <?php 
+                    get_template_part( 'templates/results/action', 'login_email_display', array( 
+                        'espanol' => $espanol, 
+                        'id' => $user_screen_result['result_id'], 
+                        'with_email' => true 
+                    ) );
+                    get_template_part( 'templates/results/action', 'email_display', array( 
+                        'width' => 'normal', 
+                        'show' => 'yes' 
+                    ) ); 
+                ?>
+            </div>
+        </div>        
+    <?php endif; ?>
+
+    <?php 
+        /**
+         * A/B Variant
+         * Layout: actions_d
+         */
+        if(in_array('actions_d', $layout)): 
+        ?>          
+        <div class="wrap narrow" id="layout-action_d">
+            <div id="screen-result-buttons-next_steps" class="button-grid pt-3 pb-3 px-0">
+                <?php 
+                    if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
+                        // Hide these buttons on normal surveys 
+                    else :
+                        if(!is_user_logged_in()):
+                            get_template_part( 'templates/results/action', 'login_button', array( 
+                                'espanol' => $espanol 
+                            ) ); 
+                        endif;
+                        get_template_part( 'templates/results/action', 'email_button', array( 
+                            'espanol' => $espanol 
+                        ) ); 
+                        get_template_part( 'templates/results/action', 'take_test', array( 
+                            'url' => $take_another_url, 'espanol' => $espanol 
+                        ) ); 
+                    endif; 
+                ?>
+            </div>
+            <div id="login-email-results" class="collapse">
+                <?php get_template_part( 'templates/results/action', 'login_email_display', array( 'espanol' => $espanol, 'id' => $user_screen_result['result_id'], 'with_email' => false) ); ?>
+            </div>
+            <?php get_template_part( 'templates/results/action', 'email_display', array( 'width' => 'normal' ) ); ?>
+        </div>        
+    <?php endif; ?>
+
+    <?php 
+        /**
+         * A/B Variant
+         * Layout: actions_e
+         */
+        if(in_array('actions_e', $layout)): 
+            if(!is_user_logged_in()):
+            ?>          
+            <div class="wrap normal" id="layout-action_e">
+                <div class="bubble round-tl mint normal">
+                <div class="inner">
+                    <h2>Sign Up</h2>
+                    <p>Did you know you can track your Mental Health Test results over time?</p>
+                    <?php
+                        if($iframe_var){    
+                            $login_target = ' target="_blank"';
+                        } else {
+                            $login_target = '';
+                        }
+                    ?>
+                    <a class="append-thought-id button teal round"<?php echo $login_target; ?> href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$user_screen_result['result_id'] ?>">Log In or Create Account</a>
+                </div>
+                </div>
+            </div>        
+            <?php 
+            endif;
+        endif; 
+    ?>
     
     <div id="cta-col" class="cta-cols">
         <?php       
             /**
              * Demographic Based Next Steps
              */
-                // Get the user's answered demographic questions
-                $entry_data = GFAPI::get_entry( $user_screen_result['result_id'] );
-                $answered_demos = [];
-                if(!is_wp_error($entry_data)){
-                    foreach($entry_data as $k => $v){            
-                        $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
-                        if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
-                            if(trim($entry_data[$k]) != ''){
-                                $answered_demos[$field->label][] = $entry_data[$k];
-                            }
+            // Get the user's answered demographic questions
+            $entry_data = GFAPI::get_entry( $user_screen_result['result_id'] );
+            $answered_demos = [];
+            if(!is_wp_error($entry_data)){
+                foreach($entry_data as $k => $v){            
+                    $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
+                    if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
+                        if(trim($entry_data[$k]) != ''){
+                            $answered_demos[$field->label][] = $entry_data[$k];
                         }
-                    }        
-                }
+                    }
+                }        
+            }
 
-                // Additional custom demo results to reference
-                $answered_demos['user_result'] = array($result_title);
-                $answered_demos['screen_id'] = array($user_screen_result['screen_id']);
-                $answered_demos['result_id'] = array($user_screen_result['result_id']);
+            // Additional custom demo results to reference
+            $answered_demos['user_result'] = array($result_title);
+            $answered_demos['screen_id'] = array($user_screen_result['screen_id']);
+            $answered_demos['result_id'] = array($user_screen_result['result_id']);
 
-                // Screen specific demo steps/CTAs
-                $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );
-                foreach($demo_data['demo_steps'] as $e){
-                    $demo_steps[] = $e;
-                }
-                foreach($demo_data['exclude_ids'] as $e){
-                    $exclude_ids[] = $e;
-                }
-                foreach($demo_data['ctas'] as $e){
-                    $result_cta[] = $e;
-                }
+            // Screen specific demo steps/CTAs
+            $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );
+            foreach($demo_data['demo_steps'] as $e){
+                $demo_steps[] = $e;
+            }
+            foreach($demo_data['exclude_ids'] as $e){
+                $exclude_ids[] = $e;
+            }
+            foreach($demo_data['ctas'] as $e){
+                $result_cta[] = $e;
+            }
 
-                // Global demo steps/CTAs
-                $demo_data_global = get_mha_demo_steps( 'options', $answered_demos );
-                foreach($demo_data_global['demo_steps'] as $e){
-                    $demo_steps[] = $e;
-                }
-                foreach($demo_data_global['exclude_ids'] as $e){
-                    $exclude_ids[] = $e;
-                }
-                foreach($demo_data_global['ctas'] as $e){
-                    $result_cta[] = $e;
-                }
+            // Global demo steps/CTAs
+            $demo_data_global = get_mha_demo_steps( 'options', $answered_demos );
+            foreach($demo_data_global['demo_steps'] as $e){
+                $demo_steps[] = $e;
+            }
+            foreach($demo_data_global['exclude_ids'] as $e){
+                $exclude_ids[] = $e;
+            }
+            foreach($demo_data_global['ctas'] as $e){
+                $result_cta[] = $e;
+            }
                 
             /*
              * Screen Specific CTAs
@@ -509,204 +603,36 @@ $iframe_var = get_query_var('iframe');
     <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
         <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
     <?php endif; ?>
+    
 </div>
 
 <div class="wrap narrow mb-5">
-    <ol class="next-steps">        
-        <?php
-            
-            /**
-             * Demo Based Steps
-             */
-            foreach($demo_steps as $link){
-                echo '<li><a class="dark-gray plain rec-screen-demobased" href="'.get_the_permalink($link->ID).'">'.$link->post_title.'</a>';
-            }
-
-            /**
-             * Result Based Manual Steps
-             */
-                if(isset($next_step_manual)){
-                    foreach($next_step_manual as $step){
-                        $step_link = get_the_permalink($step);
-                        $step_link_target = '';
-                        if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
-                            //$step_link = add_query_arg( 'partner', $partner_var, $step_link );
-                        }
-                        if($iframe_var){                                         
-                            //$step_link = add_query_arg( 'iframe','true', $step_link );
-                            $step_link_target = ' target="_blank"';
-                        }
-                        if(!in_array($step, $exclude_ids)){
-                            echo '<li><a class="dark-gray plain rec-result-manual"'.$step_link_target.' href="'.$step_link.'">'.get_the_title($step).'</a></li>';
-                            $exclude_id[] = $step;
-                        }
-                    }
-                }
-
-
-            /**
-             * Manual Steps
-             */
-                if( have_rows('featured_next_steps', $user_screen_result['screen_id']) ):
-                while( have_rows('featured_next_steps', $user_screen_result['screen_id']) ) : the_row();
-                    $step = get_sub_field('link');
-                    if($step && !in_array($step->id, $exclude_ids)){
-                        $manual_step_link = get_the_permalink($step->ID);
-                        $manual_step_target = '';
-                        if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
-                            //$manual_step_link = add_query_arg( 'partner', $partner_var, $manual_step_link );
-                        }
-                        if($iframe_var){                                         
-                            //$manual_step_link = add_query_arg( 'iframe','true', $manual_step_link );
-                            $manual_step_target = ' target="_blank"';
-                        }
-                        echo '<li><a class="dark-gray plain rec-screen-manual"'.$manual_step_target.' href="'.$manual_step_link.'">'.$step->post_title.'</a></li>';
-                        $exclude_id[] = $step->ID;
-                    }
-                endwhile;        
-                endif;
-
-
-            /**
-             * Automatic Query Args
-             */
-            if(!empty($exclude_id)){
-                $total_exclude = count($exclude_id);
-            } else {
-                $total_exclude = 0;
-            }
-            $total_recs = 20 - $total_exclude;
-            $args = array(
-                "post_type" => 'article',
-                "order"	=> 'ASC',
-                "orderby" => 'date',
-                "post_status" => 'publish',
-                "posts_per_page" => $total_recs,
-                "meta_query" => array(
-                    array(
-                        "key"       => 'type',
-                        "value"     => 'condition',
-                        'compare'   => 'LIKE'
-                    )
-                )
-            );
-            
-            if($espanol){
-                $args['meta_query'] = array(
-                    array(
-                        "key" => 'espanol',
-                        "value" => 1
-                    )
-                );
-                //$args['meta_query']['relationship'] = 'AND';
-            }
-
-            /**
-             * Result Based Next Steps
-             */
-            if(isset($next_step_terms)){
-                $next_step_terms = array_unique($next_step_terms);
-                $taxonomy_query = [];
-                foreach($next_step_terms as $step){
-                    $step = get_term($next);
-                    if($step->taxonomy == 'condition' || $step->taxonomy == 'age_group' || $step->taxonomy == 'post_tag'){
-                        $taxonomy_query[$step->taxonomy][] = $step->term_id;
-                    }
-                }
-            }
-
-            // Demographic based steps
-            if(!empty($user_screen_result['result_terms'])){
-                foreach($user_screen_result['result_terms'] as $step){ 
-                    if($step['taxonomy'] == 'condition' || $step['taxonomy'] == 'age_group' || $step['taxonomy'] == 'post_tag'){
-                        $taxonomy_query[$step['taxonomy']][] = $step['id'];    
-                    }   
-                }
-            }
-
-            // Overall screen based steps
-            $tags = get_field('related_tags', $user_screen_result['screen_id']);
-            if($tags){
-                foreach($tags as $step){
-                    if($step->taxonomy == 'condition' || $step->taxonomy == 'age_group' || $step->taxonomy == 'post_tag'){
-                        $taxonomy_query[$step->taxonomy][] = $step->term_id;
-                    }
-                }
-            }
-
-            // Excluded previous manual 
-            if(!empty($exclude_id)){
-                $args['post__not_in'] = $exclude_id; 
-            }
-
-            // Set up taxonomy query filters
-            foreach($taxonomy_query as $k => $v){
-                $args['tax_query'][] = array(
-                    'taxonomy' => $k,
-                    'field'    => 'term_id',
-                    'terms'    => $v
-                );
-            }
-
-            // Make all tags required for multiple taxonomies (e.g. avoid eating disorder articles on depression results 
-            // if someone answered 18-25 demographic questions)
-            if(count($taxonomy_query) > 1){
-                $args['tax_query']['relation'] = 'AND';
-            }
-
-            // Automatic Related Article Query
-            $loop = new WP_Query($args);
-            while($loop->have_posts()) : $loop->the_post();
-                $related_link = get_the_permalink();
-                $related_link_target = '';
-                if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
-                    //$related_link = add_query_arg( 'partner', $partner_var, $related_link );
-                }
-                if($iframe_var){                                         
-                    //$related_link = add_query_arg( 'iframe','true', $related_link );
-                    $related_link_target = ' target="_blank"';
-                }
-                if(!in_array(get_the_ID(), $exclude_ids)){
-                    echo '<li><a class="dark-gray plain rec-auto"'.$related_link_target.' href="'.$related_link.'">'.get_the_title().'</a></li>';
-                }
-            endwhile;
-
-            // See All Link
-            if(get_field('see_all_link', $user_screen_result['screen_id'])){
-                $see_all_text = 'See All';
-                $see_all_link = get_field('see_all_link', $user_screen_result['screen_id']);
-                $see_all_target = '';
-                if(get_field('see_all_link_text', $user_screen_result['screen_id'])){
-                    $see_all_text = get_field('see_all_link_text', $user_screen_result['screen_id']);
-                }
-                if($partner_var && in_array($partner_var, mha_approved_partners() )){                                    
-                    //$see_all_link = add_query_arg( 'partner', $partner_var, $see_all_link );
-                }
-                if($iframe_var){                                         
-                    //$see_all_link = add_query_arg( 'iframe','true', $see_all_link );
-                    $see_all_target = ' target="_blank"';
-                }
-                echo '<li><a class="caps cerulean plain"'.$see_all_target.' href="'.$see_all_link.'">'.$see_all_text.'</a></li>';
-            }
-
-        ?>
-    </ol>
+    <?php 
+        // Related Articles
+        $related_article_args = array(
+            'demo_steps'         => $demo_steps,
+            'next_step_manual'   => $next_step_manual,
+            'user_screen_result' => $user_screen_result,
+            'exclude_ids'        => $exclude_ids,
+            'next_step_terms'    => $next_step_terms,
+            'espanol'            => $espanol,
+            'iframe_var'         => $iframe_var,
+            'partner_var'        => $partner_var,
+        );
+        mha_results_related_articles( $related_article_args );
+    ?>
 </div>
     
-<?php
-    
-    // Content Blocks
-    wp_reset_query();
-    if( have_rows('block') ):
-    while ( have_rows('block') ) : the_row();
-        $layout = get_row_layout();
-        if( get_template_part( 'templates/blocks/block', $layout ) ):
-            get_template_part( 'templates/blocks/block', $layout );
-        endif;
-    endwhile;
+<?php    
+// Content Blocks
+wp_reset_query();
+if( have_rows('block') ):
+while ( have_rows('block') ) : the_row();
+    $row_layout = get_row_layout();
+    if( get_template_part( 'templates/blocks/block', $row_layout ) ):
+        get_template_part( 'templates/blocks/block', $row_layout );
     endif;
-?>
+endwhile;
+endif;
 
-
-<?php
 get_footer();

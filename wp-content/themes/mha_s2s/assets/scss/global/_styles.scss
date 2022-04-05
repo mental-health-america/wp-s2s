@@ -228,6 +228,20 @@ input[type="button"] {
             color: $white;
         } 
     }
+
+    &.navy {
+        background: $blue;
+        color: $white;
+        &:focus,
+        &:hover {
+            background-color: $orange;
+        }
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
+    }
+
     &.red {
         background: $red;
         color: $white;

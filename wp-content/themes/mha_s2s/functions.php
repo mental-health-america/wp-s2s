@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220322_3' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220324_2' );
 	
 	// Add print CSS.
 	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20220225', 'print' );
@@ -100,6 +100,7 @@ function mha_s2s_scripts() {
 	wp_enqueue_script( 'mha_s2s-wow', get_template_directory_uri() . '/assets/js/wow.min.js', array(), '1.3', true );
 	wp_enqueue_script( 'mha_s2s-macy', get_template_directory_uri() . '/assets/js/macy.min.js', array(), '1.0', true );
 	wp_enqueue_script( 'mha_s2s-bootstrap-js', get_template_directory_uri() . '/assets/bootstrap/js/bootstrap.bundle.min.js', array(), '4.3.1', true );
+	wp_enqueue_script( 'mha_s2s-jqueryui', get_template_directory_uri() . '/assets/js/jquery.ui.custom.min.js', array( 'jquery' ), '1.13.1', true );
 	
 	if(get_page_template_slug() == 'templates/page-my-account.php'){
 		wp_enqueue_script( 'mha_s2s-chart-js', get_template_directory_uri() . '/assets/js/chart.js', array(), '2.7.2', false );
@@ -113,7 +114,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20220322_3', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20220324_2', true );
 	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
@@ -325,9 +326,15 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'updated'; // Custom validation for form submissions
     $qvars[] = 'partner'; // Approved partner code
     $qvars[] = 'admin_uid'; // User ID override for admins
+    $qvars[] = 'layout'; // A/B testing override
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );
+
+function get_layout_array( $vars ){
+	$arr = explode(',', get_query_var('layout'));
+	return $arr;
+}
 
 
 /**

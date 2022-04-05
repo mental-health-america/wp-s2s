@@ -17,8 +17,14 @@ get_header();
 
         <div id="sign-up-form" class="form-container line-form blue">
 
-            <div class="existing-account right">
-                <a href="/log-in">Have an account? <strong>Log in here</strong></a>
+            <div class="existing-account right">                
+                <?php 
+                    $signup_url = '/log-in';
+                    if(get_query_var('redirect_to')){
+                        $signup_url = add_query_arg( 'redirect_to', get_query_var('redirect_to'), $signup_url ); 
+                    }
+                ?>
+                <a href="<?php echo $signup_url; ?>">Have an account? <strong>Log in here</strong></a>
             </div>
 
             <?php echo do_shortcode('[gravityform id="2" title="false" description="false"]'); ?>

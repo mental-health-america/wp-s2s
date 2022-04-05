@@ -713,3 +713,4 @@ function mha_screening_pre_submission_handler( $form ) {
 
 // Other Files
 include_once 'demographic_steps.php';
+include_once 'related_articles.php';

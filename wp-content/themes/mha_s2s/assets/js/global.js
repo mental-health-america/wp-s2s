@@ -132,9 +132,20 @@
 			// If .anchor-content scroll to the content
 			// Useful for multiple stacking reveals
 			if($(event.target).hasClass('anchor-content')){
+				var id = $(event.target).attr('id');
 				$('html, body').animate({
-					scrollTop: $(event.target).offset().top
-				}, 1000, 'easeInOutQuad');	
+					scrollTop: $('#'+id).offset().top
+				}, 1000, 'easeInOutQuad');
+
+				// Focus on input if class is present on source button
+				var currentClasses = event.currentTarget.activeElement.classList,
+					ccArray = [];
+				for (var i = currentClasses.length >>> 0; i--;) { 
+					ccArray[i] = currentClasses[i];
+				}
+				if( ccArray.includes("input-focus") ){
+					$('#'+id).find('input:first').focus();
+				}
 			}
 
 			if($(event.target).hasClass('all-screen-results')){
