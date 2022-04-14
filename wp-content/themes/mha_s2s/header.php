@@ -82,7 +82,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 									$args = array( 
 										'label_username' => 'Email Address',
 										'remember' => true,
-										'echo' => false
+										'echo' => false,
+										'form_id' => 'loginform-header',
 									);
 									$login_form = wp_login_form($args); 
 									$login_form = str_replace('login-username', 'login-username float-label', $login_form);
