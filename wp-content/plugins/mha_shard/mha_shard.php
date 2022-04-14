@@ -38,5 +38,8 @@ include_once 'inc/widgets.php';
 // Geo Search for WP Query
 include_once 'inc/geo-search.php';
 
+// Newsletter signups
+include_once 'inc/newsletter.php';
+
 // Admin Specific Scripts
 include_once 'inc/admin.php';
