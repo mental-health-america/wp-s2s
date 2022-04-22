@@ -7,7 +7,6 @@
      function userScreenDataUpdateLooper( results ){
 
         var res = JSON.parse(results);
-        console.log(res);
         
         if(res.error){
             // Error
@@ -27,8 +26,13 @@
                     },
                     success: function( results_2 ) {  
                         var res = JSON.parse(results_2);
-                        //$('#result-log').append(res.append);     
+                        $('#result-log').append(res.append);     
                         $('#update-user-results-submit').prop('disabled', true).val('Processing... '+res.percent+'%');	
+
+                        $('#update-screen-results-progress').slideDown();
+                        $('#update-screen-results-progress .bar').css('width', res.percent+'%');
+                        $('#update-screen-results-progress .label-number').html( res.percent );    
+
                         userScreenDataUpdateLooper( results_2 );
                     },
                     error: function(xhr, ajaxOptions, thrownError){                        
@@ -66,8 +70,12 @@
             },
             success: function( results ) {
                 var res = JSON.parse(results);
-                //$('#result-log').append(res.append);
+                $('#result-log').append(res.append);
                 $('#update-user-results-submit').val('Processing... '+res.percent+'%');	
+
+                $('#update-screen-results-progress').slideDown();
+                $('#update-screen-results-progress .bar').css('width', res.percent+'%');
+                $('#update-screen-results-progress .label-number').html( res.percent );       
                 userScreenDataUpdateLooper( results );
             },
             error: function(xhr, ajaxOptions, thrownError){                

@@ -27,7 +27,6 @@ function mhaThoughtScripts() {
     }
 }
 
-
 // List Page
 function mhathoughtexport(){
 ?>
@@ -62,18 +61,20 @@ function mhathoughtexport(){
                         <input type="text" name="export_screen_ref" id="export_screen_ref" placeholder="mhanational.org" />
                     </td>
                 </tr>
+                <!--
                 <tr>
                     <th scope="row"><label for="export_screen_spam">Exclude Suspected Spam</label></th>
                     <td>
                         <input type="checkbox" name="export_screen_spam" id="export_screen_spam" value="1" />
                     </td>
                 </tr>
+                -->
                 <tr>
                     <th scope="row"><label for="export_screen_ref">Forms</label><br /></th>
                     <td>
                         <?php 
-                            $gforms = GFAPI::get_forms(); 
-                            echo '<select name="export_screen_form">';
+                            $gforms = GFAPI::get_forms(true, false, 'title'); 
+                            echo '<select name="form_id">';
                             foreach($gforms as $gf){
                                 if (strpos(strtolower($gf['title']), 'test') !== false || strpos(strtolower($gf['title']), 'survey') !== false || strpos(strtolower($gf['title']), 'quiz') !== false) {
                                     echo '<option name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</option>';                                    
