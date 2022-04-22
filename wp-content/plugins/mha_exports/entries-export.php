@@ -91,6 +91,11 @@ function mha_export_screen_data(){
             continue; // Skip these columns
         } 
         $field_order[] = $gf['label'];
+
+        // Add custom "uid hashed" after uid
+        if($field->label == 'uid'){
+            $field_order[] = 'uid hashed';
+        }
     }
 
     // Referer filter
@@ -154,9 +159,15 @@ function mha_export_screen_data(){
                 $v = $field->get_value_export($e, $k, true);  
             }
 
-
             // Insert into array
             $temp_array[$field->label] = $v;
+
+            // extra column addition
+            if($field->label == 'uid'){
+                $uid_hashed = ($v != '') ? md5($v) : '';
+                $temp_array['uid hashed'] = $uid_hashed;
+            }
+
 
             // Count required questions with no value
             if($last_field != $current_field){

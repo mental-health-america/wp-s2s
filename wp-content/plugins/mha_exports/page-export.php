@@ -1135,9 +1135,6 @@ add_filter( 'wpe_heartbeat_allowed_pages', function( $pages ) {
 });
 
 
-// Delete Entries
-// wp gf entry delete $( wp gf entry list 1 --status=trash --format=ids ) --force
-
 /**
  * Export entries with WP CLI
  */
