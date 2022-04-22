@@ -99,7 +99,6 @@
     function screenExportDataLooper( results ){
 
         var res = JSON.parse(results);
-        console.log(res);
 
         if(res.error){
             // Error

@@ -27,8 +27,7 @@ function mha_export_screen_data(){
             'export_screen_spam'        => 0,
             'field_labels'              => '',
             'page'                      => 1,
-            'field_order'               => null,
-            'field_types'               => null,
+            'fields'                    => null,
             'filename'                  => null,
             'total'                     => null,
             'max'                       => null,
@@ -76,14 +75,11 @@ function mha_export_screen_data(){
     $gform = GFAPI::get_form( $form_id );
     $form_slug = sanitize_title_with_dashes($gform['title']);
     
-    if(!$args['field_order']){
+    if(!$args['fields']){
         // CSV headers
-        $args['field_order'] = [];
-        $args['field_order']['Date'] = 'Date';          // Manual additional field
-        $args['field_order']['User IP'] = 'User IP';    // Manual additional field
-
-        // CSV header data
-        $args['field_types'] = [];
+        $args['fields'] = [];
+        $args['fields']['Date'] = 'Date';          // Manual additional field
+        $args['fields']['User IP'] = 'User IP';    // Manual additional field
 
         foreach($gform['fields'] as $gf){  
             $field = GFAPI::get_field( $form_id, $gf['id'] );
@@ -96,22 +92,19 @@ function mha_export_screen_data(){
             } 
 
             // Set field order
-            $args['field_order'][] = $gf['label']; // Default header options
-        
             // Update field type data
-            $args['field_types'][$gf['id']] = array(
+            $args['fields'][$gf['id']] = array(
                 'type' => $gf['type'],
                 'label' => $gf['label']
             );
             if($gf['type'] == 'radio' || $gf['type'] == 'checkbox'){
                 $model = RGFormsModel::get_field( $form_id, $gf['id'] );
-                $args['field_types'][$gf['id']]['model'] = $model['choices'];
+                $args['fields'][$gf['id']]['model'] = $model['choices'];
             }
 
             // Custom columns
             if($field->label == 'uid'){ 
-                $args['field_order'][] = 'uid hashed'; 
-                $args['field_types']['uid hashed'] = array(
+                $args['fields']['uid hashed'] = array(
                     'type' => 'mha_custom',
                     'label' => 'uid hashed'
                 );
@@ -155,20 +148,20 @@ function mha_export_screen_data(){
         $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");     
         $temp_array['User IP'] = $gfdata['ip'];    
         
-        foreach($args['field_types'] as $ftk => $ftv){
+        foreach($args['fields'] as $ftk => $ftv){
             $v = rgar( $e, $ftk, '' );
             if( $ftv['type'] == 'radio' || $ftv['type'] == 'radio' ){
-                foreach($args['field_types'][$ftk]['model'] as $model){
+                foreach($args['fields'][$ftk]['model'] as $model){
                     if($model['value'] == $v){
                         $v = $model['text'];
                     }
                 }
-                $temp_array[ $args['field_types'][$ftk]['label'] ] = $v;    
+                $temp_array[ $args['fields'][$ftk]['label'] ] = $v;    
             } else {
                 if ($ftv['label'] == 'uid hashed' ) {
                     $temp_array[ 'uid hashed' ] = md5($e['uid']);
                 } else {
-                    $temp_array[ $args['field_types'][$ftk]['label'] ] = $v;
+                    $temp_array[ $args['fields'][$ftk]['label'] ] = $v;
                 }
             }
         }
@@ -187,7 +180,7 @@ function mha_export_screen_data(){
 
         // Reorder our fields based on how they appear on the form and add the row
         if(!empty($temp_array)){
-            foreach($args['field_order'] as $key){  
+            foreach($args['fields'] as $key){  
                 $csv_data[$i][$key] = $temp_array[$key]; 
             }
             $i++;
