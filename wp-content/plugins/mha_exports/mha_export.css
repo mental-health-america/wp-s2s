@@ -1,5 +1,6 @@
 #user-exports-progress,
 #screen-exports-progress,
+#update-screen-results-progress,
 #aggregate-progress,
 #nonaggregate-progress {
     width: 401px;
@@ -10,6 +11,7 @@
 
 #user-exports-progress .bar-wrapper,
 #screen-exports-progress .bar-wrapper,
+#update-screen-results-progress .bar-wrapper,
 #aggregate-progress .bar-wrapper,
 #nonaggregate-progress .bar-wrapper {
     position: relative;
@@ -19,6 +21,7 @@
 }
 #user-exports-progress .bar,
 #screen-exports-progress .bar,
+#update-screen-results-progress .bar,
 #aggregate-progress .bar,
 #nonaggregate-progress .bar {
     position: absolute;

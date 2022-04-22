@@ -96,9 +96,10 @@
      * Screening Data Export
      */
 
-     function screenExportDataLooper( results ){
+    function screenExportDataLooper( results ){
 
         var res = JSON.parse(results);
+        console.log(res);
 
         if(res.error){
             // Error
@@ -107,25 +108,13 @@
             
             if(res.next_page != ''){
 
-                // Continue Paging
-                var args_2 = 'page=' + res.next_page;
-                    args_2 += '&filename=' + res.filename;
-                    args_2 += '&export_screen_start_date=' + res.export_screen_start_date;
-                    args_2 += '&export_screen_end_date=' + res.export_screen_end_date;
-                    args_2 += '&export_screen_ref=' + res.export_screen_ref;
-                    args_2 += '&export_screen_form=' + res.export_screen_form;
-                    args_2 += '&export_screen_duplicates=' + res.export_screen_duplicates;
-                    args_2 += '&export_screen_spam=' + res.export_screen_spam;
-                    args_2 += '&elapsed_start=' + res.elapsed_start;
-                    args_2 += '&all_forms=' + res.all_forms;
-                    //args_2 += '&field_labels=' + res.field_labels;
-
                 $.ajax({
                     type: "POST",
                     url: do_mhaThoughts.ajaxurl,
                     data: { 
                         action: 'mha_export_screen_data',
-                        data: args_2
+                        data: res,
+                        start: 0
                     },
                     success: function( results_2 ) {  
                         var res = JSON.parse(results_2);
@@ -172,11 +161,6 @@
         // Form fields args
         var args = $('#mha-all-screen-exports').serialize();
 
-        // All forms override
-        if(params.all_forms){
-            args += '&all_forms=' + params.all_forms;
-        }
-
         $('#export_screen_link').prop('disabled', true).text('Processing...');
         $('#screen-exports-progress .bar').css('background-color', '');
         $('#screen-exports-progress .label-number').html( 'Calculating...' );  
@@ -187,7 +171,8 @@
             url: do_mhaThoughts.ajaxurl,
             data: { 
                 action: 'mha_export_screen_data',
-                data: args
+                data: args,
+                start: 1
             },
             success: function( results ) {
                 
@@ -214,22 +199,8 @@
     }
 
     $(document).on("submit", '#mha-all-screen-exports', function(event){
-        
-        // Disable default form submit
         event.preventDefault();
-
-        var all_forms = [];
-        if($('select[name="export_screen_form"]').val() == 'all'){
-            var form_ids = [];
-            $('select[name="export_screen_form"] option').each(function() {
-                if($(this).val() != 'all'){
-                    form_ids.push($(this).val());
-                }
-            });
-            all_forms['all_forms'] = JSON.stringify(form_ids);
-        }
-        screenExportDataStart( all_forms );        
-
+        screenExportDataStart();    
     });
 
 
@@ -327,7 +298,6 @@
     function userExportLooper( results ){
 
         var res = JSON.parse(results);
-        console.log(res);
             
         if(res.error){
             // Error
@@ -389,7 +359,6 @@
                 data: args + '&paged=0'
             },
             success: function( results ) {
-                console.log(results);
                 if(results){
                     var res = JSON.parse(results);
                     if(res.error){
