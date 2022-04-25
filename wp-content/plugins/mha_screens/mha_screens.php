@@ -687,9 +687,19 @@ function updateUserScreenResults( $options ){
 
         }
 
+
         // Update the entry if the fields were empty
         if($user_score || $user_result || $sub_score_1 || $sub_score_2 || $sub_score_3 || $duplicate){
+
+            if(isset($entry['created_by']) && $entry['created_by'] != ''){
+                $created_by = $entry['created_by'];
+            } else {
+                $created_by = null;
+            }
+
             $result = GFAPI::update_entry( $entry );
+            $result_2 = GFAPI::update_entry_property( $entry['id'], 'created_by', $created_by );
+
             return true;
         }
 

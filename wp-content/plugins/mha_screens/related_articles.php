@@ -12,6 +12,7 @@
             'espanol'            => '',
             'iframe_var'         => '',
             'partner_var'        => '',
+            'total'              => 20,
         );            
         $exclude_id = [];
         $args = wp_parse_args( $args, $defaults );
@@ -75,7 +76,7 @@
             } else {
                 $total_exclude = 0;
             }
-            $total_recs = 20 - $total_exclude;
+            $total_recs = $args['total'] - $total_exclude;
             $loop_args = array(
                 "post_type" => 'article',
                 "order"	=> 'ASC',
