@@ -79,7 +79,7 @@
                         $('#aggregate-progress .label-number').html( res.percent );        
                         aggregateLooper( results );    
                     }
-                } else {                    
+                } else {               
                     alert('No data available for this query. Please refresh this page and try again.');
                 }
                 
@@ -99,10 +99,13 @@
     function screenExportDataLooper( results ){
 
         var res = JSON.parse(results);
+        console.log(res);
 
         if(res.error){
+
             // Error
-            $('#screen-export-error').html(res.error);            
+            $('#screen-export-error').html(res.error);        
+
         } else {
             
             if(res.next_page != ''){
@@ -134,20 +137,16 @@
                 $('#export_screen_link').prop('disabled', false).text('Download');	
                 $('#screen-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
                 
-                if(res.all_forms){
-                    var all_forms_array = JSON.parse(res.all_forms);
-                    if(Object.keys(all_forms_array).length > 0 && res.all_forms_continue == 1){                    
-                        var continue_params = [];
-                            continue_params['all_forms'] = res.all_forms;
-                        screenExportDataStart( continue_params );                    
-                        $('#screen-exports-progress .bar').css('width', '0%');
-                        $('#screen-exports-progress .bar').css('background-color', '');
-                        $('#screen-exports-progress .label-number').html( 'Calculating...' );   
-                    } else {       
-                        $('#screen-exports-progress .bar').css('width', '100%');
-                        $('#screen-exports-progress .bar').css('background-color', '#f89941');
-                        $('#screen-exports-download').slideDown().append('<li>Done!</li>');
-                    }
+                if(res.all_forms_continue == 1){    
+                    $('input[name="all_forms"]').val(res.all_forms);
+                    screenExportDataStart( 1 );                    
+                    $('#screen-exports-progress .bar').css('width', '0%');
+                    $('#screen-exports-progress .bar').css('background-color', '');
+                    $('#screen-exports-progress .label-number').html( 'Calculating...' );   
+                } else {       
+                    $('#screen-exports-progress .bar').css('width', '100%');
+                    $('#screen-exports-progress .bar').css('background-color', '#f89941').removeClass('loading');
+                    $('#screen-exports-download').slideDown().append('<li>Done!</li>');
                 }
 
             }
@@ -155,13 +154,40 @@
         }
     }
 
-    function screenExportDataStart( params ){
+    function screenExportDataStart( all_loop_checker = null ){
+
+        console.log('Loop Checker', all_loop_checker);
         
-        // Form fields args
+        // All Forms loop check
+        if(all_loop_checker == 1){
+            
+            var all_forms = $('input[name="all_forms"]').val(),
+                form_ids = all_forms.split(',');
+
+            $('input[name="form_id"]').val( form_ids.shift() );
+            $('input[name="all_forms"]').val( form_ids.join() );  
+
+        } else {
+            
+            if($('.form-checkboxes:checked').length > 1){
+                // Start of a multi form export
+                var form_ids = new Array();
+                $('.form-checkboxes:checked').each(function(e){
+                    form_ids.push( $(this).val() );
+                });
+                $('input[name="form_id"]').val( form_ids.shift() );
+                $('input[name="all_forms"]').val( form_ids.join() );
+            } else {
+                // Single checkbox checked
+                $('input[name="form_id"]').val( $('.form-checkboxes:checked').val() );
+            }
+            
+        }
+
         var args = $('#mha-all-screen-exports').serialize();
 
         $('#export_screen_link').prop('disabled', true).text('Processing...');
-        $('#screen-exports-progress .bar').css('background-color', '');
+        $('#screen-exports-progress .bar').css('background-color', '').addClass('loading');
         $('#screen-exports-progress .label-number').html( 'Calculating...' );  
         $('#screen-export-error').html('');
 
@@ -185,8 +211,12 @@
                         $('#screen-exports-progress .label-number').html( res.percent );   
                         screenExportDataLooper( results );
                     }
-                } else {                    
-                    alert('No data available for this query. Please refresh this page and try again.');
+                } else {                
+                    $('#screen-exports-progress').slideDown();
+                    $('#screen-exports-progress .bar').css('width', '100%');
+                    $('#screen-exports-progress .bar').css('background-color', '#ed5d66').removeClass('loading');
+                    $('#screen-exports-progress .label-number').html( '100' );   
+                    $('#screen-exports-download').slideDown().append('<li>No data available for this query.</li>');
                 }
 
             },

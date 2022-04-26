@@ -70,20 +70,16 @@ function mhathoughtexport(){
                 </tr>
                 -->
                 <tr>
-                    <th scope="row"><label for="export_screen_ref">Forms</label><br /></th>
+                    <th scope="row"><label for="export_screen_ref">Form(s)</label><br /></th>
                     <td>
                         <?php 
                             $gforms = GFAPI::get_forms(true, false, 'title'); 
-                            echo '<select name="form_id">';
                             foreach($gforms as $gf){
                                 if (strpos(strtolower($gf['title']), 'test') !== false || strpos(strtolower($gf['title']), 'survey') !== false || strpos(strtolower($gf['title']), 'quiz') !== false) {
-                                    echo '<option name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</option>';                                    
-                                    // Multiple Checkbox. TODO: Simply too much data for great exports, try again another time?
-                                    //echo '<label for="gform-'.$gf['id'].'"><input id="gform-'.$gf['id'].'" type="checkbox" name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</label><br />';
+                                    //echo '<option name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</option>';                                    
+                                    echo '<p><label><input type="checkbox" name="form_ids" class="form-checkboxes" value="'.$gf['id'].'"> '.$gf['title'].'</label></p>';                                    
                                 }
                             }
-                            echo '<option name="gform[]" value="all" />[All] Export All Forms</option>';
-                            echo '</select>'
                         ?>
                     </td>
                 </tr>
@@ -91,6 +87,8 @@ function mhathoughtexport(){
                     <td colspan="2">
 
                         <p>
+                            <input type="hidden" name="form_id" value="" />
+                            <input type="hidden" name="all_forms" value="" />
                             <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
                             <input type="submit" class="button button-primary" id="export_screen_link"  value="Download Screening Data">
                         </p>

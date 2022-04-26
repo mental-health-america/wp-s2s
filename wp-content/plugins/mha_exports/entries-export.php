@@ -8,21 +8,19 @@ use League\Csv\Reader;
 
 add_action( 'wp_ajax_mha_export_screen_data', 'mha_export_screen_data' );
 function mha_export_screen_data(){
-    
+
 	// General variables
     $timezone = new DateTimeZone('America/New_York');
-    $loop_check = intval($_POST['start']);
 	
     // Prep our post data args
-    if($loop_check == 1){
+    if(intval($_POST['start']) == 1){
 
         // For the first pass, set our defaults
         $defaults = array(
             'form_id'                   => null,
-            'all_forms'                 => null,
             'nonce'                     => null,
-            'export_screen_start_date'  => null,
-            'export_screen_end_date'    => null,
+            'export_screen_start_date'  => date('Y-m', strtotime('now - 1 month')).'-01',
+            'export_screen_end_date'    => date('Y-m-t', strtotime('now - 1 month')),
             'export_screen_ref'         => null,
             'export_screen_spam'        => 0,
             'field_labels'              => '',
@@ -36,30 +34,17 @@ function mha_export_screen_data(){
             'elapsed_start'             => null,
             'elapsed_end'               => null,
             'total_elapsed_time'        => null,
-            'download'                  => null,
-            'all_forms'                 => null,
-            'all_forms_continue'        => null
+            'download'                  => null
         );    
         parse_str( $_POST['data'], $data);
         $args = wp_parse_args( $data, $defaults );  
-
+        
     } else {        
 
         // For loops, just use the data given
         $args = stripslashes_deep($_POST['data']);
         
     }
-
-    // Form ID Determination
-    $form_id = $args['form_id'];    
-
-    // All forms override
-    if($args['all_forms']){
-        $all_forms = json_decode(stripslashes($args['all_forms']), true);
-        $form_id = $all_forms[0];
-        $args['all_forms'] = $args['all_forms'];
-    }
-
     // Pagination
     $page_size = 1500;
     $offset = ($args['page'] - 1) * $page_size;
@@ -72,17 +57,27 @@ function mha_export_screen_data(){
     $search_criteria['end_date'] = $args['export_screen_end_date'];
     
     // Get field order/headers for later
-    $gform = GFAPI::get_form( $form_id );
+    $gform = GFAPI::get_form( $args['form_id'] );
     $form_slug = sanitize_title_with_dashes($gform['title']);
     
     if(!$args['fields']){
         // CSV headers
         $args['fields'] = [];
-        $args['fields']['Date'] = 'Date';          // Manual additional field
-        $args['fields']['User IP'] = 'User IP';    // Manual additional field
+
+        // Manual additional field
+        $args['fields']['Date'] = array(
+            'type' => 'mha_custom',
+            'key' => 'Data',
+            'label' => 'Date'
+        );          
+        $args['fields']['User IP'] = array(
+            'type' => 'mha_custom',
+            'key' => 'User IP',
+            'label' => 'User IP'
+        );
 
         foreach($gform['fields'] as $gf){  
-            $field = GFAPI::get_field( $form_id, $gf['id'] );
+            $field = GFAPI::get_field( $args['form_id'], $gf['id'] );
             if(
                 isset($field->type) && $field->type == 'html' || 
                 isset($field->label) && $field->label == 'Screen ID' || 
@@ -95,10 +90,11 @@ function mha_export_screen_data(){
             // Update field type data
             $args['fields'][$gf['id']] = array(
                 'type' => $gf['type'],
+                'key' => $gf['id'],
                 'label' => $gf['label']
             );
             if($gf['type'] == 'radio' || $gf['type'] == 'checkbox'){
-                $model = RGFormsModel::get_field( $form_id, $gf['id'] );
+                $model = RGFormsModel::get_field( $args['form_id'], $gf['id'] );
                 $args['fields'][$gf['id']]['model'] = $model['choices'];
             }
 
@@ -106,6 +102,7 @@ function mha_export_screen_data(){
             if($field->label == 'uid'){ 
                 $args['fields']['uid hashed'] = array(
                     'type' => 'mha_custom',
+                    'key' => $field->id,
                     'label' => 'uid hashed'
                 );
             }
@@ -130,7 +127,7 @@ function mha_export_screen_data(){
     // Get form entries
     $paging = array( 'offset' => $offset, 'page_size' => $page_size );
     $total_count = 0;
-    $entries = GFAPI::get_entries( $form_id, $search_criteria, null, $paging, $total_count );
+    $entries = GFAPI::get_entries( $args['form_id'], $search_criteria, null, $paging, $total_count );
     $search_criteria['total_count_real'] = $total_count;
     $csv_data = [];
     $i = 0;
@@ -140,13 +137,9 @@ function mha_export_screen_data(){
         $gfdata = GFAPI::get_entry( $e['id'] );
         $temp_array = [];
         $spam_check = 0;
-        $last_field = '';
 
         $row_date = new DateTime($gfdata['date_created']);
         $row_date->setTimezone($timezone);
-        //$temp_array['Item Counter'] = $i;
-        $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");     
-        $temp_array['User IP'] = $gfdata['ip'];    
         
         foreach($args['fields'] as $ftk => $ftv){
             $v = rgar( $e, $ftk, '' );
@@ -155,16 +148,14 @@ function mha_export_screen_data(){
                     if($model['value'] == $v){
                         $v = $model['text'];
                     }
-                }
-                $temp_array[ $args['fields'][$ftk]['label'] ] = $v;    
-            } else {
-                if ($ftv['label'] == 'uid hashed' ) {
-                    $temp_array[ 'uid hashed' ] = md5($e['uid']);
-                } else {
-                    $temp_array[ $args['fields'][$ftk]['label'] ] = $v;
-                }
+                } 
             }
+            $temp_array[ $args['fields'][$ftk]['label'] ] = $v;
         }
+
+        $temp_array['uid hashed'] = $temp_array['uid'] ? md5($temp_array['uid']) : '';
+        $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");     
+        $temp_array['User IP'] = $gfdata['ip'];    
 
         // Spam check
         /*
@@ -180,9 +171,9 @@ function mha_export_screen_data(){
 
         // Reorder our fields based on how they appear on the form and add the row
         if(!empty($temp_array)){
-            foreach($args['fields'] as $key){  
-                $csv_data[$i][$key] = $temp_array[$key]; 
-            }
+            foreach($args['fields'] as $k => $v){  
+                $csv_data[$i][$v['label']] = $temp_array[$v['label']]; 
+            }            
             $i++;
         }
 
@@ -201,6 +192,7 @@ function mha_export_screen_data(){
         $args['next_page'] = $args['page'] + 1;
     }  
 
+    
 
     /**
      * Elapsed Time
@@ -210,7 +202,15 @@ function mha_export_screen_data(){
     } else {
         $args['elapsed_start'] = time();
     }
-
+    
+    if(count($csv_data) == 0){
+        $args['download'] = '#';   
+        $args['filename'] = '';
+        $args['elapsed_end'] = time();
+        echo json_encode($args);
+        exit();           
+    }
+    
     /**
      * Write CSV
      */
@@ -237,15 +237,12 @@ function mha_export_screen_data(){
             $args['elapsed_end'] = time();
             $interval = $args['elapsed_end'] - $args['elapsed_start'];
             $args['total_elapsed_time'] = gmdate("H:i:s", abs($interval));
+
             
-            // All Forms Continuation
-            if(isset($args['all_forms']) && count($all_forms) > 0){    
-                $cut_form = array_shift($all_forms);
-                $args['all_forms'] = json_encode($all_forms, JSON_UNESCAPED_SLASHES);
+
+            // All forms override
+            if($args['all_forms']) {
                 $args['all_forms_continue'] = 1;
-            } else {
-                $args['all_forms'] = null;
-                $args['all_forms_continue'] = null;
             }
 
         }
@@ -272,6 +269,12 @@ function mha_export_screen_data(){
         $args['error'] = $e->getRecords();
     }
 
+    // All Forms Continuation
+    if(isset($args['all_forms']) && count($args['all_forms']) == 0){    
+        $args['all_forms'] = null;
+        $args['all_forms_continue'] = null;
+    }
+    
     $args['page'] = $args['next_page']; // Set the loops next page
 
     echo json_encode($args);
