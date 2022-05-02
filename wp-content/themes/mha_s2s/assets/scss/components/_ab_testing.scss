@@ -1,0 +1,171 @@
+/** General Layout Hiding/Showing **/
+
+$letters: a b c d e f g h i j k l m n o p q r s t u v w x y z;
+
+.layout-action { display: none; }
+
+@each $letter in $letters {
+    body.layout-actions_#{$letter} {  
+
+        .hide-actions_#{$letter} { 
+            display: none; 
+        }
+
+        .show-actions_#{$letter} { 
+            display: inherit; 
+            &.layout-action { display: inherit; }
+        }
+        
+    }    
+}
+
+
+/** Article Specific Layouts **/
+
+// First Media embed
+body.layout-actions_ah_media {
+    .article--introductory_content iframe:first-of-type { display: none !important; }
+}
+
+// Related Topics
+body.layout-actions_ah_topics {
+    #article--related-topics_desktop,
+    #article--related-topics_mobile { display: none !important; }
+}
+
+// Related Articles
+body.layout-actions_ah_articles {
+    #article--related-articles_desktop,
+    #article--related-articles_mobile { display: none !important; }
+}
+
+// Related Tests
+body.layout-actions_ah_test {
+    #article--test_desktop,
+    #article--test_mobile { display: none !important; }
+}
+
+// Actions (e.g. Save)
+body.layout-actions_ah_actions {
+    #article--actions_desktop,
+    #article--actions_mobile { display: none !important; }
+}
+
+// Reading Path
+body.layout-actions_ah_path {
+    #article--reading-path { display: none !important; }
+}
+
+// Hide entire sidebar
+body.layout-actions_ah_sidebar {
+    .article-right,
+    #article--actions_desktop,
+    #article--actions_mobile { display: none !important; }
+}
+
+
+/** Low Contrast Bubbles **/
+
+body.layout-light {
+
+    // Article Columns
+    .article-right {
+
+        .bubble {       
+
+            // Raspberry
+            &.raspberry {
+                background: rgba(251,221,230,.55);
+                color: $raspberry;
+                h1,
+                h2,
+                h3,
+                h4 {
+                    color: $raspberry;
+                }
+                a {
+                    color: $raspberry;
+                    &:visited {
+                        color: $raspberry;
+                    }
+                }
+            }
+
+            // Coral
+            &.coral {
+                background: $redLight;
+                color: $coral;
+                font-weight: 700;
+                h1,
+                h2,
+                h3,
+                h4 {
+                    color: $coral;
+                }
+                &.bubble-border {
+                    border-color: transparent;
+                }
+                a {
+                    color: $coral;
+                    &:visited {
+                        color: $coral;
+                    }
+                }
+            }
+
+            // Dark Blue
+            &.dark-blue {
+                background: $ceruleanPale;
+                color: $cerulean;
+                font-weight: 700;
+                h1,
+                h2,
+                h3,
+                h4 {
+                    color: $cerulean;
+                }
+                &.bubble-border {
+                    border-color: transparent;
+                }
+                a {
+                    color: $cerulean;
+                    &:visited {
+                        color: $cerulean;
+                    }
+                }
+            }
+
+            // Dark Blue
+            &.orange {
+                background: rgba(255,238,222,.5);
+                color: $orangeDark;
+                font-weight: 700;
+                h1,
+                h2,
+                h3,
+                h4 {
+                    color: $orange;
+                }
+                &.bubble-border {
+                    border-color: transparent;
+                }
+                a {
+                    color: $orange;
+                    &:visited {
+                        color: $orange;
+                    }
+                }
+                .button.white {
+                    color: $white;
+                    background: $orange;
+                    &:hover {
+                        background: $blueDark;
+                    }
+                }
+            }
+
+        }
+
+    }
+
+}

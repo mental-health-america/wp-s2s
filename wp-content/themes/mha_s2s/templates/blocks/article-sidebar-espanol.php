@@ -1,3 +1,8 @@
+<?php
+    // Placement addendum for desktop/mobile
+    $placement = $args['placement'] ? '_'.$args['placement'] : '';
+?>
+
 <div class="sticky">
 <div class="inner-sidebar pb-4">
 
@@ -39,7 +44,7 @@
 
     if($terms_all):
     ?>
-        <div class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4">
+        <div id="article--related-articles<?php echo $placement; ?>" class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4">
         <div class="inner">
                     
             <?php 
@@ -131,7 +136,7 @@
         $counter = 0;
         if($loop->have_posts()):
         ?>     
-            <div class="bubble orange thin round-big-tl mb-4">
+            <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4">
             <div class="inner">    
                 <?php 
                     while($loop->have_posts()) : $loop->the_post();

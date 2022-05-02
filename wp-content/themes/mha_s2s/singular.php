@@ -97,7 +97,7 @@ get_header();
 					</p>
 					<?php endif; ?>
 
-					<div class="bubble round-tl <?php echo $bubble_color; ?> mb-5 bubble-border path-container mt-5" role="complementary">
+					<div id="article--reading-path" class="bubble round-tl <?php echo $bubble_color; ?> mb-5 bubble-border path-container mt-5" role="complementary">
 					<div class="inner">
 
 						<?php 

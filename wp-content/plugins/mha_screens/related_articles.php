@@ -13,18 +13,26 @@
             'iframe_var'         => '',
             'partner_var'        => '',
             'total'              => 20,
+            'skip'               => 0,
+            'style'              => 'text',
+            'hide_all'           => false
         );            
         $exclude_id = [];
+        $list_items = [];
         $args = wp_parse_args( $args, $defaults );
         $user_screen_result = $args['user_screen_result'];
 
-        echo '<ol class="next-steps">';
+        $list_link_class = ($args['style'] == 'button') ? 'button green thin round mr-3 mb-3' : 'dark-gray plain';
+
+        if($args['style'] != 'button'){
+            echo '<ol class="next-steps">';
+        }
             
             /**
              * Demo Based Steps
              */
             foreach($args['demo_steps'] as $link){
-                echo '<li><a class="dark-gray plain rec-screen-demobased" href="'.get_the_permalink($link->ID).'">'.$link->post_title.'</a>';
+                $list_items[] = '<a class="'.$list_link_class.' rec-screen-demobased" href="'.get_the_permalink($link->ID).'">'.$link->post_title.'</a>';
             }
 
             /**
@@ -41,7 +49,7 @@
                     $step_link_target = ' target="_blank"';
                 }
                 if(!in_array($step, $args['exclude_ids'])){
-                    echo '<li><a class="dark-gray plain rec-result-manual"'.$step_link_target.' href="'.$step_link.'">'.get_the_title($step).'</a></li>';
+                    $list_items[] = '<a class="'.$list_link_class.' rec-result-manual"'.$step_link_target.' href="'.$step_link.'">'.get_the_title($step).'</a>';
                     $exclude_id[] = $step;
                 }
             }
@@ -62,7 +70,7 @@
                         //$manual_step_link = add_query_arg( 'iframe','true', $manual_step_link );
                         $manual_step_target = ' target="_blank"';
                     }
-                    echo '<li><a class="dark-gray plain rec-screen-manual"'.$manual_step_target.' href="'.$manual_step_link.'">'.$step->post_title.'</a></li>';
+                    $list_items[] = '<a class="'.$list_link_class.' rec-screen-manual"'.$manual_step_target.' href="'.$manual_step_link.'">'.$step->post_title.'</a>';
                     $exclude_id[] = $step->ID;
                 }
             endwhile;        
@@ -169,29 +177,49 @@
                     $related_link_target = ' target="_blank"';
                 }
                 if(!in_array(get_the_ID(), $args['exclude_ids'])){
-                    echo '<li><a class="dark-gray plain rec-auto"'.$related_link_target.' href="'.$related_link.'">'.get_the_title().'</a></li>';
+                    $list_items[] = '<a class="'.$list_link_class.' rec-auto"'.$related_link_target.' href="'.$related_link.'">'.get_the_title().'</a>';
                 }
             endwhile;
 
-            // See All Link
-            if(get_field('see_all_link', $user_screen_result['screen_id'])){
-                $see_all_text = 'See All';
-                $see_all_link = get_field('see_all_link', $user_screen_result['screen_id']);
-                $see_all_target = '';
-                if(get_field('see_all_link_text', $user_screen_result['screen_id'])){
-                    $see_all_text = get_field('see_all_link_text', $user_screen_result['screen_id']);
+            // Print all the items
+            $i = 1;
+            foreach($list_items as $item){
+                // Skip items if its set
+                if($args['skip'] > 0 && $i <= $args['skip']){
+                    $i++;
+                    continue;
                 }
-                if($args['partner_var'] && in_array($args['partner_var'], mha_approved_partners() )){                                    
-                    //$see_all_link = add_query_arg( 'partner', $args['partner_var'], $see_all_link );
-                }
-                if($args['iframe_var']){                                         
-                    //$see_all_link = add_query_arg( 'iframe','true', $see_all_link );
-                    $see_all_target = ' target="_blank"';
-                }
-                echo '<li><a class="caps cerulean plain"'.$see_all_target.' href="'.$see_all_link.'">'.$see_all_text.'</a></li>';
+
+                if($args['style'] != 'button'){ echo '<li>'; }
+                echo $item;
+                if($args['style'] != 'button'){ echo '</li>'; }
+
+                $i++;
             }
+
+            // See All Link
+            if($args['hide_all'] === false):
+                if(get_field('see_all_link', $user_screen_result['screen_id'])){
+                    $see_all_text = 'See All';
+                    $see_all_link = get_field('see_all_link', $user_screen_result['screen_id']);
+                    $see_all_target = '';
+                    if(get_field('see_all_link_text', $user_screen_result['screen_id'])){
+                        $see_all_text = get_field('see_all_link_text', $user_screen_result['screen_id']);
+                    }
+                    if($args['partner_var'] && in_array($args['partner_var'], mha_approved_partners() )){                                    
+                        //$see_all_link = add_query_arg( 'partner', $args['partner_var'], $see_all_link );
+                    }
+                    if($args['iframe_var']){                                         
+                        //$see_all_link = add_query_arg( 'iframe','true', $see_all_link );
+                        $see_all_target = ' target="_blank"';
+                    }
+                    echo '<a class="caps cerulean plain"'.$see_all_target.' href="'.$see_all_link.'">'.$see_all_text.'</a>';
+                }
+            endif;
         
-            echo '</ol>';
+            if($args['style'] != 'button'){
+                echo '</ol>';
+            }
 
         return;
 

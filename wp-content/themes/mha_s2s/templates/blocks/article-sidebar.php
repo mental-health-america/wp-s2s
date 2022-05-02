@@ -1,3 +1,8 @@
+<?php
+    // Placement addendum for desktop/mobile
+    $placement = $args['placement'] ? '_'.$args['placement'] : '';
+?>
+
 <div class="sticky">
 <div class="inner-sidebar pb-4">
 
@@ -64,7 +69,7 @@
 
     if($terms_all):
     ?>
-        <div class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4">
+        <div id="article--related-topics<?php echo $placement; ?>" class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4">
         <div class="inner">
                         
             <h4>Related Topics</h4>
@@ -179,7 +184,7 @@
                 $loop = new WP_Query($args);
                 if($loop->have_posts()):
                 ?>
-                    <div class="bubble orange thin round-big-tl mb-4">
+                    <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4">
                     <div class="inner">
                     <?php while($loop->have_posts()) : $loop->the_post(); ?> 
                         <?php
@@ -191,7 +196,7 @@
                         ?>                         
                         <?php the_title('<h4>Take a'.$an_a,'</h4>'); ?>   
                         <div class="excerpt thin"><?php the_excerpt(); ?></div>
-                        <div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
+                        <div class="text-center pb-0"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
                     <?php endwhile; ?>
                     </div>
                     </div>
@@ -236,7 +241,7 @@
                 $loop = new WP_Query($args);
                 if($loop->have_posts()):
                 ?>
-                    <div class="bubble orange thin round-big-tl mb-4 hide-mobile">
+                    <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4 hide-mobile">
                     <div class="inner">
                     <?php while($loop->have_posts()) : $loop->the_post(); ?>    
                         <?php
@@ -248,7 +253,7 @@
                         ?>                            
                         <?php the_title('<h4>Take a'.$an_a,'</h4>'); ?>   
                         <div class="excerpt"><?php the_excerpt(); ?></div>
-                        <div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
+                        <div class="text-center pb-0"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
                     <?php endwhile; ?>
                     </div>
                     </div>
@@ -256,6 +261,28 @@
                 $has_screen_cta++;
                 endif;
                 wp_reset_query();
+
+            } else {
+                /*
+                ?>
+                <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4 hide-mobile">
+                <div class="inner">
+                <?php while($loop->have_posts()) : $loop->the_post(); ?>    
+                    <?php
+                        $an_a = ' '; 
+                        $title = get_the_title();
+                        if($title[0] == 'A'){
+                            $an_a = 'n ';
+                        }
+                    ?>                            
+                    <?php the_title('<h4>Take a Mental Health Test</h4>'); ?>   
+                    <div class="excerpt"><?php echo get_field('hero_introduction', 36); ?></div>
+                    <div class="text-center pb-3"><a href="/screening-tools/" class="button white round text-orange">Take a Mental Health Test</a></div>
+                <?php endwhile; ?>
+                </div>
+                </div>
+                <?php
+                */
             }
 
         }
@@ -384,7 +411,7 @@
                 }
             ?>
 
-                <div class="bubble <?php echo $related_color; ?> thin round-big-tl mb-4">
+                <div id="article--related-articles<?php echo $placement; ?>" class="bubble <?php echo $related_color; ?> thin round-big-tl mb-4">
                 <div class="inner">                        
                     <h4>Related Articles</h4>
                     <?php 

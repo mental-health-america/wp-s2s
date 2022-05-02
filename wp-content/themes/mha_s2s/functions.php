@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220324_2' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
 	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20220225', 'print' );
@@ -219,12 +219,24 @@ if ( ! function_exists( 'wp_body_open' ) ) {
  * Custom Body Classes
  */
 function wp_body_classes( $classes ) {
+
+	// Iframe mode classes
 	if(isset($_GET['iframe']) && $_GET['iframe'] == 'true'){
 		$classes[] = 'iframe-mode';
 	}      
+
+	// Partner classes
 	$partner_var = get_query_var('partner');
 	if(isset($_GET['partner']) && in_array($partner_var, mha_approved_partners() )){
 		$classes[] = 'partner-'.$partner_var;
+	}     
+	
+	// Layout classes
+	if(isset($_GET['layout'])){
+		$layout_classes = get_layout_array( get_query_var('layout') );
+		foreach($layout_classes as $l){
+			$classes[] = 'layout-'.$l;
+		}
 	}      
     return $classes;
 }
@@ -268,6 +280,25 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
 	
     return $input;
 }
+
+
+/**
+ * Hash the UID field if its an email address
+ */
+/*
+add_filter( 'gform_pre_render', 'mha_screening_uid_hash' );
+function mha_screening_uid_hash( $form ) {
+    foreach( $form['fields'] as &$field )  {
+		if ( strtolower($field->label) == 'uid' ) {
+			if(strpos($_POST['input_'.$field->id], '@') !== false){
+				$_POST['input_'.$field->id] = md5( $_POST[$input]);
+			}
+			continue;
+		}
+    }
+    return $form;
+}
+*/
 
 
 

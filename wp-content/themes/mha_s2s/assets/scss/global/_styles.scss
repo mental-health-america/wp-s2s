@@ -219,41 +219,47 @@ input[type="button"] {
     &.cerulean {
         background: $cerulean;
         color: $white;
-        &:focus,
-        &:hover {
-            background-color: $orange;
-        }
         .site-content &:visited,
         &:visited {
             color: $white;
         } 
+        .site-content &.button:hover,
+        &.button:hover,
+        &:focus,
+        &:hover {
+            background-color: $orange;
+        }
     }
 
     &.navy {
         background: $blue;
         color: $white;
-        &:focus,
-        &:hover {
-            background-color: $orange;
-        }
         .site-content &:visited,
         &:visited {
             color: $white;
         } 
+        .site-content &.button:hover,
+        &.button:hover,
+        &:focus,
+        &:hover {
+            background-color: $orange;
+        }
     }
 
     &.red {
         background: $red;
         color: $white;
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
+        .site-content &.button:hover,
+        &.button:hover,
         &.active,
         &:focus,
         &:hover {
             background-color: $blueDark;
         }
-        .site-content &:visited,
-        &:visited {
-            color: $white;
-        } 
     }
 
     &.mint {
@@ -263,6 +269,8 @@ input[type="button"] {
         &:visited {
             color: $blueDark;
         } 
+        .site-content &.button:hover,
+        &.button:hover,
         &.active,
         &:focus,
         &:hover,
@@ -275,47 +283,53 @@ input[type="button"] {
     &.gray {
         color: $blueDark;
         background: $grayLight;
+        .site-content &:visited,
+        &:visited {
+            color: $blueDark;
+        } 
+        .site-content &.button:hover,
+        &.button:hover,
         &.active,
         &:focus,
         &:hover {
             color: $white;
             background-color: $blueDark;
         }
-        .site-content &:visited,
-        &:visited {
-            color: $blueDark;
-        } 
     }
 
     &.teal,
     &.green {
         color: $white;
         background: $teal;
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
+        .site-content &.button:hover,
+        &.button:hover,
         &.active,
         &:focus,
         &:hover {
             color: $white;
             background-color: $blueDark;
         }
-        .site-content &:visited,
-        &:visited {
-            color: $white;
-        } 
     }
 
     &.purple {
         color: $white;
         background: $purple;
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
+        .site-content &.button:hover,
+        &.button:hover,
         &.active,
         &:focus,
         &:hover {
             color: $white;
             background-color: $tealDark;
         }
-        .site-content &:visited,
-        &:visited {
-            color: $white;
-        } 
     }
 
     // Color OVerrides   
@@ -323,30 +337,34 @@ input[type="button"] {
         color: $orange;
         &.white {
             background-color: $white;
+            .site-content &:visited,
+            &:visited {
+                color: $orange;
+            } 
+            .site-content &.button:hover,
+            &.button:hover,
             &.active,
             &:focus,
             &:hover {
                 color: $white;
                 background: $blueDark;
             }
-            .site-content &:visited,
-            &:visited {
-                color: $orange;
-            } 
         }
 
         &.text-orange {
             color: $orange;
+            .site-content &:visited,
+            &:visited {
+                color: $orange;
+            } 
+            .site-content &.button:hover,
+            &.button:hover,
             &.active,
             &:focus,
             &:hover {
                 color: $white;
                 background: $blueDark;
             }
-            .site-content &:visited,
-            &:visited {
-                color: $orange;
-            } 
         }
     }
 

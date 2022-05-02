@@ -1,5 +1,9 @@
+<?php
+    // Placement addendum for desktop/mobile
+    $placement = $args['placement'] ? '_'.$args['placement'] : '';
+?>
 
-<div class="article-actions">
+<div id="article--actions<?php echo $placement; ?>" class="article-actions">
     <?php 
         /**
         * Article actions

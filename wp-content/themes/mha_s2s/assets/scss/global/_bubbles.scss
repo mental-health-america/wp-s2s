@@ -313,6 +313,19 @@
         }
         &.plain { background: none; }
 
+        a {
+            color: $teal;
+            &:hover {
+                color: $blueDark;
+            }
+            &:visited {
+                color: $darkTeal;
+            }
+            &.button.green {
+                color: $white;
+            }
+        }
+
         .bright-mint &,
         &.bright-mint {            
             background: $mint;
