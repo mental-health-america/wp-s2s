@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220502' );
 	
 	// Add print CSS.
 	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20220225', 'print' );
@@ -114,7 +114,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20220324_2', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20220502', true );
 	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
@@ -535,71 +535,6 @@ add_filter( 'get_the_archive_title', function ($title) {
 	}
 	return $title;    
 });
-
-
-/**
- * Remove slug from taxonomy archives
- */
-/*
-add_filter('request', 'mha_s2s_change_term_request', 1, 1 );
-function mha_s2s_change_term_request($query){
- 
-	$tax_name = 'condition'; // specify you taxonomy name here, it can be also 'category' or 'post_tag'
- 
-	// Request for child terms differs, we should make an additional check
-	if( $query['attachment'] ) :
-		$include_children = true;
-		$name = $query['attachment'];
-	else:
-		$include_children = false;
-		$name = $query['name'];
-	endif;
- 
- 
-	$term = get_term_by('slug', $name, $tax_name); // get the current term to make sure it exists
- 
-	if (isset($name) && $term && !is_wp_error($term)): // check it here
- 
-		if( $include_children ) {
-			unset($query['attachment']);
-			$parent = $term->parent;
-			while( $parent ) {
-				$parent_term = get_term( $parent, $tax_name);
-				$name = $parent_term->slug . '/' . $name;
-				$parent = $parent_term->parent;
-			}
-		} else {
-			unset($query['name']);
-		}
- 
-		switch( $tax_name ):
-			default:{
-				$query[$tax_name] = $name; // for another taxonomies
-				break;
-			}
-		endswitch;
- 
-	endif;
- 
-	return $query;
- 
-}
- 
- 
-add_filter( 'term_link', 'mha_s2s_term_permalink', 10, 3 );
-function mha_s2s_term_permalink( $url, $term, $taxonomy ){ 
-	$taxonomy_name = 'condition'; // your taxonomy name here
-	$taxonomy_slug = 'condition'; // the taxonomy slug can be different with the taxonomy name (like 'post_tag' and 'tag' )
-
-	// exit the function if taxonomy slug is not in URL
-	if ( strpos($url, $taxonomy_slug) === FALSE || $taxonomy != $taxonomy_name ) return $url;
-
-	$url = str_replace('/' . $taxonomy_slug, '', $url);
-
-	return $url;
-}
-*/
-
 
 /**
  * Search Post Type Filter

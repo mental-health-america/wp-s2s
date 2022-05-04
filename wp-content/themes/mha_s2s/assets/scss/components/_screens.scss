@@ -18,9 +18,10 @@ article.screen {
 
     // Labels 
     .gfield_description,
-    label.gfield_label {
+    .gfield_label {
         font-weight: 400;
         color: $gray;
+        font-size: inherit;
     }
     .gfield_description {
         margin-bottom: .5em;
@@ -35,7 +36,8 @@ article.screen {
     .gform_fields  {
         margin: 0;
         padding: 0;
-        li {
+        .gfield {
+            list-style: none;
             list-style-type: none;
             margin: 0 0 35px 0;
             padding: 0;
@@ -47,6 +49,8 @@ article.screen {
             }
         }
     }
+
+    .gchoice { list-style: none; }
 
     // Text fields
     .ginput_container_number {
@@ -91,8 +95,9 @@ article.screen {
         display: none;
     }
 
+
     // Radio and Checkboxes
-    li:not(.traditional){
+    .gfield:not(.traditional){
         .gfield_checkbox,
         .gfield_radio {
             margin: 0;
@@ -108,14 +113,14 @@ article.screen {
 
             &:focus,
             &:hover {
-                li {
+                .gchoice {
                     label {
                         background-color: $silver;
                     }
                 }
             }
 
-            li {
+            .gchoice {
                 position: relative;
                 //flex: 1 1 calc(25% - 10px);
                 //flex: 1 1 auto;
@@ -183,12 +188,12 @@ article.screen {
     }
 
     // Checkbox Overrides
-    li:not(.traditional){
+    .gfield:not(.traditional){
         .gfield_checkbox {
             justify-content: normal;
             flex-direction: row;
             align-items: stretch;
-            li {
+            .gchoice {
                 flex: 0 1 auto;
                 @media only screen and (max-width: 480px){
                     max-width: 100%;
@@ -201,11 +206,11 @@ article.screen {
     }
 
     // Wide override
-    li.wide {
+    .gfield.wide {
         .gfield_checkbox,
         .gfield_radio {
             flex-wrap: wrap;
-            li {
+            .gchoice {
                 flex: 1 1 calc(50% - 10px);
                 @media only screen and (max-width: 480px){
                     flex: 1 1 calc(100% - 30px);
@@ -216,12 +221,12 @@ article.screen {
     }
 
     // Short Radio Override
-    li.short{
+    .gfield.short{
         .gfield_radio {
             justify-content: normal;
             flex-direction: row;
             align-items: stretch;
-            li {
+            .gchoice {
                 flex: 0 1 auto;
                 @media only screen and (max-width: 480px){
                     //flex: 1 1 calc(100% - 30px);
@@ -234,14 +239,14 @@ article.screen {
     }
 
     // Traditional Radio/Checkboxes
-    li.traditional {
+    .gfield.traditional {
         .gfield_checkbox,
         .gfield_radio {
             margin: 0;
             padding: 10px 0 0 0;
             display: block;
 
-            li {
+            .gchoice {
                 clear: both;
                 display: block;
                 position: relative;

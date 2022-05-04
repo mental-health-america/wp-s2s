@@ -96,11 +96,19 @@
         text-decoration: none;
         color: $cerulean;
         @include transitions(color 150ms ease);
-        &:hover {
-            &:hover {
-                color: $blueDark;
-                text-decoration: none;
+        .text {
+            text-decoration: underline dotted $white;
+        }
+        &:focus {
+            color: $cerulean;
+            text-decoration: none;
+            .text {
+                text-decoration: underline dashed;
             }
+        }
+        &:hover {
+            color: $blueDark;
+            text-decoration: none;
             .text {
                 text-decoration: underline;
             }
