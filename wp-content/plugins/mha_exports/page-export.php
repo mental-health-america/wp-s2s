@@ -63,12 +63,12 @@ function mhathoughtexport(){
                 </tr>
                 <!--
                 <tr>
-                    <th scope="row"><label for="export_screen_spam">Exclude Suspected Spam</label></th>
+                    <th scope="row"><label for="export_only_demographic">Export Only Demographic Data</label></th>
                     <td>
-                        <input type="checkbox" name="export_screen_spam" id="export_screen_spam" value="1" />
+                        <input type="checkbox" name="export_only_demographic" id="export_only_demographic" value="1" />
                     </td>
                 </tr>
-                -->
+-->
                 <tr>
                     <th scope="row"><label for="export_screen_ref">Form(s)</label><br /></th>
                     <td>
@@ -76,11 +76,16 @@ function mhathoughtexport(){
                             $gforms = GFAPI::get_forms(true, false, 'title'); 
                             foreach($gforms as $gf){
                                 if (strpos(strtolower($gf['title']), 'test') !== false || strpos(strtolower($gf['title']), 'survey') !== false || strpos(strtolower($gf['title']), 'quiz') !== false) {
-                                    //echo '<option name="gform[]" value="'.$gf['id'].'" />'.$gf['title'].'</option>';                                    
                                     echo '<p><label><input type="checkbox" name="form_ids" class="form-checkboxes" value="'.$gf['id'].'"> '.$gf['title'].'</label></p>';                                    
                                 }
                             }
                         ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_excluded_ips">Exclude Spam IP Addresses</label><p class="description">Skip suspected spam IPs addresses in the export.<br /><a target="_blank" href="/wp-admin/admin.php?page=acf-options">Update IP list</a></th>
+                    <td>
+                        <input type="checkbox" name="export_excluded_ips" id="export_excluded_ips" value="1" />
                     </td>
                 </tr>
                 <tr>

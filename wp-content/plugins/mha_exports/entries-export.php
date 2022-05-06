@@ -6,6 +6,11 @@ use League\Csv\CharsetConverter;
 use League\Csv\Writer;
 use League\Csv\Reader;
 
+function validateDate($date, $format = 'm-d'){
+    $d = DateTime::createFromFormat($format, $date);
+    return $d && $d->format($format) === $date;
+}
+
 add_action( 'wp_ajax_mha_export_screen_data', 'mha_export_screen_data' );
 function mha_export_screen_data(){
 
@@ -22,10 +27,11 @@ function mha_export_screen_data(){
             'export_screen_start_date'  => date('Y-m', strtotime('now - 1 month')).'-01',
             'export_screen_end_date'    => date('Y-m-t', strtotime('now - 1 month')),
             'export_screen_ref'         => null,
-            'export_screen_spam'        => 0,
+            'export_excluded_ips'       => 0,
+            'excluded_ips'              => array_map('trim', explode(PHP_EOL, get_field('ip_exclusions', 'options'))),
             'field_labels'              => '',
             'page'                      => 1,
-            'fields'                    => null,
+            'fields'                    => array(),
             'filename'                  => null,
             'total'                     => null,
             'max'                       => null,
@@ -60,22 +66,22 @@ function mha_export_screen_data(){
     $gform = GFAPI::get_form( $args['form_id'] );
     $form_slug = sanitize_title_with_dashes($gform['title']);
     
-    if(!$args['fields']){
-        // CSV headers
-        $args['fields'] = [];
+    if(empty($args['fields'])){
 
         // Manual additional field
-        $args['fields']['Date'] = array(
+        $args['fields'][0] = array(
             'type' => 'mha_custom',
-            'key' => 'Data',
+            'key' => 'Date',
             'label' => 'Date'
         );          
-        $args['fields']['User IP'] = array(
+        $args['fields'][1] = array(
             'type' => 'mha_custom',
             'key' => 'User IP',
             'label' => 'User IP'
         );
 
+        // Auto fields
+        $fi = count($args['field']) + 1;
         foreach($gform['fields'] as $gf){  
             $field = GFAPI::get_field( $args['form_id'], $gf['id'] );
             if(
@@ -87,25 +93,17 @@ function mha_export_screen_data(){
             } 
 
             // Set field order
-            // Update field type data
-            $args['fields'][$gf['id']] = array(
+            $args['fields'][$fi] = array(
                 'type' => $gf['type'],
                 'key' => $gf['id'],
                 'label' => $gf['label']
             );
             if($gf['type'] == 'radio' || $gf['type'] == 'checkbox'){
                 $model = RGFormsModel::get_field( $args['form_id'], $gf['id'] );
-                $args['fields'][$gf['id']]['model'] = $model['choices'];
+                $args['fields'][$fi]['model'] = $model['choices'];
             }
 
-            // Custom columns
-            if($field->label == 'uid'){ 
-                $args['fields']['uid hashed'] = array(
-                    'type' => 'mha_custom',
-                    'key' => $field->id,
-                    'label' => 'uid hashed'
-                );
-            }
+            $fi++;
         }
 
     }
@@ -138,11 +136,22 @@ function mha_export_screen_data(){
         $temp_array = [];
         $spam_check = 0;
 
+        // Skip matching IP addresses if option is selected
+        if($args['export_excluded_ips'] && in_array($gfdata['ip'], $args['excluded_ips'])){
+            continue;
+        }
+
+        // Update Timeszone
         $row_date = new DateTime($gfdata['date_created']);
         $row_date->setTimezone($timezone);
-        
+
+        // Get all the fields
         foreach($args['fields'] as $ftk => $ftv){
-            $v = rgar( $e, $ftk, '' );
+
+            // Default value
+            $v = rgar( $e, $ftv['key'], '' );
+
+            // Radio/Checkbox Overrides
             if( $ftv['type'] == 'radio' || $ftv['type'] == 'radio' ){
                 foreach($args['fields'][$ftk]['model'] as $model){
                     if($model['value'] == $v){
@@ -150,33 +159,27 @@ function mha_export_screen_data(){
                     }
                 } 
             }
-            $temp_array[ $args['fields'][$ftk]['label'] ] = $v;
-        }
 
-        $temp_array['uid hashed'] = $temp_array['uid'] ? md5($temp_array['uid']) : '';
-        $temp_array['Date'] = $row_date->format("Y-m-d H:i:s");     
-        $temp_array['User IP'] = $gfdata['ip'];    
+            // Custom value override
+            if($ftv['label'] == 'Age Range' && validateDate($v)){                
+                $v = "\"$v\""; // Add quotes to age ranges with a dash so excel doesn't turn it into a date
+            }
 
-        // Spam check
-        /*
-        if($spam_check > 0){
-            $temp_array['Spam Likely'] = 'yes';
-        } else {
-            $temp_array['Spam Likely'] = 'no';
-        }    
-        if($exclude_spam == 1 && $spam_check > 0){
-            $temp_array = [];
+            // Field data
+            $temp_array[ $ftv['label'] ] = $v;
         }
-        */
 
         // Reorder our fields based on how they appear on the form and add the row
-        if(!empty($temp_array)){
-            foreach($args['fields'] as $k => $v){  
-                $csv_data[$i][$v['label']] = $temp_array[$v['label']]; 
-            }            
-            $i++;
-        }
+        foreach($args['fields'] as $k => $v){  
+            $csv_data[$i][$v['label']] = $temp_array[$v['label']]; 
+        }            
 
+        // Custom field assignments
+        $csv_data[$i]['Date'] = $row_date->format("Y-m-d H:i:s");     
+        $csv_data[$i]['User IP'] = $gfdata['ip'];    
+        $csv_data[$i]['uid hashed'] = $temp_array['uid'] ? md5($temp_array['uid']) : '';
+
+        $i++;
     }
 
     /**
