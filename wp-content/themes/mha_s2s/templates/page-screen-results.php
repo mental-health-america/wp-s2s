@@ -24,13 +24,6 @@ $iframe_var = get_query_var('iframe'); // Template flags when site is viewed in 
 
 // A/B Testing
 $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
-$valid_variants = array(
-    'actions_a', 
-    'actions_b', 
-    'actions_c', 
-    'actions_d', 
-    'actions_e'
-);
 
 // "Take another test" button URL
 $take_another_url = '/screening-tools/';
@@ -90,7 +83,7 @@ if($iframe_var){
         /**
          * Login/Register Prompt
          */
-        if(!count(array_intersect( array('actions_c', 'actions_d', 'actions_e'), $layout))):
+        if(!count(array_intersect( array('actions_a', 'actions_c', 'actions_d', 'actions_e'), $layout))):
             get_template_part( 'templates/results/cta', 'login', array( 'id' => $user_screen_result['result_id'] ) ); 
         endif;
 
@@ -349,15 +342,69 @@ if($iframe_var){
     ?>
 </div>
 
+
+<?php
+    /**
+    * Demographic Based Next Steps Data
+    */
+
+    // Get the user's answered demographic questions
+    $entry_data = GFAPI::get_entry( $user_screen_result['result_id'] );
+    $answered_demos = [];
+    if(!is_wp_error($entry_data)){
+        foreach($entry_data as $k => $v){            
+            $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
+            if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
+                if(trim($entry_data[$k]) != ''){
+                    $answered_demos[$field->label][] = $entry_data[$k];
+                }
+            }
+        }        
+    }
+
+    // Additional custom demo results to reference
+    $answered_demos['user_result'] = array($result_title);
+    $answered_demos['screen_id'] = array($user_screen_result['screen_id']);
+    $answered_demos['result_id'] = array($user_screen_result['result_id']);
+
+    // Screen specific demo steps/CTAs
+    $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );
+    foreach($demo_data['demo_steps'] as $e){
+        $demo_steps[] = $e;
+    }
+    foreach($demo_data['exclude_ids'] as $e){
+        $exclude_ids[] = $e;
+    }
+    foreach($demo_data['ctas'] as $e){
+        $result_cta[] = $e;
+    }
+
+    // Global demo steps/CTAs
+    $demo_data_global = get_mha_demo_steps( 'options', $answered_demos );
+    foreach($demo_data_global['demo_steps'] as $e){
+        $demo_steps[] = $e;
+    }
+    foreach($demo_data_global['exclude_ids'] as $e){
+        $exclude_ids[] = $e;
+    }
+    foreach($demo_data_global['ctas'] as $e){
+        $result_cta[] = $e;
+    }
+        
+    /*
+        * Screen Specific CTAs
+        */
+    $screen_specific_cta = get_field('call_to_actions_all_results', $user_screen_result['screen_id']);
+    if($screen_specific_cta){
+        foreach($screen_specific_cta as $cta){
+            $result_cta[] = $cta; // Add to our array for later
+        }
+    }
+?>
+
+
 <div class="wrap normal pt-5 pb-3">
 
-    <h2 class="section-title dark-blue bold">
-        <?php if($espanol): ?>
-            Siguientes Pasos
-        <?php else: ?>
-            Next Steps
-        <?php endif; ?>
-    </h2>
 
     <?php 
         /**
@@ -365,11 +412,119 @@ if($iframe_var){
          * Layout: actions_a
          */
         if(in_array('actions_a', $layout)):
+            echo '<div class="mb-4">';
             get_template_part( 'templates/results/cta', 'login', array( 'width' => 'narrow', 'corners' => '', 'id' => $user_screen_result['result_id'] ) );
+            echo '</div>';
         endif; 
-    ?>        
+        
+        /**
+         * A/B Variant
+         * Layout: actions_hide_ns
+         */    
+        if(!in_array('actions_hide_ns', $layout)):          
+    ?>
+        <h2 class="section-title dark-blue bold">
+            <?php if($espanol): ?>
+                Siguientes Pasos
+            <?php else: ?>
+                Next Steps
+            <?php endif; ?>
+        </h2>
+    <?php endif; ?>
 
     <?php 
+        /**
+         * A/B Variant
+         * Layout: actions_ns_top
+         */
+        if(in_array('actions_ns_top', $layout)):          
+    ?>        
+        <div class="bubble round-tl mb-5 mint">
+        <div class="inner">
+                                
+            <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
+                <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
+            <?php endif; ?>
+            
+            <?php 
+                // Related Articles
+                $related_article_args = array(
+                    'demo_steps'         => $demo_steps,
+                    'next_step_manual'   => $next_step_manual,
+                    'user_screen_result' => $user_screen_result,
+                    'exclude_ids'        => $exclude_ids,
+                    'next_step_terms'    => $next_step_terms,
+                    'espanol'            => $espanol,
+                    'iframe_var'         => $iframe_var,
+                    'partner_var'        => $partner_var,
+                    'total'              => 5,
+                    'style'              => 'button',
+                    'hide_all'           => true,
+                );
+                mha_results_related_articles( $related_article_args );
+            ?>
+        </div>
+        </div>
+    <?php endif; // Hide 'actions_ns_top' ?>
+
+
+    <?php 
+        /**
+         * A/B Variant
+         * Layout: actions_hide_ns
+         */
+
+        if(!in_array('actions_hide_ns', $layout)):          
+    ?>
+        
+        <?php 
+            /**
+             * A/B Variant
+             * Layout: actions_ns_custom
+             */
+            if(in_array('actions_ns_custom', $layout)): 
+
+                if( have_rows('test_next_steps', $user_screen_result['screen_id']) ):     
+                while( have_rows('test_next_steps', $user_screen_result['screen_id']) ) : the_row();    
+                
+                    // Additional custom conditions
+                    if( get_sub_field('layout_condition') != '' ){
+                        $ns_custom_condition = array_map('trim', explode(',', get_sub_field('layout_condition')));
+                        $ns_custom_total = count($ns_custom_condition);
+                        $ns_custom_count = 0;
+                        $layout_total = count($layout);
+
+                        foreach($ns_custom_condition as $c){
+                            if(in_array($c, $layout)){
+                                $ns_custom_count++;
+                            }
+                        }
+
+                        if($ns_custom_count != $ns_custom_total){
+                            continue;
+                        }
+                    } 
+                    
+                    $ns_custom_classes = get_sub_field('custom_classes') != '' ? get_sub_field('custom_classes') : 'bubble wtf round-tl mb-5 mint';
+                    ?>
+                    <div class="<?php echo $ns_custom_classes; ?>">
+                        <div class="inner">
+                            <?php
+                                // Check rows exists.
+                                the_sub_field('content');
+                            ?>
+                        </div>
+                    </div>
+                    <?php 
+                endwhile;
+                endif;
+
+            endif; 
+        ?>
+
+        <?php         
+        endif; // End 'actions_hide_ns'
+
         /**
          * A/B Variant
          * Layout: actions_b
@@ -480,7 +635,7 @@ if($iframe_var){
         if(in_array('actions_e', $layout)): 
             if(!is_user_logged_in()):
             ?>          
-            <div class="wrap normal" id="layout-action_e">
+            <div class="wrap normal mb-4" id="layout-action_e">
                 <div class="bubble round-tl mint normal">
                 <div class="inner">
                     <h2>Sign Up</h2>
@@ -501,64 +656,16 @@ if($iframe_var){
         endif; 
     ?>
     
+    
+    <?php 
+        /**
+         * A/B Variant
+         * Layout: actions_hide_ns
+         */
+        if(!in_array('actions_hide_ns', $layout)):          
+    ?>
     <div id="cta-col" class="cta-cols">
         <?php       
-            /**
-             * Demographic Based Next Steps
-             */
-            // Get the user's answered demographic questions
-            $entry_data = GFAPI::get_entry( $user_screen_result['result_id'] );
-            $answered_demos = [];
-            if(!is_wp_error($entry_data)){
-                foreach($entry_data as $k => $v){            
-                    $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
-                    if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
-                        if(trim($entry_data[$k]) != ''){
-                            $answered_demos[$field->label][] = $entry_data[$k];
-                        }
-                    }
-                }        
-            }
-
-            // Additional custom demo results to reference
-            $answered_demos['user_result'] = array($result_title);
-            $answered_demos['screen_id'] = array($user_screen_result['screen_id']);
-            $answered_demos['result_id'] = array($user_screen_result['result_id']);
-
-            // Screen specific demo steps/CTAs
-            $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );
-            foreach($demo_data['demo_steps'] as $e){
-                $demo_steps[] = $e;
-            }
-            foreach($demo_data['exclude_ids'] as $e){
-                $exclude_ids[] = $e;
-            }
-            foreach($demo_data['ctas'] as $e){
-                $result_cta[] = $e;
-            }
-
-            // Global demo steps/CTAs
-            $demo_data_global = get_mha_demo_steps( 'options', $answered_demos );
-            foreach($demo_data_global['demo_steps'] as $e){
-                $demo_steps[] = $e;
-            }
-            foreach($demo_data_global['exclude_ids'] as $e){
-                $exclude_ids[] = $e;
-            }
-            foreach($demo_data_global['ctas'] as $e){
-                $result_cta[] = $e;
-            }
-                
-            /*
-             * Screen Specific CTAs
-             */
-            $screen_specific_cta = get_field('call_to_actions_all_results', $user_screen_result['screen_id']);
-            if($screen_specific_cta){
-                foreach($screen_specific_cta as $cta){
-                    $result_cta[] = $cta; // Add to our array for later
-                }
-            }
-
             /*
              * Result specific CTA
              */
@@ -599,9 +706,17 @@ if($iframe_var){
             wp_reset_postdata();
         ?>
     </div>
+    <?php endif; // Hide 'actions_hide_ns' ?>
 
     <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
-        <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
+        <h2 class="section-title cerulean small bold">
+            <?php 
+                if(in_array('actions_ns_top', $layout)){
+                    echo 'More ';
+                }
+                the_field('next_steps_subtitle', $user_screen_result['screen_id']); 
+            ?>
+        </h2>
     <?php endif; ?>
     
 </div>
@@ -619,6 +734,15 @@ if($iframe_var){
             'iframe_var'         => $iframe_var,
             'partner_var'        => $partner_var,
         );
+        
+        /**
+         * A/B Variant
+         * Layout: actions_hide_ns
+         */
+        if(in_array('actions_ns_top', $layout)){
+            $related_article_args['skip'] = 5;
+        }
+
         mha_results_related_articles( $related_article_args );
     ?>
 </div>
