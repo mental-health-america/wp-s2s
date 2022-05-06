@@ -81,11 +81,13 @@ if($iframe_var){
         }
         
         /**
-         * Login/Register Prompt
+         * Login/Register Prompt (Top)
          */
+        /*
         if(!count(array_intersect( array('actions_a', 'actions_c', 'actions_d', 'actions_e'), $layout))):
             get_template_part( 'templates/results/cta', 'login', array( 'id' => $user_screen_result['result_id'] ) ); 
         endif;
+        */
 
         /**
          * Screening Results
@@ -405,17 +407,11 @@ if($iframe_var){
 
 <div class="wrap normal pt-5 pb-3">
 
+    <div class="mb-4">
+        <?php get_template_part( 'templates/results/cta', 'login', array( 'width' => 'narrow', 'corners' => '', 'id' => $user_screen_result['result_id'] ) ); ?>
+    </div>
 
-    <?php 
-        /**
-         * A/B Variant
-         * Layout: actions_a
-         */
-        if(in_array('actions_a', $layout)):
-            echo '<div class="mb-4">';
-            get_template_part( 'templates/results/cta', 'login', array( 'width' => 'narrow', 'corners' => '', 'id' => $user_screen_result['result_id'] ) );
-            echo '</div>';
-        endif; 
+    <?php
         
         /**
          * A/B Variant
