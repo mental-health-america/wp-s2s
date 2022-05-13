@@ -98,9 +98,18 @@ function mha_export_screen_data(){
                 'key' => $gf['id'],
                 'label' => $gf['label']
             );
-            if($gf['type'] == 'radio' || $gf['type'] == 'checkbox'){
+
+            // Radio/Checkboxes label model to carry over
+            if($gf['choices']){
                 $model = RGFormsModel::get_field( $args['form_id'], $gf['id'] );
                 $args['fields'][$fi]['model'] = $model['choices'];
+            }
+
+            // Checkboxes
+            if($gf['inputs']){
+                foreach($model['inputs'] as $input){     
+                    $args['fields'][$fi]['inputs'][] = $input['id'];
+                }
             }
 
             $fi++;
@@ -131,42 +140,63 @@ function mha_export_screen_data(){
     $i = 0;
 
     // Parse through form entries
-    foreach($entries as $e){
-        $gfdata = GFAPI::get_entry( $e['id'] );
+    foreach($entries as $entry){
         $temp_array = [];
         $spam_check = 0;
 
         // Skip matching IP addresses if option is selected
-        if($args['export_excluded_ips'] && in_array($gfdata['ip'], $args['excluded_ips'])){
+        if($args['export_excluded_ips'] && in_array($entry['ip'], $args['excluded_ips'])){
             continue;
         }
 
         // Update Timeszone
-        $row_date = new DateTime($gfdata['date_created']);
+        $row_date = new DateTime($entry['date_created']);
         $row_date->setTimezone($timezone);
 
         // Get all the fields
-        foreach($args['fields'] as $ftk => $ftv){
+        foreach($entry as $e){
 
-            // Default value
-            $v = rgar( $e, $ftv['key'], '' );
+            foreach($args['fields'] as $ftk => $ftv){  
 
-            // Radio/Checkbox Overrides
-            if( $ftv['type'] == 'radio' || $ftv['type'] == 'radio' ){
-                foreach($args['fields'][$ftk]['model'] as $model){
-                    if($model['value'] == $v){
-                        $v = $model['text'];
+                // Default value
+                $v = strval(rgar( $entry, $ftv['key'] ));
+                
+                // Check for a label if the value is just a number
+                if(is_numeric($v)){
+                    if($ftv['model']){
+                        foreach($ftv['model'] as $m){
+                            if($m['value'] == $v){
+                                $v = $m['text'];
+                            }
+                        } 
                     }
-                } 
+                }
+
+                // Checkboxes are split weirdly so...
+                if($ftv['inputs']){
+                    $entry_inputs = array();
+                    foreach($ftv['inputs'] as $fin){
+                        if($entry[$fin]){
+                            $entry_inputs[] = $entry[$fin];
+                        }
+                    }
+                    $v = implode('|',$entry_inputs);
+                }
+
+                
+                // Custom value overrides
+                if($ftv['label'] == 'Age Range' && validateDate($v)){                
+                    $v = "\"$v\""; // Add quotes to age ranges with a dash so excel doesn't turn it into a date
+                }
+                if($ftv['label'] == 'Please check this box if you identify as transgender.'){     
+                    $v = $v ? 'Yes' : 'No';
+                }
+
+                // Put into our array
+                $temp_array[ $ftv['label'] ] = $v;
+                
             }
 
-            // Custom value override
-            if($ftv['label'] == 'Age Range' && validateDate($v)){                
-                $v = "\"$v\""; // Add quotes to age ranges with a dash so excel doesn't turn it into a date
-            }
-
-            // Field data
-            $temp_array[ $ftv['label'] ] = $v;
         }
 
         // Reorder our fields based on how they appear on the form and add the row
@@ -176,7 +206,7 @@ function mha_export_screen_data(){
 
         // Custom field assignments
         $csv_data[$i]['Date'] = $row_date->format("Y-m-d H:i:s");     
-        $csv_data[$i]['User IP'] = $gfdata['ip'];    
+        $csv_data[$i]['User IP'] = $entry['ip'];    
         $csv_data[$i]['uid hashed'] = $temp_array['uid'] ? md5($temp_array['uid']) : '';
 
         $i++;
