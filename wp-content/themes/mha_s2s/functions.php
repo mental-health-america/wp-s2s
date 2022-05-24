@@ -358,6 +358,15 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'partner'; // Approved partner code
     $qvars[] = 'admin_uid'; // User ID override for admins
     $qvars[] = 'layout'; // A/B testing override
+
+	// Resource filters
+	$qvars[] = 'treatment';
+	$qvars[] = 'tags';
+	$qvars[] = 'condition';
+	$qvars[] = 'language';
+	//$qvars[] = 'type'; // Dupe
+	$qvars[] = 'service_type';
+
     return $qvars;
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );

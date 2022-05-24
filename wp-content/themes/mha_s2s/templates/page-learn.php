@@ -95,7 +95,7 @@ $post_id = get_the_ID();
                     
                     <div class="col-12 col-md-2 mt-3 mt-md-0 pl-1 pr-1">								
                         <div class="dropdown text-right pr-0">
-                            <button class="button cerulean round dropdown-toggle normal-case mobile-wide block" type="button" id="archiveOrder" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
+                            <button class="button cerulean round dropdown-toggle normal-case mobile-wide block" type="button" id="archiveOrder_tag" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
                                 Tag
                             </button>
                             <div class="dropdown-menu" aria-labelledby="orderSelection">
@@ -119,18 +119,19 @@ $post_id = get_the_ID();
                                     if($query){
                                         foreach($query as $term){
                                             if(!get_field('hide_on_front_end', $term->taxonomy.'_'.$term->term_id)){
-                                            ?>
-                                                <a href="<?php echo add_query_arg(
-                                                    array( 
-                                                        'search' => get_query_var('search'), 
-                                                        'search_tag' => $term->term_id, 
-                                                        'search_tax' => $term->taxonomy, 
-                                                        'order' => 'ASC',  
-                                                        'orderby' => 'title'
-                                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button"><?php echo $term->name; ?></a>
-                                            <?php
+                                                ?>
+                                                    <a href="<?php echo add_query_arg(
+                                                        array( 
+                                                            'search' => get_query_var('search'), 
+                                                            'search_tag' => $term->term_id, 
+                                                            'search_tax' => $term->taxonomy, 
+                                                            'order' => 'ASC',  
+                                                            'orderby' => 'title'
+                                                        ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button"><?php echo $term->name; ?></a>
+                                                <?php
                                             }
                                         }
+                                        wp_update_term_count($query, 'post_tag', true); // This forces the tags count to update 
                                     }
                                 ?>                                
                             </div>

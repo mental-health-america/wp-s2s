@@ -36,73 +36,55 @@ get_header();
                 <div id="treatmentType" class="collapse show filter-checkboxes">
                     <?php
                         $treatment_type = get_field_object('field_5fd3f7a3951ad');
-                        if( $treatment_type['choices'] ): ?>
-                            <?php foreach( $treatment_type['choices'] as $value => $label ): ?>
+                        
+                        // Pre-checked filters
+                        $params = explode(',', get_query_var('treatment'));
+                        $checked_params = [];
+                        foreach($params as $p){ $checked_params[] = strtolower(urldecode($p)); }
+
+                        if( $treatment_type['choices'] ):
+                        foreach( $treatment_type['choices'] as $value => $label ): 
+                            $checked = in_array( strtolower(urldecode($label)), $checked_params) ? ' checked="checked"' : '';
+                            ?>
                                 <div class="form-item">
-                                    <input id="treatment-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="treatment_type[]" />
+                                    <input id="treatment-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="treatment_type[]"<?php echo $checked; ?>/>
                                     <label for="treatment-<?php echo $value; ?>"><?php echo $label; ?></label>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php 
+                            <?php 
+                        endforeach;                                
                         endif; 
                     ?>
                 </div>
                 
                 <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Conditions</button>
                 <div id="conditionsList" class="collapse show filter-checkboxes">
-                    
+                
                     <div class="form-item collapse" id="all-conditions-container">
                         <input id="all_conditions" type="checkbox" value="1" name="all_conditions" />
                         <label for="all_conditions">Include articles that apply to all conditions</label><br />
                     </div>
-                    
+
                     <div class="show-all-conditions">
                         <?php
-                            // Condition Filters
-                            $query = get_terms(array(
-                                'taxonomy' => 'condition',
-                                'hide_empty' => true,
-                                'parent' => 0
-                            ));
-                            
-                            if($query){
-                                foreach($query as $c){
-                                    if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
-                                    ?>
-                                        <div class="form-item">
-                                            <input id="condition-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="condition[]" />
-                                            <label for="condition-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
-                                        </div>
-                                    <?php
-                                    }
-                                }
-                            }
+                            $tag_options = array(
+                                "post_type"      => 'article',
+                                "type"           => 'treatment',
+                                "taxonomy"       => 'condition',
+                            );         
+                            echo get_tag_filters( $tag_options );
                         ?>
                     </div>
                 </div>
                 
                 <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList">Tags</button>
-                <div id="tagsList" class="collapse show filter-checkboxes">                
-                    <?php
-                        // Condition Filters
-                        $query = get_terms(array(
-                            'taxonomy' => 'post_tag',
-                            'hide_empty' => true,
-                            'parent' => 0
-                        ));
-                        
-                        if($query){
-                            foreach($query as $c){
-                                if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
-                                ?>
-                                    <div class="form-item">
-                                        <input id="tag-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="tags[]" />
-                                        <label for="tag-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
-                                    </div>
-                                <?php
-                                }
-                            }
-                        }
+                <div id="tagsList" class="collapse show filter-checkboxes">
+                    <?php          
+                        $tag_options = array(
+                            "post_type"      => 'article',
+                            "type"           => 'treatment',
+                            "taxonomy"       => 'tags',
+                        );         
+                        echo get_tag_filters( $tag_options );
                     ?>
                 </div>
 

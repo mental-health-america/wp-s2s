@@ -36,18 +36,28 @@ get_header();
                 <div id="diyType" class="collapse show filter-checkboxes">
                     <?php
                         $diy_type = get_field_object('field_5fd3f1a935255');
-                        if( $diy_type['choices'] ): ?>
-                            <?php foreach( $diy_type['choices'] as $value => $label ): ?>
+
+                        // Pre-checked filters
+                        $params = explode(',', get_query_var('type'));
+                        $checked_params = [];
+                        foreach($params as $p){ $checked_params[] = strtolower(urldecode($p)); }
+
+                        if( $diy_type['choices'] ):
+                        foreach( $diy_type['choices'] as $value => $label ): 
+                            $checked = in_array( strtolower(urldecode($label)), $checked_params) ? ' checked="checked"' : '';
+                            ?>
                                 <div class="form-item">
-                                    <input id="type-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="diy_type[]" />
+                                    <input id="type-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="diy_type[]" <?php echo $checked; ?> />
                                     <label for="type-<?php echo $value; ?>"><?php echo $label; ?></label>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php 
+                            <?php 
+                        endforeach;
                         endif; 
                     ?>
                 </div>
-
+                
+                <?php 
+                /*
                 <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#diyIssue" aria-expanded="true" aria-controls="diyIssue">Issue</button>
                 <div id="diyIssue" class="collapse show filter-checkboxes">
                     <?php
@@ -62,38 +72,47 @@ get_header();
                         <?php 
                         endif; 
                     ?>
-                </div>
+                </div> 
+                */ 
+                ?>
                 
                 <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList">Tags</button>
-                <div id="tagsList" class="collapse show filter-checkboxes">                
-                    <?php
-                        // Condition Filters
-                        $query = get_terms(array(
-                            'taxonomy' => 'post_tag',
-                            'hide_empty' => true,
-                            'parent' => 0
-                        ));
-                        
-                        if($query){
-                            foreach($query as $c){
-                                if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
-                                ?>
-                                    <div class="form-item">
-                                        <input id="tag-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="tags[]" />
-                                        <label for="tag-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
-                                    </div>
-                                <?php
-                                }
-                            }
-                        }
+                <div id="tagsList" class="collapse show filter-checkboxes">
+                    <?php          
+                        $tag_options = array(
+                            "post_type"      => 'article',
+                            "type"           => 'diy',
+                            "taxonomy"       => 'tags',
+                        );         
+                        echo get_tag_filters( $tag_options );
                     ?>
                 </div>
                 
                 <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#espanolCheck" aria-expanded="true" aria-controls="espanolCheck">Languages</button>
                 <div id="espanolCheck" class="collapse show filter-checkboxes">
                     <div class="form-item" >
-                        <input id="espanol" type="checkbox" value="1" name="espanol" />
-                        <label for="espanol">Español </label><br />
+                        <input id="espanol" type="checkbox" value="1" name="espanol" <?php if(get_query_var('language') == 'español'){ echo ' checked="checked"'; } ?>/>
+                        <label for="espanol">Español</label><br />
+                    </div>
+                </div>
+
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Conditions</button>
+                <div id="conditionsList" class="collapse show filter-checkboxes">
+                
+                    <div class="form-item collapse" id="all-conditions-container">
+                        <input id="all_conditions" type="checkbox" value="1" name="all_conditions" />
+                        <label for="all_conditions">Include articles that apply to all conditions</label><br />
+                    </div>
+
+                    <div class="show-all-conditions">
+                        <?php
+                            $tag_options = array(
+                                "post_type"      => 'article',
+                                "type"           => 'diy',
+                                "taxonomy"       => 'condition',
+                            );         
+                            echo get_tag_filters( $tag_options );
+                        ?>
                     </div>
                 </div>
 

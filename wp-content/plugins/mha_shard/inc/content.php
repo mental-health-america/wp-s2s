@@ -1033,3 +1033,70 @@ function mha_monthly_pop_articles( $read = null ){
 	return;
 	
 }
+
+
+/**
+ * Get used tags for specific resource pages
+ */
+
+function get_tag_filters( $args ){
+
+	// Args
+	$defaults = array(
+		"post_type"      => 'article',
+		"type"           => '',
+		"taxonomy"       => '',
+	);            
+	$args = wp_parse_args( $args, $defaults );
+
+
+	$loop_args = array(
+		"post_type"      => $args['post_type'],
+		"post_status"    => 'publish',
+		"posts_per_page" => -1,                            
+		'meta_query'     => array(
+			array(
+				'key'       => 'type',
+				'value'     => $args['type'],
+				'compare'   => 'LIKE',
+			)
+		)
+	);
+	$articles = new WP_Query($loop_args);   
+	$tags_array = [];                
+
+	if($articles->have_posts()):
+	while($articles->have_posts()) : $articles->the_post();
+		
+		if($args['taxonomy'] != 'tags'){
+			$tags = get_the_terms( get_the_ID(), $args['taxonomy'] );
+		} else {
+			$tags = get_the_tags(get_the_ID());
+		}
+
+		foreach($tags as $tag){
+			if(!get_field('hide_on_front_end', $tag->taxonomy.'_'.$tag->term_id)){
+				$tags_array[$tag->term_id] = $tag->name;
+			}
+		}
+	endwhile;
+	endif;
+
+	// Pre-checked filters
+	$params = explode(',', get_query_var($args['taxonomy']));
+	$checked_params = [];
+	foreach($params as $p){
+		$checked_params[] = strtolower(urldecode($p));
+	}
+
+	foreach($tags_array as $k => $v):	
+		$checked = in_array( strtolower(urldecode($v)), $checked_params) ? ' checked="checked"' : '';
+		?>
+		<div class="form-item">
+			<input id="<?php echo $args['taxonomy']; ?>-<?php echo $k; ?>" type="checkbox" value="<?php echo $k; ?>" name="<?php echo $args['taxonomy']; ?>[]"<?php echo $checked; ?>/>
+			<label for="<?php echo $args['taxonomy']; ?>-<?php echo $k; ?>"><?php echo $v; ?></label>
+		</div>
+		<?php
+	endforeach;
+
+}

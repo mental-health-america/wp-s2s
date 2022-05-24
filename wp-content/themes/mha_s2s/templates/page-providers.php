@@ -58,14 +58,22 @@ get_header();
                 <div id="serviceTypes" class="collapse show filter-checkboxes">
                     <?php
                         $treatment_type = get_field_object('field_5fdc0a1448b13');
-                        if( $treatment_type['choices'] ): ?>
-                            <?php foreach( $treatment_type['choices'] as $value => $label ): ?>
+
+                        // Pre-checked filters
+                        $params = explode(',', get_query_var('service_type'));
+                        $checked_params = [];
+                        foreach($params as $p){ $checked_params[] = strtolower(urldecode($p)); }
+
+                        if( $treatment_type['choices'] ):
+                        foreach( $treatment_type['choices'] as $value => $label ): 
+                            $checked = in_array( strtolower(urldecode($label)), $checked_params) ? ' checked="checked"' : '';
+                            ?>
                                 <div class="form-item">
-                                    <input id="service-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="service_type[]" />
+                                    <input id="service-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="service_type[]" <?php echo $checked; ?>/>
                                     <label for="service-<?php echo $value; ?>"><?php echo $label; ?></label>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php 
+                            <?php 
+                        endforeach;                            
                         endif; 
                     ?>
                 </div>
@@ -80,52 +88,25 @@ get_header();
 
                     <div class="show-all-conditions">
                         <?php
-                            // Condition Filters
-                            $query = get_terms(array(
-                                'taxonomy' => 'condition',
-                                'hide_empty' => true,
-                                'parent' => 0
-                            ));
-                            
-                            $conditions = [];
-                            if($query){
-                                foreach($query as $c){
-                                    if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
-                                    ?>
-                                        <div class="form-item">
-                                            <input id="condition-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="condition[]" />
-                                            <label for="condition-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
-                                        </div>
-                                    <?php
-                                    }
-                                }
-                            }
+                            $tag_options = array(
+                                "post_type"      => 'article',
+                                "type"           => 'provider',
+                                "taxonomy"       => 'condition',
+                            );         
+                            echo get_tag_filters( $tag_options );
                         ?>
                     </div>
                 </div>
                 
                 <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList">Tags</button>
-                <div id="tagsList" class="collapse show filter-checkboxes">                
-                    <?php
-                        // Condition Filters
-                        $query = get_terms(array(
-                            'taxonomy' => 'post_tag',
-                            'hide_empty' => true,
-                            'parent' => 0
-                        ));
-                        
-                        if($query){
-                            foreach($query as $c){
-                                if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
-                                ?>
-                                    <div class="form-item">
-                                        <input id="tag-<?php echo $c->term_id; ?>" type="checkbox" value="<?php echo $c->term_id; ?>" name="tags[]" />
-                                        <label for="tag-<?php echo $c->term_id; ?>"><?php echo $c->name; ?></label>
-                                    </div>
-                                <?php
-                                }
-                            }
-                        }
+                <div id="tagsList" class="collapse show filter-checkboxes">
+                    <?php          
+                        $tag_options = array(
+                            "post_type"      => 'article',
+                            "type"           => 'provider',
+                            "taxonomy"       => 'tags',
+                        );         
+                        echo get_tag_filters( $tag_options );
                     ?>
                 </div>
 
@@ -149,8 +130,7 @@ get_header();
                     $options['geo'] = get_geo(get_query_var('geo'));
                 }
                 echo get_articles( $options ); 
-            ?>
-            
+            ?>            
 
         </div>
         </div>

@@ -405,9 +405,9 @@ if($iframe_var){
 ?>
 
 
-<div class="wrap normal pt-5 pb-3">
+<div class="wrap normal pt-0 pb-3">
 
-    <div class="mb-4">
+    <div class="mb-5 pb-2">
         <?php get_template_part( 'templates/results/cta', 'login', array( 'width' => 'narrow', 'corners' => '', 'id' => $user_screen_result['result_id'] ) ); ?>
     </div>
 
@@ -707,10 +707,14 @@ if($iframe_var){
     <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
         <h2 class="section-title cerulean small bold">
             <?php 
+            if($espanol){
+                echo 'Más información y recursos';
+            } else {
                 if(in_array('actions_ns_top', $layout)){
                     echo 'More ';
                 }
                 the_field('next_steps_subtitle', $user_screen_result['screen_id']); 
+            }
             ?>
         </h2>
     <?php endif; ?>

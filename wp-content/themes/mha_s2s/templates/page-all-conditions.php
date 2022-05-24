@@ -95,7 +95,7 @@ $post_id = get_the_ID();
                     
                     <div class="col-12 col-md-2 mt-3 mt-md-0 pl-1 pr-1">								
                         <div class="dropdown text-right pr-0">
-                            <button class="button cerulean round dropdown-toggle normal-case mobile-wide block" type="button" id="archiveOrder" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
+                            <button class="button cerulean round dropdown-toggle normal-case mobile-wide block" type="button" id="archiveOrder_tag" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
                                 Tag
                             </button>
                             <div class="dropdown-menu" aria-labelledby="orderSelection">
