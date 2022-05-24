@@ -180,7 +180,7 @@ function mha_export_screen_data(){
                             $entry_inputs[] = $entry[$fin];
                         }
                     }
-                    $v = implode('|',$entry_inputs);
+                    $v = implode(';',$entry_inputs);
                 }
 
                 

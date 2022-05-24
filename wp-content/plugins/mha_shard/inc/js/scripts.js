@@ -104,6 +104,13 @@ jQuery(function ($) {
 		*/
 
 	});
+
+	// Submit filter form on page load if boxes are checked
+	if($('#filters input:checkbox:checked').length > 0){		
+		var orderby = $('#orderSelection').val(),
+			order = $('#orderSelection').attr('data-order');
+		submitFilterForm( order, orderby );	
+	}
 	
 	// Submit filter on checkbox changes
 	$('.filter-checkboxes input[type="checkbox"]').change(function(event) {
