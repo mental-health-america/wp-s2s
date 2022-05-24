@@ -23,8 +23,8 @@
             ?>
             <div class="form-actions pt-3">
                 <input type="hidden" name="nonce" value="<?php $nonce = wp_create_nonce('mhaScreenEmail'); echo $nonce; ?>" />
-                <input type="hidden" name="screen_id" value="<?php echo $user_screen_result['screen_id']; ?>" />
-                <input type="hidden" name="screen_user_id" value="<?php echo $user_screen_id; ?>" />                                                
+                <input type="hidden" name="screen_id" value="<?php echo $args['screen_id']; ?>" />
+                <input type="hidden" name="screen_user_id" value="<?php echo $args['user_screen_id']; ?>" />                                                
                 <?php if($espanol): ?>
                     <input type="submit" class="submit button teal gform_button espanol" value="Enviar" />
                 <?php else: ?>
