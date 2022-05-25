@@ -20,6 +20,7 @@ else:
 
     // Get Screen Results
     $user_screen_result = getUserScreenResults( $entry_id );  
+    
     $next_step_terms = [];
     $next_step_manual = [];
     $exclude_ids = [];
@@ -70,6 +71,7 @@ else:
     </div>
 
     <div class="wrap narrow">
+    <article class="screen screen-result">
 
         <?php 
             /**
@@ -243,7 +245,8 @@ else:
                                         get_template_part( 'templates/results/action', 'email_display', array( 
                                             'width' => 'normal', 
                                             'screen_id' => $user_screen_result['screen_id'], 
-                                            'user_screen_id' => $user_screen_id
+                                            'user_screen_id' => $user_screen_id,
+                                            'entry_id' => $user_screen_result['result_id']
                                         ) ); 
                                     }
                                 ?>
@@ -284,19 +287,24 @@ else:
                                     $additional_scores = array();
                                     if(have_rows('additional_results', $user_screen_result['screen_id'])):
                                         echo '<p>';
-                                            echo '<strong>Overall Score:</strong> '.$user_screen_result['total_score'].'<br />';
+
+                                            // Overall Score
+                                            echo '<strong>Overall Score:</strong> '.$user_screen_result['total_score'].' / '.$max_score.'<br />';
+
+                                            // Specific Score Groups
                                             while( have_rows('additional_results', $user_screen_result['screen_id']) ) : the_row();  
                                                 $add_scores = get_sub_field('scores');
                                                 $add_score_total = 0;
+                                                $add_score_max = 0;
                                                 foreach($add_scores as $score){
-                                                    $add_score_total = $user_screen_result['general_score_data'][$score['question_id']] + $add_score_total;
+                                                    $add_score_total = intval($user_screen_result['general_score_data'][$score['question_id']]) + $add_score_total;
+                                                    $add_score_max = $add_score_max + $user_screen_result['max_values'][$score['question_id']];
                                                 }
 
-                                                echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.'<br />';
-                                                
+                                                echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.' / '.intval($add_score_max).'<br />';                                                
                                                 $additional_scores[] = strval($add_score_total);
-
                                             endwhile;
+
                                         echo '</p>';
                                     endif;
 
@@ -355,6 +363,7 @@ else:
                 endwhile;
             endif;
         ?>
+    </article>
     </div>
 
 
@@ -559,8 +568,9 @@ else:
                         get_template_part( 'templates/results/action', 'email_display', array( 
                             'width' => 'normal', 
                             'screen_id' => $user_screen_result['screen_id'], 
-                            'user_screen_id' => $user_screen_id ) 
-                        ); 
+                            'user_screen_id' => $user_screen_id,
+                            'entry_id' => $user_screen_result['result_id']
+                        )); 
                     ?>
                 </div>        
             <?php 
@@ -602,7 +612,8 @@ else:
                             'width' => 'normal', 
                             'show' => 'yes', 
                             'screen_id' => $user_screen_result['screen_id'], 
-                            'user_screen_id' => $user_screen_id
+                            'user_screen_id' => $user_screen_id,
+                            'entry_id' => $user_screen_result['result_id']
                         ) ); 
                     ?>
                 </div>
@@ -643,7 +654,8 @@ else:
                     get_template_part( 'templates/results/action', 'email_display', array( 
                         'width' => 'normal', 
                         'screen_id' => $user_screen_result['screen_id'], 
-                        'user_screen_id' => $user_screen_id
+                        'user_screen_id' => $user_screen_id,
+                        'entry_id' => $user_screen_result['result_id']
                     ) ); 
                 ?>
             </div>        

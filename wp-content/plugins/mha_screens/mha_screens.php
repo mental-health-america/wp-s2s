@@ -36,6 +36,7 @@ function getUserScreenResults( $user_screen_id ) {
 	$user_screen_results['alert'] = 0;
     $user_screen_results['general_score_data'] = []; 
     $user_screen_results['graph_data'] = []; 
+    $your_answers;
     
     // Get entry object
     $search_entries = GFAPI::get_entry( $user_screen_id );
@@ -49,6 +50,7 @@ function getUserScreenResults( $user_screen_id ) {
         $label = '';
         $value_label = '';
         $i = 0;        
+        $row = 0;        
         $count_results = 0; 
         $advanced_conditions_data = []; 
 
@@ -69,10 +71,12 @@ function getUserScreenResults( $user_screen_id ) {
                 $user_screen_results['referer'] = $v;
             }
 
-            // Get screen token                  
+            // Get screen token
+            /*                  
             if (isset($field->label) && strpos($field->label, 'Token') !== false) {     
                 $test_id = $v;
             }
+            */
 
             //Screening Questions
             if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {  
@@ -98,19 +102,22 @@ function getUserScreenResults( $user_screen_id ) {
                     $user_screen_results['total_score'] = $user_screen_results['total_score'] + intval($v); // Add to total score
                 }
 				// Get label for selected choice
+                $max_choice = 0;
 				if($field['choices']){
 					foreach($field['choices'] as $choice){
 						if($choice['value'] == $v){
 							$value_label = $choice['text'];
 						}
+                        if($choice['value'] > $max_choice){
+                            $max_choice = $choice['value'];
+                        }
 					}
+                    $user_screen_results['max_values'][$k] = $max_choice;
 				}
 
                 if($v != ''){			
-                    $user_screen_results['your_answers'] .= '<div class="row pb-4">';
-                        $user_screen_results['your_answers'] .= '<div class="col-sm-7 col-12 text-gray">'.$label.'</div>';
-                        $user_screen_results['your_answers'] .= '<div class="col-sm-5 col-12 bold caps text-dark-blue">'.$value_label.' ('.$v.')</div>';
-                    $user_screen_results['your_answers'] .= '</div>';
+                    $value_extra = is_numeric($v) ? ' ('.intval($v).')' : '';
+                    $your_answers[$row] = '<div class="row pb-4"><div class="col-sm-7 col-12 text-gray">'.$label.'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$value_label.''.$value_extra.'</div></div>';
                 }
             }
 
@@ -153,9 +160,12 @@ function getUserScreenResults( $user_screen_id ) {
             $user_screen_results['your_results_display'][$test_title][$count_results]['test_link'] = $test_id;    
             */
             
-            $count_results++;
+            $row++;
             
         }   
+
+        // Your Answers cleanup
+        $user_screen_results['your_answers'] = implode('',$your_answers);
         
         // Custom Logic Override
         $user_screen_results['custom_results_logic'] = get_field('custom_results_logic', $user_screen_results['screen_id']);
@@ -257,6 +267,7 @@ function mhaScreenEmail(){
 	// Cleaned Up Data
 	$email = sanitize_email($data['email']);
     $screen_id = intval($data['screen_id']);
+    $entry_id = intval($data['entry_id']);
     $screen_user_id = sanitize_text_field($data['screen_user_id']);
     
     $isAuthentic = wp_verify_nonce( $data['nonce'], 'mhaScreenEmail');
@@ -266,7 +277,7 @@ function mhaScreenEmail(){
 		// Send the email
 		$to = $email;
 		$subject = 'Mental Health America '.get_the_title($screen_id).' Results';
-		$body = getScreenAnswers( $screen_user_id, $screen_id );
+		$body = getScreenAnswers( $screen_user_id, $screen_id, $entry_id );
 		$headers = array('Content-Type: text/html; charset=UTF-8');	
 		$headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
 
@@ -287,48 +298,20 @@ add_action("wp_ajax_nopriv_mhaScreenEmail", "mhaScreenEmail");
 add_action("wp_ajax_mhaScreenEmail", "mhaScreenEmail");
 
 
-function getScreenAnswers( $user_screen_id, $screen_id ){
+function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
 	
 	// Vars
 	$result = [];
 	$total_score = 0;
 
-	// Gravity Forms API Connection
-	/*
-    $consumer_key = 'ck_0edaed6a92a48bea23695803046fc15cfd8076f5';
-	$consumer_secret = 'cs_7b33382b0f109b52ac62706b45f9c8e0a5657ced';
-	$headers = array( 'Authorization' => 'Basic ' . base64_encode( "{$consumer_key}:{$consumer_secret}" ) );
-	$response = wp_remote_get( get_site_url().'/wp-json/gf/v2/entries/?search={"field_filters": [{"key":38,"value":"'.$user_screen_id.'","operator":"contains"}]}', array( 'headers' => $headers, 'timeout' => 120 ) );
-	*/
-
 	// Future Content
 	$html = '';
-    /*
-	// Check the response code.
-	if ( wp_remote_retrieve_response_code( $response ) != 200 || ( empty( wp_remote_retrieve_body( $response ) ) ) ){
-		
-		$result['error'] = 'There was a problem displaying to your results. Please contact us if the issue persists.';
-		return false;
-
-	} else {
-    */
         
-    $search_criteria = array();
-    $search_criteria['field_filters'][] = array( 
-        'key' => '38', 
-        'value' => $user_screen_id
-    );
-    $search_entries = GFAPI::get_entries( '0', $search_criteria );
+    $data = GFAPI::get_entry( $entry_id );
 
-    if(count($search_entries) > 0){
+    if($data){
 
-		// Got a good response, proceed!
-        /*
-		$json = wp_remote_retrieve_body($response);
-		$data = json_decode($json);              
-		$data = $data->entries[0]; 
-        */
-        $data = $search_entries[0];
+		// Got a response, proceed!
 
 		// Text
 		$label = '';
@@ -371,7 +354,11 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 					if($choice['value'] == $v){
 						$value_label = $choice['text'];
 					}
-				}                   
+                    if($choice['value'] > $max_choice){
+                        $max_choice = $choice['value'];
+                    }
+                }
+                $general_score_data['max_values'][$k] = $max_choice;                 
 				
 				if(isset($field->cssClass) && strpos($field->cssClass, 'exclude') === false){     
 					$total_score = $total_score + $v; // Add to total score	
@@ -380,7 +367,8 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 				if($v != ''){			
 					$html .= '<p>';
 						$html .= '<strong>'.$label.'</strong><br />';
-						$html .= $value_label.' ('.$v.')';
+						$html .= $value_label;
+                        $html .= is_numeric($v) ? ' ('.intval($v).')' : '';
 					$html .= '</p>';
 
                     // Advanced Conditions Check
@@ -492,21 +480,23 @@ function getScreenAnswers( $user_screen_id, $screen_id ){
 
 					// Result Header
 					$header .= '<h1 style="margin-top: 0; padding-top: 0;"><strong>'.get_sub_field('result_title').'</strong></h1>';
-					$header .= get_sub_field('result_content');
+					$header .= $res = preg_replace('/<form.*?<\/form>/s', '', get_sub_field('result_content'));
 					
 					if(have_rows('additional_results', $screen_id)):
-						$header .= '<p><strong>Overall Score:</strong> '.$total_score.'<br />';
-							while( have_rows('additional_results', $screen_id) ) : the_row();  
-								$add_scores = get_sub_field('scores');
-								$add_score_total = 0;
-								foreach($add_scores as $score){
-									$add_score_total = $general_score_data[$score['question_id']] + $add_score_total;
-								}
+						$header .= '<p><strong>Overall Score:</strong> '.intval($total_score).'<br />';
+                        while( have_rows('additional_results', $screen_id) ) : the_row();  
+                            $add_scores = get_sub_field('scores');
+                            $add_score_total = 0;
+                            $add_score_max = 0;
+                            foreach($add_scores as $score){
+                                $add_score_total = $general_score_data[$score['question_id']] + $add_score_total;
+                                $add_score_max = $add_score_max + $general_score_data['max_values'][$score['question_id']];
+                            }
 
-								$header .= '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.'<br />';
-							endwhile;
-							$header .= '</p>';
-						endif;
+                            $header .= '<strong>'.get_sub_field('title').'</strong> '.intval($add_score_total).' / '.intval($add_score_max).'<br />';
+                        endwhile;
+                        $header .= '</p>';
+                    endif;
 
 					// Link back to results page
 					$header .= '<p><a href="'.get_site_url().'/screening-results/?sid='.$user_screen_id.'">View your results online and see next steps</a></p>';
