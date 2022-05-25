@@ -261,7 +261,7 @@ function mha_show_tests() {
 						<?php echo get_the_excerpt(); ?><br />
 						<strong class="caps lh-normal">							
 							<?php if(get_field('espanol')): ?>
-								Tome la <?php the_title(); ?>
+								Tome el <?php the_title(); ?>
 							<?php else: ?>
 								Take <?php the_title(); ?>
 							<?php endif; ?>
