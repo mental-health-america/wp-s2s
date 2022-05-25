@@ -981,3 +981,12 @@ function loginpress_exclude_role_session_callback() {
 	return array( 'administrator', 'editor', 'contributor' );
 }
 add_filter( 'loginpress_exclude_role_session', 'loginpress_exclude_role_session_callback' );
+
+
+/**
+ * Dashboard Widget Removals
+ */
+function mha_remove_dashboard_widgets() {
+	remove_meta_box( 'rg_forms_dashboard', 'dashboard', 'side' );
+}
+add_action('wp_dashboard_setup', 'mha_remove_dashboard_widgets' ); 
