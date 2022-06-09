@@ -13,6 +13,21 @@
 <meta name="msapplication-TileColor" content="#FFFFFF">
 <meta name="msapplication-TileImage" content="/favicon-144x144.png">
 
+<script>
+	window.dataLayer = window.dataLayer || [];
+	<?php if( current_user_can('editor') || current_user_can('administrator') || get_query_var('internaltraffic') == 'true' ):?>
+		window.dataLayer.push({
+			'event': 'traffic_type',
+			'traffic_type': 'internal'
+		});
+	<?php else: ?>
+		window.dataLayer.push({
+			'event': 'traffic_type',
+			'traffic_type': 'external'
+		});
+	<?php endif; ?>
+</script>
+
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],

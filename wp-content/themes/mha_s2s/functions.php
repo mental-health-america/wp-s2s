@@ -358,6 +358,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'partner'; // Approved partner code
     $qvars[] = 'admin_uid'; // User ID override for admins
     $qvars[] = 'layout'; // A/B testing override
+    $qvars[] = 'internaltraffic'; // Staff exclusions for analytics
 
 	// Resource filters
 	$qvars[] = 'treatment';
@@ -989,4 +990,8 @@ add_filter( 'loginpress_exclude_role_session', 'loginpress_exclude_role_session_
 function mha_remove_dashboard_widgets() {
 	remove_meta_box( 'rg_forms_dashboard', 'dashboard', 'side' );
 }
-add_action('wp_dashboard_setup', 'mha_remove_dashboard_widgets' ); 
+add_action('wp_dashboard_setup', 'mha_remove_dashboard_widgets' );
+
+add_filter( 'relevanssi_excerpt_gap', function( $gap, $count_words, $excerpt_length ) {
+	return floor( $count_words / 100 - $excerpt_length );
+}, 10, 3 );

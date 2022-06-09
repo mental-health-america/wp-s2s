@@ -150,6 +150,7 @@
         }
 
         // Screens
+        $has_test_widget = false;
         if($primary_condition){
 
             // Show Specific Related Test
@@ -209,6 +210,7 @@
         } else {
 
             // Show Random Related Test
+            /*
             if(count(array_intersect($article_type, $resources)) == 0){
                 $args = array(
                     "post_type"      => 'screen',
@@ -263,28 +265,19 @@
                 wp_reset_query();
 
             } else {
-                /*
-                ?>
-                <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4 hide-mobile">
-                <div class="inner">
-                <?php while($loop->have_posts()) : $loop->the_post(); ?>    
-                    <?php
-                        $an_a = ' '; 
-                        $title = get_the_title();
-                        if($title[0] == 'A'){
-                            $an_a = 'n ';
-                        }
-                    ?>                            
-                    <?php the_title('<h4>Take a Mental Health Test</h4>'); ?>   
-                    <div class="excerpt"><?php echo get_field('hero_introduction', 36); ?></div>
-                    <div class="text-center pb-3"><a href="/screening-tools/" class="button white round text-orange">Take a Mental Health Test</a></div>
-                <?php endwhile; ?>
+            */
+            ?>
+            <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4 hide-mobile">
+            <div class="inner">                
+                <h4><?php echo _e('Take a Mental Health Test', 'mhas2s'); ?></h4>
+                <div class="excerpt font-weight-normal">
+                    <?php echo strip_tags(get_field('hero_introduction', 36), '<p>'); ?>
                 </div>
-                </div>
-                <?php
-                */
-            }
-
+                <div class="text-center pb-3"><a href="/screening-tools/" class="button white round text-orange"><?php echo _e('Take a Mental Health Test', 'mhas2s'); ?></a></div>
+            </div>
+            </div>
+            <?php
+            $has_test_widget = true;
         }
 
     ?>
@@ -295,7 +288,8 @@
          */
 
         //$resources[] = 'condition';
-        if(count(array_intersect($article_type, $resources)) > 0 || count( array_intersect($article_type, array(null,'condition')) ) > 0 && $has_screen_cta == 0 ){               
+        if(!$has_test_widget):
+        if(count(array_intersect($article_type, $resources)) > 0 || count( array_intersect($article_type, array(null,'condition')) ) > 0 && $has_screen_cta == 0 ):              
 
             $related_articles = [];
             $args = array(
@@ -449,7 +443,8 @@
             <?php
             endif;
             wp_reset_query();
-        }
+        endif;
+        endif;
         
     ?>
 

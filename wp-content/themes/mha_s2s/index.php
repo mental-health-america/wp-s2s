@@ -17,41 +17,36 @@
 
 get_header(); ?>
 
-<?php if ( is_home() && ! is_front_page() ) : ?>
-	<header class="page-header">
-		<h1 class="page-title"><?php single_post_title(); ?></h1>
-	</header>
-<?php else : ?>
-	<header class="page-header">
-		<h2 class="page-title"><?php _e( 'Posts', 'mha_s2s' ); ?></h2>
-	</header>
-<?php endif; ?>
-
-<div id="primary" class="content-area">
-
 	<?php
-		if ( have_posts() ) :
-
-			/* Start the Loop */
-			while ( have_posts() ) : the_post();
-
-				get_template_part( 'templates/blocks/content', 'page' );
-
-			endwhile;
-
-			the_posts_pagination( array(
-				'prev_text' => '<span class="screen-reader-text">' . __( 'Previous page', 'mha_s2s' ) . '</span>',
-				'next_text' => '<span class="screen-reader-text">' . __( 'Next page', 'mha_s2s' ) . '</span>',
-				'before_page_number' => '<span class="meta-nav screen-reader-text">' . __( 'Page', 'mha_s2s' ) . ' </span>',
-			) );
-
-		else :
-
-			get_template_part( 'template-parts/post/content', 'page' );
-
+		// Having a URL parameter on the homepage breaks when its part of query_vars, so set this as the homepage as a failsafe?
+		if( get_the_ID() == 1 || !get_the_ID() ):
+			global $post; 
+			$post = get_post( get_option('page_on_front'), OBJECT );
+			setup_postdata( $post );
 		endif;
-	?>
 
-</div>
+		// Hero
+		get_template_part( 'templates/blocks/block', 'hero' );
+
+		// Normal Content
+		/*
+		while ( have_posts() ) : the_post();
+			get_template_part( 'templates/blocks/content', 'page' );
+		endwhile;
+		*/
+		
+		// Content Blocks
+		if( have_rows('block') ):
+		while ( have_rows('block') ) : the_row();
+		
+			$layout = get_row_layout();
+			if( get_template_part( 'templates/blocks/block', $layout ) ):
+				get_template_part( 'templates/blocks/block', $layout );
+			endif;
+			
+		endwhile;
+		endif;
+		wp_reset_postdata();
+	?>
 
 <?php get_footer();
