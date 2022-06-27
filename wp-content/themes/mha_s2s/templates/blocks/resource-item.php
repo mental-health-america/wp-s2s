@@ -10,9 +10,9 @@
         //$html .= '<span class="block image"><span class="table"><span class="cell"><img src="'.get_the_post_thumbnail_url().'" alt="" /></span></span></span>';        
         $html .= '<span class="image-container"><span class="image-container-inner" style="background-image: url(\''.get_the_post_thumbnail_url().'\');"></span></span>';
         $html .= '<span class="inner-text block">';
-        $html .= '<strong class="text-red title caps block mb-3 montserrat bold">'.get_the_title().' </strong>';
+        $html .= '<strong class="text-red title caps block mb-3 montserrat bold">'.get_the_title().'</strong>';
     } else {
-        $html .= '<span class="title-image image block"><span class="table"><span class="cell"><strong class="text-red caps">'.get_the_title().' </strong></span></span></span>';
+        $html .= '<span class="title-image image block"><span class="table"><span class="cell"><strong class="text-red caps">'.get_the_title().'</strong></span></span></span>';
         $html .= '<span class="inner-text block">';
     }
 

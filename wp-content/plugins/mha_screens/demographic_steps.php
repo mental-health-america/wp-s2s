@@ -28,7 +28,7 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     $is_array[] = $con['value'];
                 }      
                 foreach($is_array as $ia){
-                    if( in_array( $ia, $answered_demos[$con['key']] )){
+                    if( is_array($answered_demos[$con['key']]) && in_array( $ia, $answered_demos[$con['key']] )){
                         $is_counter++;
                     }
                 }            
@@ -84,7 +84,7 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     $any_array[] = $con['value'];
                 }                    
                 foreach($any_array as $a){
-                    if( in_array( $a, $answered_demos[$con['key']] ) ){
+                    if( is_array( $answered_demos[$con['key']]) && in_array( $a, $answered_demos[$con['key']] ) ){
                         $any_counter++;
                     }
                 }
@@ -103,7 +103,7 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     $any_array[] = $con['value'];
                 }                    
                 foreach($any_array as $a){
-                    if( in_array( $a, $answered_demos[$con['key']] ) ){
+                    if( is_array($answered_demos[$con['key']]) && in_array( $a, $answered_demos[$con['key']] ) ){
                         $any_counter++;
                     }
                 }

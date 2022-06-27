@@ -124,13 +124,21 @@
             "post_type"         => 'screen',
             "order"	            => 'DESC',
             "post_status"       => 'publish',
-            "posts_per_page"    => 10,
+            "posts_per_page"    => 1,
             'meta_query' => array( 
                 array(
                     'key' => 'espanol',
                     'value' => '1',
                 )
-            )
+            ),
+            'tax_query'      => array(
+                array(
+                    'taxonomy'          => 'condition',
+                    'include_children'  => false,
+                    'field'             => 'term_id',
+                    'terms'             => $primary_condition
+                ),
+            ),
         );
         $loop = new WP_Query($args);
         $counter = 0;
@@ -156,7 +164,7 @@
     ?>
 
     <div class="hide-mobile">
-        <?php get_template_part( 'templates/blocks/article', 'actions', array( 'placement' => 'desktop' ) ); ?>
+        <?php get_template_part( 'templates/blocks/article', 'actions', array( 'placement' => $placement ) ); ?>
     </div>
     
 </div>

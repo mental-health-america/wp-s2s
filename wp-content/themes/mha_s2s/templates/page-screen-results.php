@@ -173,6 +173,7 @@ else:
                                     ?>
                                         <div class="bubble thin teal round-small-bl mb-4">
                                         <div class="inner">
+                                            <span id="screen-name" style="display: none;"><?php echo get_the_title($user_screen_result['screen_id']); ?></span>
                                             <h2 class="white small m-0">
                                                 <strong><?php echo $result[0]['result_title']; $result_title = $result[0]['result_title']; ?></strong>
                                             </h2>
@@ -188,9 +189,9 @@ else:
                                         <div class="inner">
                                             <div class="subtitle thin caps block pb-1">
                                                 <?php if($espanol): ?>
-                                                    Su resultado para la <?php echo get_the_title($user_screen_result['screen_id']); ?> fue
+                                                    Su resultado para la <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span> fue
                                                 <?php else: ?>
-                                                    Your <?php echo get_the_title($user_screen_result['screen_id']); ?> score was
+                                                    Your <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span> score was
                                                 <?php endif; ?>
                                             </div>
                                             <h2 class="white small m-0">
@@ -341,6 +342,7 @@ else:
                         /**
                          * Handle rare duplicate
                          */
+                        /*
                         $search_criteria['field_filters'][] = array( 
                             'key' => 38, 
                             'value' => $user_screen_id
@@ -357,6 +359,7 @@ else:
                             }                                
                             $search_counter++;
                         }
+                        */
 
                     }
 
@@ -378,11 +381,11 @@ else:
         if(!is_wp_error($entry_data)){
             foreach($entry_data as $k => $v){            
                 $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
-                if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
+                //if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
                     if(trim($entry_data[$k]) != ''){
                         $answered_demos[$field->label][] = $entry_data[$k];
                     }
-                }
+                //}
             }        
         }
 
@@ -392,7 +395,7 @@ else:
         $answered_demos['result_id'] = array($user_screen_result['result_id']);
 
         // Screen specific demo steps/CTAs
-        $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );
+        $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );        
         foreach($demo_data['demo_steps'] as $e){
             $demo_steps[] = $e;
         }
@@ -478,6 +481,8 @@ else:
                         'total'              => 5,
                         'style'              => 'button',
                         'hide_all'           => true,
+                        'layout'             => $layout,
+                        'answered_demos'     => $answered_demos
                     );
                     mha_results_related_articles( $related_article_args );
                 ?>
@@ -771,6 +776,8 @@ else:
                 'espanol'            => $espanol,
                 'iframe_var'         => $iframe_var,
                 'partner_var'        => $partner_var,
+                'answered_demos'     => $answered_demos,
+                'layout'             => $layout
             );
             
             /**

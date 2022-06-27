@@ -706,8 +706,16 @@ function updateUserScreenResults( $options ){
  */
 add_action( 'gform_pre_submission', 'mha_screening_pre_submission_handler' );
 function mha_screening_pre_submission_handler( $form ) {
+
     // Populate token field with unique ID before save
-    $_POST['input_38'] = wp_generate_uuid4();
+    foreach( $form['fields'] as $field ) {
+        if( $field->label == 'Token' ) {
+            $_POST['input_'.$field->id] = wp_generate_uuid4().'-'.date('U', strtotime($form['date_created'])).'_'.$form['id'];
+            break;
+        }
+    }
+    
+    
 }
 
 

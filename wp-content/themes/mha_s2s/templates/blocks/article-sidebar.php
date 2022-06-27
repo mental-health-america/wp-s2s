@@ -449,7 +449,7 @@
     ?>
 
     <div class="hide-mobile">
-        <?php get_template_part( 'templates/blocks/article', 'actions', array( 'placement' => 'desktop' ) ); ?>
+        <?php get_template_part( 'templates/blocks/article', 'actions', array( 'placement' => $placement ) ); ?>
     </div>
     
 </div>
