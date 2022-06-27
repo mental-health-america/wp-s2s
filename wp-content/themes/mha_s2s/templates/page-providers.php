@@ -3,16 +3,19 @@
 get_header(); 
 ?>
 
-<div class="wrap medium center mb-5">
-    <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-        <div class="page-heading plain red">			
-            <?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
-            <div class="page-intro">
-                <?php the_content(); ?>				
-            </div>
+<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+    <div class="page-heading bar red">	
+    <div class="wrap normal">			
+        <?php 
+            get_template_part( 'templates/blocks/breadcrumbs' );
+            the_title( '<h1 class="entry-title">', '</h1>' ); 
+        ?>
+        <div class="page-intro">
+            <?php the_content(); ?>				
         </div>
-    </article>
-</div>
+    </div>
+    </div>
+</article>
 
 <div class="wrap normal clearfix pt-4">
 

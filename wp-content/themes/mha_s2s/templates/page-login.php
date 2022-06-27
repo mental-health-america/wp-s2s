@@ -46,7 +46,7 @@ get_header();
                     'id_remember' => 'user_page_remember',
                     'id_submit' => 'user_page_submit',
                     'remember' => true,
-                    'redirect' => $redirect
+                    'redirect' => add_query_arg( 'logged_in', 'true', $redirect )
                 );
                 wp_login_form($args); 
             ?>
