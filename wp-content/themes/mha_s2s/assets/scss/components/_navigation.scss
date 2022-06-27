@@ -364,6 +364,7 @@
             @extend .round-tr;
             font-size: .85em;
             @include transitions(background-color 150ms ease);
+            padding: 15px 25px;
             
             @media only screen and (max-width: 940px){
                 width: 100%;

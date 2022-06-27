@@ -6,7 +6,7 @@
 
     .bubble {
         .inner {
-            padding: 100px 60px;
+            padding: 50px 60px;
             //padding: 150px 60px;
             @include transitions(padding 200ms ease);
             @media only screen and (max-width: 767px){
@@ -184,6 +184,19 @@
     }
 }
 
+// Resources Pages
+/*
+.type-article .content-red .page-content {
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 { color: $red; }
+
+}
+*/
+
 .author {
     font-style: italic;
     @include montserrat(600);
@@ -197,23 +210,18 @@
     // Bar Style
     &.bar {
         background: rgba(203,232,255,.2);
-        padding: 70px 0;
+        padding: 50px 0;
         margin: 0 0 40px 0;       
         @media only screen and (max-width: 767px){
-            padding: 40px 0;
+            padding: 35px 0;
         } 
         h1 { 
             margin: 0; 
-            font-size: 3.5em;
+            font-size: 3em;
             color: $cerulean;
             max-width: 85%;
-            @media only screen and (max-width: 1120px){
-                font-size: 5vw;
-            }
             @media only screen and (max-width: 767px){
                 max-width: 100%;
-            }
-            @media only screen and (max-width: 540px){
                 font-size: 2em;
             }
         }
@@ -234,6 +242,25 @@
                 color: $blueDark;
                 &:after {
                     color: $raz;
+                }
+            }
+        }
+
+        // Colors
+        &.mint {
+            background: $mint;
+            h1 { color: $mediumTeal; }
+            #breadcrumbs,
+            #breadcrumbs .crumb {
+                color: $blueDark;
+                &:after {
+                    color: $blueDark;
+                }
+            }
+            #breadcrumbs a.crumb:hover {
+                color: $blueDark;
+                &:after {
+                    color: $blueDark;
                 }
             }
         }
@@ -263,7 +290,7 @@
         .type-screen & {
             h1 {
                 text-align: left;
-                color: $teal;
+                color: $mediumTeal;
             }
         }
 
@@ -273,6 +300,14 @@
             h1 { color: $red; }
         }
         
+    }
+
+    .page-intro {
+        padding-top: 10px;
+        max-width: 85%;
+        p:last-child {
+            margin: 0;
+        }
     }
 
 
@@ -306,7 +341,7 @@
     }
 }
 
-ol.next-steps {
+ol.next-steps.columned {
     margin: 0;
     padding: 0;
     column-count: 2;
@@ -323,6 +358,29 @@ ol.next-steps {
         -webkit-column-break-inside: avoid;
                   page-break-inside: avoid;
                        break-inside: avoid;
+    }
+}
+
+ol.next-steps.masonry {
+    margin: 0;
+    padding: 0;
+    position: relative;
+    li {
+        list-style-type: none;
+        margin: 0 0 20px 0;
+        padding: 0;
+        width: 50%;
+        float: left;
+        @include montserrat(600);
+        a {
+            margin-right: 20px;
+        }
+    }
+
+    &.masonry-loaded {
+        li {
+            float: none;
+        }
     }
 }
 
@@ -870,6 +928,7 @@ button.icon.like-button {
         background: $pink;
         text-decoration: none;
         color: $gray;
+        font-weight: 400;
         border: 1px solid $red;
         overflow: hidden;
         @include radius(30px);
@@ -905,6 +964,8 @@ button.icon.like-button {
 
             .title {
                 line-height: 1.1em;
+                letter-spacing: .04em;
+                word-spacing: .1em;      
             }
         }
 
@@ -987,6 +1048,8 @@ button.icon.like-button {
                 display: table-cell;
                 vertical-align: middle;
                 padding: 20px;
+                letter-spacing: .04em;
+                word-spacing: .1em;            
                 @media only screen and (max-width: 540px){
                     padding: 15px;
                 }

@@ -7,8 +7,8 @@
 article.screen {
 
     // Default Colors
-    & { color: $blue; }
-    h1 { color: $teal; }
+    & { color: $gray; }
+    h1 { color: $mediumTeal; }
     
     // Default Hidden Elements
     .gform_heading,
@@ -47,6 +47,9 @@ article.screen {
                     margin-left: 20px;
                 }
             }
+        }
+        li {
+            color: unset;
         }
     }
 
@@ -258,7 +261,7 @@ article.screen {
                 display: block;
                 padding: 12px 0;
                 text-align: left;
-                color: $blue;
+                color: $gray;
                 font-size: .85em;
                 line-height: 1em;
                 @include montserrat(400);
@@ -309,7 +312,7 @@ article.screen {
         input {
             text-align: left;
             background: $grayLight2;
-            color: $blue;
+            color: $gray;
             padding: 20px 20px;
             width: 100%;
             max-width: 50em;
@@ -331,7 +334,7 @@ article.screen {
             text-align: left;
             background: url('../images/arrow-down-dark.png') 90% center no-repeat $grayLight2;
             background-size: 12px auto;
-            color: $blue;
+            color: $gray;
             padding: 20px 50px 20px 20px;
             width: 100%;
             max-width: 320px;
@@ -369,10 +372,11 @@ article.screen {
     }
     
     // Submit buttons
+    #field_submit,
     .gform_footer,
     .gform_page_footer {
         text-align: right;
-        padding-top: 30px;
+        //padding-top: 30px;
         @media only screen and (max-width: 480px){
             text-align: center;
         }

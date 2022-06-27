@@ -4,6 +4,13 @@
 
 #footer {
     padding: 0;
+    
+    letter-spacing: .02em;
+    word-spacing: .05em;
+
+    .text-black {
+        color: #000000;
+    }
 
     #footer-left {
         float: left;
@@ -138,6 +145,7 @@
     line-height: 1.5em;
     position: relative;
     margin-top: -80px;
+
     @media only screen and (max-width: 767px){
         float: none;
         margin: -90px auto 40px auto;

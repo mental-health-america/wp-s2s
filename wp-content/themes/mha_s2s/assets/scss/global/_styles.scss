@@ -145,11 +145,16 @@ input[type="button"] {
     text-decoration: none;
     text-align: center;
     text-transform: uppercase;
+    letter-spacing: .04em;
+    word-spacing: .1em;
     @include montserrat(700);
     @include transitions(color 100ms ease, background-color 100ms ease, opacity 100ms ease);
 
     &:hover {
         background-color: $orange;
+    }
+
+    .site-content & {
     }
 
     // States
@@ -371,6 +376,7 @@ input[type="button"] {
     // Sizes
     &.thin {
         padding: 10px 25px; 
+        font-weight: 600;
     }
     &.large {
         font-size: 15px;
@@ -763,7 +769,7 @@ h2 {
     &.blue { color: $blue; }
     .text-dark-blue &,
     .dark-blue &,
-    &.dark-blue { color: $blueDark; }
+    &.dark-blue { color: $mediumTeal; }
 
     &.bar {
         margin-bottom: 40px;
@@ -811,6 +817,19 @@ h4 {
     }
 }
 
+.site-content {
+    letter-spacing: .02em;
+    word-spacing: .05em;
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+        letter-spacing: normal;
+        word-spacing: normal;
+    }
+}
+
 p { 
     margin: 0 0 1.5em 0; 
     padding: 0; 
@@ -833,6 +852,8 @@ p {
 
 .caps {
     text-transform: uppercase;
+    letter-spacing: .04em;
+    word-spacing: .1em;
 }
 
 em { font-style: italic; }
@@ -1057,7 +1078,8 @@ img {
 /* Basic Styling Classes */
 
 .aligncenter {
-    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
     display: block;
     text-align: center;
 }
