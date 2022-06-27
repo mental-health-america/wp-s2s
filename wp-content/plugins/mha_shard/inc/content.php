@@ -462,17 +462,17 @@ function get_articles( $options ){
 	// Default Args
     $defaults = array (
 	  //'type' 				=> null, 
-	  	'search' 			=> null, 
+		'search' 			=> null, 
 		'condition_terms'	=> null, 
 		'tag_terms'			=> null, 
-	  	'filters' 			=> null, 
+		'filters' 			=> null, 
 		'order' 			=> 'DESC', 
 		'orderby' 			=> 'featured', 
-	  	'geo' 				=> null, 
-	  	'area_served'		=> null, 
+		'geo' 				=> null, 
+		'area_served'		=> null, 
 		'paged' 			=> 1, 
-	  	'espanol' 	    	=> '!=', 
-	  	'all_conditions' 	=> null
+		'espanol' 	    	=> '!=', 
+		'all_conditions' 	=> null
 	);
 	$options = wp_parse_args( $options, $defaults );
 
@@ -829,6 +829,73 @@ function get_articles( $options ){
 	echo 'Ceil: '.$offset_ceil.'<br />';
 	*/
 
+	/** 
+	 * Scoring Order Overrides
+	 */
+
+	// Treatment Articles
+	if($options['type'] == 'treatment'){
+		$treatment_articles = [];
+		$pop_array = array_slice(mha_monthly_pop_articles('read'), 0, 8);
+		foreach($articles as $a){
+
+			// Defaults
+			$treatment_articles[$a]['id'] = $a;
+			$score = 0;
+
+			// Top 8 Popular +8
+			if(in_array($a, $pop_array)){
+				$score = $score + 8;
+			}
+
+			// Primary Condition
+			$primary_condition = get_field('primary_condition', $a);
+			if($options['condition_terms'] && in_array($primary_condition, $options['condition_terms'])){
+				$score = $score + 10;
+			}
+
+			// No Filters Check
+			if(!isset($options['condition_terms']) || !isset($options['tag_terms'])){
+				$tags = get_the_terms( $a, 'post_tag' );
+				$m101 = false;
+				foreach($tags as $t){
+					if($t->slug == 'mental-health-101'){
+						$m101 = true;
+					}
+				}
+				if(get_field('all_conditions', $a) == 1 || $m101 == true){
+					$score = $score + 10;
+				}
+			}
+
+			// Treatment Types
+			$filter_treatment_types = [];
+			if(isset($options['filters'])){
+				foreach($options['filters'][0] as $k => $v){
+					if($k == 'treatment_type'){
+						foreach($v as $t){
+							$filter_treatment_types[] = $t;
+						}
+					}
+				}				
+			}
+			if(count($filter_treatment_types) == 0 || !isset($options['filters'])){
+				$score = $score + count( get_field('treatment_type', $a) );		
+			}		
+			
+			// Set the final score
+			$treatment_articles[$a]['score'] = $score;
+		}
+		$treatment_articles_og = $treatment_articles; // Used later; need to preserve ID as keys before sorting
+		usort($treatment_articles, function ($item1, $item2) {
+			return $item2['score'] <=> $item1['score'];
+		});
+		$articles = [];
+		foreach($treatment_articles as $ta){
+			$articles[] = $ta['id'];
+		}
+	}	
+
 	if(count($articles) > 0 ){
 		
 		if($get_national_results == 1){
@@ -850,7 +917,7 @@ function get_articles( $options ){
 		foreach($articles as $post):			
 			if($counter >= $offset && $counter <= $offset_ceil){
 				setup_postdata($post);
-				get_template_part( 'templates/blocks/resource', 'item' );
+				get_template_part( 'templates/blocks/resource', 'item', array( 'score' => $treatment_articles_og[$post]['score'] ) );
 			}
 			$counter++;			
 		endforeach;
@@ -992,15 +1059,13 @@ add_action( 'generate_mha_popular_article_json', 'mha_monthly_pop_articles' );
 function mha_monthly_pop_articles( $read = null ){
 
 	// JSON Source File
-	$json = plugin_dir_path(__FILE__).'/tmp/pop_articles.json'; 
-
-	// Return JSON content if 
-	if($read == 'read'){		
-		if(file_exists($json)) {
-			$pop_data = file_get_contents($json);
-			$pop_return = json_decode( json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $pop_data), true ), true );
-			return $pop_return;
-		}
+	$json = plugin_dir_path( __FILE__ ).'tmp/pop_articles.json'; 
+	
+	// Return JSON contents
+	if($read == 'read' && file_exists($json) && filemtime($json) > strtotime('-3 months')) {
+		$pop_data = file_get_contents($json);
+		$pop_return = json_decode( json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $pop_data), true ), true );
+		return $pop_return;
 	}
 
 	global $wpdb;
@@ -1030,7 +1095,7 @@ function mha_monthly_pop_articles( $read = null ){
 	fwrite($fp, json_encode($pop_json));
 	fclose($fp);
 
-	return;
+	return $pop_articles;
 	
 }
 
