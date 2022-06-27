@@ -26,6 +26,29 @@
 			'traffic_type': 'external'
 		});
 	<?php endif; ?>
+
+	<?php
+	if(get_post_type() == 'screen'):
+		if(get_field('survey')):
+		?>		
+			window.dataLayer.push({
+				'event': 'screen_survey'
+			});
+		<?php else: ?>		
+			window.dataLayer.push({
+				'event': 'screen_test'
+			});
+		<?php
+		endif;
+	endif;
+	?>
+	
+	<?php if(basename(get_page_template()) == 'page-screen-results.php'): ?>		
+		window.dataLayer.push({
+			'sid': '<?php echo get_query_var('sid'); ?>',
+			'event': 'completed_screen',
+		});
+	<?php endif; ?>
 </script>
 
 <!-- Google Tag Manager -->

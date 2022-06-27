@@ -341,14 +341,17 @@
 		}
 		*/
 
-		// Simple Masonry
-		
+		/**
+		 * Masonry
+		 */	
+
+		// CTAs
 		$('.cta-cols').each(function(event){
 			if($(this).children('.block-cta').length > 1){
-				var macyId = $(this).attr('id');
-				$('#'+macyId).addClass('masonry');
-				var macy = Macy({
-					container: '#'+macyId,
+				let macyCtaBlock = $(this).attr('id');
+				$('#'+macyCtaBlock).addClass('masonry');
+				let macy = Macy({
+					container: '#'+macyCtaBlock,
 					trueOrder: true,
 					waitForImages: false,
 					margin: 0,
@@ -357,6 +360,51 @@
 						767: 1
 					}
 				});
+			}
+		});
+
+		// Screening Results Next Steps
+		if($('.next-steps.masonry').length){	
+			$('.next-steps.masonry').addClass('masonry-loaded');		
+			let macyNextSteps = Macy({
+				container: '.next-steps',
+				trueOrder: true,
+				waitForImages: false,
+				margin: {
+					x: 20,
+					y: 20  
+				},
+				columns: 2,
+				breakAt: {
+					480: 1
+				}
+			});
+		}
+
+		
+		/**
+		 * dataLayer events
+		 */
+		var firstInputInteracted = false,
+			fieldInputs = '.gform_body .gform_page:first-of-type .question input, .gform_body .gform_page:first-of-type .question-optional input',
+			fieldInputsTotal = 0;
+
+		// Get the total fields in case of refresh
+		$(fieldInputs).each(function(){
+			if( $(this).prop('checked') || $(this).attr('type') == 'number' && $(this).val() > 0 || $(this).attr('type') == 'text' && $(this).val != '' ) {
+				fieldInputsTotal++;
+			}
+		});
+
+		$(document).on('keyup click', fieldInputs, function(){
+			if(firstInputInteracted == false && fieldInputsTotal == 0){
+				if( $(this).val().length !== 0 ) {
+					firstInputInteracted = true;
+					window.dataLayer = window.dataLayer || [];
+					window.dataLayer.push({
+						'event': 'screen_interacted'
+					});
+				}
 			}
 		});
 
