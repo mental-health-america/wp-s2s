@@ -47,7 +47,7 @@ get_header();
 				'before_page_number' => '<span class="meta-nav screen-reader-text">' . __( 'Page', 'mha_s2s' ) . ' </span>',
 			) );
 
-		else : ?>
+		else: ?>
 
 			<p><?php _e( 'Sorry, but nothing matched your search terms. Please try again with some different keywords.', 'mha_s2s' ); ?></p>
 
@@ -59,10 +59,7 @@ get_header();
 			</div>
 			</div>
 
-		<?php
-
-		endif;
-		?>
+		<?php endif; ?>
 
 	</div>
 	</div>

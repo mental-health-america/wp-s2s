@@ -992,6 +992,26 @@ function mha_remove_dashboard_widgets() {
 }
 add_action('wp_dashboard_setup', 'mha_remove_dashboard_widgets' );
 
+/**
+ * Relevanssi Override
+ */
 add_filter( 'relevanssi_excerpt_gap', function( $gap, $count_words, $excerpt_length ) {
 	return floor( $count_words / 100 - $excerpt_length );
 }, 10, 3 );
+
+add_filter( 'relevanssi_post_content', 'rlv_pre_code', 10 );
+add_filter( 'relevanssi_excerpt_content', 'rlv_pre_code', 10 );
+function rlv_pre_code( $content ) {
+    $content = preg_replace( '#<(.*) class=".*?references".*?</\1>#mis', '', $content );
+    $content = preg_replace( '#<(.*) class=".*?noindex".*?</\1>#mis', '', $content );
+	$content = preg_replace( '#<(.*) id=".*?references".*?</\1>#mis', '', $content);
+	$content = preg_replace( '#<pre.*?</pre>#mis', '', $content );
+	$content = preg_replace( '#<code.*?</code>#mis', '', $content );
+	return $content;
+}
+
+add_filter( 'relevanssi_excerpt', 'rlv_modify_excerpt', 10, 2 );
+function rlv_modify_excerpt( $excerpt, $post_id ) {	
+	$excerpt = get_post_type($post_id) == 'screen' ? get_the_excerpt( $post_id ) : $excerpt;
+	return $excerpt;
+}
