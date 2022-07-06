@@ -1097,4 +1097,7 @@ button.icon.like-button {
 
 .references {
     @extend .small;
+    a {
+        hyphens: auto;
+    }
 }

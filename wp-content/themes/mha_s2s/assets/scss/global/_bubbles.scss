@@ -94,7 +94,7 @@
         }
     }
 
-    // Birhgt blue
+    // Bright blue
     &.bright-blue {
         background: $white;
         color: $brightBlue;
@@ -224,25 +224,25 @@
         h2,
         h3,
         h4 {
-            color: $red;
+            color: $darkRed;
         }
         &.bubble-border {
-            border-color: $red;
+            border-color: $darkRed;
         }
 
         // Variant
         &.dark-red,
         .dark-red & {
             background: #FDEFEF;
-            color: $red;
+            color: $darkRed;
             h1,
             h2,
             h3,
             h4 {
-                color: $red;
+                color: $darkRed;
             }
             &.bubble-border {
-                border-color: $red;
+                border-color: $darkRed;
             }
 
         }
@@ -365,6 +365,35 @@
                 background-color: $blueDark;
             }
         }
+    }
+
+    // Color Extensions
+    &.cerulean,
+    &.blue,
+    &.orange {
+        h1,
+        h2,
+        h3,
+        h4 {
+            &.text-black { @extend .text-gray; }
+            &.text-gray { @extend .text-gray; }
+            &.text-red { @extend .text-red; }
+            &.text-blue { @extend .text-blue; }
+            &.text-bright-blue { @extend .text-bright-blue; }
+            &.text-teal,
+            &.text-green { @extend .text-teal; }
+            &.text-blue-dark, 
+            &.text-dark-blue { @extend .text-dark-blue; }
+            &.text-dark-teal { @extend .text-dark-teal; }
+            &.text-cerulean { @extend .text-cerulean; }
+            &.text-silver { @extend .text-silver; }
+            &.text-orange { @extend .text-orange; }
+        }
+    }
+
+    // Errors
+    .gform_submission_error  {
+        color: $darkRed !important;
     }
 
 }
