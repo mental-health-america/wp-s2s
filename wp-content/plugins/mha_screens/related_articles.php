@@ -177,7 +177,7 @@ function mha_results_related_articles( $args ){
                     array(
                         'key' => 'type',
                         'value' => array('condition', 'diy','connect','treatment','provider'),
-                        'compare' => 'LIKE'
+                        'compare' => 'IN'
                     )
                 )
             );
@@ -233,17 +233,19 @@ function mha_results_related_articles( $args ){
         }
 
         // Set up taxonomy query filters
-        foreach($taxonomy_query as $k => $v){
-            $loop_args['tax_query'][] = array(
-                'taxonomy' => $k,
-                'field'    => 'term_id',
-                'terms'    => $v
-            );
+        if(isset($taxonomy_query)){
+            foreach($taxonomy_query as $k => $v){
+                $loop_args['tax_query'][] = array(
+                    'taxonomy' => $k,
+                    'field'    => 'term_id',
+                    'terms'    => $v
+                );
+            }
         }
 
         // Make all tags required for multiple taxonomies (e.g. avoid eating disorder articles on depression results 
         // if someone answered 18-25 demographic questions)
-        if(count($taxonomy_query) > 1){
+        if(isset($taxonomy_query) && is_array($taxonomy_query) && count($taxonomy_query) > 1){
             $loop_args['tax_query']['relation'] = 'AND';
         }
 
@@ -257,7 +259,7 @@ function mha_results_related_articles( $args ){
         if($primary_condition_yoast){
             $primary_condition = $primary_condition_yoast;
         } else {                
-            $primary_condition = $screen_conditions[0]->term_id;
+            $primary_condition = $screen_conditions ? $screen_conditions[0]->term_id : null;
         }
         
         $terms_tags = get_the_terms( $user_screen_result['screen_id'], 'post_tag' );
@@ -282,20 +284,29 @@ function mha_results_related_articles( $args ){
             $article_tags = get_the_terms( $article_id, 'post_tag' );
             $article_primary_condition = get_field('primary_condition', $article_id);
 
+            // Defaults
+            $related_articles[$article_id]['score_debug'] = '';
+
 
             // Skip Spanish Articles
             if(!$args['espanol'] && get_field('espanol')){
+                unset($related_articles[$article_id]);
                 continue;
             }
 
             // Skip local providers
             if(get_field('area_served')){
+                unset($related_articles[$article_id]);
                 continue;
             }
             
             // Matching primary condition
             $hasPrimary = false;
-            if($article_primary_condition && $primary_condition && $article_primary_condition->term_id == $primary_condition || count($article_conditions) == 1 || $article_primary_condition == $primary_condition ){
+            if(
+                $article_primary_condition && $primary_condition && isset($article_primary_condition->term_id) && $article_primary_condition->term_id == $primary_condition || 
+                is_array($article_conditions) && count($article_conditions) == 1 || 
+                $article_primary_condition == $primary_condition 
+            ){
                 $rel_score = $rel_score + get_field('scoring_primary_condition', 'options');
                 $related_articles[$article_id]['score_debug'] .= 'OnlyPrimary ';
                 $hasPrimary = true;
@@ -316,19 +327,30 @@ function mha_results_related_articles( $args ){
             }
             */
 
-            // Matching conditions                
-            foreach($article_conditions as $nc){
-                if(in_array($nc->term_id, $terms_match)){
-                    $rel_score = $rel_score + get_field('scoring_condition', 'options');
-                    $related_articles[$article_id]['score_debug'] .= 'HasPrimaryCondition ';
-                }
-                if($nc->term_id == $primary_condition){      
-                    if(!$hasPrimary){                  
-                        $rel_score = $rel_score + get_field('scoring_matching_primary', 'options');
-                        $related_articles[$article_id]['score_debug'] .= 'HasCondition ';
+            // Matching conditions     
+            if(is_array($article_conditions)):
+                foreach($article_conditions as $nc){  
+                    $hasCondition = false;
+                    if($screen_conditions){
+                        foreach($screen_conditions as $sc){
+                            if($nc->term_id == $sc->term_id){
+                                $hasCondition = true;
+                                break;
+                            }
+                        }
+                    }
+                    if($hasCondition){
+                        $rel_score = $rel_score + get_field('scoring_condition', 'options');
+                        $related_articles[$article_id]['score_debug'] .= 'HasPrimaryCondition ';
+                    }
+                    if($nc->term_id == $primary_condition){      
+                        if(!$hasPrimary){                  
+                            $rel_score = $rel_score + get_field('scoring_matching_primary', 'options');
+                            $related_articles[$article_id]['score_debug'] .= 'HasCondition ';
+                        }
                     }
                 }
-            }
+            endif;
 
             // Matching Article Conditions
             /*
@@ -353,90 +375,104 @@ function mha_results_related_articles( $args ){
             */
 
             // Matching Tags
-            foreach($article_tags as $nt){
-                if(in_array($nt->term_id, $terms_match)){
-                    $rel_score = $rel_score + get_field('scoring_tag', 'options');
-                    $related_articles[$article_id]['score_debug'] .= 'Tag ';
-                }
-                if($nt->term_id == $primary_condition){
-                    $rel_score = $rel_score + get_field('scoring_primary_tag', 'options');
-                    $related_articles[$article_id]['score_debug'] .= 'HasTag ';
-                }
-
-                // Youth and Age 
-                if($nt->slug == 'youth' && strpos(strtolower(get_the_title($user_screen_result['screen_id'])), 'youth') === false && strpos(strtolower(get_the_title($user_screen_result['screen_id'])), 'parent') === false ){
-                    if($age_check == 'over'){
-                        $rel_score = $rel_score - get_field('scoring_over_18', 'options');
-                        $related_articles[$article_id]['score_debug'] .= 'Over18 ';
+            if($article_tags):
+                foreach($article_tags as $nt){                    
+                    
+                    $hasTag = false;
+                    if($terms_tags){
+                        foreach($terms_tags as $tt){
+                            if($nt->term_id == $tt->term_id){
+                                $hasTag = true;
+                                break;
+                            }
+                        }
                     }
-                    if($age_check == 'under'){
-                        $rel_score = $rel_score + get_field('scoring_under_18', 'options');
-                        $related_articles[$article_id]['score_debug'] .= 'Under18 ';
+
+                    if($hasTag){
+                        $rel_score = $rel_score + get_field('scoring_tag', 'options');
+                        $related_articles[$article_id]['score_debug'] .= 'Tag ';
                     }
-                }
+                    if($nt->term_id == $primary_condition){
+                        $rel_score = $rel_score + get_field('scoring_primary_tag', 'options');
+                        $related_articles[$article_id]['score_debug'] .= 'HasTag ';
+                    }
 
-                // LGBTQ+
-                if($nt->slug == 'lgbtq' && $user_demo_lgbtq){
-                    $rel_score = $rel_score + get_field('scoring_lgbtq', 'options');
-                    $related_articles[$article_id]['score_debug'] .= 'LGBTQ+ ';
-                }
+                    // Youth and Age 
+                    if($nt->slug == 'youth' && strpos(strtolower(get_the_title($user_screen_result['screen_id'])), 'youth') === false && strpos(strtolower(get_the_title($user_screen_result['screen_id'])), 'parent') === false ){
+                        if($age_check == 'over'){
+                            $rel_score = $rel_score - get_field('scoring_over_18', 'options');
+                            $related_articles[$article_id]['score_debug'] .= 'Over18 ';
+                        }
+                        if($age_check == 'under'){
+                            $rel_score = $rel_score + get_field('scoring_under_18', 'options');
+                            $related_articles[$article_id]['score_debug'] .= 'Under18 ';
+                        }
+                    }
 
-                // BIPOC
-                if($nt->slug == 'bipoc' && $user_demo_bipoc){
-                    $rel_score = $rel_score + get_field('scoring_bipoc', 'options');
-                    $related_articles[$article_id]['score_debug'] .= 'BIPOC ';
-                }
+                    // LGBTQ+
+                    if($nt->slug == 'lgbtq' && $user_demo_lgbtq){
+                        $rel_score = $rel_score + get_field('scoring_lgbtq', 'options');
+                        $related_articles[$article_id]['score_debug'] .= 'LGBTQ+ ';
+                    }
 
-                // Caregiver
-                if($nt->slug == 'caregiver' && $user_demo_caregiver){
-                    $rel_score = $rel_score + get_field('scoring_caregiver', 'options');
-                    $related_articles[$article_id]['score_debug'] .= 'Caregiver ';
-                }
+                    // BIPOC
+                    if($nt->slug == 'bipoc' && $user_demo_bipoc){
+                        $rel_score = $rel_score + get_field('scoring_bipoc', 'options');
+                        $related_articles[$article_id]['score_debug'] .= 'BIPOC ';
+                    }
 
-            }
+                    // Caregiver
+                    if($nt->slug == 'caregiver' && $user_demo_caregiver){
+                        $rel_score = $rel_score + get_field('scoring_caregiver', 'options');
+                        $related_articles[$article_id]['score_debug'] .= 'Caregiver ';
+                    }
+
+                }
+            endif;
 
             
             // Article Type Scoring
-            //12. (Article Type is DIY, Connect, or Provider) and (Article is not market appropriate for Under 11) and (Age Range < 11 or Age Range is blank): [article not displayed]
-            //13. (Article Type is DIY, Connect, or Provider) and (Article is not market appropriate for 11-17) and (11 <= Age Range <= 17 or Age Range is blank): [article not displayed]
-            //14. (Article Type is DIY, Connect, or Provider) and (Article is not market appropriate for 18+) and (Age Range >= 18 or Age Range is blank): [article not displayed]
-            $article_type = get_field('type');
-            
-            if(count(array_intersect( array('diy','connect','provider'), $article_type) > 0)){
-                $article_ages = get_the_terms( $article_id, 'age_group' );
+            $article_type = get_field('type');            
+            if($article_type && is_array($article_type)){
+                if(count(array_intersect( array('diy','connect','provider'), $article_type)) > 0){
+                    $article_ages = get_the_terms( $article_id, 'age_group' );
 
-                $user_no_age = true;
-                $user_under_11 = false;
-                $user_11_17 = false;
-                $user_18_up = false;
+                    $user_no_age = true;
+                    $user_under_11 = false;
+                    $user_11_17 = false;
+                    $user_18_up = false;
 
-                foreach($user_demo_ages as $uda){
-                    if($uda <= 11){
-                        $user_under_11 = true;
-                        $user_no_age = false;
-                    } else if($uda < 18){
-                        $user_11_17 = true;
-                        $user_no_age = false;
-                    } if($uda >= 18){
-                        $user_under_11 = true;
-                        $user_no_age = false;
-                    }     
-                }
-                
-                foreach($article_ages as $a){
-                    if($a->slug == 'under-11' && $user_under_11 == false || $a->slug == 'under-11' && $user_no_age == true){
-                        continue;
-                    }
-
-                    if($a->slug == '11-17' && $user_under_11 == false || $a->slug == '11-17' && $user_no_age == true){
-                        continue;
+                    foreach($user_demo_ages as $uda){
+                        if($uda <= 11){
+                            $user_under_11 = true;
+                            $user_no_age = false;
+                        } else if($uda < 18){
+                            $user_11_17 = true;
+                            $user_no_age = false;
+                        } if($uda >= 18){
+                            $user_under_11 = true;
+                            $user_no_age = false;
+                        }     
                     }
                     
-                    if($a->slug == 'over-18' && $user_under_11 == false || $a->slug == 'over-18' && $user_no_age == true){
-                        continue;
-                    }
-                }
+                    foreach($article_ages as $a){
+                        if($a->slug == 'under-11' && $user_under_11 == false || $a->slug == 'under-11' && $user_no_age == true){
+                            unset($related_articles[$article_id]);
+                            continue;
+                        }
 
+                        if($a->slug == '11-17' && $user_under_11 == false || $a->slug == '11-17' && $user_no_age == true){
+                            unset($related_articles[$article_id]);
+                            continue;
+                        }
+                        
+                        if($a->slug == 'over-18' && $user_under_11 == false || $a->slug == 'over-18' && $user_no_age == true){
+                            unset($related_articles[$article_id]);
+                            continue;
+                        }
+                    }
+
+                }
             }
             
             $related_articles[$article_id]['id'] = $article_id;
@@ -465,7 +501,7 @@ function mha_results_related_articles( $args ){
             $related_articles);
         }
         
-        $related_articles_display = array_slice($related_articles, 0, 20);
+        $related_articles_display = array_slice($related_articles, 0, $total_recs);
         foreach($related_articles_display as $rad){
             
             $article_display = '<a class="'.$rad['list_link_class'].' rec-auto"'.$rad['related_link_target'].' href="'.$rad['related_link'].'">'.$rad['title'];
@@ -481,6 +517,7 @@ function mha_results_related_articles( $args ){
 
         // Print all the items
         $i = 1;
+
         foreach($list_items as $item){
             // Skip items if its set
             if($args['skip'] > 0 && $i <= $args['skip']){

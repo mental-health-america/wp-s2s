@@ -28,7 +28,7 @@ else:
     $demo_steps = [];
     $result_title = '';
     $max_score = get_field('overall_max_score', $user_screen_result['screen_id']); // Get the screen's overall max score
-    $espanol = get_field('espanol', $user_screen_result['screen_id']); // Spanish page?
+    $espanol = get_field('espanol', $user_screen_result['screen_id']); // Spanish page
     $partner_var = get_query_var('partner'); // Partner layout overrides
     $iframe_var = get_query_var('iframe'); // Template flags when site is viewed in an iframe
 
@@ -207,9 +207,7 @@ else:
                             <div id="screen-result-buttons" class="button-grid pt-3 pb-3 pl-0 pr-0 pl-md-5 pr-md-5">
 
                                 <?php 
-                                    if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                                        // Hide these buttons on normal surveys 
-                                    else :
+                                    if( !get_field('survey', $user_screen_result['screen_id']) || get_field('show_survey_results', $user_screen_result['screen_id']) ):
                                     ?>
                                         <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">       
                                             <?php 
@@ -220,7 +218,9 @@ else:
 
                                         <?php
                                             if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d'), $layout))){
-                                                get_template_part( 'templates/results/action', 'email_button', array( 'espanol' => $espanol ) ); 
+                                                get_template_part( 'templates/results/action', 'email_button', array( 
+                                                    'espanol' => $espanol 
+                                                ) ); 
                                             }
                                         ?>
                                     <?php 
@@ -245,8 +245,10 @@ else:
                                     if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d'), $layout))){
                                         get_template_part( 'templates/results/action', 'email_display', array( 
                                             'width' => 'normal', 
+                                            'show' => 0, 
                                             'screen_id' => $user_screen_result['screen_id'], 
                                             'user_screen_id' => $user_screen_id,
+                                            'espanol' => $espanol,
                                             'entry_id' => $user_screen_result['result_id']
                                         ) ); 
                                     }
@@ -382,7 +384,7 @@ else:
             foreach($entry_data as $k => $v){            
                 $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
                 //if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
-                    if(trim($entry_data[$k]) != ''){
+                    if(trim($entry_data[$k]) != '' && isset($field->label)){
                         $answered_demos[$field->label][] = $entry_data[$k];
                     }
                 //}
@@ -556,9 +558,7 @@ else:
                 <div class="wrap narrow" id="layout-action_b">
                     <div id="screen-result-buttons-next_steps" class="button-grid pt-3 pb-3 px-0">
                         <?php 
-                            if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                                // Hide these buttons on normal surveys 
-                            else :
+                            if( !get_field('survey', $user_screen_result['screen_id']) || get_field('show_survey_results', $user_screen_result['screen_id']) ):
                                 get_template_part( 'templates/results/action', 'email_button', array( 
                                     'espanol' => $espanol 
                                     ) ); 
@@ -572,8 +572,10 @@ else:
                     <?php 
                         get_template_part( 'templates/results/action', 'email_display', array( 
                             'width' => 'normal', 
+                            'show' => 0, 
                             'screen_id' => $user_screen_result['screen_id'], 
                             'user_screen_id' => $user_screen_id,
+                            'espanol' => $espanol,
                             'entry_id' => $user_screen_result['result_id']
                         )); 
                     ?>
@@ -592,9 +594,7 @@ else:
             <div class="wrap narrow" id="layout-action_c">
                 <div id="screen-result-buttons-next_steps" class="button-grid pt-3 pb-3 px-0">
                     <?php 
-                        if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                            // Hide these buttons on normal surveys 
-                        else :
+                        if( !get_field('survey', $user_screen_result['screen_id']) || get_field('show_survey_results', $user_screen_result['screen_id']) ):
                             get_template_part( 'templates/results/action', 'login_email_button', array( 
                                 'espanol' => $espanol, 
                                 'with_email' => true 
@@ -615,7 +615,7 @@ else:
                         ) );
                         get_template_part( 'templates/results/action', 'email_display', array( 
                             'width' => 'normal', 
-                            'show' => 'yes', 
+                            'show' => 1, 
                             'screen_id' => $user_screen_result['screen_id'], 
                             'user_screen_id' => $user_screen_id,
                             'entry_id' => $user_screen_result['result_id']
@@ -635,9 +635,7 @@ else:
             <div class="wrap narrow" id="layout-action_d">
                 <div id="screen-result-buttons-next_steps" class="button-grid pt-3 pb-3 px-0">
                     <?php 
-                        if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                            // Hide these buttons on normal surveys 
-                        else :
+                        if( !get_field('survey', $user_screen_result['screen_id']) || get_field('show_survey_results', $user_screen_result['screen_id']) ):
                             if(!is_user_logged_in()):
                                 get_template_part( 'templates/results/action', 'login_button', array( 
                                     'espanol' => $espanol 
@@ -658,6 +656,7 @@ else:
                 <?php 
                     get_template_part( 'templates/results/action', 'email_display', array( 
                         'width' => 'normal', 
+                        'show' => 0, 
                         'screen_id' => $user_screen_result['screen_id'], 
                         'user_screen_id' => $user_screen_id,
                         'entry_id' => $user_screen_result['result_id']

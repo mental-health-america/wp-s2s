@@ -2,6 +2,7 @@
 /* Template Name: Path Collection */
 get_header(); 
 $espanol = get_field('espanol');
+$term = null;
 ?>
 
 	<?php
@@ -157,8 +158,10 @@ $espanol = get_field('espanol');
 											</div>
 
 											<div class="col-12 col-md-3 mt-3 mt-md-0 pl-1 pr-1">
-												<input type="hidden" name="search_tag" value="<?php echo $term->term_id; ?>" />
-												<input type="hidden" name="search_taxonomy" value="<?php echo $term->taxonomy; ?>" />
+												<?php if($term): ?>
+													<input type="hidden" name="search_tag" value="<?php echo $term->term_id; ?>" />
+													<input type="hidden" name="search_taxonomy" value="<?php echo $term->taxonomy; ?>" />
+												<?php endif; ?>
 												<input type="hidden" name="order" value="<?php echo $order; ?>" />
 												<input type="hidden" name="orderby" value="<?php echo $orderby; ?>" />
 												<p class="m-0 wide block"><input type="submit" class="button gform_button white block pl-0 pr-0" value="Search" /></p>

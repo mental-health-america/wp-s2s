@@ -47,11 +47,13 @@
 
 			<div id="footer-left">
 
-				<div id="footer-sign-up" class="bubble round-bl">
+				<div id="footer-sign-up" class="bubble round-bl cerulean">
 				<div class="inner">
-					<?php the_field('footer_sign_up_form', 'options'); ?>
+					<div class="text-blue">
+						<?php the_field('footer_sign_up_form', 'options'); ?>
+					</div>
 
-					<div class="form-container line-form">
+					<div class="form-container line-form blue">
 						<?php echo do_shortcode('[gravityform id="4" title="false" description="false" ajax="true"]'); ?>
 					</div>
 				</div>

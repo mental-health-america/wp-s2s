@@ -380,7 +380,7 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 	/**
 	 * Var overrides when ajax requested
 	 */
-	if($_POST['data']){
+	if(isset($_POST['data'])){
 		parse_str($_POST['data'], $data); 
 		$activity_id = $data['activity_id'];
 		$index = $data['index'];

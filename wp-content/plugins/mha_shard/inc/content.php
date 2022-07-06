@@ -44,63 +44,107 @@ function mha_popular_articles( $options ) {
 	
 	if($atts['tag']){	
 
-		// All articles
-		$articles_bunch = $wpdb->get_results('
-			SELECT DISTINCT posts.ID, postview.id, postmeta.post_id, SUM(postview.count) as total
-			FROM '.$wpdb->prefix.'posts AS posts
+		// JSON Source File
+		$json = plugin_dir_path( __FILE__ ).'tmp/pop_'.$atts['tag'].'_articles.json'; 
+		
+		// Return JSON contents
+		if(file_exists($json) && filemtime($json) > strtotime('-1 months')) {
+			
+			$pop_data = file_get_contents($json);
+			$articles = json_decode( json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $pop_data), true ), true );
 
-			INNER JOIN '.$wpdb->prefix.'post_views AS postview
-			ON posts.ID = postview.id
+		} else {
+				
+			// All articles
+			$articles_bunch = $wpdb->get_results('
+				SELECT DISTINCT posts.ID, postview.id, postmeta.post_id, SUM(postview.count) as total
+				FROM '.$wpdb->prefix.'posts AS posts
 
-			INNER JOIN '.$wpdb->prefix.'postmeta AS postmeta
-			ON posts.ID = postmeta.post_id
+				INNER JOIN '.$wpdb->prefix.'post_views AS postview
+				ON posts.ID = postview.id
 
-			WHERE posts.post_status LIKE "publish"
-			AND posts.post_type LIKE "article" 
-			AND postview.period IN ('.$month_range.') 
-			AND postmeta.meta_value LIKE "condition"
+				INNER JOIN '.$wpdb->prefix.'postmeta AS postmeta
+				ON posts.ID = postmeta.post_id
 
-			GROUP BY posts.ID
-			ORDER BY total DESC
-			LIMIT 300'
-		);
+				WHERE posts.post_status LIKE "publish"
+				AND posts.post_type LIKE "article" 
+				AND postview.period IN ('.$month_range.') 
+				AND postmeta.meta_value LIKE "condition"
 
-		$articles = [];
+				GROUP BY posts.ID
+				ORDER BY total DESC
+				LIMIT 300'
+			);
 
-		$bunch_counter = 0;
-		if($articles_bunch){
-			foreach($articles_bunch as $a){
-				if($bunch_counter > 8){
-					continue;
-				}
-				if(has_term($atts['tag'], $atts['tax'], $a->ID)){
-					$articles[] = $a;
-					$bunch_counter++;
+			$articles = [];
+
+			$bunch_counter = 0;
+			if($articles_bunch){
+				foreach($articles_bunch as $a){
+					if($bunch_counter > 8){
+						continue;
+					}
+					if(has_term($atts['tag'], $atts['tax'], $a->ID)){
+						$articles[] = $a->ID;
+						$bunch_counter++;
+					}
 				}
 			}
+			
+			$pop_json = json_encode($articles);
+				
+			$fp = fopen($json, 'w');
+			fwrite($fp, json_encode($pop_json));
+			fclose($fp);
+
 		}
 
 	} else {
-		// All articles
-		$articles = $wpdb->get_results('
-			SELECT DISTINCT posts.ID, postview.id, postmeta.post_id, SUM(postview.count) as total
-			FROM '.$wpdb->prefix.'posts AS posts
 
-			INNER JOIN '.$wpdb->prefix.'post_views AS postview
-			ON posts.ID = postview.id
+		// JSON Source File
+		$json = plugin_dir_path( __FILE__ ).'tmp/pop_8_articles.json'; 
+		
+		// Return JSON contents
+		if(file_exists($json) && filemtime($json) > strtotime('-1 months')) {
+			
+			$pop_data = file_get_contents($json);
+			$articles = json_decode( json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $pop_data), true ), true );
 
-			INNER JOIN '.$wpdb->prefix.'postmeta AS postmeta
-			ON posts.ID = postmeta.post_id
+		} else {
+			
+			// All articles
+			$article_query = $wpdb->get_results('
+				SELECT DISTINCT posts.ID, postview.id, postmeta.post_id, SUM(postview.count) as total
+				FROM '.$wpdb->prefix.'posts AS posts
 
-			WHERE posts.post_status LIKE "publish"
-			AND posts.post_type LIKE "article" 
-			AND postview.period IN ('.$month_range.') 
-			AND postmeta.meta_value LIKE "condition"
+				INNER JOIN '.$wpdb->prefix.'post_views AS postview
+				ON posts.ID = postview.id
 
-			GROUP BY posts.ID
-			ORDER BY total DESC
-			LIMIT 8'
-		);
+				INNER JOIN '.$wpdb->prefix.'postmeta AS postmeta
+				ON posts.ID = postmeta.post_id
+
+				WHERE posts.post_status LIKE "publish"
+				AND posts.post_type LIKE "article" 
+				AND postview.period IN ('.$month_range.') 
+				AND postmeta.meta_value LIKE "condition"
+
+				GROUP BY posts.ID
+				ORDER BY total DESC
+				LIMIT 8'
+			);
+			
+			$articles = [];
+			foreach($article_query as $pa){
+				$articles[] = $pa->ID;
+			}
+			$pop_json = json_encode($articles);
+				
+			$fp = fopen($json, 'w');
+			fwrite($fp, json_encode($pop_json));
+			fclose($fp);
+
+		}
+		
 	}
 
 	if($articles){
@@ -115,7 +159,7 @@ function mha_popular_articles( $options ) {
 		
 		foreach($articles as $a){
 			
-			$item_link = '<a class="plain montserrat semi" href="'.get_the_permalink($a->ID).'">'.get_the_title($a->ID).'</a>';
+			$item_link = '<a class="plain montserrat semi" href="'.get_the_permalink($a).'">'.get_the_title($a).'</a>';
 
 			if($atts['style'] == 'inline'){
 				$inline_list[] = $item_link;
@@ -303,17 +347,17 @@ function getArticlesAjax(){
 
 	// Page
 	$options['paged'] = 1;
-	if($data['paged'] != ''){
+	if(isset($data['paged']) && $data['paged'] != ''){
 		$options['paged'] = intval($data['paged']);
 	}
 
 	// Conditions Content
-	if($data['condition']){
+	if(isset($data['condition']) && $data['condition']){
 		$options['condition_terms'] = $data['condition'];
 	}
 
 	// Tags
-	if($data['tags']){
+	if(isset($data['tags']) && $data['tags']){
 		$options['tag_terms'] = $data['tags'];
 	}
 	
@@ -369,7 +413,7 @@ function getArticlesAjax(){
 	}
 
 	// Spanish
-	if($data['espanol']){
+	if(isset($data['espanol'])){
 		$options['espanol'] = '=';
 	}
 
@@ -642,20 +686,24 @@ function get_articles( $options ){
 		);
 
 		$tag_terms = [];
-		foreach($options['tag_terms'] as $ct){
-			$tag_terms[] = $ct;
-		}
-		if(count($tag_terms) > 0){
-			$tax_args['tag__and'] = $tag_terms;
+		if(isset($options['tag_terms'])){
+			foreach($options['tag_terms'] as $ct){
+				$tag_terms[] = $ct;
+			}
+			if(count($tag_terms) > 0){
+				$tax_args['tag__and'] = $tag_terms;
+			}
 		}
 		
-		foreach($options['condition_terms'] as $ct){
-			$tax_args['tax_query']['relation'] = 'AND';
-			$tax_args['tax_query'][] = array(
-				'taxonomy' => 'condition',
-				'field'    => 'term_id',
-				'terms'    => $ct
-			);
+		if(isset($options['condition_terms'])){
+			foreach($options['condition_terms'] as $ct){
+				$tax_args['tax_query']['relation'] = 'AND';
+				$tax_args['tax_query'][] = array(
+					'taxonomy' => 'condition',
+					'field'    => 'term_id',
+					'terms'    => $ct
+				);
+			}
 		}
 
 		$tax_query = new WP_Query($tax_args);
@@ -858,9 +906,11 @@ function get_articles( $options ){
 			if(!isset($options['condition_terms']) || !isset($options['tag_terms'])){
 				$tags = get_the_terms( $a, 'post_tag' );
 				$m101 = false;
-				foreach($tags as $t){
-					if($t->slug == 'mental-health-101'){
-						$m101 = true;
+				if($tags){
+					foreach($tags as $t){
+						if($t->slug == 'mental-health-101'){
+							$m101 = true;
+						}
 					}
 				}
 				if(get_field('all_conditions', $a) == 1 || $m101 == true){
@@ -917,7 +967,7 @@ function get_articles( $options ){
 		foreach($articles as $post):			
 			if($counter >= $offset && $counter <= $offset_ceil){
 				setup_postdata($post);
-				get_template_part( 'templates/blocks/resource', 'item', array( 'score' => $treatment_articles_og[$post]['score'] ) );
+				get_template_part( 'templates/blocks/resource', 'item', array( 'score' => isset($treatment_articles_og[$post]) ? $treatment_articles_og[$post]['score'] : 0 ) );
 			}
 			$counter++;			
 		endforeach;
@@ -1139,9 +1189,11 @@ function get_tag_filters( $args ){
 			$tags = get_the_tags(get_the_ID());
 		}
 
-		foreach($tags as $tag){
-			if(!get_field('hide_on_front_end', $tag->taxonomy.'_'.$tag->term_id)){
-				$tags_array[$tag->term_id] = $tag->name;
+		if($tags){
+			foreach($tags as $tag){
+				if(!get_field('hide_on_front_end', $tag->taxonomy.'_'.$tag->term_id)){
+					$tags_array[$tag->term_id] = $tag->name;
+				}
 			}
 		}
 	endwhile;

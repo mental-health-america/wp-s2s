@@ -25,7 +25,7 @@
             if($loc == 'local'){
                 $loc_location = get_field('location');
                 $location_display = 'Local';
-                if(count($loc_location) > 0) {
+                if($loc_location && count($loc_location) > 0) {
                     $local_locations = [];
                     foreach($loc_location as $l){
                         if($l['city'] != '' && $l['state'] != ''){

@@ -28,11 +28,11 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     $is_array[] = $con['value'];
                 }      
                 foreach($is_array as $ia){
-                    if( is_array($answered_demos[$con['key']]) && in_array( $ia, $answered_demos[$con['key']] )){
+                    if( isset($answered_demos[$con['key']]) && in_array( $ia, $answered_demos[$con['key']] )){
                         $is_counter++;
                     }
                 }            
-                if($is_counter == count($is_array) && $is_counter == count($answered_demos[$con['key']])){
+                if( isset($answered_demos[$con['key']]) && $is_counter == count($is_array) && $is_counter == count($answered_demos[$con['key']])){
                     $i++;
                 }
             }
@@ -47,7 +47,7 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     $is_array[] = $con['value'];
                 }      
                 foreach($is_array as $ia){
-                    if(in_array( $ia, $answered_demos[$con['key']] )){
+                    if( isset($answered_demos[$con['key']]) && in_array( $ia, $answered_demos[$con['key']] )){
                         $is_counter++;
                     }
                 }         
@@ -58,20 +58,24 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
             
             // Contains
             else if($con['condition'] == 'contain'){
-                foreach($answered_demos[$con['key']] as $ad){
-                    if (strpos(strtolower($ad), strtolower($con['value'])) !== false) {
-                        $i++;
-                    }
-                } 
+                if(isset($answered_demos[$con['key']])){
+                    foreach($answered_demos[$con['key']] as $ad){
+                        if (strpos(strtolower($ad), strtolower($con['value'])) !== false) {
+                            $i++;
+                        }
+                    } 
+                }
             }
             
             // Not Contains
-            else if($con['condition'] == 'not_contain'){                                
-                foreach($answered_demos[$con['key']] as $ad){
-                    if (strpos(strtolower($ad), strtolower($con['value'])) === false) {
-                        $i++;
-                    }
-                } 
+            else if($con['condition'] == 'not_contain'){      
+                if(isset($answered_demos[$con['key']])){                          
+                    foreach($answered_demos[$con['key']] as $ad){
+                        if (strpos(strtolower($ad), strtolower($con['value'])) === false) {
+                            $i++;
+                        }
+                    } 
+                }
             }
 
             // Any Of
@@ -84,7 +88,7 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     $any_array[] = $con['value'];
                 }                    
                 foreach($any_array as $a){
-                    if( is_array( $answered_demos[$con['key']]) && in_array( $a, $answered_demos[$con['key']] ) ){
+                    if( isset( $answered_demos[$con['key']] ) && in_array( $a, $answered_demos[$con['key']] ) ){
                         $any_counter++;
                     }
                 }
@@ -103,7 +107,7 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     $any_array[] = $con['value'];
                 }                    
                 foreach($any_array as $a){
-                    if( is_array($answered_demos[$con['key']]) && in_array( $a, $answered_demos[$con['key']] ) ){
+                    if( isset($answered_demos[$con['key']]) && in_array( $a, $answered_demos[$con['key']] ) ){
                         $any_counter++;
                     }
                 }
@@ -115,12 +119,17 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
             // Less Than < & Greater Than >
             else if($con['condition'] == 'less' || $con['condition'] == 'greater'){  
                 $number_con = preg_replace("/[^0-9]/", '', $con['value'] );                    
-                if (strpos($answered_demos[$con['key']][0], '-') !== false) {
-                    $number_ans = explode('-',$answered_demos[$con['key']][0]);
-                    $number_ans = preg_replace("/[^0-9]/", '', $number_ans[0] );
-                } else {
-                    $number_ans = preg_replace("/[^0-9]/", '', $answered_demos[$con['key']][0] );
-                }  
+                if(isset($answered_demos[$con['key']])):
+                    if (strpos($answered_demos[$con['key']][0], '-') !== false) {
+                        $number_ans = explode('-',$answered_demos[$con['key']][0]);
+                        $number_ans = preg_replace("/[^0-9]/", '', $number_ans[0] );
+                    } else {
+                        $number_ans = preg_replace("/[^0-9]/", '', $answered_demos[$con['key']][0] );
+                    }  
+                else:
+                    $number_ans = 0;
+                endif;
+
                 if($con['condition'] == 'greater'){  
                     if($number_ans > $number_con){
                         $i++;
