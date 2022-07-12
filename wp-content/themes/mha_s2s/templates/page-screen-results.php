@@ -315,7 +315,7 @@ else:
                                     if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ){
                                         echo $result[0]['result_content'];
                                     } else {
-                                        the_sub_field('result_content');
+                                        echo get_sub_field('result_content');
                                     }
                                 ?>
                             </div>
@@ -444,7 +444,7 @@ else:
              * A/B Variant
              * Layout: actions_hide_ns
              */    
-            if(!in_array('actions_hide_ns', $layout)):          
+            if(!in_array('actions_hide_ns', $layout) && !in_array('actions_hide_nsh', $layout) ):
         ?>
             <h2 class="section-title dark-blue bold">
                 <?php if($espanol): ?>

@@ -26,6 +26,9 @@ include_once 'inc/plugin-overrides.php';
 // Content Specific Functions
 include_once 'inc/content.php';
 
+// Custom Shortcodes
+include_once 'inc/shortcodes.php';
+
 // Article Specific Functions
 include_once 'inc/articles.php';
 

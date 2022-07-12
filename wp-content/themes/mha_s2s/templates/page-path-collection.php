@@ -61,79 +61,15 @@ $term = null;
 				$has_reading_path = false;
 				$zebra = 'odd';
 				if($loop->have_posts()):
+					
 					$has_reading_path = true;
+
 					while($loop->have_posts()) : $loop->the_post();
-						$path_id = get_the_ID();
-						$delay = 0;
-						if($zebra == 'odd'){
-							$pathColor = 'cerulean bubble-border-blue';
-							$zebra = 'even';
-						} else {
-							$pathColor = 'pale-blue bubble-border-blue';
-							$zebra = 'odd';
-						}
-					?>  
-
-						<div class="bubble round-tl mb-5 <?php echo $pathColor; ?> path-container wow fadeIn" role="complementary">
-						<div class="inner">
-							<?php the_title('<h3>','</h3>'); ?> 
-							
-							<ol class="path-list hidden-list" aria-hidden="true">
-								<?php
-									$counter = 0;
-									$spacer_counter_wide = 0;
-									$spacer_counter_narrow = 0;
-									$path = get_field('path');
-									$max = count($path);
-									if( have_rows('path') ):
-									while( have_rows('path') ) : the_row();
-										$article = get_sub_field('article');
-										echo '<li class="path-item wow fadeIn" data-wow-delay="'.($delay).'s">';
-											echo '<a class="button round-tiny thin cerulean block" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'">';
-												echo '<span class="table">';
-												echo '<span class="cell">';
-													if(get_sub_field('custom_title')){
-														echo get_sub_field('custom_title');
-													} else {
-														echo get_the_title($article);
-													}
-												echo '</span>';
-												echo '</span>';
-											echo '</a>';
-										echo '</li>';
-										$counter++;
-
-										// Spacers
-										if($counter < $max){
-											echo '<li class="path-spacer path-spacer-mobile wow fadeIn" data-wow-delay="'.($delay).'s">';
-											get_template_part( 'templates/blocks/block', 'path.svg' );
-											echo '</li>';
-
-											$spacer_counter_wide++;
-											$spacer_counter_narrow++;
-											if($spacer_counter_wide == 4){
-												echo '<li class="path-spacer path-spacer-wide wow fadeIn" data-wow-delay="'.($delay).'s">';
-												get_template_part( 'templates/blocks/block', 'path.svg' );
-												echo '</li>';
-												$spacer_counter_wide = 0;
-											}
-											if($spacer_counter_narrow == 3){
-												echo '<li class="path-spacer path-spacer-narrow wow fadeIn" data-wow-delay="'.($delay).'s">';
-												get_template_part( 'templates/blocks/block', 'path.svg' );
-												echo '</li>';
-												$spacer_counter_narrow = 0;
-											}
-										}
-										$delay = $delay + .1;
-									endwhile;
-									endif;
-								?>
-							</ol>
-							
-						</div>
-						</div>
-
-					<?php 
+						get_template_part( 'templates/blocks/reading', 'path', array( 
+							'no_wrapper' => 1, 
+							'zebra' => $zebra 
+						) );
+						$zebra = $zebra == 'odd' ? 'even' : 'odd';
 					endwhile; 
 
 				else:

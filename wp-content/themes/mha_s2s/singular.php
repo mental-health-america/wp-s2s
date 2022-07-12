@@ -146,66 +146,17 @@ get_header();
 								endwhile;
 								echo '</div>';
 							endif; 
+
+							// Display the path
+							if($path_id){
+								get_template_part( 'templates/blocks/reading', 'path', array( 
+									'no_wrapper' => 0, 
+									'path_id' => $path_id, 
+									'article_type' => $article_type, 
+									'resources' => $resources 
+								) );
+							} 
 						?>
-
-						<?php if($path_id): ?>
-							<h3><?php echo get_the_title($path_id); ?></h3>
-							<ol class="path-list hidden-list" aria-hidden="true">
-								<?php
-									$counter = 0;
-									$delay = 0;
-									$spacer_counter_wide = 0;
-									$spacer_counter_narrow = 0;
-									$max = count($path);
-									if( have_rows('path', $path_id) ):
-									while( have_rows('path', $path_id) ) : the_row();
-										$article = get_sub_field('article');
-										$current_class = '';
-										if($current == $article){
-											$current_class = ' current';
-										}
-										echo '<li class="path-item wow fadeIn" data-wow-delay="'.($delay).'s">';
-											echo '<a class="button round-tiny thin '.$button_color.' block'.$current_class.'" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'">';
-												echo '<span class="table">';
-												echo '<span class="cell">';
-													if(get_sub_field('custom_title')){
-														echo get_sub_field('custom_title');
-													} else {
-														echo get_the_title($article);
-													}
-												echo '</span>';
-												echo '</span>';
-											echo '</a>';
-										echo '</li>';
-										$counter++;
-										
-										// Spacers
-										if($counter < $max){
-											echo '<li class="path-spacer path-spacer-mobile wow fadeIn" data-wow-delay="'.($delay).'s">';
-											get_template_part( 'templates/blocks/block', 'path.svg' );
-											echo '</li>';
-
-											$spacer_counter_wide++;
-											$spacer_counter_narrow++;
-											if($spacer_counter_wide == 4){
-												echo '<li class="path-spacer path-spacer-wide wow fadeIn" data-wow-delay="'.($delay).'s">';
-												get_template_part( 'templates/blocks/block', 'path.svg' );
-												echo '</li>';
-												$spacer_counter_wide = 0;
-											}
-											if($spacer_counter_narrow == 3){
-												echo '<li class="path-spacer path-spacer-narrow wow fadeIn" data-wow-delay="'.($delay).'s">';
-												get_template_part( 'templates/blocks/block', 'path.svg' );
-												echo '</li>';
-												$spacer_counter_narrow = 0;
-											}
-										}
-										$delay = $delay + .1;
-									endwhile;
-									endif;
-								?>
-							</ol>
-						<?php endif; ?>
 						
 					</div>
 					</div>

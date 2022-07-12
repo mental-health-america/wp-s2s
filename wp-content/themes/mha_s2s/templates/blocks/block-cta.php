@@ -2,11 +2,12 @@
     // Content Block - Text
 
     // Styles
-    $style = get_field('style');
-    $color = get_field('color');
-    $rounded = get_field('corner_style');
-    $padding = get_field('padding');
-    $custom = get_field('custom_classes');
+    $id = isset($args['id']) ? $args['id'] : get_the_ID();
+    $style = get_field('style', $id);
+    $color = get_field('color', $id);
+    $rounded = get_field('corner_style', $id);
+    $padding = get_field('padding', $id);
+    $custom = get_field('custom_classes', $id);
 ?>
 
 <div class="content-block block-text block-cta <?php echo $custom; ?> mb-4 mt-4">
@@ -30,21 +31,21 @@
         }
     ?>
 
-    <?php if(get_field('headline')): ?>
-        <h2 class="section-title small bold"><?php the_field('headline'); ?></h2>
+    <?php if(get_field('headline', $id)): ?>
+        <h2 class="section-title small bold"><?php the_field('headline', $id); ?></h2>
     <?php endif; ?>
 
-    <?php the_field('content'); ?>
+    <?php the_field('content', $id); ?>
 
-    <?php if(get_field('button_url')): ?>
+    <?php if(get_field('button_url', $id)): ?>
         <?php 
-            if(get_field('button_text')){
-                $button_text = get_field('button_text');
+            if(get_field('button_text', $id)){
+                $button_text = get_field('button_text', $id);
             } else {
                 $button_text = 'Read More';
             }
         ?>
-        <a class="button round wide" href="<?php echo get_field('button_text'); ?>"><?php echo $button_text; ?></a>
+        <a class="button round wide" href="<?php echo get_field('button_text', $id); ?>"><?php echo $button_text; ?></a>
     <?php endif; ?>
     
     <?php

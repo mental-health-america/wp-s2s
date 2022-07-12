@@ -301,7 +301,7 @@
                     array(
                         'key' => 'type',
                         'value' => array('condition', 'diy','connect','treatment','provider'),
-                        'compare' => 'LIKE'
+                        'compare' => 'IN'
                     )
                 )
             );
@@ -356,7 +356,7 @@
                 }
 
                 // Matching primary condition
-                if($new_primary && $primary_condition && $new_primary->term_id == $primary_condition){
+                if($new_primary && $primary_condition && $new_primary == $primary_condition){
                     $rel_score = $rel_score + 3;
                 }
 
@@ -369,21 +369,25 @@
                 $rel_score = $rel_score + count(array_intersect($article_type, get_field('type', $new_id)));
 
                 // Matching conditions
-                foreach($new_cond as $nc){
-                    if(in_array($nc->term_id, $terms_match)){
-                        $rel_score = $rel_score + 1;
-                    }
-                    if($nc->term_id == $primary_condition){
-                        $rel_score = $rel_score + 2;
+                if($new_cond){
+                    foreach($new_cond as $nc){
+                        if(in_array($nc->term_id, $terms_match)){
+                            $rel_score = $rel_score + 1;
+                        }
+                        if($nc->term_id == $primary_condition){
+                            $rel_score = $rel_score + 2;
+                        }
                     }
                 }
 
-                foreach($new_tags as $nt){
-                    if(in_array($nt->term_id, $terms_match)){
-                        $rel_score = $rel_score + 1;
-                    }
-                    if($nt->term_id == $primary_condition){
-                        $rel_score = $rel_score + 2;
+                if($new_tags){
+                    foreach($new_tags as $nt){
+                        if(in_array($nt->term_id, $terms_match)){
+                            $rel_score = $rel_score + 1;
+                        }
+                        if($nt->term_id == $primary_condition){
+                            $rel_score = $rel_score + 2;
+                        }
                     }
                 }
 
