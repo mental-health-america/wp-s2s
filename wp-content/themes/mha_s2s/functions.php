@@ -88,7 +88,8 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220502' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220712' );
+	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
 	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20220225', 'print' );
@@ -114,7 +115,8 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20220627', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20220712', true );
+	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
@@ -1015,3 +1017,20 @@ function rlv_modify_excerpt( $excerpt, $post_id ) {
 	$excerpt = get_post_type($post_id) == 'screen' ? get_the_excerpt( $post_id ) : $excerpt;
 	return $excerpt;
 }
+
+
+/**
+ * Remove javascript from submit button so we can manually submit it on radio button changes
+ */
+add_filter( 'gform_submit_button', 'add_onclick', 10, 2 );
+function add_onclick( $button, $form ) {
+	// Only if form has .auto-submit class
+	if (strpos($form['cssClass'], 'auto-submit') !== false) {
+		return "<button class='button gform_button' id='gform_submit_button_{$form['id']}'><span>Submit</span></button>";
+	}	
+}
+
+/**
+ * Remove the anchor jump after submit
+ */
+add_filter( 'gform_confirmation_anchor', '__return_false' );

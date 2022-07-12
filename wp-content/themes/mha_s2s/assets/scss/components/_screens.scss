@@ -36,7 +36,11 @@ article.screen {
     .gform_fields  {
         margin: 0;
         padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
         .gfield {
+            flex: 0 1 100%;
             list-style: none;
             list-style-type: none;
             margin: 0 0 35px 0;
@@ -241,6 +245,13 @@ article.screen {
         }
     }
 
+    .gfield.gfield--width-half {
+        flex: 1 1 calc(50% - 20px);
+        @media only screen and (max-width: 480px){
+            flex: 1 1 100%;
+        }
+    }
+
     // Traditional Radio/Checkboxes
     .gfield.traditional {
         .gfield_checkbox,
@@ -376,10 +387,14 @@ article.screen {
     .gform_footer,
     .gform_page_footer {
         text-align: right;
-        //padding-top: 30px;
         @media only screen and (max-width: 480px){
             text-align: center;
         }
+
+        &.gfield--width-half {
+            padding-top: 35px;
+        }
+
         .button {
             font-size: .85em;
             padding-right: 80px;

@@ -82,10 +82,10 @@ function getUserScreenResults( $user_screen_id ) {
             if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {  
                 
                 // Advanced Conditions Check
-                $get_results = get_field('results', $user_screen_results['screen_id']);
+                $get_results = get_field('results', $user_screen_results['screen_id'], false);
                 if( $get_results ) {
                     foreach($get_results as $result){
-                        if($result['advanced_conditions']){
+                        if(isset($result['advanced_conditions'])){
                             foreach($result['advanced_conditions'] as $ac){
                                 if($ac['question_id'] == $field->id){
                                     $advanced_conditions_data[$field->id] = $v; 
@@ -361,7 +361,7 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
                 $general_score_data['max_values'][$k] = $max_choice;                 
 				
 				if(isset($field->cssClass) && strpos($field->cssClass, 'exclude') === false){     
-					$total_score = $total_score + $v; // Add to total score	
+					$total_score = $total_score + intval($v); // Add to total score	
 				}
 				
 				if($v != ''){			
@@ -480,7 +480,7 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
 
 					// Result Header
 					$header .= '<h1 style="margin-top: 0; padding-top: 0;"><strong>'.get_sub_field('result_title').'</strong></h1>';
-					$header .= $res = preg_replace('/<form.*?<\/form>/s', '', get_sub_field('result_content'));
+					$header .= preg_replace('/<form.*?<\/form>/s', '', strip_shortcodes(get_sub_field('result_content')));
 					
 					if(have_rows('additional_results', $screen_id)):
 						$header .= '<p><strong>Overall Score:</strong> '.intval($total_score).'<br />';

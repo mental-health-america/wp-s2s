@@ -541,3 +541,22 @@ label {
         }
     }
 }
+
+
+/** Auto-submit forms **/
+.auto-submit .gform_fields {
+    &,
+    article.screen & {
+        margin: 20px 0;
+
+        .gfield {
+            margin: 0;
+        }
+
+        #field_submit {
+            position: absolute;
+            left: -999em;
+            visibility: hidden;
+        }
+    }
+}
