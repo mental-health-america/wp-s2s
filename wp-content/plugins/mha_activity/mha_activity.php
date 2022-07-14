@@ -387,8 +387,8 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 		$path = $data['path'];
 		$admin_seed = $data['admin_seed'];
 		$user_seed = $data['user_seed'];
-		$return = $data['return'];
-		$paged = $data['paged'];
+		$return = isset($data['return']) ? $data['return'] : null;
+		$paged = isset($data['paged']) ? $data['paged'] : null;
 		if($index == 0 && $path != ''){
 			$index = 1;
 		}
@@ -487,7 +487,13 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 			$thoughts = get_field('responses');	
 
 			// Skip user seeded thoughts (only show the original), and skip thoughts that have been hidden
-			if($index === 0 && $thoughts[0]['user_pre_seeded_thought'] || $index === 0 && $thoughts[0]['admin_pre_seeded_thought'] || $thoughts[$index]['hide'] == 1 || !isset($thoughts[$index]) || $index > 0 && $thoughts[1]['path'] != $path){
+			if(
+				$index === 0 && $thoughts[0]['user_pre_seeded_thought'] || 
+				$index === 0 && $thoughts[0]['admin_pre_seeded_thought'] || 
+				isset($thoughts[$index]) && isset($thoughts[$index]['hide']) && $thoughts[$index]['hide'] == 1 || 
+				!isset($thoughts[$index]) || 
+				$index > 0 && isset($thoughts[1]) && $thoughts[1]['path'] && $thoughts[1]['path'] != $path
+			){
 			//if($index === 0 && $thoughts[0]['user_pre_seeded_thought'] || $thoughts[$index]['hide'] == 1 || !isset($thoughts[$index]) || $index > 0 && $thoughts[1]['path'] != $path){
 				continue;
 			}
