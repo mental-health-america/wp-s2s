@@ -317,6 +317,8 @@ else:
                                     } else {
                                         echo get_sub_field('result_content');
                                     }
+
+                                    the_field('results_footer', $user_screen_result['screen_id']);
                                 ?>
                             </div>
 
@@ -442,9 +444,9 @@ else:
             
             /**
              * A/B Variant
-             * Layout: actions_hide_ns
+             * Layout: actions_hide_ns_r
              */    
-            if(!in_array('actions_hide_ns', $layout) && !in_array('actions_hide_nsh', $layout) ):
+            if(!in_array('actions_hide_ns_r', $layout) && !in_array('actions_hide_nsh', $layout) ):
         ?>
             <h2 class="section-title dark-blue bold">
                 <?php if($espanol): ?>
@@ -460,7 +462,7 @@ else:
              * A/B Variant
              * Layout: actions_ns_top
              */
-            if(in_array('actions_ns_top', $layout)):          
+            if(!in_array('actions_ns_top_r', $layout)):          
         ?>        
             <div class="bubble round-tl mb-5 mint">
             <div class="inner">
@@ -490,7 +492,7 @@ else:
                 ?>
             </div>
             </div>
-        <?php endif; // Hide 'actions_ns_top' ?>
+        <?php endif; // Hide 'actions_ns_top_r' ?>
 
 
         <?php 
@@ -752,7 +754,7 @@ else:
                 if($espanol){
                     echo 'Más información y recursos';
                 } else {
-                    if(in_array('actions_ns_top', $layout)){
+                    if(!in_array('actions_ns_top_r', $layout)){
                         echo 'More ';
                     }
                     the_field('next_steps_subtitle', $user_screen_result['screen_id']); 
@@ -781,9 +783,9 @@ else:
             
             /**
              * A/B Variant
-             * Layout: actions_hide_ns
+             * Layout: actions_hide_ns_r
              */
-            if(in_array('actions_ns_top', $layout)){
+            if(!in_array('actions_ns_top_r', $layout)){
                 $related_article_args['skip'] = 5;
             }
 

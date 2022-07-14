@@ -85,7 +85,7 @@ function mha_results_related_articles( $args ){
     
 
     if($args['style'] != 'button'){
-        if(in_array('ras', $args['layout'])){
+        if(!in_array('ras_r', $args['layout'])){
             echo '<ol class="next-steps masonry">';
         } else {
             echo '<ol class="next-steps columned">';
@@ -149,35 +149,36 @@ function mha_results_related_articles( $args ){
             $total_exclude = 0;
         }
         $total_recs = $args['total'] - $total_exclude;
-
         
         $loop_args = array(
             "post_type" => 'article',
             "order"	=> 'ASC',
-            "orderby" => 'date',
+            "orderby" => 'title',
             "post_status" => 'publish',
-            "posts_per_page" => $total_recs,
+            "posts_per_page" => 500,
+            /*
             "meta_query" => array(
                 array(
-                    "key"       => 'type',
-                    "value"     => 'condition',
-                    'compare'   => 'LIKE'
+                    'key' => 'type',
+                    'value' => array('condition', 'diy','connect','treatment','provider'),
+                    'compare' => 'IN'
                 )
             )
+            */
         );
 
-        if(in_array('ras', $args['layout'])){
+        if(in_array('ras_r', $args['layout'])){
             $loop_args = array(
                 "post_type" => 'article',
                 "order"	=> 'ASC',
-                "orderby" => 'title',
+                "orderby" => 'date',
                 "post_status" => 'publish',
-                "posts_per_page" => 500,
+                "posts_per_page" => $total_recs,
                 "meta_query" => array(
                     array(
-                        'key' => 'type',
-                        'value' => array('condition', 'diy','connect','treatment','provider'),
-                        'compare' => 'IN'
+                        "key"       => 'type',
+                        "value"     => 'condition',
+                        'compare'   => 'LIKE'
                     )
                 )
             );
@@ -285,8 +286,8 @@ function mha_results_related_articles( $args ){
             $article_primary_condition = get_field('primary_condition', $article_id);
 
             // Defaults
+            $related_articles[$article_id] = [];
             $related_articles[$article_id]['score_debug'] = '';
-
 
             // Skip Spanish Articles
             if(!$args['espanol'] && get_field('espanol')){
@@ -343,7 +344,7 @@ function mha_results_related_articles( $args ){
                         $rel_score = $rel_score + get_field('scoring_condition', 'options');
                         $related_articles[$article_id]['score_debug'] .= 'HasPrimaryCondition ';
                     }
-                    if($nc->term_id == $primary_condition){      
+                    else if($nc->term_id == $primary_condition){      
                         if(!$hasPrimary){                  
                             $rel_score = $rel_score + get_field('scoring_matching_primary', 'options');
                             $related_articles[$article_id]['score_debug'] .= 'HasCondition ';
@@ -474,6 +475,12 @@ function mha_results_related_articles( $args ){
 
                 }
             }
+
+            
+            if(!isset($related_articles[$article_id]['score_debug'])){
+                unset($related_articles[$article_id]);
+                continue;
+            }
             
             $related_articles[$article_id]['id'] = $article_id;
             $related_articles[$article_id]['title'] = get_the_title();
@@ -483,10 +490,11 @@ function mha_results_related_articles( $args ){
             $related_articles[$article_id]['related_link'] = $related_link;
             $related_articles[$article_id]['pop'] = array_search($article_id, $pop_array) ? array_search($article_id, $pop_array) : '999';
 
+
         endwhile;
 
         // Sort by score and add to list
-        if(in_array('ras', $args['layout'])){
+        if(!in_array('ras_r', $args['layout'])){
             
             /*
             usort($related_articles, function ($item1, $item2) {
@@ -502,10 +510,11 @@ function mha_results_related_articles( $args ){
         }
         
         $related_articles_display = array_slice($related_articles, 0, $total_recs);
+        //$related_articles_display = $related_articles;
         foreach($related_articles_display as $rad){
             
             $article_display = '<a class="'.$rad['list_link_class'].' rec-auto"'.$rad['related_link_target'].' href="'.$rad['related_link'].'">'.$rad['title'];
-            if (current_user_can('edit_posts') && in_array('ras', $args['layout'])) {
+            if (current_user_can('edit_posts') && !in_array('ras_r', $args['layout'])) {
                 // Scoring debug options for Editors
                 $article_display .= '<br /><span class="small text-red">(Score: '.$rad['score'].', Popularity: #'.$rad['pop'].') <br /> ['.$rad['score_debug'].']</span>';
             }

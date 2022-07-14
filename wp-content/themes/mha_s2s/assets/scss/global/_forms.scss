@@ -544,19 +544,37 @@ label {
 
 
 /** Auto-submit forms **/
-.auto-submit .gform_fields {
-    &,
-    article.screen & {
+.auto-submit {
+    min-height: 100px;
+
+    .gform_fields {
         margin: 20px 0;
-
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
         .gfield {
+            flex: 0 1 100%;
+            list-style: none;
+            list-style-type: none;
             margin: 0;
+            padding: 0;
+            &.question.indent {
+                margin-left: 40px;
+                @media only screen and (max-width: 767px){
+                    margin-left: 20px;
+                }
+            }
         }
+        li {
+            color: unset;
+        }
+    }
 
-        #field_submit {
-            position: absolute;
-            left: -999em;
-            visibility: hidden;
-        }
+    .gform_footer,
+    #field_submit {
+        position: absolute;
+        left: -999em;
+        visibility: hidden;
     }
 }

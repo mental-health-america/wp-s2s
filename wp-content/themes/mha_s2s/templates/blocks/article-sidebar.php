@@ -57,9 +57,11 @@
 
     if(empty($terms_conditions)){
         $m101 = 0;
-        foreach($terms_tags as $tags){
-            if($tags->term_id == 116){
-                $m101++;
+        if(is_array($terms_tags)){
+            foreach($terms_tags as $tags){
+                if($tags->term_id == 116){
+                    $m101++;
+                }
             }
         }
         if($m101 == 0){
@@ -145,7 +147,9 @@
             }
         } else {
             if($primary_condition){
-                $primary_condition = $primary_condition->term_id;
+                if(is_object($primary_condition)){
+                    $primary_condition = $primary_condition->term_id;
+                }
             }
         }
 
@@ -185,7 +189,7 @@
                 $loop = new WP_Query($args);
                 if($loop->have_posts()):
                 ?>
-                    <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4">
+                    <div id="article--test<?php echo $placement; ?>" class="bubble light-orange thin round-big-tl mb-4">
                     <div class="inner">
                     <?php while($loop->have_posts()) : $loop->the_post(); ?> 
                         <?php
@@ -197,7 +201,7 @@
                         ?>                         
                         <?php the_title('<h4>Take a'.$an_a,'</h4>'); ?>   
                         <div class="excerpt thin"><?php the_excerpt(); ?></div>
-                        <div class="text-center pb-0"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
+                        <div class="text-center pb-0"><a href="<?php echo get_the_permalink(); ?>" class="button burnt-orange round text-white">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
                     <?php endwhile; ?>
                     </div>
                     </div>

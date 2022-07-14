@@ -251,6 +251,22 @@ input[type="button"] {
         }
     }
 
+    &.burnt-orange {
+        background: $burntOrange;
+        color: $white;
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
+        .site-content &.button:hover,
+        &.button:hover,
+        &:focus,
+        &:hover {
+            color: $white;
+            background-color: $darkBlue;
+        }
+    }
+
     &.red {
         background: $red;
         color: $white;
@@ -337,7 +353,7 @@ input[type="button"] {
         }
     }
 
-    // Color OVerrides   
+    // Color Overrides   
     &.text-orange {
         color: $orange;
         &.white {

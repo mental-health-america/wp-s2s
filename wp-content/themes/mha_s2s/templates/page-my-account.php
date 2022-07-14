@@ -275,7 +275,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                             //}
 
                             if(!get_field('survey', $screen_id)){
-                                $your_results_display[$test_title][$count_results]['test_id'] = $data['entry_id'];     
+                                $your_results_display[$test_title][$count_results]['test_id'] = isset($data['entry_id']) ? $data['entry_id'] : null;     
                                 $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
                                 $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
                                 $your_results_display[$test_title][$count_results]['total_score'] = $total_score;

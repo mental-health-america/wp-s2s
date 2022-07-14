@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220712' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220714_2' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -115,7 +115,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20220712', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20220713', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
@@ -1022,15 +1022,37 @@ function rlv_modify_excerpt( $excerpt, $post_id ) {
 /**
  * Remove javascript from submit button so we can manually submit it on radio button changes
  */
-add_filter( 'gform_submit_button', 'add_onclick', 10, 2 );
-function add_onclick( $button, $form ) {
+/*
+add_filter( 'gform_submit_button', 'mha_autosubmit_submit_onclick', 10, 2 );
+function mha_autosubmit_submit_onclick( $button, $form ) {
 	// Only if form has .auto-submit class
 	if (strpos($form['cssClass'], 'auto-submit') !== false) {
 		return "<button class='button gform_button' id='gform_submit_button_{$form['id']}'><span>Submit</span></button>";
 	}	
+	return $button;
 }
+*/
 
 /**
  * Remove the anchor jump after submit
  */
 add_filter( 'gform_confirmation_anchor', '__return_false' );
+
+/**
+ * Disable spam check on auto-submit forms
+ */
+/*
+add_filter( 'gform_entry_is_spam', 'it_is_all_spam', 11, 3 );
+function it_is_all_spam( $is_spam, $form, $entry ) {
+	GFCommon::log_debug( 'SPAM CHECKER: $is_spam => ' . var_export( $is_spam, 1 ) );
+	GFCommon::log_debug( 'SPAM CHECKER ENTRY: $entry => ' . var_export( $entry, 1 ) );
+	return $is_spam;
+}
+*/
+add_filter( 'gform_entry_is_spam', 'gf_admin_is_not_spam', 10, 3 );
+function gf_admin_is_not_spam( $is_spam, $form, $entry ) {
+	if ( strpos($form['cssClass'], 'auto-submit') !== false ) {
+        //$is_spam = false;
+	}
+    return $is_spam;
+}

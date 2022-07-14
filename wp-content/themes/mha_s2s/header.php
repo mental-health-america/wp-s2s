@@ -12,6 +12,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="msapplication-TileColor" content="#FFFFFF">
 <meta name="msapplication-TileImage" content="/favicon-144x144.png">
+<meta name="theme-color" content="#365888">
 
 <script>
 	window.dataLayer = window.dataLayer || [];

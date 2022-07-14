@@ -414,11 +414,8 @@
 		 */
 		if($('.auto-submit').length){
 			$('.auto-submit input[type=radio]').on('change', function() {
-				let form_id = $(this).parents("form.auto-submit").attr('id');
-				$('#'+form_id+' .gform_button').click();
+				$(this).closest("form").trigger('submit');
 			});
-			let screen_name = $('#screen-name').text();
-			$('.auto-submit .gform_hidden').val(screen_name);
 		}
 
 	});

@@ -198,6 +198,36 @@
         }
     }
 
+    // Orange
+    &.pale-orange,
+    &.light-orange {
+        background: $paleOrange;
+        color: $burntOrange;
+        font-weight: 600;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $burntOrange;
+        }
+        a {
+            color: $burntOrange;
+            &:hover {
+                color: $blueDark;
+            }
+            &:visited {
+                color: $darkOrange;
+            }
+            &.button {
+                color: $burntOrange;
+                &:hover {
+                    color: $white;
+                    background: $darkBlue;
+                }
+            }
+        }
+    }
+
     // Raspberry
     &.raspberry {
         background: $raspberry;

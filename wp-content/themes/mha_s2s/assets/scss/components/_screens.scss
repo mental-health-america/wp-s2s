@@ -9,7 +9,9 @@ article.screen {
     // Default Colors
     & { color: $gray; }
     h1 { color: $mediumTeal; }
-    
+}
+
+article {
     // Default Hidden Elements
     .gform_heading,
     .hidden_label .gfield_label {
@@ -36,11 +38,7 @@ article.screen {
     .gform_fields  {
         margin: 0;
         padding: 0;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
         .gfield {
-            flex: 0 1 100%;
             list-style: none;
             list-style-type: none;
             margin: 0 0 35px 0;
@@ -370,7 +368,7 @@ article.screen {
 
     // Alert Messages
     .gfield.warning {
-        background: $red;
+        background: $darkRed;
         color: $white;
         padding: 20px 25px;
         margin: -20px 5px 30px 5px;
