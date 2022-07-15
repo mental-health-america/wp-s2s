@@ -532,7 +532,7 @@ else:
                             }
                         } 
                         
-                        $ns_custom_classes = get_sub_field('custom_classes') != '' ? get_sub_field('custom_classes') : 'bubble wtf round-tl mb-5 mint';
+                        $ns_custom_classes = get_sub_field('custom_classes') != '' ? get_sub_field('custom_classes') : 'bubble round-tl mb-5 mint';
                         ?>
                         <div class="<?php echo $ns_custom_classes; ?>">
                             <div class="inner">

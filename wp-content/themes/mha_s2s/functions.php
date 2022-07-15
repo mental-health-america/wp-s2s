@@ -662,11 +662,7 @@ function archive_meta_query( $query ) {
 			$query->set( 'posts_per_page', '-1' ); 
 
 			$meta_query = array('relation' => 'AND');
-			$meta_query[] =  array(
-				'key' => 'type',
-				'value' => array('condition','diy','connect','treatment'),
-				'compare' => 'LIKE',
-			);
+		
 			$meta_query[] = array(
 				'relation' => 'OR',
 				array(
@@ -690,6 +686,7 @@ function archive_meta_query( $query ) {
 					'compare' => 'LIKE'
 				)
 			);
+			
 			$meta_query[] = array(
 				'relation' => 'OR',
 				array(

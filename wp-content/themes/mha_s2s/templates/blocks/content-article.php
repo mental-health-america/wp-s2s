@@ -82,6 +82,8 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                     
                         // Main Content
                         the_content();
+
+                        the_field('article_footer_content', 'options');
                         
                         // Locations
                         if(!get_field('hide_locations')){
