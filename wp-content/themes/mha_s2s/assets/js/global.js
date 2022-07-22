@@ -418,6 +418,18 @@
 			});
 		}
 
+		/**
+		 * Print Results Helper
+		 */
+		if($('#screen-result-content').length){
+			var screenResultContent = $('#screen-result-content').html();
+			$('<div id="screen-result-content-print" class="d-none d-print-block">'+screenResultContent+'</div>').insertBefore('#screen-result-buttons');
+
+			// This content is below
+			$('#screen-result-content-print .bubble.collapse').remove();
+			$('#screen-result-content-print .screen-result-content-inner').removeClass('d-print-none');			
+		}
+
 	});
 
 

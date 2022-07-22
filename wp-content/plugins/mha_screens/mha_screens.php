@@ -71,6 +71,11 @@ function getUserScreenResults( $user_screen_id ) {
                 $user_screen_results['referer'] = $v;
             }
 
+            // Referrer/Source Code
+            if (isset($field->label) && strpos($field->label, 'User Result') !== false) {  
+                $user_screen_results['result_title'] = trim($v) == '' ? $v : '';
+            }
+
             // Get screen token
             /*                  
             if (isset($field->label) && strpos($field->label, 'Token') !== false) {     
@@ -181,6 +186,12 @@ function getUserScreenResults( $user_screen_id ) {
         if($user_screen_results['total_score'] >= $max_score){
             $user_screen_results['total_score'] = $max_score;
         }
+
+        // Entry Date
+        $date_created = new DateTime($data['date_created']);
+        $timezone = new DateTimeZone('America/New_York');
+        $date_created->setTimezone($timezone);
+        $user_screen_results['date'] = $date_created->format('F j, Y, g:i a T');
 
     }
 
@@ -677,7 +688,6 @@ function updateUserScreenResults( $options ){
 
         }
 
-
         // Update the entry if the fields were empty
         if($user_score || $user_result || $sub_score_1 || $sub_score_2 || $sub_score_3 || $duplicate){
 
@@ -720,5 +730,6 @@ function mha_screening_pre_submission_handler( $form ) {
 
 
 // Other Files
+include_once 'result_scoring.php';
 include_once 'demographic_steps.php';
 include_once 'related_articles.php';

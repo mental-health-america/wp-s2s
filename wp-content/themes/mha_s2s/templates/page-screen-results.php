@@ -11,7 +11,7 @@ $entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_val
 
 if ( is_wp_error( $entry_id ) || !$entry_id ):
 
-    // Entry doesn't exist,
+    // Entry doesn't exist, display an error
     echo '<div class="wrap narrow mb-5"><div id="message" class="error text-center"><p>This screen result does not exists.</p></div></div>';
 
 else:
@@ -111,7 +111,6 @@ else:
                     $max = get_sub_field('score_range_max');
                     $custom_logic_condition_row = get_sub_field('custom_logic_condition');
                     
-
                     if(
                         $user_screen_result['total_score'] >= $min && $user_screen_result['total_score'] <= $max || 
                         $user_screen_result['has_advanced_conditions'] > 0 && $user_screen_result['advanced_condition_row'] == get_row_index() || 
@@ -180,7 +179,7 @@ else:
                                         </div>
                                         </div>
                                     <?php
-                                else :
+                                else:
                                     /** 
                                      * Test Results
                                      */
@@ -239,7 +238,7 @@ else:
 
                             </div>
 
-                            <div class="pt-4">
+                            <div id="screen-result-content" class="pt-4">
 
                                 <?php
                                     if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d'), $layout))){
@@ -272,99 +271,59 @@ else:
                                         ?>
                                     </div>
                                 </div>
-                                </div>                   
-                            
+                                </div>
+                                
+                                <div class="screen-result-content-inner d-print-none">
+                                    <?php
+                                        /**
+                                         * Begin Result Content
+                                         */
 
-                                <?php
-                                    /**
-                                     * Begin Result Content
-                                     */
-                                    // Alert message
-                                    if($user_screen_result['alert'] > 0){
-                                        echo '<div class="bold warning-message mb-4">';
-                                        echo get_field('warning_message', $user_screen_result['screen_id']);
-                                        echo '</div>';
-                                    }
+                                        // Alert message
+                                        if($user_screen_result['alert'] > 0){
+                                            echo '<div class="bold warning-message mb-4">';
+                                                echo get_field('warning_message', $user_screen_result['screen_id']);
+                                            echo '</div>';
+                                        }
 
-                                    // Additional scores to display
-                                    $additional_scores = array();
-                                    if(have_rows('additional_results', $user_screen_result['screen_id'])):
-                                        echo '<p>';
+                                        // Additional scores to display
+                                        if(have_rows('additional_results', $user_screen_result['screen_id'])):
+                                            echo '<p class="additional-result-scores">';
 
-                                            // Overall Score
-                                            echo '<strong>Overall Score:</strong> '.$user_screen_result['total_score'].' / '.$max_score.'<br />';
+                                                // Overall Score
+                                                echo '<strong>Overall Score:</strong> '.$user_screen_result['total_score'].' / '.$max_score.'<br />';
 
-                                            // Specific Score Groups
-                                            while( have_rows('additional_results', $user_screen_result['screen_id']) ) : the_row();  
-                                                $add_scores = get_sub_field('scores');
-                                                $add_score_total = 0;
-                                                $add_score_max = 0;
-                                                foreach($add_scores as $score){
-                                                    $add_score_total = intval($user_screen_result['general_score_data'][$score['question_id']]) + $add_score_total;
-                                                    $add_score_max = $add_score_max + $user_screen_result['max_values'][$score['question_id']];
-                                                }
+                                                // Specific Score Groups
+                                                while( have_rows('additional_results', $user_screen_result['screen_id']) ) : the_row();  
+                                                    $add_scores = get_sub_field('scores');
+                                                    $add_score_total = 0;
+                                                    $add_score_max = 0;
+                                                    foreach($add_scores as $score){
+                                                        $add_score_total = intval($user_screen_result['general_score_data'][$score['question_id']]) + $add_score_total;
+                                                        $add_score_max = $add_score_max + $user_screen_result['max_values'][$score['question_id']];
+                                                    }
 
-                                                echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.' / '.intval($add_score_max).'<br />';                                                
-                                                $additional_scores[] = strval($add_score_total);
-                                            endwhile;
+                                                    echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.' / '.intval($add_score_max).'<br />';                                                
+                                                endwhile;
 
-                                        echo '</p>';
-                                    endif;
+                                            echo '</p>';
+                                        endif;
 
-                                    // Result content
-                                    if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ){
-                                        echo $result[0]['result_content'];
-                                    } else {
-                                        echo get_sub_field('result_content');
-                                    }
+                                        // Result content
+                                        if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ){
+                                            echo $result[0]['result_content'];
+                                        } else {
+                                            echo get_sub_field('result_content');
+                                        }
 
-                                    the_field('results_footer', $user_screen_result['screen_id']);
-                                ?>
+                                        // Footer Content
+                                        the_field('results_footer', $user_screen_result['screen_id']);
+                                    ?>
+                                </div>
+
                             </div>
 
                         <?php
-                        // Update the entry with the user score and result
-                        $updateScreenArray = array(
-                            'entry_id'          => $user_screen_result['result_id'],
-                            'user_score'        => strval($user_screen_result['total_score']),
-                            'user_result'       => get_sub_field('result_title'),
-                            'additional_scores' => $additional_scores
-                        );
-                        updateUserScreenResults( $updateScreenArray );
-                                                
-                    
-                        /**
-                         * Array sorting helper
-                         * Usage: usort($array, array_key_sorter('id'));
-                         */
-                        function array_key_sorter($key) {
-                            return function ($a, $b) use ($key) {
-                                return strnatcmp($a[$key], $b[$key]);
-                            };
-                        }
-
-                        /**
-                         * Handle rare duplicate
-                         */
-                        /*
-                        $search_criteria['field_filters'][] = array( 
-                            'key' => 38, 
-                            'value' => $user_screen_id
-                        );
-                        $search_entries = GFAPI::get_entries( '0', $search_criteria );   
-                        usort($search_entries, array_key_sorter('id'));
-                        $search_counter = 0;
-                        foreach($search_entries as $item){
-                            if($search_counter > 0){ // Skip the first entry
-                                $updateScreenArray_dupe = $updateScreenArray;
-                                $updateScreenArray_dupe['entry_id'] = $item['id'];
-                                $updateScreenArray_dupe['duplicate'] = '1';
-                                updateUserScreenResults( $updateScreenArray_dupe );
-                            }                                
-                            $search_counter++;
-                        }
-                        */
-
                     }
 
                 endwhile;
@@ -423,8 +382,8 @@ else:
         }
             
         /*
-            * Screen Specific CTAs
-            */
+        * Screen Specific CTAs
+        */
         $screen_specific_cta = get_field('call_to_actions_all_results', $user_screen_result['screen_id']);
         if($screen_specific_cta){
             foreach($screen_specific_cta as $cta){
@@ -434,7 +393,7 @@ else:
     ?>
 
 
-    <div class="wrap normal pt-0 pb-3">
+    <div class="wrap normal pt-0 pb-3 d-print-none">
 
         <div class="mb-5 pb-2">
             <?php get_template_part( 'templates/results/cta', 'login', array( 'width' => 'narrow', 'corners' => '', 'id' => $user_screen_result['result_id'] ) ); ?>
@@ -765,7 +724,7 @@ else:
         
     </div>
 
-    <div class="wrap narrow mb-5">
+    <div class="wrap narrow mb-5 d-print-none">
         <?php 
             // Related Articles
             $related_article_args = array(
@@ -791,6 +750,16 @@ else:
 
             mha_results_related_articles( $related_article_args );
         ?>
+    </div>
+
+    <div class="wrap narrow mb-5 test-taken-time-link p-5 pb-0 d-none d-print-block">
+        <?php
+            wp_reset_query();
+            echo _e('This test was taken on ');
+            echo $user_screen_result['date'].'. ';
+            echo _e('To view this result on the web, visit:'); 
+        ?><br />
+        <a class="no-after" href="<?php echo add_query_arg( 'sid', $user_screen_id, get_the_permalink($user_screen_result['screen_id']) ); ?>"><?php echo add_query_arg( 'sid', $user_screen_id, get_the_permalink() ); ?></a>
     </div>
 
 <?php endif; ?>

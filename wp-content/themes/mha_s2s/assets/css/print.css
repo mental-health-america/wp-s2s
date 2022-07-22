@@ -6,8 +6,12 @@
     *,::after,::before{text-shadow:none!important;box-shadow:none!important}a:not(.btn){text-decoration:underline}abbr[title]::after{content:" (" attr(title) ")"}pre{white-space:pre-wrap!important}blockquote,pre{border:1px solid #adb5bd;page-break-inside:avoid}img,tr{page-break-inside:avoid}h2,h3,p{orphans:3;widows:3}h2,h3{page-break-after:avoid}@page{size:a3}body{min-width:992px!important}.container{min-width:992px!important}.badge{border:1px solid #000}.table{border-collapse:collapse!important}.table td,.table th{background-color:#fff!important}.table-bordered td,.table-bordered th{border:1px solid #dee2e6!important}.table-dark{color:inherit}.table-dark tbody+tbody,.table-dark td,.table-dark th,.table-dark thead th{border-color:#dee2e6}
 
 
-    /* GLobal Show/Hides Overrides */
+    /* Global Show/Hides Overrides */
+    #header {
+        padding-top: 0;
+    }
     
+    .auto-submit_wrapper,
     .next-article,
     .screen-progress-bar,
     #screen-save,
@@ -44,10 +48,6 @@
 
     .posts {
         padding: 0;
-    }
-
-    .bubble .inner {
-        padding: 20px !important;
     }
 
     /* Width */
@@ -197,6 +197,10 @@
     a[href^="/"]:after {
         content: " (https://screening.mhanational.org"attr(href) ") ";
     }
+    a.no-after:after,
+    #logo:after{
+        display: none !important;
+    }
 
     a:after>img {
         content: "";
@@ -290,6 +294,11 @@
         display: none;
     }
 
+    .page-heading.plain {
+        margin: 0 0 10px 0;
+        padding: 0;
+    }
+
     .page-heading.bar h1 {
         max-width: 100%;
         font-size: 1.5em;
@@ -351,4 +360,40 @@
         white-space: normal;
     }
 
+    /* Bubbles in general */
+    .bubble .inner {
+        padding: 20px !important;
+    }
+
+    /* Screen Results */
+    h1 {
+        text-align: center !important;
+    }
+    .screen-result .bubble:first-of-type {
+        padding: 0;
+        text-align: center !important;
+        background-color: transparent !important;
+        color: #777 !important;
+    }
+    .screen-result .bubble:first-of-type .inner {
+        padding: 0 !important;
+    }
+    .screen-result .bubble:first-of-type * {
+        color: #888 !important;
+    }
+
+    #screen-result-buttons {
+        padding: 0 !important;
+    }
+    #screen-result-buttons .button,
+    #screen-result-buttons a {
+        background: transparent;
+        color: #555;
+        padding: 0;
+        margin: 0;
+    }
+
+    .additional-result-scores {
+        text-align: center;
+    }
 }
