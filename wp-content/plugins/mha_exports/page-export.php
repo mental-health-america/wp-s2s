@@ -29,6 +29,9 @@ function mhaThoughtScripts() {
 
 // List Page
 function mhathoughtexport(){
+
+//mha_export_screen_data();
+
 ?>
 
 <div id="poststuff" class="wrap">
@@ -61,14 +64,18 @@ function mhathoughtexport(){
                         <input type="text" name="export_screen_ref" id="export_screen_ref" placeholder="mhanational.org" />
                     </td>
                 </tr>
-                <!--
                 <tr>
                     <th scope="row"><label for="export_only_demographic">Export Only Demographic Data</label></th>
                     <td>
                         <input type="checkbox" name="export_only_demographic" id="export_only_demographic" value="1" />
                     </td>
                 </tr>
--->
+                <tr id="export_single_container" style="display: none;">
+                    <th scope="row"><label for="export_single">Combine Export Into Single Form?</label></th>
+                    <td>
+                        <input type="checkbox" name="export_single" id="export_single" value="1" />
+                    </td>
+                </tr>
                 <tr>
                     <th scope="row"><label for="export_screen_ref">Form(s)</label><br /></th>
                     <td>
@@ -94,6 +101,7 @@ function mhathoughtexport(){
                         <p>
                             <input type="hidden" name="form_id" value="" />
                             <input type="hidden" name="all_forms" value="" />
+                            <input type="hidden" name="all_forms_ids" value="" />
                             <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
                             <input type="submit" class="button button-primary" id="export_screen_link"  value="Download Screening Data">
                         </p>

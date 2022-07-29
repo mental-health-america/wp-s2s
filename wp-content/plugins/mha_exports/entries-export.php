@@ -11,6 +11,17 @@ function validateDate($date, $format = 'm-d'){
     return $d && $d->format($format) === $date;
 }
 
+function sortArrayByArray($array,$orderArray) {
+    $ordered = array();
+    foreach($orderArray as $key => $value) {
+        if(array_key_exists($key,$array)) {
+            $ordered[$key] = $array[$key];
+            unset($array[$key]);
+        }
+    }
+    return $ordered + $array;
+}
+
 add_action( 'wp_ajax_mha_export_screen_data', 'mha_export_screen_data' );
 function mha_export_screen_data(){
 
@@ -18,7 +29,7 @@ function mha_export_screen_data(){
     $timezone = new DateTimeZone('America/New_York');
 	
     // Prep our post data args
-    if(intval($_POST['start']) == 1){
+    if(isset($_POST['start']) && intval($_POST['start']) == 1 || empty($_POST) ){
 
         // For the first pass, set our defaults
         $defaults = array(
@@ -28,10 +39,12 @@ function mha_export_screen_data(){
             'export_screen_end_date'    => date('Y-m-t', strtotime('now - 1 month')),
             'export_screen_ref'         => null,
             'export_excluded_ips'       => 0,
+            'export_only_demographic'   => 0,
             'excluded_ips'              => array_map('trim', explode(PHP_EOL, get_field('ip_exclusions', 'options'))),
             'field_labels'              => '',
             'page'                      => 1,
             'fields'                    => array(),
+            'csv_headers'               => array(),
             'filename'                  => null,
             'total'                     => null,
             'max'                       => null,
@@ -40,8 +53,27 @@ function mha_export_screen_data(){
             'elapsed_start'             => null,
             'elapsed_end'               => null,
             'total_elapsed_time'        => null,
-            'download'                  => null
-        );    
+            'download'                  => null,
+            
+            'all_forms'                 => null,
+            'all_forms_ids'             => null,
+            'all_forms_headers'         => null,
+            'export_single'             => null,
+            'export_single_continue'    => null,
+
+            'debug'                     => null
+        );      
+
+        // Testing options
+        if($defaults['debug'] == 1){
+            $defaults['form_id']                   = 15;
+            $defaults['export_only_demographic']   = 1;
+            $defaults['export_screen_start_date']  = '2021-04-01';
+            $defaults['export_screen_end_date']    = '2021-04-01';
+            $defaults['all_forms_ids']             = '15,27';
+            $args = $defaults;
+        }
+
         parse_str( $_POST['data'], $data);
         $args = wp_parse_args( $data, $defaults );  
         
@@ -51,9 +83,13 @@ function mha_export_screen_data(){
         $args = stripslashes_deep($_POST['data']);
         
     }
+
     // Pagination
     $page_size = 1500;
     $offset = ($args['page'] - 1) * $page_size;
+    if($offset < 0){
+        $offset = 0;
+    }
 
     // CSV Export
     $search_criteria = [];
@@ -64,33 +100,86 @@ function mha_export_screen_data(){
     
     // Get field order/headers for later
     $gform = GFAPI::get_form( $args['form_id'] );
-    $form_slug = sanitize_title_with_dashes($gform['title']);
-    
+    $form_slug = $args['export_single'] ? 'combined' : sanitize_title_with_dashes($gform['title']);
+    $all_form_ids = $args['all_forms_ids'] != null ? explode(',', $args['all_forms_ids']) : null;
+        
     if(empty($args['fields'])){
 
         // Manual additional field
         $args['fields'][0] = array(
             'type' => 'mha_custom',
-            'key' => 'Date',
-            'label' => 'Date'
+            'key' => 'Created',
+            'label' => 'Created'
         );          
         $args['fields'][1] = array(
             'type' => 'mha_custom',
-            'key' => 'User IP',
-            'label' => 'User IP'
+            'key' => 'Remote IP address',
+            'label' => 'Remote IP address'
         );
 
-        // Auto fields
-        $fi = count($args['field']) + 1;
+        /**
+         * Demographic Only Data
+         */
+        if($args['export_only_demographic'] == 1 && $args['page'] == 1){
+            
+            // Get headers for all forms
+            $all_form_demo_fields = [];    
+            foreach($all_form_ids as $form_id){
+                $demo_form = GFAPI::get_form( $form_id );
+                foreach($demo_form['fields'] as $df){  
+                    $field = GFAPI::get_field( $form_id, $df['id'] );
+                    $field_type = isset($field->type) ? $field->type : '';
+                    $field_label = isset($field->label) ? $field->label : '';
+                    
+                    // Quick skip fields
+                    if(
+                        isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || 
+                        isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false ||
+                        $field_type == 'html' || 
+                        $field_label == 'Token' ||
+                        $field_label == 'Source URL' || 
+                        $field_label == 'Duplicate' ||
+                        $field_label == 'uid hashed' || 
+                        $field_label == ''
+                    ){
+                        continue;
+                    }
+                    
+                    // Add to array
+                    $all_form_demo_fields[$form_id][$field_label] = $field_label;
+                }
+            }
+            
+            // Get all shared headers for later
+            if(count($all_form_ids) > 1){
+                $args['all_forms_headers'] = call_user_func_array('array_intersect', $all_form_demo_fields);
+            } else {
+                $args['all_forms_headers'] = $all_form_demo_fields[$all_form_ids[0]];
+            }
+        }
+
+
+        // Field population
+        $fi = count($args['fields']) + 1;
         foreach($gform['fields'] as $gf){  
             $field = GFAPI::get_field( $args['form_id'], $gf['id'] );
+            $field_type = isset($field->type) ? $field->type : '';
+            $field_label = isset($field->label) ? $field->label : '';
+
+            // Normal Export Skips
             if(
-                isset($field->type) && $field->type == 'html' || 
-                isset($field->label) && $field->label == 'Screen ID' || 
-                isset($field->label) && $field->label == 'Source URL' || 
-                isset($field->label) && $field->label == ''){
+                $field_type == 'html' || 
+                $field_label == 'Source URL' || 
+                $field_label == 'Duplicate' || 
+                $field_label == 'uid hashed' || 
+                $field_label == ''){
                 continue; // Skip these columns
             } 
+
+            // Demographic Only Export Skips
+            if($args['export_only_demographic'] && $args['all_forms_headers'] && !array_key_exists($field_label, $args['all_forms_headers'])){
+                continue;
+            }
 
             // Set field order
             $args['fields'][$fi] = array(
@@ -118,34 +207,35 @@ function mha_export_screen_data(){
     }
 
     // Referer filter
-    if($ref != ''):
+    if($args['export_screen_ref'] != ''):
         foreach($gform['fields'] as $field):
             if($field['label'] == 'Referer'){
                 $search_criteria['field_filters'][] = array( 
                     'key' => $field['id'], 
                     'operator' => 'contains', 
-                    'value' => $ref
+                    'value' => $args['export_screen_ref']
                 );
                 break;
             }
         endforeach;
     endif;
 
+
     // Get form entries
     $paging = array( 'offset' => $offset, 'page_size' => $page_size );
-    $total_count = 0;
+    $total_count = 0;    
+
     $entries = GFAPI::get_entries( $args['form_id'], $search_criteria, null, $paging, $total_count );
-    $search_criteria['total_count_real'] = $total_count;
     $csv_data = [];
     $i = 0;
-
+    
     // Parse through form entries
     foreach($entries as $entry){
         $temp_array = [];
         $spam_check = 0;
 
         // Skip matching IP addresses if option is selected
-        if($args['export_excluded_ips'] && in_array($entry['ip'], $args['excluded_ips'])){
+        if($args['export_excluded_ips'] == 0 && in_array($entry['ip'], $args['excluded_ips'])){
             continue;
         }
 
@@ -163,7 +253,7 @@ function mha_export_screen_data(){
                 
                 // Check for a label if the value is just a number
                 if(is_numeric($v)){
-                    if($ftv['model']){
+                    if(isset($ftv['model'])){
                         foreach($ftv['model'] as $m){
                             if($m['value'] == $v){
                                 $v = $m['text'];
@@ -173,23 +263,31 @@ function mha_export_screen_data(){
                 }
 
                 // Checkboxes are split weirdly so...
-                if($ftv['inputs']){
+                if(isset($ftv['inputs'])){
                     $entry_inputs = array();
                     foreach($ftv['inputs'] as $fin){
-                        if($entry[$fin]){
+                        if(isset($entry[$fin])){
+                            if(trim($entry[$fin]) !=  ''){
                             $entry_inputs[] = $entry[$fin];
+                            }
                         }
                     }
                     $v = implode(';',$entry_inputs);
                 }
 
-                
+                /**
+                 * Custom Overrides
+                 */
+
                 // Custom value overrides
                 if($ftv['label'] == 'Age Range' && validateDate($v)){                
                     $v = "\"$v\""; // Add quotes to age ranges with a dash so excel doesn't turn it into a date
                 }
                 if($ftv['label'] == 'Please check this box if you identify as transgender.'){     
-                    $v = $v ? 'Yes' : 'No';
+                    $v = $v ? 'Yes' : 'No'; // Display no instead of blank
+                }
+                if($ftv['label'] == 'Screen ID'){     
+                    $v = get_the_title(str_replace(' Test', '', $v)); // Display just the screen name minus "Test"
                 }
 
                 // Put into our array
@@ -199,15 +297,37 @@ function mha_export_screen_data(){
 
         }
 
-        // Reorder our fields based on how they appear on the form and add the row
+        // Reorder our fields based on how they appear on the form, override some label names, and add the row
         foreach($args['fields'] as $k => $v){  
-            $csv_data[$i][$v['label']] = $temp_array[$v['label']]; 
+                
+            switch($v['label']){
+                case 'User Score':
+                    $vlabel = 'Score';
+                    break;
+                case 'User Result':
+                    $vlabel = 'Result';
+                    break;
+                case 'ipiden':
+                    $vlabel = 'IP Identifier';
+                    break;
+                case 'Screen ID':
+                    $vlabel = 'Screen';
+                    break;
+                case 'Enter Gender':
+                    $vlabel = 'Gender Other';
+                    break;
+                default:
+                    $vlabel = $v['label'];
+                    break;
+            }
+            
+            $csv_data[$i][$vlabel] = $temp_array[$v['label']]; 
         }            
 
         // Custom field assignments
-        $csv_data[$i]['Date'] = $row_date->format("Y-m-d H:i:s");     
-        $csv_data[$i]['User IP'] = $entry['ip'];    
-        $csv_data[$i]['uid hashed'] = $temp_array['uid'] ? md5($temp_array['uid']) : '';
+        $csv_data[$i]['Created'] = $row_date->format("Y-m-d H:i:s");     
+        $csv_data[$i]['Remote IP address'] = $entry['ip'];    
+        $csv_data[$i]['uid'] = $temp_array['uid'] ? md5($temp_array['uid']) : '';
 
         $i++;
     }
@@ -215,7 +335,7 @@ function mha_export_screen_data(){
     /**
      * Set next step variables and exit
      */
-    $args['total'] = $total_count;
+    $args['total'] = $total_count > 0 ? $total_count : 1; // Set to 1 just in case of no entries to avoid divide by 0 errors
     $max_pages = ceil($total_count / $page_size);
     $args['max'] = $max_pages;
     $args['percent'] = round( ( ($args['page'] / $max_pages) * 100 ), 2 );
@@ -224,8 +344,6 @@ function mha_export_screen_data(){
     } else {
         $args['next_page'] = $args['page'] + 1;
     }  
-
-    
 
     /**
      * Elapsed Time
@@ -240,77 +358,136 @@ function mha_export_screen_data(){
         $args['download'] = '#';   
         $args['filename'] = '';
         $args['elapsed_end'] = time();
-        echo json_encode($args);
-        exit();           
     }
+    
     
     /**
      * Write CSV
      */
     try {
-        // Create CSV
-        if(isset($args['filename'])){
-            // Update existing file
-            $filename = $args['filename'];
-            $writer_type = 'a+';
-        } else {
-            // Create file
-            $filename = $form_slug.'--'.$args['export_screen_start_date'].'_'.$args['export_screen_end_date'].'--'.date('U').'.csv';
-            $writer_type = 'w+';
-        }
 
-        $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, $writer_type);
-        $args['filename'] = $filename;
-        
+        $args['filename'] = $args['filename'] ? $args['filename'] : $form_slug.'--'.$args['export_screen_start_date'].'_'.$args['export_screen_end_date'].'--'.date('U').'.csv';
+        $writer_type = $args['filename'] ? 'a+' : 'w+';
+                
         if($args['page'] >= $max_pages){
+            
             // Final page
-            $args['download'] = plugin_dir_url(__FILE__).'tmp/'.$filename;   
+            $args['download'] = WP_PLUGIN_URL.'/mha_exports/tmp/'.$args['filename'];   
 
             // Elapsed time
             $args['elapsed_end'] = time();
             $interval = $args['elapsed_end'] - $args['elapsed_start'];
             $args['total_elapsed_time'] = gmdate("H:i:s", abs($interval));
-
-            
-
-            // All forms override
-            if($args['all_forms']) {
-                $args['all_forms_continue'] = 1;
-            }
-
         }
-        
-        // Headers only on page 1
-        $reader = Reader::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'r+');
-        $csv_row = $reader->fetchOne();
-        if($args['page'] == 1 || empty($csv_row)){
+
+        $writer = Writer::createFromPath(WP_PLUGIN_DIR.'/mha_exports/tmp/'.$args['filename'], $writer_type);        
+
+        // Set the headers only on page 1        
+        if($args['page'] == 1 && $args['debug'] != 1){
+
             $csv_headers = [];
+
+            // Create header array
             foreach($csv_data[array_key_first($csv_data)] as $k => $v){
-                $csv_headers[] = $k;
+                $csv_headers[] = $k;                
             }
-            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
-            $writer->insertOne($csv_headers);
+
+            // Custom Reordering
+            $key = array_search('Created', $csv_headers);
+            moveArrayByKey($csv_headers, $key, 0);
+            
+            $key = array_search('Remote IP address', $csv_headers);
+            moveArrayByKey($csv_headers, $key, 1);
+            
+            moveArrayKeyToLast($csv_headers, array_search('Are you taking this test for yourself or for someone else?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Zip/Postal Code', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Age Range', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Gender', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Gender Other', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Please check this box if you identify as transgender.', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Race/Ethnicity', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Household Income', $csv_headers) );             
+            moveArrayKeyToLast($csv_headers, array_search('Have you ever received treatment/support for a mental health problem?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Are you receiving treatment/support now?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Which of the following populations describes you?', $csv_headers) );             
+            moveArrayKeyToLast($csv_headers, array_search('Are you caring for someone with a mental or physical health condition?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Which of the following describe your experience of trauma?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Trauma - Other', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Think about your mental health test. What are the main things contributing to your mental health problems right now?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Mental Health Problems - Other', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Which of the following best describes your sexual orientation?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Sexual Orientation - Other', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Do you currently have health insurance?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Do you have any of the following general health conditions?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search("If 'Other' please specify (for general health conditions)", $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('State', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Do you live in the United States or another country?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('What country do you live in?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Screen', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Score', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Result', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Referer', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('IP Identifier', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('uid', $csv_headers) ); 
+
+            $args['csv_headers'] = array_values($csv_headers); // Set order for later
+            
+            if($args['export_single_continue'] != 1){
+                $writer->insertOne($csv_headers);
+            }
         }    
-        $writer->insertAll(new ArrayIterator($csv_data));
+
+        // Organize the data by the header values
+        $csv_data_ordered = [];
+        $header_flip = array_flip($args['csv_headers']);
+        foreach($csv_data as $cd){
+            $csv_data_ordered[] = sortArrayByArray($cd, $header_flip);
+        }
+
+        // Write the results to the CSV
+        $writer->insertAll(new ArrayIterator($csv_data_ordered));
         $encoder = (new CharsetConverter())
             ->inputEncoding('utf-8')
             ->outputEncoding('iso-8859-15')
         ;
         $writer->addFormatter($encoder);
 
+
     } catch (CannotInsertRecord $e) {
         $args['error'] = $e->getRecords();
     }
 
     // All Forms Continuation
-    if(isset($args['all_forms']) && count($args['all_forms']) == 0){    
+    if(!$args['all_forms']){    
         $args['all_forms'] = null;
         $args['all_forms_continue'] = null;
+        $args['export_single'] = null;
+    } else {
+        $args['all_forms_continue'] = 1;
     }
     
-    $args['page'] = $args['next_page']; // Set the loops next page
+    // Set the loops next page
+    $args['page'] = $args['next_page'];
+    
+    if($args['debug'] == 1){
+        unset($args['fields']);
+        pre($args);
+    } else {
+        echo json_encode($args); 
+        exit();
+    }
 
-    echo json_encode($args);
-    exit();   
+}
 
+// Array Helpers
+function moveArrayByKey(&$array, $a, $b) {
+    $out = array_splice($array, $a, 1);
+    array_splice($array, $b, 0, $out);
+}
+
+function moveArrayKeyToLast(&$array, $key){
+    $v = $array[$key];
+    unset($array[$key]);
+    $array[$key] = $v;
+    return $array;
 }

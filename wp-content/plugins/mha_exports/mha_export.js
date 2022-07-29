@@ -49,6 +49,14 @@
         }
     }
 
+
+    function allFormIdUpdate(){
+        var all_checked_form_ids = $("#mha-all-screen-exports input[name='form_ids']:checked").map(function(){
+            return $(this).val();
+        }).toArray();
+        $('input[name="all_forms_ids"]').val( all_checked_form_ids.join(','));
+    }
+
     $(document).on('click', '#submit-aggregate-data-export', function(event){
 
         // Disable default form submit
@@ -132,14 +140,23 @@
 
             } else {
 
-                // Export is done
-                var download_link = res.download;
-                $('#export_screen_link').prop('disabled', false).text('Download');	
-                $('#screen-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                // Export is done 
+                if(!res.export_single){ 
+                    $('#export_screen_link').prop('disabled', false).text('Download');	
+                    $('#screen-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                }
                 
                 if(res.all_forms_continue == 1){    
                     $('input[name="all_forms"]').val(res.all_forms);
-                    screenExportDataStart( 1 );                    
+                    
+                    console.log(res);
+                    if(res.export_single == 1){    
+                        let single_continue_data = '&export_single_continue=1&filename='+res.filename;
+                        screenExportDataStart( 1, 1, single_continue_data );                    
+                    } else {
+                        screenExportDataStart( 1, null );                    
+                    }
+
                     $('#screen-exports-progress .bar').css('width', '0%');
                     $('#screen-exports-progress .bar').css('background-color', '');
                     $('#screen-exports-progress .label-number').html( 'Calculating...' );   
@@ -154,8 +171,10 @@
         }
     }
 
-    function screenExportDataStart( all_loop_checker = null ){
+    function screenExportDataStart( all_loop_checker = null, single_file = null, single_continue_data = null ){
         
+        //console.log(single_continue_data);
+
         // All Forms loop check
         if(all_loop_checker == 1){
             
@@ -182,7 +201,14 @@
             
         }
 
+        // Demographic Only AND Single File Export hook
+
         var args = $('#mha-all-screen-exports').serialize();
+        if(single_file == 1 && single_continue_data){
+            args = args + '' + single_continue_data;
+        }
+
+        console.log(args);
 
         $('#export_screen_link').prop('disabled', true).text('Processing...');
         $('#screen-exports-progress .bar').css('background-color', '').addClass('loading');
@@ -201,7 +227,6 @@
                 
                 if(results){
                     var res = JSON.parse(results);
-                    //console.log(res);
                     if(res.error){
                         alert(res.error+' Please refresh this page and try again.');
                     } else {
@@ -231,6 +256,10 @@
         screenExportDataStart();    
     });
 
+    allFormIdUpdate();
+    $(document).on('keyup click', '#mha-all-screen-exports input[name="form_ids"]', function(){
+        allFormIdUpdate();
+    });
 
     /**
      * Aggregate Data Export
@@ -321,6 +350,20 @@
 
     });
 
+
+    function export_single_file_reveal(){
+        if($('input[name="export_only_demographic"]').prop('checked')){
+            $('#export_single_container').show();
+        } else {
+            $('#export_single_container').hide();
+            $('input[name="export_single"]').prop( "checked", false );
+        }
+    }
+    
+    export_single_file_reveal();
+    $(document).on('click', 'input[name="export_only_demographic"]', function(event){
+        export_single_file_reveal();
+    });
 
     
     function userExportLooper( results ){
