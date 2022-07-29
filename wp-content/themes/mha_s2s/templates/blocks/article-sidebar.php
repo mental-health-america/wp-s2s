@@ -28,7 +28,7 @@
     // Conditions and Tags
     $terms_conditions = get_the_terms( $article_id, 'condition' );
     $terms_tags = get_the_terms( $article_id, 'post_tag' );
-    $terms_all = '';
+    $terms_all = [];
 
     //if(has_term('All Conditions', 'condition')){
     /*
@@ -43,8 +43,6 @@
     } 
     */
 
-    // Mental Health 101 tag override when no conditions present
-
     // Use assigned tags 
     if($terms_conditions && $terms_tags){
         $terms_all = array_merge($terms_conditions, $terms_tags);
@@ -55,6 +53,7 @@
         $terms_all = $terms_tags;
     }
 
+    // Mental Health 101 tag override when no conditions present
     if(empty($terms_conditions)){
         $m101 = 0;
         if(is_array($terms_tags)){
@@ -65,7 +64,10 @@
             }
         }
         if($m101 == 0){
-            $terms_tags[] = get_term(116, 'post_tag');
+            $m101term = get_term(116, 'post_tag');
+            $terms_tags[] = $m101term;
+            $article_tags[] = 116;    
+            $terms_all[] = $m101term;
         }
     }    
 
@@ -137,6 +139,13 @@
          */
 
         $primary_condition = get_field('primary_condition');
+        if(!$primary_condition){
+            if($terms_conditions && is_array($terms_conditions) && count($terms_conditions) == 1){
+                $primary_condition = $terms_conditions[0]->term_id;
+            }
+        }
+        //var_dump($primary_condition);
+
         $has_screen_cta = 0;
 
         // Pathway override
@@ -155,41 +164,96 @@
 
         // Screens
         $has_test_widget = false;
-        if($primary_condition){
+        //var_dump(count( array_intersect($article_type, array('condition')) ));
+        //pre($article_type);
+
+        if( count( array_intersect($article_type, array('condition')) ) > 0 ){
 
             // Show Specific Related Test
-            if(count(array_intersect($article_type, $resources)) == 0){
-                $args = array(
-                    "post_type"         => 'screen',
-                    "order"	            => 'DESC',
-                    "post_status"       => 'publish',
-                    "posts_per_page"    => 1,
-                    'tax_query'      => array(
-                        array(
-                            'taxonomy'          => 'condition',
-                            'include_children'  => false,
-                            'field'             => 'term_id',
-                            'terms'             => $primary_condition
-                        ),
+            $args = array(
+                "post_type"         => 'screen',
+                "order"	            => 'DESC',
+                "post_status"       => 'publish',
+                "posts_per_page"    => 1
+            );
+            $has_query = false;
+
+            if( $primary_condition && count(array_intersect($article_type, $resources)) == 0){
+                // Conditions
+                $args['tax_query'] = array(
+                    array(
+                        'taxonomy'          => 'condition',
+                        'include_children'  => false,
+                        'field'             => 'term_id',
+                        'terms'             => $primary_condition
                     ),
-                    'meta_query' => array( 
-                        'relation' => 'OR',
-                        array(
-                            'key' => 'espanol',
-                            'value' => '1',
-                            'compare' => '!='
-                        ),
-                        array(
-                            'key' => 'espanol',
-                            'value' => '1',
-                            'compare' => 'NOT EXISTS'
-                        )
-                    )
                 );
+                $has_query = true;
+            }
+            
+            else if( count($article_tags) == 1 ){
+                // Tags
+                $args['tax_query'] = array(
+                    array(
+                        'taxonomy'          => 'post_tag',
+                        'include_children'  => false,
+                        'field'             => 'term_id',
+                        'terms'             => $article_tags,
+                        'operator'          => 'IN'
+                    ),
+                );
+                $has_query = true;
+            }
+                
+            $args['meta_query'] = array( 
+                'relation' => 'AND',
+                array(
+                    'relation' => 'OR',
+                    array(
+                        'key' => 'espanol',
+                        'value' => '1',
+                        'compare' => '!='
+                    ),
+                    array(
+                        'key' => 'espanol',
+                        'value' => '1',
+                        'compare' => 'NOT EXISTS'
+                    )
+                ),                
+                array(
+                    'relation' => 'OR',
+                    array(
+                        'key' => 'invisible',
+                        'value' => '1',
+                        'compare' => '!='
+                    ),
+                    array(
+                        'key' => 'invisible',
+                        'value' => '1',
+                        'compare' => 'NOT EXISTS'
+                    )
+                ),                
+                array(
+                    'relation' => 'OR',
+                    array(
+                        'key' => 'survey',
+                        'value' => '1',
+                        'compare' => '!='
+                    ),
+                    array(
+                        'key' => 'survey',
+                        'value' => '1',
+                        'compare' => 'NOT EXISTS'
+                    )
+                )
+            );
+
+            //pre($args);
+            if($has_query):
                 $loop = new WP_Query($args);
                 if($loop->have_posts()):
                 ?>
-                    <div id="article--test<?php echo $placement; ?>" class="bubble light-orange thin round-big-tl mb-4">
+                    <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4">
                     <div class="inner">
                     <?php while($loop->have_posts()) : $loop->the_post(); ?> 
                         <?php
@@ -201,20 +265,21 @@
                         ?>                         
                         <?php the_title('<h4>Take a'.$an_a,'</h4>'); ?>   
                         <div class="excerpt thin"><?php the_excerpt(); ?></div>
-                        <div class="text-center pb-0"><a href="<?php echo get_the_permalink(); ?>" class="button burnt-orange round text-white">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
+                        <div class="text-center pb-0"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
                     <?php endwhile; ?>
                     </div>
                     </div>
                 <?php
                 $has_screen_cta++;
                 endif;
-                wp_reset_query();
-            }
+            endif;
+            wp_reset_query();
+            
+        }
 
+        // Show Random Related Test
+        /*
         } else {
-
-            // Show Random Related Test
-            /*
             if(count(array_intersect($article_type, $resources)) == 0){
                 $args = array(
                     "post_type"      => 'screen',
@@ -269,8 +334,8 @@
                 wp_reset_query();
 
             } else {
-            */
             ?>
+
             <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4 hide-mobile">
             <div class="inner">                
                 <h4><?php echo _e('Take a Mental Health Test', 'mhas2s'); ?></h4>
@@ -281,9 +346,9 @@
             </div>
             </div>
             <?php
-            $has_test_widget = true;
+            $has_screen_cta++;
         }
-
+        */
     ?>
 
     <?php
@@ -291,23 +356,15 @@
          * Related Articles
          */
 
-        //$resources[] = 'condition';
-        if(!$has_test_widget):
-        if(count(array_intersect($article_type, $resources)) > 0 || count( array_intersect($article_type, array(null,'condition')) ) > 0 && $has_screen_cta == 0 ):              
+        if($has_screen_cta == 0):
+        //if(count(array_intersect($article_type, $resources)) > 0 || count( array_intersect($article_type, array('condition')) ) > 0 && $has_screen_cta == 0 ):       
 
             $related_articles = [];
             $args = array(
                 "post_type"      => 'article',
                 "orderby"        => 'title',
                 "post_status"    => 'publish',
-                "posts_per_page" => 500,
-                'meta_query' => array(
-                    array(
-                        'key' => 'type',
-                        'value' => array('condition', 'diy','connect','treatment','provider'),
-                        'compare' => 'IN'
-                    )
-                )
+                "posts_per_page" => 500
             );
 
                 
@@ -331,12 +388,15 @@
                 );
             }
             
+            //pre($args);
             $loop = new WP_Query($args);     
 
             $counter = 0;
             $terms_match = [];
-            foreach($terms_all as $ta){
-                $terms_match[] = $ta->term_id;
+            if(is_array($terms_all)){
+                foreach($terms_all as $ta){
+                    $terms_match[] = $ta->term_id;
+                }
             }
 
             // Get popular articles for later
@@ -451,7 +511,7 @@
             <?php
             endif;
             wp_reset_query();
-        endif;
+        //endif;
         endif;
         
     ?>

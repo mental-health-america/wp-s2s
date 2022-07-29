@@ -366,8 +366,14 @@
     }
 
     /* Screen Results */
-    h1 {
+    .page-template-page-screen-results #logo {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+    }
+    .page-template-page-screen-results h1 {
         text-align: center !important;
+        font-size: 35px !important;
     }
     .screen-result .bubble:first-of-type {
         padding: 0;
