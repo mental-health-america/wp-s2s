@@ -44,7 +44,7 @@
             $spacer_counter_wide = 0;
             $spacer_counter_narrow = 0;
             $path = get_field('path', $path_id);
-            $max = count($path);
+            $max = $path ? count($path) : 0;
             if( have_rows('path', $path_id) ):
             while( have_rows('path', $path_id) ) : the_row();
                 $article = get_sub_field('article');
