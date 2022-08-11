@@ -52,11 +52,17 @@
         }
         $html .= '<span class="text-gray excerpt block pb-5">';
         $html .= '<span class="excerpt-text block mb-3">'.short_excerpt().' </span>';
+        if (current_user_can('edit_posts')) {
+            $html .= '<span class="score block small text-red mb-3">( Score: '.$args['score'].' )<br />[ '.$args['score_labels'].' ]</span>';
+        }
         $html .= '<span class="block mb-3"><strong>Location:</strong> '.$location_display.' </span>'; 
         $html .= '<strong>Service Type:</strong> '.implode(', ',$services); 
         $html .= ' </span>'; 
     } else {
         $html .= '<span class="text-gray excerpt block pb-5">'.short_excerpt(35).' </span>'; 
+        if (current_user_can('edit_posts')) {
+            $html .= '<span class="score block small text-red mb-3">( Score: '.$args['score'].' )<br />[ '.$args['score_labels'].' ]</span>';
+        }
     }
 
     $html .= '<strong class="text-red caps block learn-more"> Learn More </strong>';

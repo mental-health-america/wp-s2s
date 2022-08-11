@@ -588,17 +588,20 @@ function get_articles( $options ){
 
 			// Defaults
 			$treatment_articles[$a]['id'] = $a;
+			$treatment_articles[$a]['score_labels'] = '';
 			$score = 0;
 
 			// Top 8 Popular +8
 			if(in_array($a, $pop_array)){
 				$score = $score + 8;
+				$treatment_articles[$a]['score_labels'] .= 'Top8 ';
 			}
 
 			// Primary Condition
 			$primary_condition = get_field('primary_condition', $a);
 			if($options['condition_terms'] && in_array($primary_condition, $options['condition_terms'])){
 				$score = $score + 10;
+				$treatment_articles[$a]['score_labels'] .= 'HasPrimary ';
 			}
 
 			// No Filters Check
@@ -614,6 +617,7 @@ function get_articles( $options ){
 				}
 				if(get_field('all_conditions', $a) == 1 || $m101 == true){
 					$score = $score + 10;
+					$treatment_articles[$a]['score_labels'] .= 'AllConditions ';
 				}
 			}
 
@@ -630,6 +634,7 @@ function get_articles( $options ){
 			}
 			if(count($filter_treatment_types) == 0 || !isset($options['filters'])){
 				$score = $score + count( get_field('treatment_type', $a) );		
+				$treatment_articles[$a]['score_labels'] .= 'TreatmentTypes(x'.count( get_field('treatment_type', $a) ).') ';
 			}		
 			
 			// Set the final score
@@ -666,7 +671,10 @@ function get_articles( $options ){
 		foreach($articles as $post):			
 			if($counter >= $offset && $counter <= $offset_ceil){
 				setup_postdata($post);
-				get_template_part( 'templates/blocks/resource', 'item', array( 'score' => isset($treatment_articles_og[$post]) ? $treatment_articles_og[$post]['score'] : 0 ) );
+				get_template_part( 'templates/blocks/resource', 'item', array( 
+					'score' => isset($treatment_articles_og[$post]) ? $treatment_articles_og[$post]['score'] : 0, 
+					'score_labels' => isset($treatment_articles_og[$post]) ? $treatment_articles_og[$post]['score_labels'] : '' 
+				));
 			}
 			$counter++;			
 		endforeach;
