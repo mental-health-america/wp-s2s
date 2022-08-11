@@ -375,6 +375,9 @@
         text-align: center !important;
         font-size: 35px !important;
     }
+    .page-template-page-screen-results h1.entry-title { display: none !important; }
+    .page-template-page-screen-results .subtitle { font-size: 18px; }
+    
     .screen-result .bubble:first-of-type {
         padding: 0;
         text-align: center !important;
