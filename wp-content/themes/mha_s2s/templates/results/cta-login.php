@@ -2,6 +2,7 @@
     <?php 
         $width = $args['width'] ? $args['width'] : 'narrow';
         $corners = $args['corners'] ? $args['corners'] : '';
+        $iframe_var = $args['iframe_var'] ? $args['iframe_var'] : null;
     ?>
     <div class="wrap mt-3 <?php echo $width; ?>">
         <div id="screen-save">

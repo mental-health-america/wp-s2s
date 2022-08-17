@@ -357,13 +357,13 @@ function loadMoreThoughts(){
 
 	parse_str($_POST['data'], $data);  
 
-	$activity_id = intval($data['activity_id']);
-	$index = intval($data['index']);
-	$path = intval($data['path']);
-	$admin_seed = intval($data['admin_seed']);
-	$user_seed = intval($data['user_seed']);
-	$return = intval($data['return']);
-	$paged = intval($data['paged']);
+	$activity_id = 	$data['activity_id'] ? intval($data['activity_id']) : null;
+	$index = 		$data['index'] ? intval($data['index']) : null;
+	$path = 		$data['path'] ? intval($data['path']) : null;
+	$admin_seed = 	$data['admin_seed'] ? intval($data['admin_seed']) : null;
+	$user_seed = 	$data['user_seed'] ? intval($data['user_seed']) : null;
+	$return = 		$data['return'] ? intval($data['return']) : null;
+	$paged = 		$data['paged'] ? intval($data['paged']) : null;
 
 	return getThoughtsSubmitted($activity_id, $index, $path, $admin_seed, $user_seed, $return, $paged);
 

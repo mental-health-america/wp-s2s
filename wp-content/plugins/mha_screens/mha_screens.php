@@ -36,7 +36,7 @@ function getUserScreenResults( $user_screen_id ) {
 	$user_screen_results['alert'] = 0;
     $user_screen_results['general_score_data'] = []; 
     $user_screen_results['graph_data'] = []; 
-    $your_answers;
+    $your_answers = [];
     
     // Get entry object
     $search_entries = GFAPI::get_entry( $user_screen_id );
@@ -361,6 +361,7 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
                 }
 				
 				$label = $field->label; // Field label  
+                $max_choice = 0;
 				foreach($field['choices'] as $choice){
 					if($choice['value'] == $v){
 						$value_label = $choice['text'];
