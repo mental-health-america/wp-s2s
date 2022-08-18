@@ -161,6 +161,7 @@ wp-content/mysql.sql
 # MHA specific overrides
 !/wp-content/plugins/mha_shard
 /wp-content/plugins/mha_shard/keys.php
+/wp-content/plugins/mha_shard/inc/tmp
 !/wp-content/plugins/mha_activity
 !/wp-content/plugins/mha_screens
 !/wp-content/plugins/mha_exports
