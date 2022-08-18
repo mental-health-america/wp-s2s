@@ -173,7 +173,7 @@ get_header();
 		while ( have_posts() ) : the_post();
 		?>
 			<div class="wrap normal">
-				<div class="article-right col-12 col-md-5 col-lg-4 pl-0 pr-0 pl-md-5 pt-3 mt-3 show-mobile">
+				<div class="article-right col-12 col-lg-4 pl-0 pr-0 pl-md-5 pt-3 mt-3 show-mobile">
 					<?php 
 						if(get_field('espanol')){
 							get_template_part( 'templates/blocks/article', 'sidebar-espanol', array( 'placement' => 'mobile' ) ); 

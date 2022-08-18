@@ -20,27 +20,11 @@ function get_condition_articles($tax = null, $tag = null, $search_query = null){
         "posts_per_page" => -1,
         "post_status" => 'publish',
         "meta_query" => array(
-            'relation' => 'AND',
-            'article_type' => array(
-                array(
-                    'key' => 'type',
-                    'value' => 'provider',
-                    'compare' => 'NOT LIKE'
-                )
-            ),
-            'language' => array(
-                'relation' => 'OR',
-                array(
-                    'key' => 'espanol',
-                    'value' => '1',
-                    'compare' => '!='
-                ),
-                array(
-                    'key' => 'espanol',
-                    'value' => '1',
-                    'compare' => 'NOT EXISTS'
-                )
-            ),
+            array(
+                'key' => 'type',
+                'value' => 'provider',
+                'compare' => 'NOT LIKE'
+            )
         ),
         "tax_query" => array(
             array(
@@ -59,6 +43,10 @@ function get_condition_articles($tax = null, $tag = null, $search_query = null){
     $loop = new WP_Query($args);
     while($loop->have_posts()) : $loop->the_post();	
 
+        // Skips
+        if(get_field('invisible') || get_field('survey') || get_field('espanol')){
+            continue;
+        }
 
         // General Vars
         $score = 1;

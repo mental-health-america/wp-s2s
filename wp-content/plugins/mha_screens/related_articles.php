@@ -456,22 +456,24 @@ function mha_results_related_articles( $args ){
                         }     
                     }
                     
-                    foreach($article_ages as $a){
-                        if($a->slug == 'under-11' && $user_under_11 == false || $a->slug == 'under-11' && $user_no_age == true){
-                            unset($related_articles[$article_id]);
-                            continue;
-                        }
+                    if($article_ages):
+                        foreach($article_ages as $a){
+                            if($a->slug == 'under-11' && $user_under_11 == false || $a->slug == 'under-11' && $user_no_age == true){
+                                unset($related_articles[$article_id]);
+                                continue;
+                            }
 
-                        if($a->slug == '11-17' && $user_under_11 == false || $a->slug == '11-17' && $user_no_age == true){
-                            unset($related_articles[$article_id]);
-                            continue;
+                            if($a->slug == '11-17' && $user_under_11 == false || $a->slug == '11-17' && $user_no_age == true){
+                                unset($related_articles[$article_id]);
+                                continue;
+                            }
+                            
+                            if($a->slug == 'over-18' && $user_under_11 == false || $a->slug == 'over-18' && $user_no_age == true){
+                                unset($related_articles[$article_id]);
+                                continue;
+                            }
                         }
-                        
-                        if($a->slug == 'over-18' && $user_under_11 == false || $a->slug == 'over-18' && $user_no_age == true){
-                            unset($related_articles[$article_id]);
-                            continue;
-                        }
-                    }
+                    endif;
 
                 }
             }

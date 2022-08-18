@@ -147,7 +147,9 @@ else:
                         $next = get_sub_field('featured_next_steps');
                         if($next){
                             foreach($next as $n){
-                                $next_step_manual[] = $n['link']->ID;
+                                if(isset($n['link']->ID)){
+                                    $next_step_manual[] = $n['link']->ID;
+                                }
                             }
                         }
                         
@@ -396,7 +398,12 @@ else:
     <div class="wrap normal pt-0 pb-3 d-print-none">
 
         <div class="mb-5 pb-2">
-            <?php get_template_part( 'templates/results/cta', 'login', array( 'width' => 'narrow', 'corners' => '', 'id' => $user_screen_result['result_id'] ) ); ?>
+            <?php get_template_part( 'templates/results/cta', 'login', array( 
+                'width' => 'narrow', 
+                'corners' => '', 
+                'iframe_var' => $iframe_var, 
+                'id' => $user_screen_result['result_id'] 
+                ) ); ?>
         </div>
 
         <?php
@@ -537,6 +544,7 @@ else:
                             'screen_id' => $user_screen_result['screen_id'], 
                             'user_screen_id' => $user_screen_id,
                             'espanol' => $espanol,
+                            'iframe_var' => $iframe_var,
                             'entry_id' => $user_screen_result['result_id']
                         )); 
                     ?>
@@ -661,48 +669,52 @@ else:
              * A/B Variant
              * Layout: actions_hide_ns
              */
-            if(!in_array('actions_hide_ns', $layout)):          
-        ?>
-        <div id="cta-col" class="cta-cols">
-            <?php       
-                /*
-                * Result specific CTA
-                */
-                global $post;
-                $unique_result_cta = array_unique($result_cta);
-                foreach($unique_result_cta as $cta){
-                    $post = get_post($cta); 
-                    get_template_part( 'templates/blocks/block', 'cta' );  
-                } 
-                wp_reset_postdata();
-                
+            if(!in_array('actions_hide_ns', $layout)):
+
                 if(!$espanol){
                     // All Screen CTAs
                     if( have_rows('actions_global_screening', 'option') ):
                     while( have_rows('actions_global_screening', 'option') ) : the_row();  
-                        $post_id = get_sub_field('action');
-                        $post = get_post($post_id); 
-                        if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
-                            setup_postdata($post);
-                            get_template_part( 'templates/blocks/block', 'cta' );  
-                            $result_cta[] = $post_id;
-                        }
+                        $action_option = get_sub_field('action');
+                        $result_cta[] = get_sub_field('action');
                     endwhile;
                     endif;
+                    wp_reset_postdata();
                     
                     // Global CTAs
                     if( have_rows('actions', 'option') ):
                     while( have_rows('actions', 'option') ) : the_row();  
-                        $post_id = get_sub_field('action');
-                        $post = get_post($post_id); 
-                        if(!in_array($post_id, $result_cta)){ // Skip in case the result has this already
-                            setup_postdata($post);
-                            get_template_part( 'templates/blocks/block', 'cta' );  
-                        }
+                        $action_option = get_sub_field('action');
+                        $result_cta[] = $action_option;
                     endwhile;
                     endif;
+                    wp_reset_postdata();
                 }
+
+                $unique_result_cta = array_unique($result_cta);  
+        ?>
+        <div id="cta-col" class="cta-cols total-<?php echo count($unique_result_cta); ?>">
+            <?php       
+                /*
+                * Result specific CTA
+                */
+
+                // Limit CTAs to 2 max
+                $total_ctas = 0;
+                $max_ctas = 2;
+                if(count($unique_result_cta) > $max_ctas){
+                    shuffle($unique_result_cta);
+                    $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas);
+                }
+
+                global $post;
+                foreach($unique_result_cta as $cta){
+                    $post = get_post($cta); 
+                    get_template_part( 'templates/blocks/block', 'cta' );  
+                    $total_ctas++;
+                } 
                 wp_reset_postdata();
+                
             ?>
         </div>
         <?php endif; // Hide 'actions_hide_ns' ?>
@@ -759,7 +771,42 @@ else:
             echo $user_screen_result['date'].'. ';
             echo _e('To view this result on the web, visit:'); 
         ?><br />
-        <a class="no-after" href="<?php echo add_query_arg( 'sid', $user_screen_id, get_the_permalink($user_screen_result['screen_id']) ); ?>"><?php echo add_query_arg( 'sid', $user_screen_id, get_the_permalink() ); ?></a>
+        <a class="no-after" href="<?php echo add_query_arg( 'sid', $user_screen_id, get_the_permalink($user_screen_result['screen_id']) ); ?>">
+            <?php echo add_query_arg( 'sid', $user_screen_id, get_the_permalink() ); ?>
+        </a><br />
+
+        <?php 
+            $condition_id = yoast_get_primary_term_id( 'condition', $user_screen_result['screen_id'] );
+            $condition_page_id = null;
+            $args = array(
+                'post_type'  => 'page', 
+                "post_status" => 'publish',
+                "posts_per_page" => 1,
+                'meta_query' => array( 
+                    'relation' => 'AND',
+                    array(
+                        'key'   => '_wp_page_template', 
+                        'value' => 'templates/page-path-collection.php'
+                    ),
+                    array(
+                        'key'   => 'condition', 
+                        'value' => $condition_id
+                    )
+                )
+            );
+            $loop = new WP_Query($args);
+            if($loop->have_posts()):
+            while($loop->have_posts()) : $loop->the_post();  
+                $condition_page_id = get_the_ID();
+            endwhile;
+            endif;
+            wp_reset_query();
+
+            $condition_name = get_term_by( 'id', $condition_id, 'condition' );
+        ?>
+        <?php if($condition_page_id != null): ?>
+            <br />Learn more about <?php echo $condition_name->name; ?> at <?php echo get_the_permalink( $condition_page_id ); ?>
+        <?php endif; ?>
     </div>
 
 <?php endif; ?>

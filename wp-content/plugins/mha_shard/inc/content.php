@@ -583,7 +583,7 @@ function get_articles( $options ){
 	// Treatment Articles
 	if($options['type'] == 'treatment'){
 		$treatment_articles = [];
-		$pop_array = array_slice(mha_monthly_pop_articles('read'), 0, 8);
+		$pop_array = array_slice(mha_monthly_pop_articles('read'), 0, 50);
 		foreach($articles as $a){
 
 			// Defaults
@@ -591,10 +591,11 @@ function get_articles( $options ){
 			$treatment_articles[$a]['score_labels'] = '';
 			$score = 0;
 
-			// Top 8 Popular +8
+			// Top 50 Popular +5
 			if(in_array($a, $pop_array)){
-				$score = $score + 8;
-				$treatment_articles[$a]['score_labels'] .= 'Top8 ';
+				$score = $score + 5;
+				$pop_number = array_search($a, $pop_array) ? array_search($a, $pop_array) : '';
+				$treatment_articles[$a]['score_labels'] .= 'Top50(#'.$pop_number.') ';
 			}
 
 			// Primary Condition

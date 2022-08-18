@@ -170,7 +170,7 @@ $search_term = get_query_var('search_term');
 							"post_type"         => 'screen',
 							"order"	            => 'DESC',
 							"post_status"       => 'publish',
-							"posts_per_page"    => 1,
+							"posts_per_page"    => 50,
 							'tax_query'      => array(
 								array(
 									'taxonomy'          => $term->taxonomy,
@@ -193,25 +193,33 @@ $search_term = get_query_var('search_term');
 							)
 						);
 						$loop = new WP_Query($args);
+						$cta_count = 0;
 						if($loop->have_posts()):
-						?>
-							<div class="bubble round-tl orange normal">
-							<div class="inner">
-							<?php while($loop->have_posts()) : $loop->the_post(); ?>   
-								<?php
-									$an_a = ' '; 
-									$title = get_the_title();
-									if($title[0] == 'A'){
-										$an_a = 'n ';
-									}
-								?>
-								<?php the_title('<h3>Take a'.$an_a,'</h3>'); ?>   
-								<div class="excerpt"><?php the_excerpt(); ?></div>
-								<div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
-							<?php endwhile; ?>
-							</div>
-							</div>
-						<?php
+						while($loop->have_posts()) : $loop->the_post(); 
+
+							$primary_condition_yoast = get_post_meta(get_the_ID(),'_yoast_wpseo_primary_condition', true);
+							if(get_field('invisible') || get_field('survey') || $primary_condition_yoast != $term->term_id || $cta_count > 0){
+								continue;
+							}
+							?>   
+								<div class="bubble round-tl orange normal">
+								<div class="inner">
+									<?php
+										$an_a = ' '; 
+										$title = get_the_title();
+										if($title[0] == 'A'){
+											$an_a = 'n ';
+										}
+									?>
+									<?php the_title('<h3>Take a'.$an_a,'</h3>'); ?>   
+									<div class="excerpt"><?php the_excerpt(); ?></div>
+									<div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
+								
+								</div>
+								</div>
+							<?php 
+							$cta_count++;
+						endwhile;
 						endif;
 						wp_reset_query();
 					?>
