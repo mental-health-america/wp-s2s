@@ -997,9 +997,12 @@ tr.odd,
 .table-striped tbody tr:nth-of-type(even) { 
     background-color: $ceruleanPale; 
 }
+
+.table-bordered thead td, 
+.table-bordered thead th,
 .table-bordered td, 
 .table-bordered th { 
-    border-color: $grayLight; 
+    border-color: $ceruleanLight; 
 }
 
 .content-red {
@@ -1009,6 +1012,8 @@ tr.odd,
     .table-striped tbody tr:nth-of-type(even) { 
         background-color: $redLight; 
     }
+    .table-bordered thead td, 
+    .table-bordered thead th,
     .table-bordered td, 
     .table-bordered th { 
         border-color: #fddddd; 

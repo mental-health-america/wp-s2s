@@ -51,7 +51,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
             <div class="container-fluid">
             <div class="row <?php echo $customContentClasses; ?>">
 
-                <div class="page-content article-left col-12 <?php if(strpos(get_query_var('layout'), 'actions_ah_sidebar') === false): ?>col-md-7 col-lg-8 <?php endif; ?>pl-0 pr-0 pr-md-4">
+                <div class="page-content article-left col-12 <?php if(strpos(get_query_var('layout'), 'actions_ah_sidebar') === false): ?>col-lg-8 <?php endif; ?>pl-0 pr-0 pr-md-4">
 
                     <?php 
 
