@@ -100,7 +100,7 @@ function mha_export_screen_data(){
     
     // Get field order/headers for later
     $gform = GFAPI::get_form( $args['form_id'] );
-    $form_slug = $args['export_single'] ? 'combined' : sanitize_title_with_dashes($gform['title']);
+    $form_slug = $args['export_single'] ? 'combined' : sanitize_title($gform['title']);
     $all_form_ids = $args['all_forms_ids'] != null ? explode(',', $args['all_forms_ids']) : null;
         
     if(empty($args['fields'])){
@@ -282,9 +282,9 @@ function mha_export_screen_data(){
                 // Custom value overrides
                 if($ftv['label'] == 'Age Range' && validateDate($v)){                
                     $v = "\"$v\""; // Add quotes to age ranges with a dash so excel doesn't turn it into a date
-                }
-                if($ftv['label'] == 'Please check this box if you identify as transgender.'){     
-                    $v = $v ? 'Yes' : 'No'; // Display no instead of blank
+                } 
+                if (strpos($ftv['label'], 'check this box') !== false){     
+                    $v = $v ? 'Yes' : 'No'; // Display Yes/No instead of 1/blank
                 }
                 if($ftv['label'] == 'Screen ID'){     
                     $v = get_the_title(str_replace(' Test', '', $v)); // Display just the screen name minus "Test"
