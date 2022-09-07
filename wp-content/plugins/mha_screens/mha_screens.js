@@ -60,10 +60,61 @@ jQuery(function ($) {
 
 	}
 
-
 	// Update button URLs to match
 	if($('#screen-take').length){
 		$('#main-menu-buttons li:first a').attr('href', $('#screen-take').attr('href'));
 	}
+
+	// Force .rounded-number field classes to be rounded
+	$('.rounded-number input').on('input', function() {
+		let old_val = Math.round( $(this).val() ),
+			val = old_val,
+			min_num = parseInt($(this).attr('min')),
+			max_num = parseInt($(this).attr('max')),
+			max = $(this).attr('max').toString().length;
+
+		// Limit max characters
+		if (val.toString().length > max) {
+			val = val.toString().slice(0, max);
+		}		
+		$(this).val( val ); // Replace input value
+
+		console.log(old_val, min_num, max_num);
+		if(val < min_num || val > max_num){
+			let error_id = $(this).parents('.rounded-number').attr('id'),
+				error_valid_id = error_id.replace('field_','');
+				error = '<div id="validation_message_'+error_valid_id+'" class="gfield_description validation_message gfield_validation_message">Please enter a number from <strong>'+min_num+'</strong> to <strong>'+max_num+'</strong>.</div>';
+			if(!$(this).parents('.rounded-number').find('.validation_message').length){
+				$(this).parents('.rounded-number').append(error);
+			}
+		} else {
+			console.log('remove');
+			$(this).parents('.rounded-number').find('.validation_message').remove();
+		}
+	});
+
+	// Step up/down buttons
+	$(document).on('click', '.number-stepper .step-up', function(e){
+		let $input = $(this).parents('.number-stepper').find('input[type="number"]'),
+			step = parseInt($input.attr('step')),
+			min = parseInt($input.attr('min')),
+			max = parseInt($input.attr('max')),
+			old_val = parseInt($input.val()),
+			new_val = old_val + step;
+		if(new_val < min){ new_val = min; }
+		if(new_val > max){ new_val = max; }
+		$input.val( new_val );
+	});
+	$(document).on('click', '.number-stepper .step-down', function(e){
+		let $input = $(this).parents('.number-stepper').find('input[type="number"]'),
+			step = parseInt($input.attr('step')),
+			min = parseInt($input.attr('min')),
+			max = parseInt($input.attr('max')),
+			old_val = parseInt($input.val()),
+			new_val = old_val - step;
+		if(new_val < min){ new_val = min; }
+		if(new_val > max){ new_val = max; }
+		$input.val( new_val );
+	});
 
 });

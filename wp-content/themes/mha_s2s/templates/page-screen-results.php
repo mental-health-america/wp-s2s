@@ -3,7 +3,7 @@
 get_header(); 
 global $wpdb;
 
- // The user's obfuscated custom ID
+// The user's obfuscated custom ID
 $user_screen_id = get_query_var('sid');
 
 // Get the gravity forms entry ID for easier lookups

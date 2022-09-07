@@ -121,8 +121,34 @@ function getUserScreenResults( $user_screen_id ) {
 				}
 
                 if($v != ''){			
-                    $value_extra = is_numeric($v) ? ' ('.intval($v).')' : '';
-                    $your_answers[$row] = '<div class="row pb-4"><div class="col-sm-7 col-12 text-gray">'.$label.'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$value_label.''.$value_extra.'</div></div>';
+                    
+                    // Format numbers vs text fields
+                    if($field->type == 'number'){
+                        $value_extra = intval($v);    
+                        $value_label = '';    
+                    } else {
+                        $value_extra = is_numeric($v) ? ' ('.intval($v).')' : '';
+                    }
+
+                    // Prepend a specific HTML field before the results for contextual labelling
+                    $extra_label_keys = explode(' ', $field->cssClass);  
+                    $extra_label_content = null;
+                    foreach($extra_label_keys as $extra_label_value){
+                        if (preg_match('|label-above--|', $extra_label_value)) {
+                            $extra_label_id = explode('--', $extra_label_value);     
+                            $extra_label_content = null;
+                            if(is_numeric($extra_label_id[1])){   
+                                $extra_label_field = GFFormsModel::get_field( $data['form_id'], $extra_label_id[1] );  
+                                $your_answers[$row] = '<div class="row pb-2"><div class="col-12 text-gray">'.$extra_label_field->content.'</div></div>';
+                                $row++;
+                                break;
+                            }
+                        }
+                    }
+
+                    $has_indent = strpos($field->cssClass, 'indent') !== false ? ' pl-5' : ' pl-0';
+
+                    $your_answers[$row] = '<div class="row pb-4'.$has_indent.'"><div class="col-sm-7 col-12 text-gray">'.$label.'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$value_label.''.$value_extra.'</div></div>';
                 }
             }
 
@@ -362,12 +388,14 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
 				
 				$label = $field->label; // Field label  
                 $max_choice = 0;
-				foreach($field['choices'] as $choice){
-					if($choice['value'] == $v){
-						$value_label = $choice['text'];
-					}
-                    if($choice['value'] > $max_choice){
-                        $max_choice = $choice['value'];
+                if(isset($field['choices']) && is_array($field['choices'])){
+                    foreach($field['choices'] as $choice){
+                        if($choice['value'] == $v){
+                            $value_label = $choice['text'];
+                        }
+                        if($choice['value'] > $max_choice){
+                            $max_choice = $choice['value'];
+                        }
                     }
                 }
                 $general_score_data['max_values'][$k] = $max_choice;                 
@@ -375,12 +403,37 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
 				if(isset($field->cssClass) && strpos($field->cssClass, 'exclude') === false){     
 					$total_score = $total_score + intval($v); // Add to total score	
 				}
+
+                // Prepend a specific HTML field before the results for contextual labelling
+                $extra_label_keys = explode(' ', $field->cssClass);  
+                $extra_label_content = null;
+                foreach($extra_label_keys as $extra_label_value){
+                    if (preg_match('|label-above--|', $extra_label_value)) {
+                        $extra_label_id = explode('--', $extra_label_value);     
+                        $extra_label_content = null;
+                        if(is_numeric($extra_label_id[1])){   
+                            $extra_label_field = GFFormsModel::get_field( $data['form_id'], $extra_label_id[1] );  
+                            $html .= '<p><strong>'.$extra_label_field->content.'</strong></p>';
+                            break;
+                        }
+                    }
+                }
 				
 				if($v != ''){			
-					$html .= '<p>';
-						$html .= '<strong>'.$label.'</strong><br />';
+
+                    if($field->type == 'number'){
+                        $value_extra = intval($v);    
+                        $value_label = '';    
+                    } else {
+                        $value_extra = is_numeric($v) ? ' ('.intval($v).')' : '';
+                    }
+
+                    $has_indent = strpos($field->cssClass, 'indent') !== false ? ' style="padding-left: 20px;"' : ' style="padding-left: 0;"';
+
+					$html .= '<p'.$has_indent.'>';
+						$html .= '<strong>'.$label.'</strong><br />';                        
 						$html .= $value_label;
-                        $html .= is_numeric($v) ? ' ('.intval($v).')' : '';
+                        $html .= $value_extra;
 					$html .= '</p>';
 
                     // Advanced Conditions Check
@@ -710,8 +763,6 @@ function updateUserScreenResults( $options ){
 
 }
 
-
-
 /**
  * Pre Submission Handler
  */
@@ -726,9 +777,7 @@ function mha_screening_pre_submission_handler( $form ) {
         }
     }
     
-    
 }
-
 
 // Other Files
 include_once 'result_scoring.php';
