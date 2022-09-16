@@ -2,19 +2,20 @@
 /**
  * Plugin Name: MHA - Screens
  * Plugin URI: https://screening.mhanational.org
- * Version: 1.0
+ * Version: 1.1
  * Author:  MHA Web Team
  * Author URI: https://screening.mhanational.org
  * Description: Extra scripts for MHA Screens
  */
 
 // General Vars
+define( 'MHASCREENS_VERSION', '1.1' );
 
 // Enqueing Scripts
 add_action('init', 'mhaScreenScripts');
 function mhaScreenScripts() {
 	wp_enqueue_script('mhaScreen_validate', plugin_dir_url( __FILE__ ).'assets/jquery.validate.min.js', 'jquery', '1.0', true);
-	wp_enqueue_script('process_mhaScreenEmail', plugin_dir_url( __FILE__ ).'mha_screens.js', 'jquery', time(), true);
+	wp_enqueue_script('process_mhaScreenEmail', plugin_dir_url( __FILE__ ).'mha_screens.js', 'jquery', MHASCREENS_VERSION, true);
 	wp_localize_script('process_mhaScreenEmail', 'do_mhaScreenEmail', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 
