@@ -71,7 +71,7 @@ function mhathoughtexport(){
                     </td>
                 </tr>
                 <tr id="export_single_container" style="display: none;">
-                    <th scope="row"><label for="export_single">Combine Export Into Single Form?</label></th>
+                    <th scope="row"><label for="export_single">Combine Export Into Single File?</label></th>
                     <td>
                         <input type="checkbox" name="export_single" id="export_single" value="1" />
                     </td>

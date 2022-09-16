@@ -286,8 +286,8 @@ function mha_export_screen_data(){
                 if (strpos($ftv['label'], 'check this box') !== false){     
                     $v = $v ? 'Yes' : 'No'; // Display Yes/No instead of 1/blank
                 }
-                if($ftv['label'] == 'Screen ID'){     
-                    $v = get_the_title(str_replace(' Test', '', $v)); // Display just the screen name minus "Test"
+                if($ftv['label'] == 'Screen ID' || $ftv['label'] == 'Screen'){     
+                    $v = str_replace(' Test', '', get_the_title($v)); // Display just the screen name minus "Test"
                 }
 
                 // Put into our array

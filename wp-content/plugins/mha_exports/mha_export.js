@@ -149,7 +149,7 @@
                 if(res.all_forms_continue == 1){    
                     $('input[name="all_forms"]').val(res.all_forms);
                     
-                    console.log(res);
+                    //console.log(res);
                     if(res.export_single == 1){    
                         let single_continue_data = '&export_single_continue=1&filename='+res.filename;
                         screenExportDataStart( 1, 1, single_continue_data );                    
@@ -208,7 +208,7 @@
             args = args + '' + single_continue_data;
         }
 
-        console.log(args);
+        //console.log(args);
 
         $('#export_screen_link').prop('disabled', true).text('Processing...');
         $('#screen-exports-progress .bar').css('background-color', '').addClass('loading');
