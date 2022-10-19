@@ -280,14 +280,16 @@ function mha_export_screen_data(){
                  */
 
                 // Custom value overrides
-                if($ftv['label'] == 'Age Range' && validateDate($v)){                
+                if($ftv['label'] == 'Age Range' && validateDate($v) || $ftv['label'] == 'Edad' && validateDate($v)){                
                     $v = "\"$v\""; // Add quotes to age ranges with a dash so excel doesn't turn it into a date
                 } 
-                if (strpos($ftv['label'], 'check this box') !== false){     
+                if (strpos($ftv['label'], 'favor marque ') !== false || strpos($ftv['label'], 'check this box') !== false){     
                     $v = $v ? 'Yes' : 'No'; // Display Yes/No instead of 1/blank
                 }
                 if($ftv['label'] == 'Screen ID' || $ftv['label'] == 'Screen'){     
-                    $v = str_replace(' Test', '', get_the_title($v)); // Display just the screen name minus "Test"
+                    $screen_title = get_the_title($v);
+                    $v = str_replace(' Test', '', $screen_title); // Display just the screen name minus "Test"
+                    $v = str_replace('Test de ', '', $screen_title); // Display just the screen name minus "Test de"
                 }
 
                 // Put into our array
