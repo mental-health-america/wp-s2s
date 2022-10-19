@@ -309,7 +309,11 @@ function mha_results_related_articles( $args ){
             if(
                 $article_primary_condition && $primary_condition && isset($article_primary_condition->term_id) && $article_primary_condition->term_id == $primary_condition->term_id || 
                 is_array($article_conditions) && count($article_conditions) == 1 || 
-                $primary_condition && $article_primary_condition && $article_primary_condition->term_id == $primary_condition->term_id 
+                $primary_condition && 
+                $article_primary_condition && 
+                isset($article_primary_condition->term_id) && 
+                isset($primary_condition->term_id) && 
+                $article_primary_condition->term_id == $primary_condition->term_id 
             ){
                 $rel_score = $rel_score + get_field('scoring_primary_condition', 'options');
                 $related_articles[$article_id]['score_debug'] .= 'OnlyPrimary ';
