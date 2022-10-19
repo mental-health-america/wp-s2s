@@ -45,11 +45,11 @@ function mhacleanuperLooper( $data = null ) {
     $data['start_date'] = $startDate;
     $endDate = $data['end_date'];
     $data['end_date'] = $endDate;
-    $timeCheck = strtotime('now - 3 month');
+    $timeCheck = strtotime('now - 2 month');
 
     // Date check so we don't delete entries that are too new
     if(strtotime($endDate) > $timeCheck){
-        $data['error'] = 'End Date is too recent. Please select a date older than '.date('Y-m-t', $timeCheck);
+        $data['error'] = 'End Date is too recent. Please select a date older than '.date('Y-m-d', $timeCheck);
         echo json_encode($data);
         exit();
     }
@@ -105,7 +105,7 @@ function mhacleanuperLooper( $data = null ) {
 
 
     // Extras to pass along
-    $data['deleted_entries'] = $deleted_entries + $data['deleted_entries'];
+    $data['deleted_entries'] = $data['deleted_entries'];
 
     // Return our responses
     echo json_encode($data);

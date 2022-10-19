@@ -65,7 +65,7 @@ function mhacleanuppage(){
                     <tr>
                         <th scope="row"><label for="end_date">End Date</label></th>
                         <td>
-                            <input type="text" name="end_date" id="end_date" value="<?php echo date('Y-m-t', strtotime('now - 4 month')); ?>" />
+                            <input type="text" name="end_date" id="end_date" value="<?php echo date('Y-m-t', strtotime('now - 3 month')); ?>" />
                         </td>
                     </tr>
                     <tr>
