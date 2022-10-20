@@ -88,7 +88,6 @@ get_header();
                     //'area_served'   => 'national'
                 );
                 echo get_articles_faceted( $options ); 
-                echo facetwp_display( 'pager', 'load_more' );
             ?>
 
         </div>

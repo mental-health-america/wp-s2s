@@ -2,7 +2,7 @@
 
     $type = get_field('type');
 
-    $html = '<a href="'.get_the_permalink().'" class="filter-bubble red">';
+    $html = '<a href="'.get_the_permalink().'" class="filter-bubble red '.$args['paginated_display'].'">';
     $html .= '<p class="inline m-0">';
 
     if(get_the_post_thumbnail_url()){

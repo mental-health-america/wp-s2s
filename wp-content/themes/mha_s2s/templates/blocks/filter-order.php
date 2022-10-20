@@ -1,5 +1,10 @@
 
 <div class="dropdown text-right pr-0 pr-md-4 mb-4">
+
+    <label class="inline text-dark-blue small bold">Sort by: &nbsp; </label>
+    <?php echo facetwp_display( 'facet', 'sort_by' ); ?>
+
+    <?php /*
     <label class="inline text-dark-blue small bold">Sort by: &nbsp; </label>
     <button class="button gray round-br dropdown-toggle normal-case" type="button" id="orderSelection" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
         <?php
@@ -17,4 +22,5 @@
         <button class="dropdown-item normal-case filter-order" type="button" data-order="DESC" value="date">Newest First</button>
         <button class="dropdown-item normal-case filter-order" type="button" data-order="ASC" value="date">Oldest First</button>
     </div>
+    */ ?>
 </div>

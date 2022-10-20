@@ -17,17 +17,21 @@
 	wow.init();
 
 	// Show/Hide filter on mobile
+	/*
+	var mobileFilterToggle = false;
 	function showFilters() {
 		if($('.search-filters.form-container').length){
 			var windowWidth = $(window).width();
-			if(windowWidth < 768){
+			if(windowWidth < 768 && mobileFilterToggle == false){
 				$('.search-filters.form-container').removeClass('show');
+				mobileFilterToggle = true;
 			} else {
 				$('.search-filters.form-container').addClass('show');
+				mobileFilterToggle = false;
 			}
 		}
 	}
-
+	*/
 
 	/**
 	 * Document Ready Functions
@@ -284,7 +288,7 @@
 		});
 
 		// Filter Display
-		showFilters();
+		// showFilters();
 
 		// User test results display toggler
 		$('.show-test-group').on('click', function(event){
@@ -439,7 +443,7 @@
 	$(window).resize(function() {
 		
 		// Filter Display
-		showFilters();
+		// showFilters();
 
 	});
 

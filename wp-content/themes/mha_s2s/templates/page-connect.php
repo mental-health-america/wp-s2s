@@ -59,7 +59,6 @@ get_header();
                     'type' => 'connect'
                 );
                 echo get_articles_faceted( $options ); 
-                echo facetwp_display( 'facet', 'load_more' );
             ?>
 
         </div>
