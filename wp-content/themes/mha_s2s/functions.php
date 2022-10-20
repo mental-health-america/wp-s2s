@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20220817' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20221019' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -102,6 +102,7 @@ function mha_s2s_scripts() {
 	wp_enqueue_script( 'mha_s2s-macy', get_template_directory_uri() . '/assets/js/macy.min.js', array(), '1.0', true );
 	wp_enqueue_script( 'mha_s2s-bootstrap-js', get_template_directory_uri() . '/assets/bootstrap/js/bootstrap.bundle.min.js', array(), '4.3.1', true );
 	wp_enqueue_script( 'mha_s2s-jqueryui', get_template_directory_uri() . '/assets/js/jquery.ui.custom.min.js', array( 'jquery' ), '1.13.1', true );
+	wp_enqueue_script( 'mha_s2s-glide', get_template_directory_uri() . '/assets/js/glide.js', array(), '3.6.0.1', true );
 	
 	if(get_page_template_slug() == 'templates/page-my-account.php'){
 		wp_enqueue_script( 'mha_s2s-chart-js', get_template_directory_uri() . '/assets/js/chart.js', array(), '2.7.2', false );
@@ -115,7 +116,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20220817', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20221019', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
@@ -281,6 +282,34 @@ function hidden_token_field( $input, $field, $value, $lead_id, $form_id ) {
 	}
 	
     return $input;
+}
+
+
+/**
+ * Number field validation
+ */
+
+// Force number fields to increment by 1
+add_filter( 'gform_field_content', function ( $field_content, $field ) {	
+	if ( 'number' === $field->type ) {		
+		$field_content = str_replace( "step='any'", "step='1'  pattern='\d*' ", $field_content );
+	}	
+	if ( strpos($field->cssClass, 'number-stepper') !== false ) {        
+		$field_content = str_replace('<input', '<div class="step-buttons"><button type="button" class="step-down" title="Increase by 1" aria-label="Increase by 1">-</button><button type="button" class="step-up" aria-label="Decrease by 1" title="Decrease by 1">+</button></div><input', $field_content);
+	}
+	return $field_content;
+}, 10, 2 );
+
+// Round the number field with .rounded-number
+add_filter( 'gform_field_validation', 'number_field_rounded_value_validation', 10, 4 );
+function number_field_rounded_value_validation( $result, $value, $form, $field ) {
+	if ( strpos($field->cssClass, 'rounded-number') !== false ) {
+		if( is_numeric( $value ) && round( $value ) != $value ){
+			$result['is_valid'] = false;
+			$result['message'] = 'Please enter a whole number.';
+		}
+    }
+    return $result;
 }
 
 
@@ -1054,3 +1083,6 @@ function gf_admin_is_not_spam( $is_spam, $form, $entry ) {
 	}
     return $is_spam;
 }
+
+// FacetWP Options
+include_once('inc/functions_facetwp.php');
