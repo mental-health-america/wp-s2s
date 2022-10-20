@@ -5,7 +5,7 @@ get_header();
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
     <div class="page-heading bar red">	
-    <div class="wrap normal">			
+    <div class="wrap normal">				
         <?php 
             get_template_part( 'templates/blocks/breadcrumbs' );
             the_title( '<h1 class="entry-title">', '</h1>' ); 
@@ -21,125 +21,81 @@ get_header();
 
     <div id="filters-container">
 
-        <?php get_template_part( 'templates/blocks/filter-order' ); ?>
-
+        <div class="dropdown text-right pr-0 pr-md-4 mb-4">
+            <label class="inline text-dark-blue small bold"><?php echo _e('Sort by:', 'mhas2s'); ?> &nbsp; </label>
+            <?php echo facetwp_display( 'facet', 'sort_by_location' ); ?>
+        </div>
+        
         <div id="filters" class="clear">
         <div class="inner">
 
-            <button id="filter-toggle" class="bold text-gray caps accordion-button mb-5 mb-md-4" type="button" data-toggle="collapse" data-target="#provider-filter" aria-expanded="true" aria-controls="provider-filter">Filters</button>
+            <button id="filter-toggle" class="bold text-gray caps accordion-button mb-5 mb-md-4" type="button" data-toggle="collapse" data-target="#diy-filter" aria-expanded="true" aria-controls="diy-filter">Filters</button>
 
-            <form action="#" method="POST" id="provider-filter" class="search-filters form-container collapse show">
+            <div id="diy-filter" class="search-filters form-container collapse">
 
-                <a href="/get-help" class="right plain pt-1 red small bold">Clear All</a>
-                <p class="bold text-dark-blue caps nb-3 intro-label montserrat">Filters</p>
+                <a href="<?php echo get_the_permalink(); ?>" class="right plain pt-1 red small bold"><?php echo _e('Clear All', 'mhas2s'); ?></a>
+                <p class="bold text-dark-blue caps nb-3 intro-label montserrat"><?php echo _e('Filters', 'mhas2s'); ?></p>
 
-                <p><input id="keyword-search" type="text" name="search" class="gray input-text" placeholder="Keyword Search" /></p>
+                <?php echo facetwp_display( 'facet', 'search' ); ?>
                 
-                <label for="zip-search" class="text-blue-dark">Location Search</label>
-                <p><input id="zip-search" type="number" id="zip" name="zip" class="gray input-text" placeholder="Enter your zip code" value="<?php echo get_query_var('geo'); ?>" /></p>
-                
-                <input id="area-national" type="hidden" value="national" name="area_served[]" />
-                
-                <?php /*
-                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#locationList" aria-expanded="true" aria-controls="locationList">Area Served</button>
-                <div id="locationList" class="collapse show filter-checkboxes">
-                    <?php
-                        $area_served = get_field_object('field_5fd3eef624b35');
-                        if( $area_served['choices'] ): ?>
-                            <?php foreach( $area_served['choices'] as $value => $label ): ?>
-                                <div class="form-item">
-                                    <input id="area-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="area_served[]" />
-                                    <label for="area-<?php echo $value; ?>"><?php echo $label; ?></label>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php 
-                        endif; 
-                    ?>
-                </div> */ ?>
-
-                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#serviceTypes" aria-expanded="true" aria-controls="serviceTypes">Service Type</button>
-                <div id="serviceTypes" class="collapse show filter-checkboxes">
-                    <?php
-                        $treatment_type = get_field_object('field_5fdc0a1448b13');
-
-                        // Pre-checked filters
-                        $params = explode(',', get_query_var('service_type'));
-                        $checked_params = [];
-                        foreach($params as $p){ $checked_params[] = strtolower(urldecode($p)); }
-
-                        if( $treatment_type['choices'] ):
-                        foreach( $treatment_type['choices'] as $value => $label ): 
-                            $checked = in_array( strtolower(urldecode($label)), $checked_params) ? ' checked="checked"' : '';
-                            ?>
-                                <div class="form-item">
-                                    <input id="service-<?php echo $value; ?>" type="checkbox" value="<?php echo $value; ?>" name="service_type[]" <?php echo $checked; ?>/>
-                                    <label for="service-<?php echo $value; ?>"><?php echo $label; ?></label>
-                                </div>
-                            <?php 
-                        endforeach;                            
-                        endif; 
-                    ?>
+                <label for="zip-code-search" class="text-blue-dark"><?php echo _e('Search for resources near you', 'mhas2s'); ?></label>
+                <div class="facetwp-facet facetwp-facet-custom facetwp-type-custom">
+                    <span class="facetwp-input-wrap">
+                        <i class="facetwp-icon zip-icon faux-submit submit-zip-search"></i>
+                        <input type="text" id="zip-code-search" class="location-search-zip facetwp-location" value="" placeholder="Zip code" autocomplete="off" data-connect="location_search">
+                    </span>
                 </div>
-                
-                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Condition Treated</button>
+                <div class="d-none"><?php echo facetwp_display( 'facet', 'location_search' ); ?></div>
+
+                <div class="d-none">
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#areaServed" aria-expanded="true" aria-controls="areaServed"><?php echo _e('Area Served', 'mhas2s'); ?></button>
+                <div id="areaServed" class="collapse show filter-checkboxes">
+                    <?php echo facetwp_display( 'facet', 'area_served' ); ?>
+                </div>
+                </div>
+
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#serviceType" aria-expanded="true" aria-controls="serviceType"><?php echo _e('Service Type', 'mhas2s'); ?></button>
+                <div id="serviceType" class="collapse show filter-checkboxes">
+                    <?php echo facetwp_display( 'facet', 'service_type' ); ?>
+                </div>
+
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList"><?php echo _e('Conditions', 'mhas2s'); ?></button>
                 <div id="conditionsList" class="collapse show filter-checkboxes">
-                
-                    <div class="form-item collapse" id="all-conditions-container">
-                        <input id="all_conditions" type="checkbox" value="1" name="all_conditions" />
-                        <label for="all_conditions">Include articles that apply to all conditions</label><br />
-                    </div>
-
-                    <div class="show-all-conditions">
-                        <?php
-                            $tag_options = array(
-                                "post_type"      => 'article',
-                                "type"           => 'provider',
-                                "taxonomy"       => 'condition',
-                            );         
-                            echo get_tag_filters( $tag_options );
-                        ?>
-                    </div>
+                    <?php echo facetwp_display( 'facet', 'general_mental_health' ); ?>
+                    <?php echo facetwp_display( 'facet', 'conditions' ); ?>
                 </div>
-                
-                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList">Tags</button>
+
+                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList"><?php echo _e('Tags'); ?></button>
                 <div id="tagsList" class="collapse show filter-checkboxes">
-                    <?php          
-                        $tag_options = array(
-                            "post_type"      => 'article',
-                            "type"           => 'provider',
-                            "taxonomy"       => 'tags',
-                        );         
-                        echo get_tag_filters( $tag_options );
-                    ?>
+                    <?php echo facetwp_display( 'facet', 'tag' ); ?>
                 </div>
 
-                <input type="hidden" name="type" value="provider" />
-                <!--<button class="button red round block thin mt-4" style="width: 100%;">Search</button>-->
-
-            </form>
-
+            </div>
+            
         </div>
         </div>
 
         <div id="filters-content-container">
-        <div id="filters-content">
+        <div id="filters-content" class="facetwp-template">
 
-            <?php 
+            <div id="geo-search-message" class="bubble round thin orange mb-4" style="width: 100%; display: none;"><div class="inner text-center"><strong>
+                <?php echo _e('Currently displaying resources near <span id="geo-search-current"></span>. To see nationwide resources, <a href="/get-help">click here</a>. To find more local resources, please use the <a href="https://findtreatment.samhsa.gov/" target="_blank">SAMHSA Treatment Locator</a>.'); ?>
+            </strong></div></div>
+
+            <?php
                 $options = array(
                     'type'          => 'provider',
-                    'area_served'   => 'national'
+                    //'area_served'   => 'national'
                 );
-                if(get_query_var('geo')){
-                    $options['geo'] = get_geo(get_query_var('geo'));
-                }
-                echo get_articles( $options ); 
-            ?>            
+                echo get_articles_faceted( $options ); 
+                echo facetwp_display( 'pager', 'load_more' );
+            ?>
 
         </div>
         </div>
 
     </div>
-
+        
     <div class="clear pt-4">
         <?php 
             // Content Blocks

@@ -50,6 +50,11 @@ function mha_popular_articles( $options ) {
 				AND postview.period IN ('.$month_range.') 
 				AND postmeta.meta_value LIKE "condition"
 
+				OR (posts.post_status LIKE "publish"
+				AND posts.post_type LIKE "article" 
+				AND postview.period IN ('.$month_range.') 
+				AND postmeta.meta_value LIKE \'%"condition"%\')
+
 				GROUP BY posts.ID
 				ORDER BY total DESC
 				LIMIT 300'
@@ -60,7 +65,7 @@ function mha_popular_articles( $options ) {
 			$bunch_counter = 0;
 			if($articles_bunch){
 				foreach($articles_bunch as $a){
-					if($bunch_counter > 8){
+					if($bunch_counter >= 8){
 						continue;
 					}
 					if(has_term($atts['tag'], $atts['tax'], $a->ID)){

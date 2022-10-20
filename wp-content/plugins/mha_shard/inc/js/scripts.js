@@ -6,6 +6,7 @@ jQuery(function ($) {
 	});
 
 	// Main Search Filter Search
+	/*
 	function submitFilterForm( order, orderby, append, page ){
 
 		// IE doesn't like default parameters, so using this shorthand cheat instead
@@ -69,6 +70,7 @@ jQuery(function ($) {
 		});	
 
 	}
+	*/
 
 	// Submit filter on checkbox changes
 	//var intentDelay;
@@ -156,6 +158,33 @@ jQuery(function ($) {
 		submitFilterForm( order, orderby, 1, page );		
 	});
 
+	// Load More Faux Paging
+	$(document).on('click', '.load-more-articles-facet', function(event){
+		event.preventDefault();
+		
+		// Disable and show loading state
+		$(this).prop('disabled',true).addClass('loading');	
+
+		// Set up vars
+		let page = $(this).attr('data-paged'),
+			per_page = $(this).attr('data-per-page'),
+			i = 0;
+
+		$('.filter-bubble').each(function(e){
+			if(i < page * per_page){
+				$(this).removeClass('d-none');
+			}
+			i++;
+		});
+
+		if($('.filter-bubble.d-none').length > 0){
+			$('.load-more-articles-facet').prop('disabled',false).removeClass('loading').attr('data-paged', page + 1);
+		} else {
+			$('.load-more-articles-facet').hide();
+		}
+	
+	});
+
 
 	// Show "All Conditions" checkbox
 	if($('.show-all-conditions').length){
@@ -223,5 +252,71 @@ jQuery(function ($) {
 		}
 
 	});
+
+	function submitCustomZipSearch( event = null ){
+		if (event.which == 13 || event == 1) {
+			var enteredZip = $('#zip-code-search').val();
+			var isValidZip = /^([0-9]{5})(?:[-\s]*([0-9]{4}))?$/.test(enteredZip);
+
+			if(isValidZip){
+				
+				// Destroy tooltip when valid
+				$('#zip-code-search').tooltip('dispose');
+
+				$.ajax({
+					type: "POST",
+					url: do_mhaContent.ajaxurl,
+					data: { 
+						action: 'get_geo',
+						data: "zip="+enteredZip
+					},
+					success: function( result ) {
+
+						var res = JSON.parse(result); 
+						$('.search-filters').collapse('hide');
+						FWP.facets['location_search'] = [
+							res.lat,
+							res.lng,
+							50,
+							encodeURIComponent(res.state+" "+enteredZip)
+						];
+						FWP.fetchData();
+						FWP.setHash();
+
+					},
+					error: function(xhr, ajaxOptions, thrownError){		
+						$('#recaptcha-error .inner').html('We\'re sorry, but there was an error loading the form, please try again later.');
+						$('#recaptcha-error').removeClass('hidden');
+						$('#article-submit-recaptcha-confirm .button').prop('disabled',false).removeClass('loading');
+					}
+				});	
+
+			} else if( enteredZip == ''){
+
+				$('.search-filters').collapse('hide');
+				FWP.facets['location_search'] = '';
+				FWP.fetchData();
+				FWP.setHash();
+
+			} else {
+
+				// Show error when invalid zip
+				$('#zip-code-search').tooltip({
+					title: 'The zip code you have entered is not valid. Please try again.',
+				});
+				$('#zip-code-search').tooltip('show');
+				
+			}
+		}
+	}
+
+	$(document).on('click', '.submit-zip-search', function(event){
+		submitCustomZipSearch( 1 );
+		return;
+	});
+	$('#zip-code-search').keypress( function(event){
+		submitCustomZipSearch( event );
+		return;		
+	})
 
 });

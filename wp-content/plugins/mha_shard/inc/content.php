@@ -3,7 +3,7 @@
 
 add_action('init', 'mhaContentScripts');
 function mhaContentScripts() {
-	wp_enqueue_script('process_mhaContent', plugin_dir_url( __FILE__ ).'js/scripts.js', 'jquery', '1.14', true);
+	wp_enqueue_script('process_mhaContent', plugin_dir_url( __FILE__ ).'js/scripts.js', 'jquery', '1.15', true);
 	wp_localize_script('process_mhaContent', 'do_mhaContent', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 
@@ -21,181 +21,9 @@ function custom_class( $classes ) {
     return $classes;
 }
 
-
 /**
- * Filter Bubble Query
+ * Resource Articles
  */
-
-function getArticlesAjax(){
-	
-	// General variables
-	$result = array();
-	$options = [];
-	
-	// Make serialized data readable
-	parse_str($_POST['data'], $data);
-
-	// Article Type
-	$options['type'] = sanitize_text_field($data['type']);
-	
-	// Search Content
-	$search = null;
-	if($data['search'] != ''){
-		$options['search'] = sanitize_text_field($data['search']);
-	}
-
-	// Page
-	$options['paged'] = 1;
-	if(isset($data['paged']) && $data['paged'] != ''){
-		$options['paged'] = intval($data['paged']);
-	}
-
-	// Conditions Content
-	if(isset($data['condition']) && $data['condition']){
-		$options['condition_terms'] = $data['condition'];
-	}
-
-	// Tags
-	if(isset($data['tags']) && $data['tags']){
-		$options['tag_terms'] = $data['tags'];
-	}
-	
-	// All Conditions
-	$allConditions = null;
-	if(isset($data['all_conditions'])){
-		$options['all_conditions'] = 1;
-	}
-
-	// Additional Filters
-	$filters = [];	
-	if(isset($data['service_type'])){
-		foreach($data['service_type'] as $k => $v){
-			$filters['service_type'][] = sanitize_text_field($v);
-		}	
-	}
-	if(isset($data['area_served'])){
-		foreach($data['area_served'] as $k => $v){
-			$filters['area_served'][] = sanitize_text_field($v);
-		}	
-	}
-	if(isset($data['treatment_type'])){
-		foreach($data['treatment_type'] as $k => $v){
-			$filters['treatment_type'][] = sanitize_text_field($v);
-		}	
-	}
-	if(isset($data['diy_issue'])){
-		foreach($data['diy_issue'] as $k => $v){
-			$filters['diy_issue'][] = sanitize_text_field($v);
-		}	
-	}
-	if(isset($data['diy_type'])){
-		foreach($data['diy_type'] as $k => $v){
-			$filters['diy_type'][] = sanitize_text_field($v);
-		}	
-	}
-
-	if(count($filters) > 0){
-		$options['filters'][] = $filters;
-	}
-
-	// Geo Search
-	if(isset($data['zip']) && $data['zip'] != ''){
-		$options['geo'] = get_geo($data['zip']);
-	}
-
-	// Ordering
-	if(isset($data['order'])){
-		$options['order'] = sanitize_text_field($data['order']);
-	}
-	if(isset($data['orderby'])){
-		$options['orderby'] = sanitize_text_field($data['orderby']);
-	}
-
-	// Spanish
-	if(isset($data['espanol'])){
-		$options['espanol'] = '=';
-	}
-
-	// Get the articles
-	echo get_articles( $options );
-	exit();
-
-}
-add_action("wp_ajax_nopriv_getArticlesAjax", "getArticlesAjax");
-add_action("wp_ajax_getArticlesAjax", "getArticlesAjax");
-
-
-/**
- * Get Geography Search
- */
-function get_geo( $zip ){
-
-	global $wpdb;
-	$zip_check = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT * FROM zips
-			WHERE zip = %d LIMIT 1",
-			$zip
-		)
-	);
-
-	$geo = '';
-
-	if ( count($zip_check) > 0 ){
-
-		// Already have the lat/long, just spit those back out
-		$geo = [];
-		$geo['lat'] = $zip_check[0]->lat;
-		$geo['lng'] = $zip_check[0]->lng;
-		$geo['state'] = $zip_check[0]->state;
-
-	} else {
-
-		// Get lat/long from Google
-		$address_url = urlencode( $zip );		
-		$handle = curl_init(); 
-		$url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address_url&key=".GOOGLE_API_KEY;
-		curl_setopt($handle, CURLOPT_URL, $url);
-		curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-		$output = json_decode(curl_exec($handle), true);
-		curl_close($handle);
-
-		if(count($output['results']) > 0){
-			$geo = [];
-
-			// Get lat/long
-			$geo['lat'] = $output['results'][0]['geometry']['location']['lat'];
-			$geo['lng'] = $output['results'][0]['geometry']['location']['lng'];
-
-			// Get State
-			$geo['state'] = '';
-			for ($i = 0; $i < count($output['results'][0]['address_components']); $i++) {
-				$state_check = array($output['results'][0]['address_components'][$i]['types'][0]);
-				if(in_array("administrative_area_level_1", $state_check)) {
-					$geo['state'] = $output['results'][0]['address_components'][$i]['long_name'];
-				}
-			}
-
-			$insert_zips = $wpdb->insert("zips", array(
-					'zip' => $zip,
-					'lat' => $geo['lat'],
-					'lng' => $geo['lng'],
-					'state' => $geo['state']
-				), array(
-					'%d',
-					'%f',
-					'%f',
-					'%s'
-				)
-			);
-		}
-
-	}
-	
-	return $geo;
-
-}
-
 function get_articles( $options ){
 	
 	/**
@@ -700,6 +528,501 @@ function get_articles( $options ){
 	
 	return;
 }
+
+
+/**
+ * Get Articles but faceted
+ */
+function get_articles_faceted( $options ){
+	
+	/**
+	 * Settings
+	 */
+
+	// Default Args
+    $defaults = array (
+	  //'type' 				=> null, 
+		'search' 			=> null, 
+		'condition_terms'	=> null, 
+		'tag_terms'			=> null, 
+		'filters' 			=> null, 
+		'order' 			=> 'DESC', 
+		'orderby' 			=> 'featured', 
+		'geo' 				=> null, 
+		'area_served'		=> null, 
+		'paged' 			=> 1, 
+		'espanol' 	    	=> '!=', 
+		'all_conditions' 	=> null,
+	);
+	$options = wp_parse_args( $options, $defaults );
+
+	/**
+	 * Default Articles that match "Type"
+	 */
+
+	// Default Args
+	$article_args = array(
+		"post_type"      => 'article',
+		"orderby"        => $options['orderby'],
+		"order"	         => $options['order'],
+		"post_status"    => 'publish',
+		"posts_per_page" => -1,
+		"facetwp" 		 => true,
+        "paged" 		 => $options['paged']
+	);
+	
+	// Article Type
+	$article_args['meta_query'] = array(
+		array(
+			'key'	 	=> 'type',
+			'value'	  	=> $options['type'],
+			'compare'   => 'LIKE'
+		)
+	);
+
+	// Featured Ordering
+	if($article_args['orderby'] == 'featured'){
+		$article_args['orderby'] = array( 
+			'meta_value' => 'DESC',
+			'date'       => 'DESC', 
+		);
+		$article_args['meta_key'] = 'featured';
+	}
+
+	// Keyword Search
+	if($options['search']){
+		$article_args['s'] = sanitize_text_field($options['search']);
+	}
+
+	// Area Served
+	if($options['area_served']){
+		$article_args['meta_query'][] = array(
+			'key'	 	=> 'area_served',
+			'value'	  	=> $options['area_served'],
+			'compare'   => 'LIKE'
+		);
+	}
+
+	// Additional Custom Fields
+	if($options['filters']){
+		$article_args['meta_query']['relation'] = 'AND';
+		foreach($options['filters'] as $filter_array){
+			foreach($filter_array as $k => $v){
+				$values = [];
+				foreach($v as $value){
+					$article_args['meta_query'][] = array(
+						'key'	 	=> $k,
+						'value'	  	=> $value,
+						'compare' 	=> 'LIKE'
+					);
+				}
+			}
+		}
+	}
+	$articles_query = new WP_Query($article_args);
+	$article_posts = [];
+	
+	if($articles_query->have_posts()):
+	while($articles_query->have_posts()) : $articles_query->the_post();
+		$article_posts[] = get_the_ID();
+	endwhile;
+	endif;
+
+	/**
+	 * Geo Search
+	 */
+	$get_national_results = 0;
+	$geo_search = false;
+		
+	/**
+	 * Print Results
+	 */
+
+	global $post;
+
+	// Start our main articles array
+	$articles = $article_posts;
+
+	if(isset($tax_posts)){	
+		// Only show matching IDs based on articles of this type and selected taxonomy
+		$articles = array_intersect($article_posts, $tax_posts);
+	}	
+
+	if(isset($allcon_posts)){	
+		// Add all condition articles after the above	
+		$articles_addendum = array_diff($allcon_posts, $articles);
+		$articles = array_merge($articles, $articles_addendum);
+	}
+
+	if(isset($geo_posts)){	
+		$articles = $geo_posts;
+
+		if(isset($tax_posts)){	
+			// Only show matching IDs based on articles of this type and selected taxonomy
+			$articles = array_intersect($tax_posts, $geo_posts);
+		}	
+		
+		if(isset($allcon_posts)){	
+			// Add all condition articles after the above	
+			$articles_addendum = array_diff($allcon_posts, $geo_posts);
+			$articles = array_merge($geo_posts, $articles_addendum);
+		}
+	}
+
+	// Pager
+	$posts_per_page = 30;
+	$total_posts = count($articles);
+	$max_pages = ceil($total_posts / $posts_per_page);
+	$offset = ($options['paged'] - 1) * $posts_per_page;
+	$offset_ceil = $options['paged'] * $posts_per_page;
+
+	/*
+	echo 'Current: '.$options['paged'].'<br />';
+	echo 'Per Page: '.$posts_per_page.'<br />';
+	echo 'Total: '.$total_posts.'<br />';
+	echo 'Max: '.$max_pages.'<br />';
+	echo 'Offset: '.$offset.'<br />';
+	echo 'Ceil: '.$offset_ceil.'<br />';
+	*/
+
+	/** 
+	 * Scoring Order Overrides
+	 */
+	
+
+	// Treatment Articles
+	if($options['type'] == 'treatment'){
+		$treatment_articles = [];
+		$pop_array = array_slice(mha_monthly_pop_articles('read'), 0, 50);
+		foreach($articles as $a){
+
+			// Defaults
+			$treatment_articles[$a]['id'] = $a;
+			$treatment_articles[$a]['score_labels'] = '';
+			$score = 0;
+
+			// Top 50 Popular +5
+			if(in_array($a, $pop_array)){
+				$score = $score + 5;
+				$pop_number = array_search($a, $pop_array) ? array_search($a, $pop_array) : '';
+				$treatment_articles[$a]['score_labels'] .= 'Top50(#'.$pop_number.') ';
+			}
+
+			// Primary Condition
+			$primary_condition = '';
+			$article_conditions = [];
+			if(get_field('primary_condition', $a)){
+				$primary_condition_raw = get_field('primary_condition', $a);
+				$primary_condition = $primary_condition_raw->term_id;
+			} else {
+				$article_conditions_raw = get_the_terms($a, 'condition');
+				if($article_conditions_raw){
+					foreach($article_conditions_raw as $acr){
+						$article_conditions[] = $acr->term_id;
+					}
+				}
+				if(count($article_conditions) == 1){
+					$primary_condition = $article_conditions[0];
+				}
+			}
+			
+			if($options['condition_terms'] && in_array($primary_condition, $options['condition_terms'])){
+				$score = $score + 10;
+				$treatment_articles[$a]['score_labels'] .= 'HasPrimaryCondition ';
+			}
+
+			// Featured Score overide
+			if(get_field('featured', $a)){				
+				$score = $score + 100;
+				$treatment_articles[$a]['score_labels'] .= 'Featured ';
+			}
+
+			// No Filters Check
+			if(!isset($options['condition_terms']) || !isset($options['tag_terms'])){
+				$tags = get_the_terms( $a, 'post_tag' );
+				$m101 = false;
+				if($tags){
+					foreach($tags as $t){
+						if($t->slug == 'mental-health-101'){
+							$m101 = true;
+						}
+					}
+				}
+				if(get_field('all_conditions', $a) == 1){
+					$score = $score + 10;
+					$treatment_articles[$a]['score_labels'] .= 'GeneralMentalHealth ';
+				}
+			}
+
+			// Treatment Types
+			$filter_treatment_types = [];
+			if(isset($options['filters'])){
+				foreach($options['filters'][0] as $k => $v){
+					if($k == 'treatment_type'){
+						foreach($v as $t){
+							$filter_treatment_types[] = $t;
+						}
+					}
+				}				
+			}
+			if(count($filter_treatment_types) == 0 || !isset($options['filters'])){
+				$score = $score + count( get_field('treatment_type', $a) );		
+				$treatment_articles[$a]['score_labels'] .= 'TreatmentTypes(x'.count( get_field('treatment_type', $a) ).') ';
+			}		
+			
+			// Set the final score
+			$treatment_articles[$a]['score'] = $score;
+		}
+		$treatment_articles_og = $treatment_articles; // Used later; need to preserve ID as keys before sorting
+		usort($treatment_articles, function ($item1, $item2) {
+			return $item2['score'] <=> $item1['score'];
+		});
+		$articles = [];
+		foreach($treatment_articles as $ta){
+			$articles[] = $ta['id'];
+		}
+	}	
+
+	if(count($articles) > 0 ){
+		
+		// Display Articles
+		$counter = 1;
+		foreach($articles as $post):
+			//echo $counter .' / '. $offset.' // '. get_the_ID() .'<br />';			
+			//if($counter >= $offset && $counter <= $offset_ceil){
+				setup_postdata($post);
+
+				$faux_paging = $counter > $posts_per_page ? 'd-none' : '';
+				get_template_part( 'templates/blocks/resource', 'item', array( 
+					'score' => isset($treatment_articles_og[$post]) ? $treatment_articles_og[$post]['score'] : 0, 
+					'score_labels' => isset($treatment_articles_og[$post]) ? $treatment_articles_og[$post]['score_labels'] : '',
+					'paginated_display' => $faux_paging
+				));
+			//}
+			$counter++;			
+		endforeach;
+
+		// Load More
+		$posts_per_page = 30;
+		$total_posts = count($articles);
+		$max_pages = ceil($total_posts / $posts_per_page);
+		$offset = ($options['paged'] - 1) * $posts_per_page;
+		$offset_ceil = $options['paged'] * $posts_per_page;
+
+		if(count($articles) > $posts_per_page){
+			$paged_next = $options['paged'] + 1;
+			echo '<div class="navigation pagination pt-5 mr-2 mr-md-3">';
+			echo '<button class="load-more-articles-facet button round red" data-paged="'.$paged_next.'" data-per-page="'.$posts_per_page.'">';
+				echo _e('Load More');
+			echo '</button>';
+			echo '</div>';
+		}
+
+	} else {		
+
+		// No articles to display messages
+		if($options['geo']){
+			echo '<div id="resource-error" class="resource-error-message bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>';
+			echo _e('No results were found within 50 miles of your search criteria. Please try another search.');
+			echo '</strong></div></div>';
+		} else {
+			echo '<div id="resource-error" class="resource-error-message bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>';
+			echo _e('No results matched your search criteria. Please try another search.');
+			echo '</strong></div></div>';
+		}
+	}
+	
+	return;
+}
+
+
+/**
+ * Filter Bubble Query
+ */
+
+function getArticlesAjax(){
+	
+	// General variables
+	$result = array();
+	$options = [];
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);
+
+	// Article Type
+	$options['type'] = sanitize_text_field($data['type']);
+	
+	// Search Content
+	$search = null;
+	if($data['search'] != ''){
+		$options['search'] = sanitize_text_field($data['search']);
+	}
+
+	// Page
+	$options['paged'] = 1;
+	if(isset($data['paged']) && $data['paged'] != ''){
+		$options['paged'] = intval($data['paged']);
+	}
+
+	// Conditions Content
+	if(isset($data['condition']) && $data['condition']){
+		$options['condition_terms'] = $data['condition'];
+	}
+
+	// Tags
+	if(isset($data['tags']) && $data['tags']){
+		$options['tag_terms'] = $data['tags'];
+	}
+	
+	// All Conditions
+	$allConditions = null;
+	if(isset($data['all_conditions'])){
+		$options['all_conditions'] = 1;
+	}
+
+	// Additional Filters
+	$filters = [];	
+	if(isset($data['service_type'])){
+		foreach($data['service_type'] as $k => $v){
+			$filters['service_type'][] = sanitize_text_field($v);
+		}	
+	}
+	if(isset($data['area_served'])){
+		foreach($data['area_served'] as $k => $v){
+			$filters['area_served'][] = sanitize_text_field($v);
+		}	
+	}
+	if(isset($data['treatment_type'])){
+		foreach($data['treatment_type'] as $k => $v){
+			$filters['treatment_type'][] = sanitize_text_field($v);
+		}	
+	}
+	if(isset($data['diy_issue'])){
+		foreach($data['diy_issue'] as $k => $v){
+			$filters['diy_issue'][] = sanitize_text_field($v);
+		}	
+	}
+	if(isset($data['diy_type'])){
+		foreach($data['diy_type'] as $k => $v){
+			$filters['diy_type'][] = sanitize_text_field($v);
+		}	
+	}
+
+	if(count($filters) > 0){
+		$options['filters'][] = $filters;
+	}
+
+	// Geo Search
+	if(isset($data['zip']) && $data['zip'] != ''){
+		$options['geo'] = get_geo($data['zip']);
+	}
+
+	// Ordering
+	if(isset($data['order'])){
+		$options['order'] = sanitize_text_field($data['order']);
+	}
+	if(isset($data['orderby'])){
+		$options['orderby'] = sanitize_text_field($data['orderby']);
+	}
+
+	// Spanish
+	if(isset($data['espanol'])){
+		$options['espanol'] = '=';
+	}
+
+	// Get the articles
+	echo get_articles( $options );
+	exit();
+
+}
+add_action("wp_ajax_nopriv_getArticlesAjax", "getArticlesAjax");
+add_action("wp_ajax_getArticlesAjax", "getArticlesAjax");
+
+
+/**
+ * Get Geography Search
+ */
+function get_geo( $zip = null ){
+
+	// For Ajax use
+	if($_POST['data']){
+		// General variables
+		$result = array();
+		$options = [];
+
+		// Make serialized data readable
+		parse_str($_POST['data'], $data);
+		$zip = $data['zip'];
+	}
+
+	global $wpdb;
+	$zip_check = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT * FROM zips
+			WHERE zip = %d LIMIT 1",
+			$zip
+		)
+	);
+
+	$geo = [];
+
+	if ( count($zip_check) > 0 ){
+
+		// Already have the lat/long, just spit those back out
+		$geo['lat'] = $zip_check[0]->lat;
+		$geo['lng'] = $zip_check[0]->lng;
+		$geo['state'] = $zip_check[0]->state;
+
+	} else {
+
+		// Get lat/long from Google
+		$address_url = urlencode( $zip );		
+		$handle = curl_init(); 
+		$url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address_url&key=".GOOGLE_API_KEY;
+		curl_setopt($handle, CURLOPT_URL, $url);
+		curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+		$output = json_decode(curl_exec($handle), true);
+		curl_close($handle);
+
+		if(count($output['results']) > 0){
+			$geo = [];
+
+			// Get lat/long
+			$geo['lat'] = $output['results'][0]['geometry']['location']['lat'];
+			$geo['lng'] = $output['results'][0]['geometry']['location']['lng'];
+
+			// Get State
+			$geo['state'] = '';
+			for ($i = 0; $i < count($output['results'][0]['address_components']); $i++) {
+				$state_check = array($output['results'][0]['address_components'][$i]['types'][0]);
+				if(in_array("administrative_area_level_1", $state_check)) {
+					$geo['state'] = $output['results'][0]['address_components'][$i]['long_name'];
+				}
+			}
+
+			$insert_zips = $wpdb->insert("zips", array(
+					'zip' => $zip,
+					'lat' => $geo['lat'],
+					'lng' => $geo['lng'],
+					'state' => $geo['state']
+				), array(
+					'%d',
+					'%f',
+					'%f',
+					'%s'
+				)
+			);
+		}
+
+	}
+	
+	// Get the articles
+	echo json_encode($geo);
+	exit();
+	
+}
+add_action("wp_ajax_nopriv_get_geo", "get_geo");
+add_action("wp_ajax_get_geo", "get_geo");
 
 
 
