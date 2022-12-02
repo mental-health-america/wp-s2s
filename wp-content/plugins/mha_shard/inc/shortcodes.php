@@ -369,3 +369,48 @@ function mha_display_cta_shortcode( $atts ){
 
 } 
 add_shortcode('mha_cta', 'mha_display_cta_shortcode'); 
+
+
+
+
+/** 
+ * DIY Tool Display
+ */
+
+function mha_diy_shortcode_display( $atts ){
+
+    ob_start();
+
+    $id = isset($atts['id']) ? intval($atts['id']) : null;
+			
+    if($id){
+		$args = array(
+			"p" => $id,
+			"post_type" => 'diy',
+			"post_status" => 'publish',
+		);
+		$loop = new WP_Query($args);
+
+		if($loop->have_posts()):
+			echo '<div class="diy-tool-shortcode">';
+			while($loop->have_posts()) : $loop->the_post();
+				$tool_type = get_field('tool_type', $id);
+				switch($tool_type){
+					case 'question_answer':
+						$template_options = array(
+							'embed' => 1
+						);
+						get_template_part( 'templates/diy-tools/question', 'answers', $template_options ); 
+						break;
+				}
+			endwhile;
+			echo '</div>';
+		endif;
+		wp_reset_postdata();
+
+    } 
+
+    return ob_get_clean();
+
+} 
+add_shortcode('mha_diy', 'mha_diy_shortcode_display'); 
