@@ -176,7 +176,7 @@
                 }
 
                 // Matching primary condition
-                if($new_primary && $primary_condition && $new_primary == $primary_condition){
+                if($new_primary && $primary_condition && $new_primary->term_id == $primary_condition->term_id){
                     $rel_score = $rel_score + 3;
                 }
 
@@ -194,7 +194,7 @@
                         if(in_array($nc->term_id, $terms_match)){
                             $rel_score = $rel_score + 1;
                         }
-                        if($nc->term_id == $primary_condition){
+                        if($primary_condition && $nc->term_id == $primary_condition->term_id){
                             $rel_score = $rel_score + 2;
                         }
                     }
@@ -205,7 +205,7 @@
                         if(in_array($nt->term_id, $terms_match)){
                             $rel_score = $rel_score + 1;
                         }
-                        if($nt->term_id == $primary_condition){
+                        if($primary_condition && $nt->term_id == $primary_condition->term_id){
                             $rel_score = $rel_score + 2;
                         }
                     }

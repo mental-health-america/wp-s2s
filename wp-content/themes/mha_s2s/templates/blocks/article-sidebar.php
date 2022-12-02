@@ -54,6 +54,7 @@
     }
 
     // Mental Health 101 tag override when no conditions present
+    /*
     if(empty($terms_conditions)){
         $m101 = 0;
         if(is_array($terms_tags)){
@@ -70,6 +71,7 @@
             $terms_all[] = $m101term;
         }
     }    
+    */
 
     if($terms_all):
     ?>
@@ -77,9 +79,11 @@
         <div class="inner">
                         
             <h4>Related Topics</h4>
-            <p class="mb-4">​Click on each topic to see more articles:</p>
+            <p class="mb-4">Click on each topic to see more articles:</p>
             <?php 
                 echo '<ol class="plain ml-2 ml-lg-5 mb-0">'; 
+                
+                // Related topics
                 foreach($terms_all as $c){
                     if ($c->parent == 0 && !get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
 
@@ -126,6 +130,29 @@
                         }
                     }
                 }
+
+                // General Mental Health inclusion
+                if(get_field('all_conditions')){
+                    echo '<li class="type-related"><a class="plain bold montserrat bold" href="/general-mental-health/">General Mental Health</a></li>';                    
+                }
+
+                // Extra topics based on Type
+                if( array_intersect($article_type, array('treatment') ) ){
+                    echo '<li class="type-related"><a class="plain bold montserrat bold" href="/treatment/">Mental Health Treatment Info</a></li>';
+                }
+
+                if( array_intersect($article_type, array('diy') ) ){
+                    echo '<li class="type-related"><a class="plain bold montserrat bold" href="/diy/">DIY / Self-Help Tools</a></li>';
+                }
+
+                if( array_intersect($article_type, array('connect') ) ){
+                    echo '<li class="type-related"><a class="plain bold montserrat bold" href="/connect/">Connect with Peers</a></li>';
+                }
+
+                if( array_intersect($article_type, array('provider') ) ){
+                    echo '<li class="type-related"><a class="plain bold montserrat bold" href="/get-help/">Find Help</a></li>';
+                }
+
                 echo '</ol>';
             ?>
 
@@ -138,13 +165,12 @@
          * Screening CTAs
          */
 
-        $primary_condition = get_field('primary_condition');
+        $primary_condition = get_field('primary_condition'); // term_id & taxonomy
         if(!$primary_condition){
             if($terms_conditions && is_array($terms_conditions) && count($terms_conditions) == 1){
-                $primary_condition = $terms_conditions[0]->term_id;
+                $primary_condition = $terms_conditions[0];
             }
         }
-        //var_dump($primary_condition);
 
         $has_screen_cta = 0;
 
@@ -152,20 +178,12 @@
         if(get_query_var('pathway')){
             $path_terms = get_the_terms(get_query_var('pathway'), 'condition');
             if($path_terms){
-                $primary_condition = $path_terms[0]->term_id;
-            }
-        } else {
-            if($primary_condition){
-                if(is_object($primary_condition)){
-                    $primary_condition = $primary_condition->term_id;
-                }
+                $primary_condition = $path_terms[0];
             }
         }
 
         // Screens
         $has_test_widget = false;
-        //var_dump(count( array_intersect($article_type, array('condition')) ));
-        //pre($article_type);
 
         if( count( array_intersect($article_type, array('condition')) ) > 0 ){
 
@@ -182,10 +200,10 @@
                 // Conditions
                 $args['tax_query'] = array(
                     array(
-                        'taxonomy'          => 'condition',
+                        'taxonomy'          => $primary_condition->taxonomy,
                         'include_children'  => false,
                         'field'             => 'term_id',
-                        'terms'             => $primary_condition
+                        'terms'             => $primary_condition->term_id
                     ),
                 );
                 $has_query = true;
@@ -247,9 +265,16 @@
                     )
                 )
             );
+            if($primary_condition){
+                $args['meta_query'][] = array(
+                    array(
+                        'key' => '_yoast_wpseo_primary_'.$primary_condition->taxonomy,
+                        'value' => $primary_condition->term_id
+                    )
+                );
+            }
 
-            //pre($args);
-            if($has_query):
+            if($has_query && $primary_condition):
                 $loop = new WP_Query($args);
                 if($loop->have_posts()):
                 ?>
@@ -388,7 +413,6 @@
                 );
             }
             
-            //pre($args);
             $loop = new WP_Query($args);     
 
             $counter = 0;
@@ -420,7 +444,7 @@
                 }
 
                 // Matching primary condition
-                if($new_primary && $primary_condition && $new_primary == $primary_condition){
+                if($new_primary && $primary_condition && $new_primary->term_id == $primary_condition->term_id){
                     $rel_score = $rel_score + 3;
                 }
 
@@ -438,7 +462,7 @@
                         if(in_array($nc->term_id, $terms_match)){
                             $rel_score = $rel_score + 1;
                         }
-                        if($nc->term_id == $primary_condition){
+                        if($primary_condition && $nc->term_id == $primary_condition->term_id){
                             $rel_score = $rel_score + 2;
                         }
                     }
@@ -449,7 +473,7 @@
                         if(in_array($nt->term_id, $terms_match)){
                             $rel_score = $rel_score + 1;
                         }
-                        if($nt->term_id == $primary_condition){
+                        if($primary_condition && $nt->term_id == $primary_condition->term_id){
                             $rel_score = $rel_score + 2;
                         }
                     }

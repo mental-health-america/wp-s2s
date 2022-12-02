@@ -1,37 +1,8 @@
 (function( $ ) {
 	
-	// Wow implementation
-	var wow = new WOW({
-		callback: function(el) {
-			// Update aria-hidden when all items are visible for a list
-			if(!$(el).hasClass('wow-complete')){
-				$(el).addClass('wow-complete');
-			}			
-			var totalList = $('.hidden-list .wow.path-item').length,
-				totalListVisible = $('.hidden-list .wow.path-item.wow-complete').length;
-			if(totalListVisible == totalList){
-				$('.hidden-list').attr('aria-hidden', 'false');
-			}
-		}
+    AOS.init({
+		once: true
 	});
-	wow.init();
-
-	// Show/Hide filter on mobile
-	/*
-	var mobileFilterToggle = false;
-	function showFilters() {
-		if($('.search-filters.form-container').length){
-			var windowWidth = $(window).width();
-			if(windowWidth < 768 && mobileFilterToggle == false){
-				$('.search-filters.form-container').removeClass('show');
-				mobileFilterToggle = true;
-			} else {
-				$('.search-filters.form-container').addClass('show');
-				mobileFilterToggle = false;
-			}
-		}
-	}
-	*/
 
 	/**
 	 * Document Ready Functions
@@ -433,6 +404,9 @@
 			$('#screen-result-content-print .bubble.collapse').remove();
 			$('#screen-result-content-print .screen-result-content-inner').removeClass('d-print-none');			
 		}
+
+		// Iframe Resizing
+		var iframe_resizer = iFrameResize({log:true}, '#fulliframe');
 
 	});
 

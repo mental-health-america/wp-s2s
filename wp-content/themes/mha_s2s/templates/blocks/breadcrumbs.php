@@ -81,7 +81,8 @@
                         echo _e('Mental Health Information', 'mhas2s');
                         echo '</span></a>';
                         
-                        if(get_field('primary_condition')){
+                        $primary_condition = get_field('primary_condition');
+                        if($primary_condition){
                             
                             // Use primary condition as the default
                             $args = array(
@@ -91,8 +92,8 @@
                                 "posts_per_page"    => 1,
                                 'meta_query'        => array(
                                     array(
-                                        'key'       => 'condition',
-                                        'value'     => get_field('primary_condition'),
+                                        'key'       => $primary_condition->taxonomy,
+                                        'value'     => $primary_condition->term_id,
                                     )
                                 )
                             );

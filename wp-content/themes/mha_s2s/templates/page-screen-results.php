@@ -390,12 +390,12 @@ else:
 
         <div class="mb-5 pb-2">
             <?php             
-                if(!count(array_intersect( array('login_cta_top'), $layout))):
+                if(!count(array_intersect( array('login_cta_top'), $layout)) && !count(array_intersect( array('actions_e'), $layout))):
                     get_template_part( 'templates/results/cta', 'login', array( 
-                    'width' => 'narrow', 
-                    'corners' => '', 
-                    'iframe_var' => $iframe_var, 
-                    'id' => $user_screen_result['result_id'] 
+                        'width' => 'narrow', 
+                        'corners' => '', 
+                        'iframe_var' => $iframe_var, 
+                        'id' => $user_screen_result['result_id'] 
                     ) ); 
                 endif;
             ?>

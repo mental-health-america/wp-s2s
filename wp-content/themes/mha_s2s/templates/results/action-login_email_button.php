@@ -3,13 +3,13 @@
     <?php 
     if(!is_user_logged_in()):
         if($args['with_email'] == true){
-            echo ($espanol ? 'Grabar o enviar sus respuestas por correo electrónico' : 'Save or Email Results'); 
+            echo ($args['espanol'] ? 'Grabar o enviar sus respuestas por correo electrónico' : 'Save or Email Results'); 
         } else {
-            echo ($espanol ? 'Grabar o enviar sus respuestas por correo electrónico' : 'Log in to Save Results'); 
+            echo ($args['espanol'] ? 'Grabar o enviar sus respuestas por correo electrónico' : 'Log in to Save Results'); 
         }
     else:
         if($args['with_email'] == true){
-            echo ($espanol ? 'Enviar sus respuestas por correo electrónico' : 'Email Results'); 
+            echo ($args['espanol'] ? 'Enviar sus respuestas por correo electrónico' : 'Email Results'); 
         }
     endif;
     ?>
