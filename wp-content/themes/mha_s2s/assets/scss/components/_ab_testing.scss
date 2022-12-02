@@ -48,7 +48,9 @@ body.layout-actions_ah_test {
 // Actions (e.g. Save)
 body.layout-actions_ah_actions {
     #article--actions_desktop,
-    #article--actions_mobile { display: none !important; }
+    #article--actions_mobile,
+    #article--actions__desktop,
+    #article--actions__mobile { display: none !important; }
 }
 
 // Reading Path
@@ -60,7 +62,9 @@ body.layout-actions_ah_path {
 body.layout-actions_ah_sidebar {
     .article-right,
     #article--actions_desktop,
-    #article--actions_mobile { display: none !important; }
+    #article--actions_mobile,
+    #article--actions__desktop,
+    #article--actions__mobile { display: none !important; }
 }
 
 

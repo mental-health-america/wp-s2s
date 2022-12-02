@@ -159,10 +159,12 @@
 
 /* Hiding Thoughts and Screens */
 #test-results-container,
+.diy-activity,
 .thought-activity {
     
     .button.hide-screen,
-    .button.hide-thought {
+    .button.hide-thought,
+    .button.hide-diy {
         position: absolute;
         top: -20px;
         right: -20px;

@@ -1,21 +1,19 @@
 /* General Vendor Styles */
-@import 'animate';
 @import 'font-awesome/font-awesome';
+@import 'glide';
+@import 'aos';
 
-.wow {
-  visibility: hidden;
-}
-
+// Bootstrap tooltips
 .tooltip.show {
-  opacity: 1 !important;
+    opacity: 1 !important;
 }
 .bs-tooltip-auto[x-placement^=top] .arrow::before, 
 .bs-tooltip-top .arrow::before {
-  border-top-color: $blueDark !important;
+    border-top-color: $blueDark !important;
 }
 .tooltip .tooltip-inner {
-  background: $blueDark;
-  a {
-    color: $white;
-  }
+    background: $blueDark;
+    a {
+      color: $white;
+    }
 }

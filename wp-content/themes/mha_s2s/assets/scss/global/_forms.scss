@@ -578,3 +578,62 @@ label {
         visibility: hidden;
     }
 }
+
+.number-stepper {
+    .step-buttons {
+        float: right;
+        width: 105px;
+    }
+    .ginput_container_number  {
+        width: 240px;
+        input {
+            width: 100px;
+            -moz-appearance: textfield;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    }
+    button.step-down {
+        margin-right: 5px;
+    }
+    button.step-down,
+    button.step-up {    
+        display: block;
+        float: left;
+        width: 49px;
+        height: 49px;
+        padding: 0;
+        line-height: 49px;
+        text-align: center;
+        background: $teal;
+        color: $white;
+        text-transform: uppercase;
+        text-align: center;
+        font-size: 1.2em;
+        line-height: 1.2em;
+        border: 1px solid $teal;
+        @include montserrat(600);
+        @include transitions(color 100ms ease, background-color 100ms ease);
+        @include radius(50%);
+        &:hover {
+            background-color: $darkTeal;
+        }
+    }
+}
+
+.facetwp-template .resource-error-message {
+    display: none;
+}
+.facetwp-template.loaded .resource-error-message {
+    display: block;
+}
+.facetwp-icon.zip-icon {
+    right: 7px;
+    opacity: 1;
+    &::before {
+        background-image: url('../images/compass.png');
+    }
+}

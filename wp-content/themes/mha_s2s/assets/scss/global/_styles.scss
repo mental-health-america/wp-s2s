@@ -157,6 +157,12 @@ input[type="button"] {
     .site-content & {
     }
 
+
+    &.tiny {
+        font-size: .8em;
+        padding: 8px 15px;
+    }
+    
     // States
     &:focus,
     &.active {
@@ -529,7 +535,7 @@ button.accordion-button {
     text-transform: none;
     &.collapsed {
         &:after {
-            transform: rotate(180deg);
+            transform: rotate(0deg);
         }
     }
     &:after {
@@ -540,10 +546,11 @@ button.accordion-button {
         top: 0;
         bottom: 0;
         margin: auto 0;
-        width: 26px;
+        width: 20px;
         height: 14px;
         background: url('../images/arrow-down-dark.png') 95% center no-repeat transparent;
         background-size: contain;
+        transform: rotate(180deg);
         @include transitions(transform 150ms ease);
         transform-origin: center;
     }
@@ -680,6 +687,7 @@ button.bar {
     background: none;
     color: $blueDark;
     text-transform: none;
+    text-align: left;
     position: relative;
     @include noto(700);
     font-size: 1em;

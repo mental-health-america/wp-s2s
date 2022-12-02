@@ -770,8 +770,10 @@ button.icon.like-button {
         border-bottom: 4px solid $silver;
         padding-bottom: 40px;
     }
+    @media screen and (min-width:768px){
+        display: block !important;
+    }
 }
-
 .intro-label {
     @media only screen and (max-width: 767px){
         visibility: hidden;
@@ -780,7 +782,7 @@ button.icon.like-button {
 
 #filters-container {
     
-    @media only screen and (max-width: 440px){
+    @media only screen and (max-width: 767px){
         .dropdown label {
             display: none;
         }
@@ -796,7 +798,7 @@ button.icon.like-button {
         @media only screen and (max-width: 767px){
             float: none;
             width: auto;
-            margin-top: -70px;
+            margin-top: -73px;
         }
         .inner {
             padding-right: 20px;
@@ -805,16 +807,20 @@ button.icon.like-button {
             }
         }
 
+        input.facetwp-location,
+        input.facetwp-search,
         input.gray {
             background: $grayLight;
             color: $blueDark;
             width: 100%;
-            padding: 15px 20px 15px 20px;
+            min-width: 0;
+            padding: 15px 30px 15px 20px;
             border: 0;
             opacity: 1;
             @include montserrat(600);
             @include radius(40px 40px 40px 0);
             @include transitions(opacity 150ms ease);            
+            &.is-loading,
             &.searching {
                 background-image: url('../images/loading-gray.gif');
                 background-size: auto;
@@ -824,6 +830,15 @@ button.icon.like-button {
             &.disabled {
                 opacity: .5;
             }
+        }
+
+        .search-icon {
+            right: 0;
+            height: 100%;
+            width: 30px;
+            line-height: 55px;
+            position: absolute;
+            cursor: pointer;
         }
     }
 
@@ -886,6 +901,45 @@ button.icon.like-button {
                 }
             }
         }
+    }
+
+    .facetwp-checkbox {
+        background: none;
+        margin: 0 0 7px 20px;
+        padding: 0 0 0 30px;
+        position: relative;
+        display: block;
+        color: $blueDark;
+        @include montserrat(600);
+
+        &.language-toggle {
+            margin-bottom: 40px;
+        }
+
+        &:before {
+            content: "";
+            display: block;
+            position: absolute;
+            top: 3px;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background: $grayLight;
+            @include transitions(background-color 150ms ease);
+        }
+        &:focus,
+        &:hover {
+            &:before {
+                background: $silver;
+            }
+        }
+        
+        &.checked {
+            &:before {
+                background: $blueDark;
+            }
+        }
+        
     }
 
 }
@@ -1057,6 +1111,39 @@ button.icon.like-button {
         }
 
     }    
+}
+.facetwp-facet {
+    opacity: 1;    
+    @include transitions(opacity 200ms ease);
+
+    &.facetwp-facet-general_mental_health  {
+        margin: 0;
+    }   
+
+    &.facetwp-type-sort {
+        display: inline-block;
+        margin: 0;
+    }    
+
+    // Hide default language selection for our override version
+    &.facetwp-facet-language {
+        display: none;
+        visibility: hidden;
+    }
+}
+
+// Location Search Field
+.location-results {
+    z-index: 50;
+    background: $white;
+}
+.facetwp-type-proximity {
+    .facetwp-icon {
+        right: 10px;
+    }
+    input.facetwp-location {
+        padding-right: 37px;
+    }
 }
 
 .button.load-more-articles {
