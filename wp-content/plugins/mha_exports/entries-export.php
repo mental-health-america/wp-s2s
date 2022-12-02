@@ -66,11 +66,11 @@ function mha_export_screen_data(){
 
         // Testing options
         if($defaults['debug'] == 1){
-            $defaults['form_id']                   = 15;
-            $defaults['export_only_demographic']   = 1;
-            $defaults['export_screen_start_date']  = '2021-04-01';
-            $defaults['export_screen_end_date']    = '2021-04-01';
-            $defaults['all_forms_ids']             = '15,27';
+            $defaults['form_id']                   = 12;
+            $defaults['export_only_demographic']   = 0;
+            $defaults['export_screen_start_date']  = '2021-10-01';
+            $defaults['export_screen_end_date']    = '2021-10-01';
+            $defaults['all_forms_ids']             = null;
             $args = $defaults;
         }
 
@@ -116,7 +116,7 @@ function mha_export_screen_data(){
             'key' => 'Remote IP address',
             'label' => 'Remote IP address'
         );
-
+ 
         /**
          * Demographic Only Data
          */
@@ -280,16 +280,19 @@ function mha_export_screen_data(){
                  */
 
                 // Custom value overrides
-                if($ftv['label'] == 'Age Range' && validateDate($v) || $ftv['label'] == 'Edad' && validateDate($v)){                
-                    $v = "\"$v\""; // Add quotes to age ranges with a dash so excel doesn't turn it into a date
+                if(str_contains( strtolower($ftv['label']), 'age') || str_contains( strtolower($ftv['label']), 'edad')){       
+                    if($v != '' && validateDate($v)){         
+                        $v = "\"$v\""; // Add quotes to age ranges so Excel doesn't turn it into a date
+                    }
                 } 
                 if (strpos($ftv['label'], 'favor marque ') !== false || strpos($ftv['label'], 'check this box') !== false){     
                     $v = $v ? 'Yes' : 'No'; // Display Yes/No instead of 1/blank
                 }
                 if($ftv['label'] == 'Screen ID' || $ftv['label'] == 'Screen'){     
                     $screen_title = get_the_title($v);
-                    $v = str_replace(' Test', '', $screen_title); // Display just the screen name minus "Test"
-                    $v = str_replace('Test de ', '', $screen_title); // Display just the screen name minus "Test de"
+                    $title_removals = array( 'Test', 'Test de');
+                    $title_removals_to = array( '', '');
+                    $v = trim( html_entity_decode ( str_replace( $title_removals, $title_removals_to, $screen_title) ) );
                 }
 
                 // Put into our array
@@ -334,11 +337,13 @@ function mha_export_screen_data(){
         $i++;
     }
 
+
     /**
      * Set next step variables and exit
      */
     $args['total'] = $total_count > 0 ? $total_count : 1; // Set to 1 just in case of no entries to avoid divide by 0 errors
     $max_pages = ceil($total_count / $page_size);
+    //if($max_pages == 0){ $max_pages = 1; }
     $args['max'] = $max_pages;
     $args['percent'] = round( ( ($args['page'] / $max_pages) * 100 ), 2 );
     if($args['page'] >= $max_pages){
@@ -385,41 +390,49 @@ function mha_export_screen_data(){
         $writer = Writer::createFromPath(WP_PLUGIN_DIR.'/mha_exports/tmp/'.$args['filename'], $writer_type);        
 
         // Set the headers only on page 1        
-        if($args['page'] == 1 && $args['debug'] != 1){
+        if($args['page'] == 1){
 
             $csv_headers = [];
 
             // Create header array
+            //foreach($args['fields'] as $k => $v){
             foreach($csv_data[array_key_first($csv_data)] as $k => $v){
-                $csv_headers[] = $k;                
+                $csv_headers[] = $k;                    
+                //$csv_headers[] = $v['label'];                
             }
 
             // Custom Reordering
-            $key = array_search('Created', $csv_headers);
-            moveArrayByKey($csv_headers, $key, 0);
-            
-            $key = array_search('Remote IP address', $csv_headers);
-            moveArrayByKey($csv_headers, $key, 1);
-            
+
+            // Move items last
             moveArrayKeyToLast($csv_headers, array_search('Are you taking this test for yourself or for someone else?', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Zip/Postal Code', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Age Range', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Gender', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Child\'s Gender', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Gender Other', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Please check this box if you identify as transgender.', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Please check this box if your child identifies as transgender.', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Race/Ethnicity', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Household Income', $csv_headers) );             
             moveArrayKeyToLast($csv_headers, array_search('Have you ever received treatment/support for a mental health problem?', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Are you receiving treatment/support now?', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Which of the following populations describes you?', $csv_headers) );             
+            moveArrayKeyToLast($csv_headers, array_search('Is your child caring for someone with a mental or physical health condition?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Is your child caring for someone with a mental or physical health condition? (old)', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Are you caring for someone with a mental or physical health condition?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Caring For - Other', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Which of the following describe your experience of trauma?', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Trauma - Other', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Trauma - other', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Think about your mental health test. What are the main things contributing to your mental health problems right now?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Think about your child\'s mental health test. What are the main things contributing to your child\'s mental health problems right now?', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Mental Health Problems - Other', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Which of the following best describes your child\'s sexual orientation?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Which of the following best describes your child\'s sexual orientation? (old)', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Which of the following best describes your sexual orientation?', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Sexual Orientation - Other', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Do you currently have health insurance?', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Does your child have any of the following general health conditions?', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Do you have any of the following general health conditions?', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search("If 'Other' please specify (for general health conditions)", $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('State', $csv_headers) ); 
@@ -427,13 +440,25 @@ function mha_export_screen_data(){
             moveArrayKeyToLast($csv_headers, array_search('What country do you live in?', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Screen', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Score', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Sub Score 1', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Sub Score 2', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('Sub Score 3', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Result', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Referer', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('IP Identifier', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('uid', $csv_headers) ); 
+                        
+            // Move items first
+            unset($csv_headers[ array_search('Created', $csv_headers) ]);
+            $csv_headers = array_values($csv_headers);
+            unset($csv_headers[ array_search('Remote IP address', $csv_headers) ]);
+            $csv_headers = array_values($csv_headers);
+            array_unshift($csv_headers, "Created", "Remote IP address");
 
-            $args['csv_headers'] = array_values($csv_headers); // Set order for later
+            // Set order for later
+            $args['csv_headers'] = array_values($csv_headers);
             
+            // Set headers
             if($args['export_single_continue'] != 1){
                 $writer->insertOne($csv_headers);
             }
@@ -446,12 +471,22 @@ function mha_export_screen_data(){
             $csv_data_ordered[] = sortArrayByArray($cd, $header_flip);
         }
 
+        
+
+
+        if($args['debug'] == 1){
+            pre($csv_data_ordered);
+            pre($args);
+            return;
+        }
+
         // Write the results to the CSV
         $writer->insertAll(new ArrayIterator($csv_data_ordered));
         $encoder = (new CharsetConverter())
             ->inputEncoding('utf-8')
             ->outputEncoding('iso-8859-15')
         ;
+        
         $writer->addFormatter($encoder);
 
 
@@ -488,8 +523,10 @@ function moveArrayByKey(&$array, $a, $b) {
 }
 
 function moveArrayKeyToLast(&$array, $key){
-    $v = $array[$key];
-    unset($array[$key]);
-    $array[$key] = $v;
+    if(isset($array[$key])){
+        $v = $array[$key];
+        unset($array[$key]);
+        $array[$key] = $v;
+    }
     return $array;
 }
