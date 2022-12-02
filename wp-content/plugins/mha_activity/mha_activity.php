@@ -357,13 +357,13 @@ function loadMoreThoughts(){
 
 	parse_str($_POST['data'], $data);  
 
-	$activity_id = 	$data['activity_id'] ? intval($data['activity_id']) : null;
-	$index = 		$data['index'] ? intval($data['index']) : null;
-	$path = 		$data['path'] ? intval($data['path']) : null;
-	$admin_seed = 	$data['admin_seed'] ? intval($data['admin_seed']) : null;
-	$user_seed = 	$data['user_seed'] ? intval($data['user_seed']) : null;
-	$return = 		$data['return'] ? intval($data['return']) : null;
-	$paged = 		$data['paged'] ? intval($data['paged']) : null;
+	$activity_id = 	isset($data['activity_id']) ? intval($data['activity_id']) : null;
+	$index = 		isset($data['index']) ? intval($data['index']) : null;
+	$path = 		isset($data['path']) ? intval($data['path']) : null;
+	$admin_seed = 	isset($data['admin_seed']) ? intval($data['admin_seed']) : null;
+	$user_seed = 	isset($data['user_seed']) ? intval($data['user_seed']) : null;
+	$return = 		isset($data['return']) ? intval($data['return']) : null;
+	$paged = 		isset($data['paged']) ? intval($data['paged']) : null;
 
 	return getThoughtsSubmitted($activity_id, $index, $path, $admin_seed, $user_seed, $return, $paged);
 
@@ -561,7 +561,7 @@ add_action("wp_ajax_getThoughtsSubmitted", "getThoughtsSubmitted");
 /**
  * Template for display other responses
  */
-function thoughtRow($pid = null, $text = null, $index) {
+function thoughtRow($pid = null, $text = null, $index = null) {
 	
 	if($pid == null || $text == null ){
 		return false;
@@ -688,6 +688,7 @@ function abandonThought(){
 			)
 		);
 		$loop = new WP_Query($args);
+		$post_id = null;
 		while($loop->have_posts()) : $loop->the_post();
 			$post_id = get_the_ID();
 			$result['post_id'] = $post_id;
@@ -869,6 +870,7 @@ function hideThought(){
 
 		// Abandon the thought at the same time
 		$result['updated'] = update_field('abandoned', date('Y-m-d H:i:s'), $pid);
+		$result['user_hidden'] = update_field('hidden', date('Y-m-d H:i:s'), $pid);
 
     }
 
@@ -946,3 +948,5 @@ function hideScreen(){
 }
 add_action("wp_ajax_nopriv_hideScreen", "hideScreen");
 add_action("wp_ajax_hideScreen", "hideScreen");
+
+include_once('diy_tools.php');

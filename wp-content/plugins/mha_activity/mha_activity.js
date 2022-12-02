@@ -47,7 +47,6 @@ jQuery(function ($) {
 			
 			// Simple validation for response
 			var thoughtCheck = sanitizeThought($.trim($('textarea[name="thought_0"]').val()));
-			console.log(thoughtCheck);
 
 			if(thoughtCheck != ''){
 
@@ -519,112 +518,7 @@ jQuery(function ($) {
 			});	
 
 		});
-
 		
-		/**
-		 * Liking a thought
-		 */
-		$(document).on('click', '.thought-like', function(event){
-
-			// Disable default form submit
-			event.preventDefault();
-
-			// Vars
-			var nonce = $(this).attr('data-nonce'),
-				pid = $(this).attr('data-pid'),
-				ref_pid = $('input[name="pid"]').val(),
-				row = $(this).attr('data-row');
-				
-			// Prep the data
-			var args = 'nonce='+nonce+'&pid='+pid+'&row='+row+'&ref_pid='+ref_pid;
-			
-			// Disable like button
-			$(this).prop('disabled', true);			
-			
-			$.ajax({
-				type: "POST",
-				url: do_mhaActivity.ajaxurl,
-				data: { 
-					action: 'thoughtLike',
-					data: args
-				},
-				success: function( results ) {
-					
-					//$(`.thought-like[data-pid="${pid}"][data-row="${row}"]`).toggleClass('liked').prop('disabled', false);
-					$('.thought-like[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('liked').prop('disabled', false);
-
-				},
-				error: function(xhr, ajaxOptions, thrownError){
-					
-					console.error(xhr,thrownError);
-
-				}
-			});	
-
-		});
-
-
-		/**
-		 * Flagging a thought
-		 */
-
-		$(document).on('click', '.thought-flagger', function(event){
-			event.preventDefault();
-			var id = $(this).attr('aria-controls');
-			$(id + ' .inner').hide();
-			$(id + ' .thought-flag-confirm-container').removeClass('hidden');
-		});
-
-		$(document).on('click', '.cancel-flag-thought', function(event){
-			event.preventDefault();
-			var id = $(this).parents('li').attr('id');
-			console.log(id);
-			$('#'+id + ' .inner').show();
-			$('#'+id + ' .thought-flag-confirm-container').addClass('hidden');
-		});
-
-		$(document).on('click', '.thought-flag', function(event){
-
-			// Disable default form submit
-			event.preventDefault();
-
-			// Vars
-			var nonce = $(this).attr('data-nonce'),
-				pid = $(this).attr('data-pid'),
-				ref_pid = $('input[name="pid"]').val(),
-				row = $(this).attr('data-row'),
-				thought_id = $(this).attr('data-thought-id');
-				
-			// Prep the data
-			var args = 'nonce='+nonce+'&pid='+pid+'&row='+row+'&ref_pid='+ref_pid;
-			
-			// Disable flag button
-			$(this).prop('disabled', true);			
-			
-			$.ajax({
-				type: "POST",
-				url: do_mhaActivity.ajaxurl,
-				data: { 
-					action: 'thoughtFlag',
-					data: args
-				},
-				success: function( results ) {
-
-					//$(`.thought-flag[data-pid="${pid}"][data-row="${row}"]`).toggleClass('flagged').prop('disabled', false); // IE doesn't like the `
-					$('.thought-flag[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('flagged').prop('disabled', false);
-					$(thought_id + ' .thought-flag-confirm-container-inner').html('<p>Thank you for letting us know.</p>').parents('li').addClass('flagged');
-
-				},
-				error: function(xhr, ajaxOptions, thrownError){
-					
-					console.error(xhr,thrownError);
-
-				}
-			});	
-
-		});
-
-
 		/**
 		 * Continue a thought upon returning
 		 */
@@ -702,6 +596,108 @@ jQuery(function ($) {
 		});
 
 	}
+
+
+	/**
+	 * Liking a thought
+	 */
+	$(document).on('click', '.thought-like', function(event){
+
+		// Disable default form submit
+		event.preventDefault();
+
+		// Vars
+		var nonce = $(this).attr('data-nonce'),
+			pid = $(this).attr('data-pid'),
+			ref_pid = $('input[name="pid"]').val(),
+			row = $(this).attr('data-row');
+			
+		// Prep the data
+		var args = 'nonce='+nonce+'&pid='+pid+'&row='+row+'&ref_pid='+ref_pid;
+		
+		// Disable like button
+		$(this).prop('disabled', true);			
+		
+		$.ajax({
+			type: "POST",
+			url: do_mhaActivity.ajaxurl,
+			data: { 
+				action: 'thoughtLike',
+				data: args
+			},
+			success: function( results ) {
+				$('.thought-like[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('liked').prop('disabled', false);
+			},
+			error: function(xhr, ajaxOptions, thrownError){
+				
+				console.error(xhr,thrownError);
+
+			}
+		});	
+
+	});
+
+
+	/**
+	 * Flagging a thought
+	 */
+
+	$(document).on('click', '.thought-flagger', function(event){
+		event.preventDefault();
+		var id = $(this).attr('aria-controls');
+		$(id + ' .inner').hide();
+		$(id + ' .thought-flag-confirm-container').removeClass('hidden');
+	});
+
+
+	$(document).on('click', '.cancel-flag-thought', function(event){
+		event.preventDefault();
+		var id = $(this).parents('li').attr('id');
+		console.log(id);
+		$('#'+id + ' .inner').show();
+		$('#'+id + ' .thought-flag-confirm-container').addClass('hidden');
+	});
+
+	$(document).on('click', '.thought-flag', function(event){
+
+		// Disable default form submit
+		event.preventDefault();
+
+		// Vars
+		var nonce = $(this).attr('data-nonce'),
+			pid = $(this).attr('data-pid'),
+			ref_pid = $('input[name="pid"]').val(),
+			row = $(this).attr('data-row'),
+			thought_id = $(this).attr('data-thought-id');
+			
+		// Prep the data
+		var args = 'nonce='+nonce+'&pid='+pid+'&row='+row+'&ref_pid='+ref_pid;
+		
+		// Disable flag button
+		$(this).prop('disabled', true);			
+		
+		$.ajax({
+			type: "POST",
+			url: do_mhaActivity.ajaxurl,
+			data: { 
+				action: 'thoughtFlag',
+				data: args
+			},
+			success: function( results ) {
+
+				//$(`.thought-flag[data-pid="${pid}"][data-row="${row}"]`).toggleClass('flagged').prop('disabled', false); // IE doesn't like the `
+				$('.thought-flag[data-pid="'+pid+'"][data-row="'+row+'"]').toggleClass('flagged').prop('disabled', false);
+				$(thought_id + ' .thought-flag-confirm-container-inner').html('<p class="mb-0">Thank you for letting us know.</p>').parents('li').addClass('flagged');
+
+			},
+			error: function(xhr, ajaxOptions, thrownError){
+				
+				console.error(xhr,thrownError);
+
+			}
+		});	
+
+	});
 	
 
 	/**
