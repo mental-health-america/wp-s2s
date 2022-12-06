@@ -10,6 +10,13 @@
     $custom = get_field('custom_classes', $id);
 ?>
 
+<script>
+    window.dataLayer.push({
+        'event': 'cta_visible',
+        'cta_title': "<?php echo addslashes(get_the_title()).' (#'.$id.')'; ?>"
+    });
+</script>
+
 <div class="content-block block-text block-cta <?php echo $custom; ?> mb-4 mt-4">
         
     <?php
@@ -45,7 +52,7 @@
                 $button_text = 'Read More';
             }
         ?>
-        <a class="button round wide" href="<?php echo get_field('button_text', $id); ?>"><?php echo $button_text; ?></a>
+        <a class="button round wide cta-button" href="<?php echo get_field('button_text', $id); ?>"><?php echo $button_text; ?></a>
     <?php endif; ?>
     
     <?php

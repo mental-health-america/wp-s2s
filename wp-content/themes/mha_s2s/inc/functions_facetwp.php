@@ -215,8 +215,7 @@ add_filter( 'facetwp_preload_url_vars', function( $url_vars ) {
         if ( empty( $url_vars['language'] ) ) {
             $url_vars['language'] = [ '0' ];
         }
-    }
-	
+    }	
     if ( 'get-help' == FWP()->helper->get_uri() ) {
         if ( empty( $url_vars['area_served'] ) ) {
             $url_vars['area_served'] = [ 'national' ];
