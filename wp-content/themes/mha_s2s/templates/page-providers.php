@@ -42,7 +42,7 @@ get_header();
                 <div class="facetwp-facet facetwp-facet-custom facetwp-type-custom">
                     <span class="facetwp-input-wrap">
                         <i class="facetwp-icon zip-icon faux-submit submit-zip-search"></i>
-                        <input type="text" id="zip-code-search" class="location-search-zip facetwp-location" value="" placeholder="Zip code" autocomplete="off" data-connect="location_search">
+                        <input type="text" id="zip-code-search" class="location-search-zip facetwp-location" value="<?php echo get_query_var('geo'); ?>" placeholder="Zip code" autocomplete="off" data-connect="location_search">
                     </span>
                 </div>
                 <div class="d-none"><?php echo facetwp_display( 'facet', 'location_search' ); ?></div>

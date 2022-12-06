@@ -5,6 +5,15 @@ jQuery(function ($) {
 		$(this).blur();
 	});
 
+	function getParameterByName(name, url = window.location.href) {
+		name = name.replace(/[\[\]]/g, '\\$&');
+		var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+			results = regex.exec(url);
+		if (!results) return null;
+		if (!results[2]) return '';
+		return decodeURIComponent(results[2].replace(/\+/g, ' '));
+	}
+
 	// Main Search Filter Search
 	/*
 	function submitFilterForm( order, orderby, append, page ){
@@ -317,6 +326,10 @@ jQuery(function ($) {
 	$('#zip-code-search').keypress( function(event){
 		submitCustomZipSearch( event );
 		return;		
-	})
+	});	
+	var hasGeoOnLoad = getParameterByName('geo');
+	if(hasGeoOnLoad && $('body').hasClass('page-template-page-providers')){
+		submitCustomZipSearch( 1 );
+	}
 
 });
