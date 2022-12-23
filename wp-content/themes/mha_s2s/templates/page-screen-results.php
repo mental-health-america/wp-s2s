@@ -52,7 +52,15 @@ else:
         $take_another_url = add_query_arg( 'iframe','true', $take_another_url );
     }
     ?>
-
+	
+	<script>
+        window.dataLayer.push({
+			'event': 'screen_complete_d',
+			'sid': '<?php echo $user_screen_id; ?>',
+			'transaction_id': '<?php echo $user_screen_id; ?>',
+			'screen_name': '<?php echo html_entity_decode( get_the_title($user_screen_result['screen_id']) ); ?>',
+		});
+    </script>
 
     <?php 
         /**

@@ -9,7 +9,7 @@
  */
 
 // General Vars
-define( 'MHASCREENS_VERSION', '1.1' );
+define( 'MHASCREENS_VERSION', '1.1.20221213pm' );
 
 // Enqueing Scripts
 add_action('init', 'mhaScreenScripts');

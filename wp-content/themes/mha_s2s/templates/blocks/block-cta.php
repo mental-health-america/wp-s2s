@@ -8,16 +8,18 @@
     $rounded = get_field('corner_style', $id);
     $padding = get_field('padding', $id);
     $custom = get_field('custom_classes', $id);
+
+    $cta_title = html_entity_decode( addslashes(get_the_title()).' (#'.$id.')' );
 ?>
 
 <script>
     window.dataLayer.push({
         'event': 'cta_visible',
-        'cta_title': "<?php echo addslashes(get_the_title()).' (#'.$id.')'; ?>"
+        'cta_title': "<?php echo $cta_title; ?>"
     });
 </script>
 
-<div class="content-block block-text block-cta <?php echo $custom; ?> mb-4 mt-4">
+<div class="content-block block-text block-cta <?php echo $custom; ?> mb-4 mt-4" data-cta-title="<?php echo $cta_title; ?>">
         
     <?php
         // Open Wrappers

@@ -117,4 +117,19 @@ jQuery(function ($) {
 		$input.val( new_val );
 	});
 
+	/**
+	 * User Behavior
+	 */
+	$(document).on('gform_post_render', function( event, formId, currentPage ) {
+
+		// Demographic Page View
+		if ( currentPage == 2 && $('#gform_page_'+formId+'_2').length && $('#gform_page_'+formId+'_2').hasClass('demographics') ) {
+			window.dataLayer.push({
+				'event': 'demographic_view_d',
+				'page_title': $('h1.entry-title').text()
+			});
+		} 
+
+	});
+
 });
