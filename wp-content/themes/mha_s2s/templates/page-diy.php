@@ -67,6 +67,7 @@ get_header();
 
             <?php
                 $options = array(
+                    "post_type" => array('article','diy'),
                     'type' => 'diy',
                     'espanol' => '!='
                 );

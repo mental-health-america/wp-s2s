@@ -6,8 +6,19 @@
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsScripts');
 function mhaDiyToolsScripts() {
-	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', 'jquery', time(), true);
+	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', 'jquery', 'v20221209_p2', true);
 	wp_localize_script('process_mhaDiyTools', 'do_mhaDiyTools', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+}
+
+function truncate_answer($text, $limit, $id) {
+    if (str_word_count($text, 0) > $limit) {
+        $words = str_word_count($text, 2);
+        $pos   = array_keys($words);
+        $text  = '<div class="text-snippet-short" data-snippet-id="'.$id.'" aria-expanded="true">'.trim(substr($text, 0, $pos[$limit])). '...</div>
+        <div class="hidden text-snippet-long" data-snippet-id="'.$id.'" id="'.$id.'" aria-expanded="false">'.$text.'</div>
+        <button class="text-snippet-toggle bar blue mt-3" data-snippet-toggle="'.$id.'" aria-controls="'.$id.'">Read more</button>';
+    }
+    return $text;    
 }
 
 /**
@@ -22,11 +33,13 @@ function mhaDiySubmit(){
 
     // Post data
     $defaults = array(
-        'nonce'            => null,
-        'response_id'      => null,
-        'ref_code'         => null,
-        'activity_id'      => array(),
-        'submit'           => 0,
+        'nonce'                 => null,
+        'response_id'           => null,
+        'ref_code'              => null,
+        'activity_id'           => array(),
+        'submit'                => 0,
+        'opened_diy'            => null,
+        'opened_diy_question'   => null
     );    
     parse_str($_POST['data'], $data);  
     $args = wp_parse_args( $data, $defaults ); 
@@ -51,7 +64,8 @@ function mhaDiySubmit(){
 			"ipiden"         => $ipiden,
         );
 		$current_post_loop = new WP_Query($current_post_args);
-        $current_post_id = $current_post_loop->found_posts ? $current_post_loop->post->ID : null;
+        // $current_post_id = $current_post_loop->found_posts ? $current_post_loop->post->ID : null;
+        $current_post_id = $args['diytool_current_id'] ? $args['diytool_current_id'] : null;
     
         $response_rows = array();
         $answer_count = 0;
@@ -94,14 +108,16 @@ function mhaDiySubmit(){
                 update_field('activity_id', array($args['activity_id']), $result['post_id']); // Post object needs an array to submit?
                 update_field('ipiden', $ipiden, $result['post_id']);
                 update_field('started', $timestamp, $result['post_id']);
-                update_field('ref_code', sanitize_text_field($args['ref_code']), $result['post_id']);
+                update_field('ref_code', sanitize_text_field($args['ref_code']), $result['post_id']);                
+                update_field('user_viewed_crowdsource', $args['opened_diy'], $result['post_id']);
+                update_field('user_viewed_crowdsource_question', $args['opened_diy_question'], $result['post_id']);
 
             } else {
                 
                 $result['error'] = 'You must have at least one question answered before you can submit.';   
                 echo json_encode($result);
                 exit();
-                            
+                
             }
 
         }
@@ -110,6 +126,12 @@ function mhaDiySubmit(){
             
             $current_responses = get_field('field_63483d064cbb0', $result['post_id']);
             $result['current_responses'] = $current_responses;
+            
+            // If crowdsource is viewed and hasn't been previously updated...
+            if(!get_field('user_viewed_crowdsource', $result['post_id'])){            
+                update_field('user_viewed_crowdsource', $args['opened_diy'], $result['post_id']);
+                update_field('user_viewed_crowdsource_question', $args['opened_diy_question'], $result['post_id']);
+            }
             
             // Add/Update responses
             if($answer_count > 0){
@@ -146,7 +168,6 @@ function mhaDiySubmit(){
 }
 
 
-
 add_action("wp_ajax_nopriv_getDiyCrowdsource", "getDiyCrowdsource");
 add_action("wp_ajax_getDiyCrowdsource", "getDiyCrowdsource");
 function getDiyCrowdsource(){
@@ -162,22 +183,35 @@ function getDiyCrowdsource(){
     parse_str($_POST['data'], $data);  
     $args = wp_parse_args( $data, $defaults ); 
     $result['html'] = '';
-    //$result['html'] = print_r($args, true);
-
     $result['args'] = $args;
+
+    // Get likes for later
+    global $wpdb;
+    $top_likes = $wpdb->get_results("SELECT pid, row, uid FROM thoughts_likes WHERE ref_pid = {$args["activity_id"]} AND unliked = 0 ORDER BY date DESC LIMIT 200");
+
+    // Get flags for later
+    $top_flags_query = $wpdb->get_results("SELECT pid, row, COUNT(pid) AS highflags FROM thoughts_flags WHERE ref_pid = {$args["activity_id"]} HAVING (highflags > 5) ORDER BY date DESC LIMIT 200");
+    $top_flags = [];
+    if($top_flags_query){
+        foreach($top_flags_query as $tf){
+            $top_flags[] = $tf->pid;
+        }
+    }
 
     $crowd_args = array(
         "post_type"     	=> 'diy_responses',
         "order"             => 'DESC',
         "orderby"           => 'date',
-        "post_status"       => array('publish','draft'),
-        "posts_per_page"    => 250,
+        "post_status"       => array('publish'),
+        "posts_per_page"    => 20,
+        "paged"             => 1,
+        "post__not_in"      => $top_flags,
         "meta_query"		=> array(
             array(
                 'key'       => 'activity_id',
                 'value'     => '"'.$args["activity_id"].'"',
                 'compare'   => 'LIKE'
-            ),
+            )
         )
     );
     
@@ -192,10 +226,6 @@ function getDiyCrowdsource(){
     $result['questions'] = $questions;   
     $result['html'] .= '<div class="question-container" data-question="'.$args['question'].'">';   
     $responses = [];
-
-    // Get likes for later
-    global $wpdb;
-    $likes = $wpdb->get_results("SELECT pid, row, uid FROM thoughts_likes WHERE ref_pid = {$args["activity_id"]} AND unliked = 0 ORDER BY date DESC LIMIT 200");
 
     // Get the answers for this question
     $crowd_loop = new WP_Query($crowd_args);                      
@@ -229,9 +259,6 @@ function getDiyCrowdsource(){
             $responses[$pid]['html'] .= '<ol class="crowdthought">';
         }
 
-        //$responses[$pid]['html'] .= print_r($questions, true);
-        //$responses[$pid]['html'] .= print_r($qresponses, true);
-
         foreach($questions as $qid => $qval){
 
             if(!$args['carousel'] && $qresponses[$qid]['id'] != $args['question']){
@@ -245,6 +272,11 @@ function getDiyCrowdsource(){
                     $answer = $qr['answer'];
                     break;
                 }
+            }
+
+            $answer_length = str_word_count($answer);
+            if($answer_length > 45){
+                $answer = truncate_answer($answer, 35, 'q'.$pid.''.$qid);
             }
 
             if($args['carousel']){
@@ -263,6 +295,7 @@ function getDiyCrowdsource(){
                         </div>';
                         
             $like_class = (likeChecker($pid, $qid)) ? ' liked' : '';
+            
             $responses[$pid]['html'] .= '<div class="col-12 col-md-5 px-0 thought-actions text-right">
                 <button class="icon thought-like mr-4 '.$like_class.'" data-nonce="'.wp_create_nonce("thoughtLike").'" data-pid="'.$pid.'" data-row="'.$qid.'">
                     <span class="image mr-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30.93" height="25.99"viewBox="0 0 30.93 25.99" class="heart"><g transform="translate(0 0)"><g transform="translate(0 0)"><path d="M25.592,28s11.175-6.421,11.175-12.608A6.012,6.012,0,0,0,25.592,12.3a6.012,6.012,0,0,0-11.175,3.087C14.417,21.576,25.592,28,25.592,28Z"transform="translate(-10.127 -5.505)" stroke-linecap="round"stroke-linejoin="round" stroke-width="2" /></g></g></svg></span>
@@ -277,7 +310,7 @@ function getDiyCrowdsource(){
 
             // Admin Debug
             $qlikes = 0;
-            foreach($likes as $l){
+            foreach($top_likes as $l){
                 if($l->pid == $pid && $l->row == $qid){
                     $qlikes++;
                 }
@@ -322,95 +355,6 @@ function getDiyCrowdsource(){
             </li>';
 
         }
-
-        // Original deprecated slide method
-        /*
-        if( have_rows('response') ):
-        while( have_rows('response') ) : the_row();
-            
-            if(!$args['carousel'] && get_sub_field('id') != $args['question']){
-                continue;
-            }
-
-            $question_id = $args['question'] ? $args['question'] : get_sub_field('id');
-            $answer = get_sub_field('answer');
-
-            if($args['carousel']){
-                $responses[$pid]['html'] .= '<li class="glide__slide">';
-            } else {
-                $responses[$pid]['html'] .= '<li data-question="'.get_sub_field('id').'">';
-            }
-
-            $responses[$pid]['html'] .= '<div class="bubble round-bl light-blue" id="thought-'.$pid.'-'.$question_id.'">
-                <div class="inner">
-                    <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-12 col-md-7 pl-md-0">
-                            <div class="question-label small"><strong>'.$questions[$question_id]['question'].'</strong></div>
-                            <div class="user-response">'.$answer.'</div>
-                        </div>';
-                        
-            $like_class = (likeChecker($pid, $question_id)) ? ' liked' : '';
-            $responses[$pid]['html'] .= '<div class="col-12 col-md-5 px-0 thought-actions text-right">
-                <button class="icon thought-like mr-4 '.$like_class.'" data-nonce="'.wp_create_nonce("thoughtLike").'" data-pid="'.$pid.'" data-row="'.$question_id.'">
-                    <span class="image mr-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30.93" height="25.99"viewBox="0 0 30.93 25.99" class="heart"><g transform="translate(0 0)"><g transform="translate(0 0)"><path d="M25.592,28s11.175-6.421,11.175-12.608A6.012,6.012,0,0,0,25.592,12.3a6.012,6.012,0,0,0-11.175,3.087C14.417,21.576,25.592,28,25.592,28Z"transform="translate(-10.127 -5.505)" stroke-linecap="round"stroke-linejoin="round" stroke-width="2" /></g></g></svg></span>
-                    <span class="text">I relate</span>
-                </button>';
-
-            $responses[$pid]['html'] .= '<button class="icon thought-flagger px-md-0" data-toggle="tooltip" data-placement="top" title="'.$diy_flag_message.'" aria-controls="#thought-'.$pid.'-'.$question_id.'">
-                    <span class="image mr-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18.231" height="23.342"viewBox="0 0 18.231 23.342" class="flag"><g><path d="M0,23.068a.425.425,0,0,0,.849,0V.7A.425.425,0,0,0,0,.7Z" transform="translate(0 -0.151)" fill="#3d3d3d"stroke="#264a5c" stroke-width="2" /><path class="sail" d="M18.819,11.351H4V1.831Z" transform="translate(-3.287 -0.987)" stroke-miterlimit="10" stroke-width="2" /></g></svg></span>
-                    <span class="text">Report</span>
-                </button>  
-            </div>';
-
-            // Admin Debug
-            $qlikes = 0;
-            foreach($likes as $l){
-                if($l->pid == $pid && $l->row == $question_id){
-                    $qlikes++;
-                }
-            }
-            $responses[$pid]['likes'] = $qlikes;
-
-            $score = ($qanswers == count($questions)) ? $qlikes + 1 : $qlikes;
-            $responses[$pid]['score'] = $score;
-
-            if (current_user_can('edit_posts')) {
-                $responses[$pid]['html'] .= '<div class="col-12 admin-debug px-0 pt-4 small caps bold">';
-                    $responses[$pid]['html'] .= 'Admin Debug:<br />';   
-                    
-                    $responses[$pid]['html'] .= '&bull; Activity ID: '.$args["activity_id"].'<br />';   
-                    $responses[$pid]['html'] .= '&bull; Question #: '.get_row_index().'<br />';   
-                    $responses[$pid]['html'] .= '&bull; Likes: '.$qlikes.'<br />';             
-                    
-                    $responses[$pid]['html'] .= '&bull; All Answered: ';                  
-                    $responses[$pid]['html'] .=  ($qanswers == count($questions)) ? 'Yes' : 'No';   
-
-                    $responses[$pid]['html'] .= '<br />&bull; Total Score: '.$score;     
-                    $responses[$pid]['html'] .= '<br />&bull; [<a target="_blank" href="'.get_edit_post_link($pid).'">Edit Submission</a>]<br />';             
-                $responses[$pid]['html'] .= '</div>';
-            }
-            
-            $responses[$pid]['html'] .='</div>
-                    </div>
-                </div>';
-
-            // Flag Prompt
-            $responses[$pid]['html'] .= '<div class="thought-flag-confirm-container text-center hidden">
-                <div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
-                    <p class="mb-3"><em>&quot;'.$answer.'&quot;</em></p>
-                    <p class="mb-3">'.$diy_flag_confirm.'</p>
-                    <p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="'.$question_id.'" data-thought-id="#thought-'.$pid.'-'.$question_id.'">Yes, report this comment</button></p>
-                    <button class="cancel-flag-thought button blue thin round small">Nevermind</button>
-                </div>
-            </div>';
-
-            $responses[$pid]['html'] .= '</div>
-            </li>';
-            
-        endwhile;
-        endif;       
-        */ 
 
         $responses[$pid]['html'] .= '</ol>'; 
 

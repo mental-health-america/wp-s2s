@@ -99,6 +99,7 @@ get_template_part( 'templates/diy-tools/cta', 'login', array( 'id' => get_the_ID
                 <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughtsAll" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-controls="crowdthoughtsAll" tabindex="-1">
                     <?php echo $crowdsource_button_label; ?> &raquo;
                 </button>
+                <input type="hidden" name="current_url" value="<?php echo sanitize_url("https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); ?>" />
             </div>
 
             <div id="crowdthoughtsAll" class="pt-5 <?php echo implode(' ', $crowdsource_classes); ?>">
