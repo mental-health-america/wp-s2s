@@ -541,7 +541,8 @@ function get_articles_faceted( $options ){
 
 	// Default Args
     $defaults = array (
-	  //'type' 				=> null, 
+		"post_type"      	=> 'article',
+		//'type' 			=> null, 
 		'search' 			=> null, 
 		'condition_terms'	=> null, 
 		'tag_terms'			=> null, 
@@ -562,7 +563,7 @@ function get_articles_faceted( $options ){
 
 	// Default Args
 	$article_args = array(
-		"post_type"      => 'article',
+		"post_type"      => $options['post_type'],
 		"orderby"        => $options['orderby'],
 		"order"	         => $options['order'],
 		"post_status"    => 'publish',
