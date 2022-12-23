@@ -30,7 +30,7 @@ function mhaThoughtScripts() {
 // List Page
 function mhathoughtexport(){
 
-//mha_export_screen_data();
+//echo mha_export_diy_tool_data();
 
 ?>
 
@@ -111,6 +111,72 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="screen-exports-download" style="display: none;"></ul>      
+                        <br /><br />
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </form>
+    <br />
+
+    <form id="mha-diy-tool-export" action="#" method="POST">
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
+        
+            <div id="diy-tool-export-error"></div>
+            <h2>DIY Tool Data Export</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label for="diytool_export_start_date">Start Date</label></th>
+                    <td>
+                        <input type="text" name="diytool_export_start_date" id="diytool_export_start_date" value="<?php //echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="diytool_export_end_date">End Date</label></th>
+                    <td>
+                        <input type="text" name="diytool_export_end_date" id="diytool_export_end_date" value="<?php //echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="diytool_export_ref">Tool</label><br /></th>
+                    <td>
+                        <?php 
+
+                        $args = array(
+                            "post_type" => 'diy',
+                            "post_status" => 'publish',
+                            "posts_per_page" => 50,
+                            'orderby' => array( 
+                                'meta_key' => 'ASC',
+                                'title' => 'DESC' 
+                            )
+                        );                        
+                        $loop = new WP_Query($args);
+                        if($loop->have_posts()):
+                            while($loop->have_posts()) : $loop->the_post();  
+                                echo '<p><label><input type="radio" name="tool_id" class="form-radio" value="'.get_the_ID().'"> '.get_the_title().'</label></p>'; 
+                            endwhile;
+                        endif;                                   
+                        ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+
+                        <p>
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhadiyexport'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_diy_link"  value="Download DIY Tool User Submissions">
+                        </p>
+                        
+                        <div id="diyTool-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <ul id="diyTool-exports-download" style="display: none;"></ul>      
                         <br /><br />
                     </td>
                 </tr>
@@ -1150,8 +1216,8 @@ add_filter( 'wpe_heartbeat_allowed_pages', function( $pages ) {
 /**
  * Export entries with WP CLI
  */
+/*
 function mha_cli_screen_exporter(){
-
     // Dynamic Variables
     $form = 1;
     $start_date = '2021-05-01';
@@ -1166,5 +1232,5 @@ function mha_cli_screen_exporter(){
     // wp gf entry export ( wp gf entry list 5 ) test.csv --dir=~/sites/mhanationalstg/wp-content/plugins/mha_exports/tmp --format=csv --start_date=21-05-01 --end_date=21-05-31;
     // wp gf entry export ( wp gf entry list 1 ) test.csv --format=csv --start_date=2021-05-01 --end_date=2021-05-02;
     $cli_command = "wp gf entry export ( wp gf entry list $form ) $filename --dir=$tmp_dir --format=csv --start_date=$start_date --end_date=$end_date";
-
 }
+*/

@@ -28,9 +28,6 @@ if($show_admin == 0){
 } else {
     echo '<p><a class="button button-primary" href="/wp-admin/admin.php?page=mhaflaggedthoughtmod&show_admin=0">Hide Flags with Admin Notes</a></p>';
 }
-?>
-
-<?php
 
 $items = 100;
 $offset = $paged * $items;
@@ -49,6 +46,12 @@ if($flag_query){ ?>
         <?php foreach($flag_query as $flag): ?>
 
             <?php
+                // Skip blank and pre-seeded responses
+                $responses = get_field('responses', $flag->pid);
+                if(is_numeric($responses[$flag->row]['admin_pre_seeded_thought']) || $responses[$flag->row]['response'] == ''){
+                    continue;
+                }
+                
                 // Skip moderated flags
                 if($show_admin == 0){ 
                     if(get_field('admin_notes', $flag->pid)){
@@ -71,7 +74,6 @@ if($flag_query){ ?>
                 </td>
                 <td>
                     <?php
-                        $responses = get_field('responses', $flag->pid);
                         $type = get_post_type($flag->pid);
                         $edit_pid = $flag->pid;
                         
@@ -87,7 +89,6 @@ if($flag_query){ ?>
                             echo $responses[$flag->row]['response'];   
 
                         }
-
                     ?>
                 </td>
                 <td>

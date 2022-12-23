@@ -2,6 +2,7 @@
 #screen-exports-progress,
 #update-screen-results-progress,
 #aggregate-progress,
+#diyTool-exports-progress,
 #nonaggregate-progress {
     width: 401px;
     height: 41px;
@@ -9,6 +10,7 @@
     border: 1px solid #007BA7;
 }
 
+#diyTool-exports-progress .bar-wrapper,
 #user-exports-progress .bar-wrapper,
 #screen-exports-progress .bar-wrapper,
 #update-screen-results-progress .bar-wrapper,
@@ -19,6 +21,7 @@
     width: 398px;
     margin: 1px 0 0 1px;
 }
+#diyTool-exports-progress .bar,
 #user-exports-progress .bar,
 #screen-exports-progress .bar,
 #update-screen-results-progress .bar,
@@ -34,6 +37,7 @@
     background: #007BA7;
 }
 
+#diyTool-exports-progress .bar.loading:after,
 #user-exports-progress .bar.loading:after,
 #screen-exports-progress .bar.loading:after,
 #update-screen-results-progress .bar.loading:after,
@@ -52,6 +56,7 @@
     overflow: hidden;
 }
 
+#diyTools-exports-download,
 #user-exports-download
 #screen-exports-download,
 #aggregate-download,

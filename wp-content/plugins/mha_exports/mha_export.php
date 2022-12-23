@@ -91,6 +91,7 @@ add_action('request', function ($query_vars) {
 
 define('ROOTDIR', plugin_dir_path(__FILE__));
 require_once(ROOTDIR . 'entries-export.php');
+require_once(ROOTDIR . 'diy-export.php');
 require_once(ROOTDIR . 'page-export.php');
 require_once(ROOTDIR . 'page-update_results.php');
 require_once(ROOTDIR . 'flag-moderation.php');

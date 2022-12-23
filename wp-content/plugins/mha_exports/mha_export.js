@@ -127,7 +127,7 @@
                     },
                     success: function( results_2 ) {  
                         var res = JSON.parse(results_2);
-                        console.log(res);
+                        //console.log(res);
                         $('#screen-exports-progress').slideDown();
                         $('#screen-exports-progress .bar').css('width', res.percent+'%');
                         $('#screen-exports-progress .label-number').html( res.percent );         
