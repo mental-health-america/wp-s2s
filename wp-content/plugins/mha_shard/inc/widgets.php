@@ -56,6 +56,9 @@ function recent_flagged_thoughts() {
             foreach($flag_query as $flag): 
             $responses = get_field('responses', $flag->pid);
             $type = get_post_type($flag->pid);
+            if(is_numeric($responses[$flag->row]['admin_pre_seeded_thought']) || $responses[$flag->row]['response'] == ''){
+                continue;
+            }
             if($type == 'thought_activity' || $responses[$flag->row]['hide'] == 1 || get_field('admin_notes', $flag->pid) || $responses[$flag->row]['response'] == ''){
                 continue;
             }
