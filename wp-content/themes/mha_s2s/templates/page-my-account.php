@@ -586,6 +586,114 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
         </div>
 
+        <!-- DIY Tools Thoughts -->
+        <div class="dashboard-block diy-activity pt-5 pb-5">
+            <h2 class="bar">DIY Tools Submissions</h2>                
+            <?php
+                $hidden_thoughts_check = $wpdb->get_results("SELECT pid FROM thoughts_hidden WHERE uid = $uid", ARRAY_N);
+                $hide_diy_submissions = [];
+                foreach($hidden_thoughts_check as $pid){
+                    $hide_diy_submissions[] = $pid[0];
+                }
+                $args = array(
+                    "author" => $uid,
+                    "post_type" => 'diy_responses',
+                    "orderby" => 'date',
+                    "post_status" => array( 'draft', 'publish' ),
+                    "order"	=> 'DESC',
+                    "posts_per_page" => 50,
+                    'post__not_in' => $hide_diy_submissions,
+                );
+                $loop = new WP_Query($args);
+                $loop_total = $loop->found_posts;
+                $counter = 0;
+
+                if($loop->have_posts()):
+                while($loop->have_posts()) : $loop->the_post();
+                
+                    $responses = get_field('response');
+                    $activity_id = get_field('activity_id');
+                    $questions = get_field('questions', $activity_id);
+                    $answer_id = get_the_ID();
+                    
+                    $initial_response = '';
+                    $diy_key = 0;
+                    foreach($responses as $r){
+                        if($r['answer'] != ''){
+                            // Get the first response
+                            $initial_response = $r['answer'];
+                            $diy_key = $r['id'];
+                            break;
+                        }
+                    }
+                    
+                    if( $initial_response == '' ){
+                        $initial_response = ' &mdash; (<em>This submission was removed</em>)';
+                    } 
+
+                    if($counter == 3 && $loop_total > 3){
+                        // Collapse submissions if more than 5
+                        echo '<div class="collapse" id="allDiyTools">';
+                    }
+                ?>
+                <div class="bubble round-small-bl thin relative gray mb-4">
+                <div class="inner">
+                    
+                    <div class="relative">
+                        
+                        <div claass="container-fluid">
+                        <div class="row">
+                            <div class="coll-12 col-md-8 monsterrat medium text-blue-dark pb-2 pb-md-0">
+                                <div class="mb-0">
+                                    <div class="label bold mb-3"><a class="button teal tiny round-tiny-bl" href="<?php echo get_the_permalink($activity_id); ?>" target="_blank"><?php echo get_the_title($activity_id); ?></a></div>
+                                    <?php if(isset($questions[$diy_key]['question'])): ?><div class="label bold small"><?php echo $questions[$diy_key]['question']; ?></div><?php endif; ?>
+                                    <?php echo $initial_response; ?>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <?php echo '<a class="bar plain" href="'.get_the_permalink($answer_id).'">Review your submission&nbsp;&raquo;</a>'; ?>
+                            </div>
+                        </div>
+                        </div>
+                        
+                        <button class="hide-thought button gray round" 
+                            id="button-<?php echo $answer_id; ?>"
+                            data-toggle="tooltip" 
+                            data-placement="top" 
+                            title="Hide this from displaying on your account."
+                            aria-expanded="false" 
+                            aria-controls="thought-<?php echo $answer_id; ?>">X</button>
+
+                        <div class="hide-thought-confirm-container text-center hidden" id="thought-<?php echo $answer_id; ?>">
+                            <div class="pb-2">
+                                <button class="hide-thought-confirm thin button red round small" 
+                                    data-toggle="tooltip" 
+                                    data-pid="<?php echo $answer_id; ?>"                                      
+                                    data-nonce="<?php echo wp_create_nonce('hideThought'); ?>" >Are you sure you want to hide this?</button>
+                            </div>
+                            <button class="cancel-hide-thought plain gray round text-gray">Nevermind</button>
+                        </div>
+
+                    </div>
+
+                </div>
+                </div>
+                <?php 
+                $counter++;
+                endwhile; 
+                else : ?>
+                    <p>You have no DIY Tool submissions.</p>
+                <?php
+                endif;
+                
+                if($counter > 3 && $loop_total > 3){
+                    echo '</div>';
+                }
+                wp_reset_query();
+            ?>
+        </div>
+
+        
         <!-- Overcoming Thoughts -->
         <div class="dashboard-block thought-activity pt-5 pb-5">
             <h2 class="bar">Overcoming Thoughts</h2>                
@@ -714,114 +822,6 @@ if (strpos($account_action, 'save_screen_') !== false) {
                         </div>
                         </div>
                     <?php 
-                }
-                wp_reset_query();
-            ?>
-        </div>
-
-
-        <!-- DIY Tools Thoughts -->
-        <div class="dashboard-block diy-activity pt-5 pb-5">
-            <h2 class="bar">DIY Tools Submissions</h2>                
-            <?php
-                $hidden_thoughts_check = $wpdb->get_results("SELECT pid FROM thoughts_hidden WHERE uid = $uid", ARRAY_N);
-                $hide_diy_submissions = [];
-                foreach($hidden_thoughts_check as $pid){
-                    $hide_diy_submissions[] = $pid[0];
-                }
-                $args = array(
-                    "author" => $uid,
-                    "post_type" => 'diy_responses',
-                    "orderby" => 'date',
-                    "post_status" => array( 'draft', 'publish' ),
-                    "order"	=> 'DESC',
-                    "posts_per_page" => 50,
-                    'post__not_in' => $hide_diy_submissions,
-                );
-                $loop = new WP_Query($args);
-                $loop_total = $loop->found_posts;
-                $counter = 0;
-
-                if($loop->have_posts()):
-                while($loop->have_posts()) : $loop->the_post();
-                
-                    $responses = get_field('response');
-                    $activity_id = get_field('activity_id');
-                    $questions = get_field('questions', $activity_id);
-                    $answer_id = get_the_ID();
-                    
-                    $initial_response = '';
-                    $diy_key = 0;
-                    foreach($responses as $r){
-                        if($r['answer'] != ''){
-                            // Get the first response
-                            $initial_response = $r['answer'];
-                            $diy_key = $r['id'];
-                            break;
-                        }
-                    }
-                    
-                    if( $initial_response == '' ){
-                        $initial_response = ' &mdash; (<em>This submission was removed</em>)';
-                    } 
-
-                    if($counter == 3 && $loop_total > 3){
-                        // Collapse submissions if more than 5
-                        echo '<div class="collapse" id="allDiyTools">';
-                    }
-                ?>
-                <div class="bubble round-small-bl thin relative gray mb-4">
-                <div class="inner">
-                    
-                    <div class="relative">
-                        
-                        <div claass="container-fluid">
-                        <div class="row">
-                            <div class="coll-12 col-md-8 monsterrat medium text-blue-dark pb-2 pb-md-0">
-                                <div class="mb-0">
-                                    <div class="label bold mb-3"><a class="button teal tiny round-tiny-bl" href="<?php echo get_the_permalink($activity_id); ?>" target="_blank"><?php echo get_the_title($activity_id); ?></a></div>
-                                    <?php if(isset($questions[$diy_key]['question'])): ?><div class="label bold small"><?php echo $questions[$diy_key]['question']; ?></div><?php endif; ?>
-                                    <?php echo $initial_response; ?>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <?php echo '<a class="bar plain" href="'.get_the_permalink($answer_id).'">Review your submission&nbsp;&raquo;</a>'; ?>
-                            </div>
-                        </div>
-                        </div>
-                        
-                        <button class="hide-thought button gray round" 
-                            id="button-<?php echo $answer_id; ?>"
-                            data-toggle="tooltip" 
-                            data-placement="top" 
-                            title="Hide this from displaying on your account."
-                            aria-expanded="false" 
-                            aria-controls="thought-<?php echo $answer_id; ?>">X</button>
-
-                        <div class="hide-thought-confirm-container text-center hidden" id="thought-<?php echo $answer_id; ?>">
-                            <div class="pb-2">
-                                <button class="hide-thought-confirm thin button red round small" 
-                                    data-toggle="tooltip" 
-                                    data-pid="<?php echo $answer_id; ?>"                                      
-                                    data-nonce="<?php echo wp_create_nonce('hideThought'); ?>" >Are you sure you want to hide this?</button>
-                            </div>
-                            <button class="cancel-hide-thought plain gray round text-gray">Nevermind</button>
-                        </div>
-
-                    </div>
-
-                </div>
-                </div>
-                <?php 
-                $counter++;
-                endwhile; 
-                else : ?>
-                    <p>You have no DIY Tool submissions.</p>
-                <?php
-                endif;
-                
-                if($counter > 3 && $loop_total > 3){
-                    echo '</div>';
                 }
                 wp_reset_query();
             ?>
