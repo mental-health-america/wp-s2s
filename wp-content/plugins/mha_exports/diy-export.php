@@ -28,20 +28,20 @@ function mha_export_diy_tool_data(){
         $defaults = array(
             'tool_id'                    => null,
             'nonce'                      => null,
-            'diytool_export_start_date'  => date('Y-m', strtotime('now - 1 month')).'-01',
-            'diytool_export_end_date'    => date('Y-m-t', strtotime('now - 1 month')),
-            'page'                      => 1,
-            'csv_headers'               => array(),
-            'filename'                  => null,
-            'total'                     => null,
-            'max'                       => null,
-            'percent'                   => null,
-            'next_page'                 => null,
-            'elapsed_start'             => null,
-            'elapsed_end'               => null,
-            'total_elapsed_time'        => null,
-            'download'                  => null,
-            'debug'                     => null
+            'diytool_export_start_date'  => null,
+            'diytool_export_end_date'    => null,
+            'page'                       => 1,
+            'csv_headers'                => array(),
+            'filename'                   => null,
+            'total'                      => null,
+            'max'                        => null,
+            'percent'                    => null,
+            'next_page'                  => null,
+            'elapsed_start'              => null,
+            'elapsed_end'                => null,
+            'total_elapsed_time'         => null,
+            'download'                   => null,
+            'debug'                      => null
         );      
 
         parse_str( $_POST['data'], $data);
@@ -58,12 +58,13 @@ function mha_export_diy_tool_data(){
     $csv_headers = [
         0 => 'activity',
         1 => 'ipiden',
-        2 => 'user_hidden',
-        3 => 'crowdsource_hidden',
-        4 => 'ref_code',
-        5 => 'post_status',
+        2 => 'username',
+        3 => 'user_hidden',
+        5 => 'crowdsource_hidden',
+        6 => 'user_viewed_crowdsource',
+        7 => 'ref_code',
+        8 => 'post_status'
     ];
-
 
     // Begin query
     $diy_res_args = array(
@@ -74,12 +75,24 @@ function mha_export_diy_tool_data(){
         "orderby" => 'date',
         "paged" => $args['page'],
     );    
+
+    // Date query
+    if($args['diytool_export_start_date'] || $args['diytool_export_end_date']){
+        if($args['diytool_export_start_date']) { 
+            $diy_res_args['date_query']['after'] = date('F j, Y', strtotime($args['diytool_export_start_date']));
+        }
+        if($args['diytool_export_end_date']) { 
+            $diy_res_args['date_query']['before'] = date('F j, Y', strtotime($args['diytool_export_end_date']));
+        }
+        $diy_res_args['date_query']['inclusive'] = true;
+    }
     
     $i = 0;
     $temp_array = [];
     $csv_data = [];
 
     $diy_res_loop = new WP_Query($diy_res_args);
+
     if($diy_res_loop->have_posts()):  
     while($diy_res_loop->have_posts()) : $diy_res_loop->the_post();
     
@@ -87,6 +100,8 @@ function mha_export_diy_tool_data(){
         $activity_id = get_field('activity_id')->ID;
         $activity_questions = get_field('questions', $activity_id);
         $activity_response = get_field('response');
+        $author_id = get_post_field ('post_author', $response_id);
+        $display_name = get_the_author_meta( 'display_name' , $author_id );
         
         // Get headers on first page
         if( $args['page'] == 1 && $i == 0){
@@ -105,9 +120,11 @@ function mha_export_diy_tool_data(){
         $csv_data[$i] = [
             'activity'                          => get_the_title($activity_id).' (#'.$activity_id.')',
             'ipiden'                            => get_field('ipiden'),
+            'username'                          => get_the_author_meta( 'user_nicename', get_post_field ('post_author', $response_id) ),
             'user_hidden'                       => get_field('hidden'),
             'crowdsource_hidden'                => get_field('crowdsource_hidden'),
-            'ref_code'                          => get_field('ipiden'),
+            'user_viewed_crowdsource'           => get_field('user_viewed_crowdsource'),
+            'ref_code'                          => get_field('ref_code'),
             'post_status'                       => get_post_status()
         ];
 
@@ -145,13 +162,16 @@ function mha_export_diy_tool_data(){
     /**
      * Set next step variables
      */
-    $args['max'] = $diy_res_loop->max_num_pages;
-    $args['percent'] = round( ( ($args['page'] / $args['max']) * 100 ), 2 );
+
+    
+    $args['max'] = $diy_res_loop->max_num_pages;    
+    $args['percent'] = round( ( ( $args['page'] / $args['max']) * 100 ), 2 );
     if($args['page'] >= $args['max']){
         $args['next_page'] = '';
     } else {
         $args['next_page'] = $args['page'] + 1;
     }  
+
 
     /**
      * Elapsed Time
@@ -167,8 +187,7 @@ function mha_export_diy_tool_data(){
         $args['filename'] = '';
         $args['elapsed_end'] = time();
     }
-    
-    
+        
     /**
      * Write CSV
      */

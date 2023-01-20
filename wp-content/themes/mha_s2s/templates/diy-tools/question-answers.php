@@ -93,10 +93,12 @@
                                     <?php                                       
                                         $container_atts = '';   
                                         $button_atts = '';
+                                        $crowdsource_ask = '';
                                         if(count($questions) == (get_row_index() + 1) ){                                          
                                             $container_atts = '';     
-                                            $button_atts .= 'class="round-tiny-tl red action-button next-question submit" data-question="q'.$row_index.'"';                                         
-                                        } else {                                        
+                                            $button_atts .= 'class="round-tiny-tl red action-button next-question submit" data-question="q'.$row_index.'"';   
+                                            $crowdsource_ask = '<label for="crowdsource_hidden" class="font-weight-normal"><input name="crowdsource_hidden" id="crowdsource_hidden" type="checkbox" value="1"> '.get_field('user_opt_out_language').'</label>';                                      
+                                        } else {
                                             $container_atts = 'data-glide-el="controls"';        
                                             $button_atts .= 'class="bar action-button next-question" data-glide-dir="='.(get_row_index() + 1).'" data-question="'.$row_index.'"';   
                                         }
@@ -109,6 +111,10 @@
                                         <button <?php echo $button_atts; ?> tabindex="-1">
                                             <?php echo get_sub_field('next_button'); ?>&nbsp;&raquo;
                                         </button>
+
+                                        <?php if( $crowdsource_ask && get_field('allow_user_opt_out_of_crowdsource') ): ?>
+                                            <div class="diy-opt-out small pt-3"><?php echo $crowdsource_ask; ?></div>
+                                        <?php endif; ?>
                                     </div>
 
                                 </div>

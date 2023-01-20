@@ -29,7 +29,10 @@
 	<?php endif; ?>
 
 	<?php
-	if(get_post_type() == 'screen'):
+	$post_type = get_post_type();
+
+	// Screens
+	if($post_type == 'screen'):
 		if(get_field('survey')):
 		?>		
 			window.dataLayer.push({
@@ -41,6 +44,26 @@
 			});
 		<?php
 		endif;
+	endif;
+
+	// DIY Tools
+	if($post_type == 'diy'):
+	?>		
+		window.dataLayer.push({
+			'event': 'diy_view',
+			'diy_title': '<?php echo get_the_title(); ?>'
+		});
+	<?php
+	endif;
+
+	// Iframe Embed Pages
+	if(basename(get_page_template()) == 'page-iframe.php'):
+	?>		
+		window.dataLayer.push({
+			'event': 'ai_view',
+			'page_title': '<?php echo get_the_title(); ?>'
+		});
+	<?php
 	endif;
 	?>
 	

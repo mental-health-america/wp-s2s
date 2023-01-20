@@ -39,7 +39,8 @@ function mhaDiySubmit(){
         'activity_id'           => array(),
         'submit'                => 0,
         'opened_diy'            => null,
-        'opened_diy_question'   => null
+        'opened_diy_question'   => null,
+        'crowdsource_hidden'    => null,
     );    
     parse_str($_POST['data'], $data);  
     $args = wp_parse_args( $data, $defaults ); 
@@ -108,8 +109,9 @@ function mhaDiySubmit(){
                 update_field('activity_id', array($args['activity_id']), $result['post_id']); // Post object needs an array to submit?
                 update_field('ipiden', $ipiden, $result['post_id']);
                 update_field('started', $timestamp, $result['post_id']);
-                update_field('ref_code', sanitize_text_field($args['ref_code']), $result['post_id']);                
-                update_field('user_viewed_crowdsource', $args['opened_diy'], $result['post_id']);
+                update_field('ref_code', sanitize_text_field($args['ref_code']), $result['post_id']);         
+                update_field('user_viewed_crowdsource', $args['opened_diy'], $result['post_id']);               
+                update_field('crowdsource_hidden', $args['crowdsource_hidden'], $result['post_id']);
                 update_field('user_viewed_crowdsource_question', $args['opened_diy_question'], $result['post_id']);
 
             } else {
