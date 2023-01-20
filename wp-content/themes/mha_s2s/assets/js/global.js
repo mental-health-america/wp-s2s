@@ -406,7 +406,7 @@
 		}
 
 		// Iframe Resizing
-		var iframe_resizer = iFrameResize({log:true}, '#fulliframe');
+		var iframe_resizer = iFrameResize({log:false}, '#fulliframe');
 
 	});
 
