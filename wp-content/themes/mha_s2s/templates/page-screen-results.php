@@ -417,7 +417,7 @@ else:
              */    
             if(!in_array('actions_hide_ns_r', $layout) && !in_array('actions_hide_nsh', $layout) ):
         ?>
-            <h2 class="section-title dark-blue bold">
+            <h2 class="section-title dark-blue bold mb-3">
                 <?php if($espanol): ?>
                     Siguientes Pasos
                 <?php else: ?>
@@ -426,6 +426,60 @@ else:
             </h2>
         <?php endif; ?>
         
+
+        <?php 
+            /**
+             * A/B Variant
+             * Layout: actions_hide_ns
+             */
+
+            if(!in_array('actions_hide_ns', $layout)):          
+                
+                /**
+                 * A/B Variant
+                 * Layout: actions_ns_custom
+                 */
+                if(in_array('actions_ns_custom', $layout)): 
+
+                    if( have_rows('next_steps', $user_screen_result['screen_id']) ):     
+                    while( have_rows('next_steps', $user_screen_result['screen_id']) ) : the_row();    
+                    
+                        // Additional custom conditions
+                        if( get_sub_field('layout_condition') != '' ){
+                            $ns_custom_condition = array_map('trim', explode(',', get_sub_field('layout_condition')));
+                            $ns_custom_total = count($ns_custom_condition);
+                            $ns_custom_count = 0;
+                            $layout_total = count($layout);
+
+                            foreach($ns_custom_condition as $c){
+                                if(in_array($c, $layout)){
+                                    $ns_custom_count++;
+                                }
+                            }
+
+                            if($ns_custom_count != $ns_custom_total){
+                                continue;
+                            }
+                        } 
+                        
+                        $ns_custom_classes = get_sub_field('custom_classes') != '' ? get_sub_field('custom_classes') : 'bubble round-tl mb-5 mint';
+                        ?>
+                        <div class="<?php echo $ns_custom_classes; ?>">
+                            <div class="inner">
+                                <?php
+                                    the_sub_field('content');
+                                ?>
+                            </div>
+                        </div>
+                        <?php 
+                    endwhile;
+                    endif;
+
+                endif; 
+                
+            endif; // End 'actions_hide_ns'
+        ?>    
+
         <?php 
             /**
              * A/B Variant
@@ -587,63 +641,6 @@ else:
             </div>
             </div>
         <?php endif; // Hide 'actions_ns_top_r' ?>
-
-        <?php 
-            /**
-             * A/B Variant
-             * Layout: actions_hide_ns
-             */
-
-            if(!in_array('actions_hide_ns', $layout)):          
-        ?>
-            
-            <?php 
-                /**
-                 * A/B Variant
-                 * Layout: actions_ns_custom
-                 */
-                if(in_array('actions_ns_custom', $layout)): 
-
-                    if( have_rows('next_steps', $user_screen_result['screen_id']) ):     
-                    while( have_rows('next_steps', $user_screen_result['screen_id']) ) : the_row();    
-                    
-                        // Additional custom conditions
-                        if( get_sub_field('layout_condition') != '' ){
-                            $ns_custom_condition = array_map('trim', explode(',', get_sub_field('layout_condition')));
-                            $ns_custom_total = count($ns_custom_condition);
-                            $ns_custom_count = 0;
-                            $layout_total = count($layout);
-
-                            foreach($ns_custom_condition as $c){
-                                if(in_array($c, $layout)){
-                                    $ns_custom_count++;
-                                }
-                            }
-
-                            if($ns_custom_count != $ns_custom_total){
-                                continue;
-                            }
-                        } 
-                        
-                        $ns_custom_classes = get_sub_field('custom_classes') != '' ? get_sub_field('custom_classes') : 'bubble round-tl mb-5 mint';
-                        ?>
-                        <div class="<?php echo $ns_custom_classes; ?>">
-                            <div class="inner">
-                                <?php
-                                    the_sub_field('content');
-                                ?>
-                            </div>
-                        </div>
-                        <?php 
-                    endwhile;
-                    endif;
-
-                endif; 
-            ?>
-
-            <?php         
-            endif; // End 'actions_hide_ns'
-        ?>    
 
         <?php 
             /**
