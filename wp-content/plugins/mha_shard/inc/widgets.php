@@ -54,60 +54,94 @@ function recent_flagged_thoughts() {
         </tr>
         <?php 
             foreach($flag_query as $flag): 
-            $responses = get_field('responses', $flag->pid);
-            $type = get_post_type($flag->pid);
-            if(is_numeric($responses[$flag->row]['admin_pre_seeded_thought']) || $responses[$flag->row]['response'] == ''){
-                continue;
-            }
-            if($type == 'thought_activity' || $responses[$flag->row]['hide'] == 1 || get_field('admin_notes', $flag->pid) || $responses[$flag->row]['response'] == ''){
-                continue;
-            }
-            $flag_count++;
-        ?>
-            <tr>
-                <td>
-                    <?php 
-                        $user = get_userdata($flag->uid); 
-                        echo '<a href="'.get_edit_user_link($flag->uid).'">';
-                        echo $user->user_login;
-                        echo '</a>';
-                    ?>
-                </td>
-                <td>
-                    <?php echo $flag->date; ?>
-                </td>
-                <td>
-                    <?php
-                        //echo $flag->row;
-                        $edit_pid = $flag->pid;
+            
+                // Skip if there is an admin note
+                $admin_note = get_field('admin_notes', $flag->pid);
+                if($admin_note || $admin_note != ''){
+                    continue;
+                }
 
-                        /*
-                        if($type == 'thought_activity'){
+                $type = get_post_type($flag->pid);
 
-                            // Admin seeded thought
-                            $initial_thought = get_field('pre_generated_responses', $flag->pid);
-                            echo '<strong>Admin Seeded Thought:</strong><br />'.$initial_thought[$flag->row]['response'];
+                // Thoughts
+                $responses = null;
+                if(get_field('responses', $flag->pid)){
+                    $responses = get_field('responses', $flag->pid);
+                }
+                
+                // DIY Tools
+                if(get_field('response', $flag->pid)){
+                    $responses = get_field('response', $flag->pid);
+                }
 
-                        } else {
-                        */
+                // Skips
+                if(!$responses){
+                    //echo '1';
+                    continue;
+                }
+                if($type == 'thought'){
+                    if(is_numeric($responses[$flag->row]['admin_pre_seeded_thought']) || $responses[$flag->row]['response'] == ''){
+                        //echo '2';
+                        continue;
+                    }
+                    if($type == 'thought_activity' || $responses[$flag->row]['hide'] == 1 || get_field('admin_notes', $flag->pid) || $responses[$flag->row]['response'] == ''){
+                        //echo '3';
+                        continue;
+                    }
+                }
+                if($type == 'diy_responses'){
+                    if(get_field('crowdsource_hidden', $flag->pid) || get_field('admin_notes', $flag->pid) || !get_mha_flagged_diy_response( 'diy_responses', $responses, $flag->row ) ){
+                        //echo '4';
+                        continue;
+                    }
+                }
+                $flag_count++;
+                ?>
 
-                            // Other thoughts
-                            if(isset($responses[$flag->row]['response'])){
-                                echo $responses[$flag->row]['response'];   
-                            } else {
-                                echo '<em>&mdash; Thought Deleted &mdash;</em>';
+                <tr>
+                    <td>
+                        <?php 
+                            $user = get_userdata($flag->uid); 
+                            echo '<a href="'.get_edit_user_link($flag->uid).'">';
+                            //echo $user->user_login;
+                            echo (strlen($user->user_login) > 16) ? substr($user->user_login,0,15).'...' : $user->user_login;
+                            echo '</a>';
+                        ?>
+                    </td>
+                    <td>
+                        <?php echo date( 'm-d-Y', strtotime($flag->date) ); ?>
+                    </td>
+                    <td>
+                        <?php
+                            $edit_pid = $flag->pid;
+                            if($type == 'thought'){
+                                echo '<strong>Thoughts</strong><br />';
+                                if(is_numeric($responses[$flag->row]['user_pre_seeded_thought'])){
+                                    $user_response = get_field('responses', $responses[$flag->row]['user_pre_seeded_thought']);
+                                    $edit_pid = $responses[$flag->row]['user_pre_seeded_thought'];
+                                    echo $user_response[$flag->row]['response'];                                       
+                                }
+                                else if(isset($responses[$flag->row]['response']) && $responses[$flag->row]['response'] != ''){
+                                    echo $responses[$flag->row]['response'];   
+                                } else {
+                                    echo '<em>&mdash; Thought Deleted &mdash;</em>';
+                                }
                             }
 
-                        /*
-                        }
-                        */
-
-                    ?>
-                </td>
-                <td>
-                    <?php edit_post_link('Edit', '', '', $edit_pid); ?>
-                </td>
-            </tr>
+                            if($type == 'diy_responses'){
+                                echo '<strong>DIY Tool</strong><br />';
+                                if( get_mha_flagged_diy_response( 'diy_responses', $responses, $flag->row ) ){
+                                    echo get_mha_flagged_diy_response( 'diy_responses', $responses, $flag->row );   
+                                } else {
+                                    echo '<em>&mdash; Thought Deleted/Not Available &mdash;</em>';
+                                }
+                            }
+                        ?>
+                    </td>
+                    <td>
+                        <?php edit_post_link('Edit', '', '', $edit_pid); ?>
+                    </td>
+                </tr>
         <?php endforeach;?> 
         </table>
         

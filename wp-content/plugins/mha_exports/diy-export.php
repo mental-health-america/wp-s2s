@@ -10,7 +10,7 @@ use League\Csv\Reader;
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsExportScripts');
 function mhaDiyToolsExportScripts() {
-    wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__FILE__) . 'diy_export.js', array('jquery'), time(), true );
+    wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__FILE__) . 'diy_export.js', array('jquery'), 'v1.2', true );
     wp_localize_script('process_diyToolsExport', 'do_mhaDiyToolsExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 
@@ -54,16 +54,27 @@ function mha_export_diy_tool_data(){
         
     }
 
+    /**
+     * Elapsed Time
+     */
+    if(isset($args['elapsed_start'])){
+        $args['elapsed_start'] = $args['elapsed_start'];
+    } else {
+        $args['elapsed_start'] = time();
+    }
+
+
     // Begin CSV Headers
     $csv_headers = [
         0 => 'activity',
         1 => 'ipiden',
         2 => 'username',
-        3 => 'user_hidden',
-        5 => 'crowdsource_hidden',
-        6 => 'user_viewed_crowdsource',
+        3 => 'hidden_from_my_account',
+        5 => 'hidden_from_crowdsource',
+        6 => 'hidden_from_my_account',
         7 => 'ref_code',
-        8 => 'post_status'
+        8 => 'post_status',
+        9 => 'post_id',
     ];
 
     // Begin query
@@ -74,6 +85,13 @@ function mha_export_diy_tool_data(){
         "order" => 'ASC',
         "orderby" => 'date',
         "paged" => $args['page'],
+        "meta_query"		=> array(
+            array(
+                'key'       => 'activity_id',
+                'value'     => $args["tool_id"],
+                'compare'   => 'LIKE'
+            )
+        )
     );    
 
     // Date query
@@ -121,11 +139,12 @@ function mha_export_diy_tool_data(){
             'activity'                          => get_the_title($activity_id).' (#'.$activity_id.')',
             'ipiden'                            => get_field('ipiden'),
             'username'                          => get_the_author_meta( 'user_nicename', get_post_field ('post_author', $response_id) ),
-            'user_hidden'                       => get_field('hidden'),
-            'crowdsource_hidden'                => get_field('crowdsource_hidden'),
-            'user_viewed_crowdsource'           => get_field('user_viewed_crowdsource'),
+            'hidden_from_my_account'            => get_field('hidden'),
+            'hidden_from_crowdsource'           => get_field('crowdsource_hidden'),
+            'viewed_crowdsource'                => get_field('user_viewed_crowdsource'),
             'ref_code'                          => get_field('ref_code'),
-            'post_status'                       => get_post_status()
+            'post_status'                       => get_post_status(),
+            'post_id'                           => $response_id
         ];
 
         // Put each question in first in case of blanks
@@ -154,16 +173,16 @@ function mha_export_diy_tool_data(){
         }
         $csv_data[$i]['Total Likes'] = $response_total_likes;
         $csv_data[$i]['Total Flags'] = $response_total_flags;
+        $csv_data[$i]['Admin Notes'] = get_field('admin_notes');
 
         $i++;
     endwhile;        
     endif;
+    
 
     /**
      * Set next step variables
-     */
-
-    
+     */    
     $args['max'] = $diy_res_loop->max_num_pages;    
     $args['percent'] = round( ( ( $args['page'] / $args['max']) * 100 ), 2 );
     if($args['page'] >= $args['max']){
@@ -171,16 +190,6 @@ function mha_export_diy_tool_data(){
     } else {
         $args['next_page'] = $args['page'] + 1;
     }  
-
-
-    /**
-     * Elapsed Time
-     */
-    if(isset($args['elapsed_start'])){
-        $args['elapsed_start'] = $args['elapsed_start'];
-    } else {
-        $args['elapsed_start'] = time();
-    }
     
     if(count($csv_data) == 0){
         $args['download'] = '#';   

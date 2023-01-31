@@ -30,8 +30,6 @@ function mhaThoughtScripts() {
 // List Page
 function mhathoughtexport(){
 
-//echo mha_export_diy_tool_data();
-
 ?>
 
 <div id="poststuff" class="wrap">
