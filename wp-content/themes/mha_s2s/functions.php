@@ -508,23 +508,25 @@ function in_multiarray($needle, $haystack, $strict = false) {
 add_action( 'wp_login_failed', 'front_end_login_fail' );
 function front_end_login_fail( $username ) {
 	// Getting URL of the login page
-	$referrer = $_SERVER['HTTP_REFERER'];    
-	// if there's a valid referrer, and it's not the default log-in screen
-	if( !empty( $referrer ) && !strstr( $referrer,'wp-login' ) && !strstr( $referrer,'wp-admin' ) ) {
-		// Custom Redirect/Args
-		$query_args = array( 'login_error' => 'true' );
+	if(isset($_SERVER['HTTP_REFERER'])){
+		$referrer = $_SERVER['HTTP_REFERER'];    
+		// if there's a valid referrer, and it's not the default log-in screen
+		if( !empty( $referrer ) && !strstr( $referrer,'wp-login' ) && !strstr( $referrer,'wp-admin' ) ) {
+			// Custom Redirect/Args
+			$query_args = array( 'login_error' => 'true' );
 
-		// Custom Referral Check
-		$ref_query = parse_url($referrer, PHP_URL_QUERY);
-		parse_str($ref_query, $ref_query_params);
-		if(isset($ref_query_params['redirect_to']) && $ref_query_params['redirect_to'] != ''){
-			$query_args['redirect_to'] = $ref_query_params['redirect_to'];
+			// Custom Referral Check
+			$ref_query = parse_url($referrer, PHP_URL_QUERY);
+			parse_str($ref_query, $ref_query_params);
+			if(isset($ref_query_params['redirect_to']) && $ref_query_params['redirect_to'] != ''){
+				$query_args['redirect_to'] = $ref_query_params['redirect_to'];
+			}
+
+			// Set our URL parameters
+			$custom_redirect = add_query_arg( $query_args, get_permalink( 566 ) );
+			wp_redirect( $custom_redirect ); 
+			exit;
 		}
-
-		// Set our URL parameters
-		$custom_redirect = add_query_arg( $query_args, get_permalink( 566 ) );
-		wp_redirect( $custom_redirect ); 
-		exit;
 	}
 }
 

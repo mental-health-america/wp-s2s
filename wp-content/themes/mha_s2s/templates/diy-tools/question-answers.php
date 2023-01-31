@@ -165,7 +165,7 @@
                 <div class="pb-2 pt-4"<?php echo $crowdsource_atts; ?>>
                     <h3 class="text-center text-blue mb-0 pb-3"><?php echo $crowdsource_heading; ?></h3>
                 </div>
-                <div id="crowdthoughtsContent" class="carousel" data-carousel="1" data-question="0" data-activity="<?php echo $activity_id; ?>" data-current=""></div>
+                <div id="crowdthoughtsContent" class="carousel" data-carousel="1" data-question="0" data-activity="<?php echo $activity_id; ?>" data-current="" data-page="1" data-loaded="0"></div>
             </div>
             <?php 
             endif; 

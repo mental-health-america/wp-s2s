@@ -348,6 +348,32 @@ function likeChecker($pid, $row){
 }
 
 
+function get_all_mha_user_likes(){
+
+	// Vars
+	$ipiden = get_ipiden();	
+	$uid = get_current_user_id();
+
+	// Handle anonymous or logged in differently
+	$user_where = ($uid == 0) ? "uid = 4 AND ipiden = '$ipiden'" : "uid = $uid";
+
+	// Get Results
+	global $wpdb;
+	$db_likes = $wpdb->get_results("SELECT pid, row FROM thoughts_likes WHERE $user_where AND unliked = 0 ORDER BY date DESC LIMIT 100");	
+
+	return $db_likes ? $db_likes : false;
+}
+
+function mha_liked_response( $likes, $pid, $row ) {
+	foreach($likes as $l){
+		if($l->row == $row && $l->pid == $pid){
+			return true;
+		}
+	}
+	return false;
+}
+
+
 /**
  * Update Thoughts Submitted
  */
