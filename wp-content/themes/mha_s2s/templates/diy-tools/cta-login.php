@@ -1,8 +1,8 @@
 <?php if(!is_user_logged_in()): ?>
     <?php 
-        $width = $args['width'] ? $args['width'] : 'narrow';
-        $corners = $args['corners'] ? $args['corners'] : '';
-        $iframe_var = $args['iframe_var'] ? $args['iframe_var'] : null;
+        $width = isset($args['width']) ? $args['width'] : 'narrow';
+        $corners = isset($args['corners']) ? $args['corners'] : '';
+        $iframe_var = isset($args['iframe_var']) ? $args['iframe_var'] : null;
     ?>
     <div class="wrap mb-4 <?php echo $width; ?>">
         <div id="screen-save">
