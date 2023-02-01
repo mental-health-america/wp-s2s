@@ -191,7 +191,7 @@ function getDiyCrowdsource(){
     
     // Pagination settings
     $per_page = 15;
-    $args['offset'] = ($args['page'] - 1) * $per_page;
+    $args['offset'] = (intval($args['page']) - 1) * $per_page;
 
     // Future helpers
     $diy_flag_message = get_field('flag_message', 'options');

@@ -365,9 +365,11 @@ function get_all_mha_user_likes(){
 }
 
 function mha_liked_response( $likes, $pid, $row ) {
-	foreach($likes as $l){
-		if($l->row == $row && $l->pid == $pid){
-			return true;
+	if(isset($likes) && is_array($likes)){
+		foreach($likes as $l){
+			if($l->row == $row && $l->pid == $pid){
+				return true;
+			}
 		}
 	}
 	return false;
