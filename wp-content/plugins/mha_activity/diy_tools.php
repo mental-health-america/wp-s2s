@@ -228,7 +228,7 @@ function getDiyCrowdsource(){
             ");
             if($top_likes){
                 foreach($top_likes as $tl){
-                    if(get_post($tl->pid)){
+                    if(get_post($tl->pid) && !get_field('crowdsource_hidden', $tl->pid)){
                         $responses_collection[$tl->pid] = array(
                             'id'    => $tl->pid,
                             'likes' => $tl->total_likes ? $tl->total_likes : 0
@@ -243,7 +243,7 @@ function getDiyCrowdsource(){
             SELECT pid, row, COUNT(pid) AS highflags 
             FROM thoughts_flags 
             WHERE ref_pid = {$args["activity_id"]} 
-            HAVING (highflags > 5) 
+            HAVING (highflags > 2) 
             ORDER BY date DESC 
             LIMIT 200
         ");
@@ -391,11 +391,12 @@ function getDiyCrowdsource(){
                     
                     $result['html'] .= '&bull; Activity ID: '.$args["activity_id"].'<br />';  
                     $result['html'] .= '&bull; Response ID: '.$r['pid'].'<br />';   
-                    $result['html'] .= '&bull; Question Index: '.$qid.'<br />';   
-                    $result['html'] .= '&bull; Likes: '.$r['likes'].'<br />';             
-                    
+                    $result['html'] .= '&bull; Date Started: '.get_field('started', $r['pid']).'<br />';     
+                    $result['html'] .= '&bull; Question Index: '.$qid.'<br /><br />';   
+
+                    $result['html'] .= '&bull; Likes: '.$r['likes'].'<br />';                                 
                     $result['html'] .= '&bull; All Answered: ';                  
-                    $result['html'] .=  ($r['total_answers'] == $total_questions) ? 'Yes' : 'No';   
+                    $result['html'] .=  ($r['total_answers'] == $total_questions) ? 'Yes (+1)' : 'No (+0)';   
         
                     $result['html'] .= '<br />&bull; Total Score: '.$r['score'];     
                     $result['html'] .= '<br />&bull; [<a target="_blank" href="'.get_edit_post_link($r['pid']).'">Edit Submission</a>]<br />';             
