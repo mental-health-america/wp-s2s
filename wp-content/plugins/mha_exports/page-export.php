@@ -29,7 +29,6 @@ function mhaThoughtScripts() {
 
 // List Page
 function mhathoughtexport(){
-
 ?>
 
 <div id="poststuff" class="wrap">

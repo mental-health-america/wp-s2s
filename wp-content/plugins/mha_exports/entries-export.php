@@ -66,10 +66,10 @@ function mha_export_screen_data(){
 
         // Testing options
         if($defaults['debug'] == 1){
-            $defaults['form_id']                   = 12;
+            $defaults['form_id']                   = 34;
             $defaults['export_only_demographic']   = 0;
-            $defaults['export_screen_start_date']  = '2021-10-01';
-            $defaults['export_screen_end_date']    = '2021-10-01';
+            $defaults['export_screen_start_date']  = '2023-01-01';
+            $defaults['export_screen_end_date']    = '2023-01-02';
             $defaults['all_forms_ids']             = null;
             $args = $defaults;
         }
@@ -161,6 +161,8 @@ function mha_export_screen_data(){
 
         // Field population
         $fi = count($args['fields']) + 1;
+        $unique_fields = [];
+
         foreach($gform['fields'] as $gf){  
             $field = GFAPI::get_field( $args['form_id'], $gf['id'] );
             $field_type = isset($field->type) ? $field->type : '';
@@ -182,10 +184,16 @@ function mha_export_screen_data(){
             }
 
             // Set field order
+            if(in_array($gf['label'], $unique_fields)){
+                $label_text = $gf['label']. ' (#'.$gf['id'].')';
+            } else {
+                $label_text = $gf['label'];
+            }
+            $unique_fields[] = $label_text;
             $args['fields'][$fi] = array(
                 'type' => $gf['type'],
                 'key' => $gf['id'],
-                'label' => $gf['label']
+                'label' => $label_text
             );
 
             // Radio/Checkboxes label model to carry over
@@ -219,7 +227,6 @@ function mha_export_screen_data(){
             }
         endforeach;
     endif;
-
 
     // Get form entries
     $paging = array( 'offset' => $offset, 'page_size' => $page_size );
@@ -296,7 +303,11 @@ function mha_export_screen_data(){
                 }
 
                 // Put into our array
-                $temp_array[ $ftv['label'] ] = $v;
+                if(isset($temp_array[ $ftv['label'] ])){
+                    $temp_array[ $ftv['label'].' (#'.$ftk.')' ] = $v;
+                } else {
+                    $temp_array[ $ftv['label'] ] = $v;
+                }
                 
             }
 
