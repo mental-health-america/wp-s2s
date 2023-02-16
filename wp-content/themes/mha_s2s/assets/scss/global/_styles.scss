@@ -154,13 +154,13 @@ input[type="button"] {
         background-color: $orange;
     }
 
-    .site-content & {
-    }
-
-
     &.tiny {
         font-size: .8em;
         padding: 8px 15px;
+    }
+
+    &.text-normal-case {
+        text-transform: none;
     }
     
     // States
@@ -756,6 +756,12 @@ h1 {
     line-height: 1.15em;
     color: $blue;
     @include montserrat(700);
+
+    &.subtitle {
+        font-size: inherit;
+        margin: 0;
+        line-height: inherit;
+    }
 }
 
 h2 {
@@ -878,6 +884,9 @@ p {
     text-transform: uppercase;
     letter-spacing: .04em;
     word-spacing: .1em;
+}
+.text-normal-case {
+    text-transform: none;
 }
 
 em { font-style: italic; }

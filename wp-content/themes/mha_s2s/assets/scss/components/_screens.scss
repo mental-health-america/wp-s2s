@@ -24,6 +24,7 @@ article {
         font-weight: 400;
         color: $gray;
         font-size: inherit;
+        max-width: 720px;
     }
     .gfield_description {
         margin-bottom: .5em;
@@ -55,6 +56,10 @@ article {
         }
     }
 
+    .gfield_html_formatted {
+        max-width: 720px;
+    }
+    
     .gchoice { list-style: none; }
 
     // Text fields

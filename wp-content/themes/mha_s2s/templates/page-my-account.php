@@ -683,6 +683,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                 endwhile; 
                 else : ?>
                     <p>You have no DIY Tool submissions.</p>
+                    <p><a class="button blue round" href="/diy">Explore DIY Tools</a></p>
                 <?php
                 endif;
                 
@@ -694,9 +695,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
         </div>
 
         
-        <!-- Overcoming Thoughts -->
-        <div class="dashboard-block thought-activity pt-5 pb-5">
-            <h2 class="bar">Overcoming Thoughts</h2>                
+        <!-- Overcoming Thoughts -->      
             <?php
                 $hidden_thoughts_check = $wpdb->get_results("SELECT pid FROM thoughts_hidden WHERE uid = $uid", ARRAY_N);
                 $hide_thoughts = [];
@@ -717,6 +716,12 @@ if (strpos($account_action, 'save_screen_') !== false) {
                 $counter = 0;
 
                 if($loop->have_posts()):
+                ?>
+
+                    <div class="dashboard-block thought-activity pt-5 pb-5">
+                    <h2 class="bar">Overcoming Thoughts</h2>          
+
+                <?php
                 while($loop->have_posts()) : $loop->the_post();
                 
                     $responses = get_field('responses');
@@ -744,58 +749,61 @@ if (strpos($account_action, 'save_screen_') !== false) {
                         echo '<div class="collapse" id="allThoughts">';
                     }
                 ?>
-                <div class="bubble round-small-bl thin relative gray mb-4">
-                <div class="inner">
-                    
-                    <div class="relative">
+                    <div class="bubble round-small-bl thin relative gray mb-4">
+                    <div class="inner">
                         
-                        <div claass="container-fluid">
-                        <div class="row">
-                            <div class="coll-12 col-md-8
-                            monsterrat medium text-blue-dark pb-2 pb-md-0">
-                                <div class="mb-3"><?php echo $initial_thought; ?></div>
+                        <div class="relative">
+                            
+                            <div claass="container-fluid">
+                            <div class="row">
+                                <div class="coll-12 col-md-8
+                                monsterrat medium text-blue-dark pb-2 pb-md-0">
+                                    <div class="mb-3"><?php echo $initial_thought; ?></div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <?php 
+                                        if($status != 'publish'){
+                                            echo '<a class="bar plain" href="'.get_the_permalink($activity_id).'">Continue this thought&nbsp;&raquo;</a>';
+                                        } else {
+                                            echo '<a class="bar plain" href="'.get_the_permalink(get_the_id()).'">Review your submission&nbsp;&raquo;</a>';
+                                        }
+                                    ?>
+                                </div>
                             </div>
-                            <div class="col-12 col-md-4">
-                                <?php 
-                                    if($status != 'publish'){
-                                        echo '<a class="bar plain" href="'.get_the_permalink($activity_id).'">Continue this thought&nbsp;&raquo;</a>';
-                                    } else {
-                                        echo '<a class="bar plain" href="'.get_the_permalink(get_the_id()).'">Review your submission&nbsp;&raquo;</a>';
-                                    }
-                                ?>
                             </div>
-                        </div>
-                        </div>
-                        
-                        <button class="hide-thought button gray round" 
-                            id="button-<?php echo get_the_ID(); ?>"
-                            data-toggle="tooltip" 
-                            data-placement="top" 
-                            title="Hide this thought from displaying on your account."
-                            aria-expanded="false" 
-                            aria-controls="thought-<?php echo get_the_ID(); ?>">X</button>
+                            
+                            <button class="hide-thought button gray round" 
+                                id="button-<?php echo get_the_ID(); ?>"
+                                data-toggle="tooltip" 
+                                data-placement="top" 
+                                title="Hide this thought from displaying on your account."
+                                aria-expanded="false" 
+                                aria-controls="thought-<?php echo get_the_ID(); ?>">X</button>
 
-                        <div class="hide-thought-confirm-container text-center hidden" id="thought-<?php echo get_the_ID(); ?>">
-                            <div class="pb-2">
-                                <button class="hide-thought-confirm thin button red round small" 
-                                    data-toggle="tooltip" 
-                                    data-pid="<?php echo get_the_ID(); ?>"                                      
-                                    data-nonce="<?php echo wp_create_nonce('hideThought'); ?>" >Are you sure you want to hide this thought?</button>
+                            <div class="hide-thought-confirm-container text-center hidden" id="thought-<?php echo get_the_ID(); ?>">
+                                <div class="pb-2">
+                                    <button class="hide-thought-confirm thin button red round small" 
+                                        data-toggle="tooltip" 
+                                        data-pid="<?php echo get_the_ID(); ?>"                                      
+                                        data-nonce="<?php echo wp_create_nonce('hideThought'); ?>" >Are you sure you want to hide this thought?</button>
+                                </div>
+                                <button class="cancel-hide-thought plain gray round text-gray">Nevermind</button>
                             </div>
-                            <button class="cancel-hide-thought plain gray round text-gray">Nevermind</button>
+
                         </div>
 
                     </div>
-
-                </div>
-                </div>
-                <?php 
-                $counter++;
+                    </div>
+                    </div>
+                    <?php 
+                    $counter++;
                 endwhile; 
+                /*
                 else :?>
                     <p>You have no submitted thoughts.</p>
                     <p><a class="button blue round" href="/overcoming-thoughts">What thought are you struggling with right now?</a></p>
                 <?php
+                */
                 endif;
                 
                 if($counter > 3 && $loop_total > 3){
@@ -825,7 +833,6 @@ if (strpos($account_action, 'save_screen_') !== false) {
                 }
                 wp_reset_query();
             ?>
-        </div>
 
         <?php
             // CTA

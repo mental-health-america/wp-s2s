@@ -1,6 +1,9 @@
 <?php
     // Placement addendum for desktop/mobile
     $placement = $args['placement'] ? '_'.$args['placement'] : '';
+
+    // A/B Testing
+    $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
 ?>
 
 <div class="sticky">
@@ -73,7 +76,7 @@
     }    
     */
 
-    if($terms_all):
+    if($terms_all && !count(array_intersect( array('sidebar_only_test'), $layout)) || count(array_intersect( array('sidebar_show_related'), $layout)) ):
     ?>
         <div id="article--related-topics<?php echo $placement; ?>" class="bubble <?php echo $categoryColor; ?> thin round-big-tl mb-4">
         <div class="inner">
@@ -183,9 +186,7 @@
         }
 
         // Screens
-        $has_test_widget = false;
-
-        if( count( array_intersect($article_type, array('condition')) ) > 0 ){
+        if( count( array_intersect($article_type, array('condition')) ) > 0 && !count(array_intersect( array('sidebar_only_related'), $layout)) ):
 
             // Show Specific Related Test
             $args = array(
@@ -299,8 +300,27 @@
                 endif;
             endif;
             wp_reset_query();
+
+        endif;
             
-        }
+        // Generic take a test message
+        if( 
+            !$has_screen_cta && count(array_intersect( array('sidebar_only_test'), $layout)) && !count(array_intersect( array('sidebar_only_related'), $layout)) ||
+            !$has_screen_cta && count(array_intersect( array('sidebar_show_test'), $layout)) && !count(array_intersect( array('sidebar_only_related'), $layout)) 
+        ):
+            ?>
+                <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4 hide-mobile">
+                <div class="inner">                
+                    <h4><?php echo _e('Take a Mental Health Test', 'mhas2s'); ?></h4>
+                    <div class="excerpt font-weight-normal">
+                        <?php echo strip_tags(get_field('hero_introduction', 36), '<p>'); ?>
+                    </div>
+                    <div class="text-center pb-3"><a href="/screening-tools/" class="button white round text-orange"><?php echo _e('Take a Mental Health Test', 'mhas2s'); ?></a></div>
+                </div>
+                </div>
+            <?php 
+            //$has_screen_cta++;
+        endif;
 
         // Show Random Related Test
         /*
@@ -381,8 +401,11 @@
          * Related Articles
          */
 
-        if($has_screen_cta == 0):
-        //if(count(array_intersect($article_type, $resources)) > 0 || count( array_intersect($article_type, array('condition')) ) > 0 && $has_screen_cta == 0 ):       
+        if( count(array_intersect( array('sidebar_only_test'), $layout)) ) {
+            $has_screen_cta = 1;
+        }
+
+        if( $has_screen_cta == 0 || count(array_intersect( array('sidebar_show_related'), $layout)) ):    
 
             $related_articles = [];
             $args = array(

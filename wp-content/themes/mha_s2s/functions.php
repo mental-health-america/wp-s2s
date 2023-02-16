@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20221201_2' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20230216' );
 	// wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -448,19 +448,31 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 
 	$current_page = GFFormDisplay::get_current_page( $form['id'] );
 	$page_count = GFFormDisplay::get_max_page_number( $form ) + 1;
+    $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
 	
-	if(get_field('espanol')){
-		$progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
-			<li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
-			<li class="step-2"><span>Preguntas<br />Opcionales</span></li>
-			<li class="step-3"><span>Sus<br />Resultados</span></li>
-		</ol>';
+	$last_progress_label = get_field('survey') ? 'Submit<br /> Survey' : 'Your<br />Results';
+
+	if( in_array('show_progress', $layout) && !in_array('hide_progress', $layout) || !in_array('hide_progress', $layout) ){
+
+		if(get_field('espanol')){
+			$progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+				<li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
+				<li class="step-2"><span>Preguntas<br />Opcionales</span></li>
+				<li class="step-3"><span>Sus<br />Resultados</span></li>
+			</ol>';
+		} else {
+			$demo_label = in_array('alt_demo_label', $layout) ? 'Optional<br />Questions' : 'Demographic<br />Information';
+			$progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+				<li class="step-1"><span>Test<br />Questions</span></li>
+				<li class="step-2"><span>'.$demo_label.'</span></li>
+				<li class="step-3"><span>'.$last_progress_label.'</span></li>
+			</ol>';
+		}
+
 	} else {
-		$progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
-			<li class="step-1"><span>Test<br />Questions</span></li>
-			<li class="step-2"><span>Demographic<br />Information</span></li>
-			<li class="step-3"><span>Your<br />Results</span></li>
-		</ol>';
+
+		$progress_bar = '';
+
 	}
 
     return $progress_bar;

@@ -133,7 +133,7 @@ get_header();
 									$page = get_sub_field('page');
 									if($page){
 										if(!in_array($page->ID, $link_skip)){ // Skip pathway links to avoid duplicates
-											echo '<a class="button '.$button_color.' thin round mr-3 mb-3" href="'.get_the_permalink($page).'">';
+											echo '<a class="button '.$button_color.' text-normal-case thin round mr-3 mb-3" href="'.get_the_permalink($page).'">';
 												if(get_sub_field('custom_title')){
 													the_sub_field('custom_title');
 												} else {

@@ -76,18 +76,23 @@ else:
             /**
              * Current Step
              */
-            if($espanol){
-                echo '<ol class="screen-progress-bar clearfix step-3-of-3">
-                    <li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
-                    <li class="step-2"><span>Preguntas<br />Opcionales</span></li>
-                    <li class="step-3"><span>Sus<br />Resultados</span></li>
-                </ol>';
-            } else {
-                echo '<ol class="screen-progress-bar clearfix step-3-of-3">
-                    <li class="step-1"><span>Test<br />Questions</span></li>
-                    <li class="step-2"><span>Demographic<br />Information</span></li>
-                    <li class="step-3"><span>Your<br />Results</span></li>
-                </ol>';
+
+            if(in_array('results_header_v1', $layout) || in_array('show_progress', $layout)){
+                $last_progress_label = get_field('survey',$user_screen_result['screen_id']) ? 'Submit<br /> Survey' : 'Your<br />Results';
+                if($espanol){
+                    echo '<ol class="screen-progress-bar clearfix step-3-of-3">
+                        <li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
+                        <li class="step-2"><span>Preguntas<br />Opcionales</span></li>
+                        <li class="step-3"><span>Sus<br />Resultados</span></li>
+                    </ol>';
+                } else {
+                    $demo_label = in_array('alt_demo_label', $layout) ? 'Optional<br />Questions' : 'Demographic<br />Information';
+                    echo '<ol class="screen-progress-bar clearfix step-3-of-3">
+                        <li class="step-1"><span>Test<br />Questions</span></li>
+                        <li class="step-2"><span>'.$demo_label.'</span></li>
+                        <li class="step-3"><span>'.$last_progress_label.'</span></li>
+                    </ol>';
+                }
             }
             
             /**
@@ -173,10 +178,20 @@ else:
                                     ?>
                                         <div class="bubble thin teal round-small-bl mb-4">
                                         <div class="inner">
-                                            <span id="screen-name" style="display: none;"><?php echo get_the_title($user_screen_result['screen_id']); ?></span>
-                                            <h2 class="white small m-0">
-                                                <strong><?php echo $result[0]['result_title']; $result_title = $result[0]['result_title']; ?></strong>
-                                            </h2>
+
+                                        <span id="screen-name" style="display: none;"><?php echo get_the_title($user_screen_result['screen_id']); ?></span>
+                                            <?php if(!get_field('show_survey_results', $user_screen_result['screen_id']) && !in_array('results_header_v1', $layout) ): ?>
+                                                <h1 class="subtitle thin montserrat block pb-1">
+                                                    Thank you for completing this survey!
+                                                </h1>
+                                                <h2 class="white small m-0">
+                                                    <strong><?php echo get_the_title($user_screen_result['screen_id']); ?></strong>
+                                                </h2>
+                                            <?php else: ?>
+                                                <h2 class="white small m-0">
+                                                    <strong><?php echo $result[0]['result_title']; $result_title = $result[0]['result_title']; ?></strong>
+                                                </h2>
+                                            <?php endif; ?>
                                         </div>
                                         </div>
                                     <?php
@@ -187,13 +202,17 @@ else:
                                     ?>
                                         <div class="bubble thin teal round-small-bl mb-4">
                                         <div class="inner">
-                                            <div class="subtitle thin caps block pb-1">
+                                            <h1 class="subtitle thin block pb-1 <?php if(in_array('results_header_v1', $layout)){ echo 'caps'; } else { echo 'montserrat'; } ?>">
                                                 <?php if($espanol): ?>
                                                     Su resultado para la <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span> fue
                                                 <?php else: ?>
-                                                    Your <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span> score was
+                                                    <?php if(in_array('results_header_v1', $layout)): ?>
+                                                        Your <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span> score was
+                                                    <?php else: ?>
+                                                        Your Results &mdash; <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span>:
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
-                                            </div>
+                                            </h1>
                                             <h2 class="white small m-0">
                                                 <strong><?php the_sub_field('result_title'); $result_title = get_sub_field('result_title'); ?></strong>
                                             </h2>
@@ -417,13 +436,17 @@ else:
              */    
             if(!in_array('actions_hide_ns_r', $layout) && !in_array('actions_hide_nsh', $layout) ):
         ?>
-            <h2 class="section-title dark-blue bold mb-3">
-                <?php if($espanol): ?>
-                    Siguientes Pasos
-                <?php else: ?>
-                    Next Steps
-                <?php endif; ?>
-            </h2>
+            <?php if(!in_array('results_header_v1', $layout)): ?><div class="wrap narrow"><?php endif; ?>
+
+                <h2 class="section-title dark-blue bold mb-3">
+                    <?php if($espanol): ?>
+                        Siguientes Pasos
+                    <?php else: ?>
+                        Next Steps
+                    <?php endif; ?>
+                </h2>
+
+            <?php if(!in_array('results_header_v1', $layout)): ?></div><?php endif; ?>
         <?php endif; ?>
         
 
@@ -728,6 +751,7 @@ else:
         <?php endif; // Hide 'actions_hide_ns' ?>
 
         <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
+            <?php if(!in_array('results_header_v1', $layout)): ?><div class="wrap narrow"><?php endif; ?>
             <h2 class="section-title cerulean small bold">
                 <?php 
                 if($espanol){
@@ -740,6 +764,7 @@ else:
                 }
                 ?>
             </h2>
+            <?php if(!in_array('results_header_v1', $layout)): ?></div><?php endif; ?>
         <?php endif; ?>
         
     </div>
