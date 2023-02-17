@@ -243,7 +243,7 @@ function getDiyCrowdsource(){
             SELECT pid, row, COUNT(pid) AS highflags 
             FROM thoughts_flags 
             WHERE ref_pid = {$args["activity_id"]} 
-            HAVING (highflags > 2) 
+            HAVING (highflags >= 1) 
             ORDER BY date DESC 
             LIMIT 200
         ");
