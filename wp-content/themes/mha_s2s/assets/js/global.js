@@ -408,6 +408,41 @@
 		// Iframe Resizing
 		var iframe_resizer = iFrameResize({log:false}, '#fulliframe');
 
+		/**
+		 * Exit Modal
+		 */
+		function exitModalDisplay(){
+			$("#exitModal").addClass('viewed');	
+			$('#exitModal').modal({
+				keyboard: true
+			});
+		}
+		
+		/*
+		window.onbeforeunload = confirmExit;
+		function confirmExit() {
+			exitModalDisplay();
+			return "Before you leave the page...";
+		}
+		*/
+
+		// Mouse leaving the tab
+		$(document).bind("mouseleave", function(e) {
+			if( $('#exitModal').length && !$('#exitModal').hasClass('viewed') && e.pageY - $(window).scrollTop() <= 1 ){ 
+				exitModalDisplay();
+			}
+		});
+
+		// Clicking a link to leave
+		$(document).on("click", "a", function(e){
+			if( $('#exitModal').length && !$('#exitModal').hasClass('viewed') ) {
+				$('.modal-footer').html('<button type="button" class="round-tl gray" data-dismiss="modal">Nevermind</button> <a class="button blue round-tl" href="'+e.target+'">Close & Continue</a>');
+				exitModalDisplay();
+				return false;
+			}
+		});
+	
+
 	});
 
 

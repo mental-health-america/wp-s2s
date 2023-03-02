@@ -38,6 +38,11 @@
 			</div>
 		<?php endif; ?>
 
+		<?php
+			// Exit Modals
+			get_template_part( 'templates/partials/modal', 'exit' );
+		?>
+		
 	</main>
 
 	<footer id="footer" class="clear">
