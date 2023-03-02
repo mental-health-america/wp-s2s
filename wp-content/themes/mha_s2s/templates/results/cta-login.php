@@ -4,7 +4,7 @@
         $corners = $args['corners'] ? $args['corners'] : '';
         $iframe_var = $args['iframe_var'] ? $args['iframe_var'] : null;
     ?>
-    <div class="wrap mt-3 <?php echo $width; ?>">
+    <div class="wrap pt-3 <?php echo $width; ?>">
         <div id="screen-save">
             <div class="bubble round blue thin mb-1 <?php echo $corners; ?>">
             <div class="inner bold text-center">

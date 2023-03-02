@@ -249,15 +249,46 @@ else:
                                 <button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">
                                     <?php echo ($espanol ? 'Sus respuestas' : 'Your Answers'); ?>
                                 </button>
-                                
                                 <?php
-                                    if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d'), $layout))){
+                                    if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d', 'btn_hide_take_test'), $layout))){
                                         get_template_part( 'templates/results/action', 'take_test', array( 'url' => $take_another_url, 'espanol' => $espanol ) ); 
                                     }
                                 ?>
 
+                                <?php 
+                                    if( count(array_intersect( array('btn_login_save', 'btn_login_save_blue'), $layout)) && !is_user_logged_in() ):
+                                        $login_button_args = array( 
+                                            'espanol' => $espanol
+                                        );
+                                        if( count(array_intersect( array('btn_login_save_blue'), $layout)) ){
+                                            $login_button_args = array( 
+                                                'espanol' => $espanol,
+                                                'button_color' => 'blue'
+                                            );
+                                        }
+                                        get_template_part( 'templates/results/action', 'login_button', $login_button_args ); 
+                                    endif;
+                                ?>
+
                             </div>
 
+                            <?php if( count(array_intersect( array('btn_login_save', 'btn_login_save_blue'), $layout)) && !is_user_logged_in() ): ?>
+                                <div id="login-email-results" class="collapse">
+                                    <?php get_template_part( 'templates/results/action', 'login_email_display', array( 'espanol' => $espanol, 'id' => $user_screen_result['result_id'], 'with_email' => false) ); ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php             
+                                if( count(array_intersect( array('login_cta_blw_btns'), $layout)) ):
+                                    get_template_part( 'templates/results/cta', 'login', array( 
+                                        'width' => 'narrow', 
+                                        'corners' => '', 
+                                        'iframe_var' => $iframe_var, 
+                                        'id' => $user_screen_result['result_id'] 
+                                    ) ); 
+                                endif;
+                            ?>
+                            
                             <div id="screen-result-content" class="pt-4">
 
                                 <?php
@@ -415,9 +446,9 @@ else:
 
     <div class="wrap normal pt-0 pb-3 d-print-none">
 
-        <div class="mb-5 pb-2">
+        <div class="py-4">
             <?php             
-                if(!count(array_intersect( array('login_cta_top'), $layout)) && !count(array_intersect( array('actions_e'), $layout))):
+                if( !count(array_intersect( array('login_cta_top', 'actions_e', 'login_cta_blw_btns', 'hide_login_prompt'), $layout)) ):
                     get_template_part( 'templates/results/cta', 'login', array( 
                         'width' => 'narrow', 
                         'corners' => '', 

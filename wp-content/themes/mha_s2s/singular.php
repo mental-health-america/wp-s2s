@@ -160,7 +160,7 @@ get_header();
 						
 					</div>
 					</div>
-					
+
 				</div>
 
 			<?php 
@@ -168,6 +168,7 @@ get_header();
 	?>
 
 	<?php 
+
 		// Mobile Article Sidebar 
 		if($post_type == 'article') :
 		while ( have_posts() ) : the_post();
