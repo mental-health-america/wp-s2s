@@ -1,5 +1,5 @@
 <?php
-    $show = isset($args['show']) ? '' : 'collapse';
+    $show = (isset($args['show']) && $args['show'] == 1) ? '' : 'collapse';
 ?>
 
 <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 <?php echo $show; ?> anchor-content" id="email-results">

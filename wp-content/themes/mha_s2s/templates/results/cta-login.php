@@ -1,8 +1,8 @@
 <?php if(!is_user_logged_in()): ?>
     <?php 
-        $width = isset($args['width']) ? $args['width'] : 'narrow';
-        $corners = isset($args['corners']) ? $args['corners'] : '';
-        $iframe_var = isset($args['iframe_var']) ? $args['iframe_var'] : null;
+        $width = isset($args['width']) && $args['width'] ? $args['width'] : 'narrow';
+        $corners = isset($args['corners']) && $args['corners'] ? $args['corners'] : '';
+        $iframe_var = isset($args['iframe_var']) && $args['iframe_var'] ? $args['iframe_var'] : null;
     ?>
     <div class="wrap pt-3 <?php echo $width; ?>">
         <div id="screen-save">
