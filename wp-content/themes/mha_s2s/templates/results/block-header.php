@@ -7,7 +7,7 @@
         <div class="page-heading plain mb-0">			
             <?php 
                 if(in_array('results_header_v1', $layout)):       
-                    if($args['espanol']){
+                    if(isset($args['espanol'])){
                         echo '<h1 class="entry-title">Sus Resultados</h1>';
                     } else {
                         the_title( '<h1 class="entry-title">', '</h1>' ); 
