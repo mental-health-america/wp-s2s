@@ -5,7 +5,9 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
     $demo_data = [];
     $demo_data['ctas'] = [];
     $demo_data['demo_steps'] = [];
-    $demo_data['exclude_ids'] = [];
+    $demo_data['excluded_ids'] = [];
+    $demo_data['pre_exclude'] = [];
+    $demo_data['debug'] = [];
 
     if( $screen_demos ):
     foreach( $screen_demos as $step ):
@@ -17,6 +19,14 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
         $i = 0;
 
         foreach($conditions as $con):
+
+            if(isset($con['exclude']) && $con['exclude'] == 1){
+                if($links){
+                    foreach($links as $link){
+                        $demo_data['pre_exclude'][] = $link->ID;
+                    }
+                }
+            }
 
             // Is
             if($con['condition'] == 'is'){            
@@ -164,9 +174,10 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                 if(get_post_type( $link->ID ) == 'cta'){
                     $demo_data['ctas'][] = $link->ID;
                 } else {
-                    if(!in_array($link->ID, $demo_data['exclude_ids'])){
+                    if( !in_array($link->ID, $demo_data['excluded_ids']) && !in_array($link->ID, $demo_data['pre_exclude'])){
                         $demo_data['demo_steps'][] = $link;
-                        $demo_data['exclude_ids'][] = $link->ID;
+                    } else {
+                        $demo_data['excluded_ids'][] = $link->ID;
                     }
                 }   
             }

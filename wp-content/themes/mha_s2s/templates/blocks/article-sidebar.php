@@ -408,12 +408,40 @@
         if( $has_screen_cta == 0 || count(array_intersect( array('sidebar_show_related'), $layout)) ):    
 
             $related_articles = [];
+            $exclude_ids = [];
             $args = array(
                 "post_type"      => 'article',
                 "orderby"        => 'title',
                 "post_status"    => 'publish',
                 "posts_per_page" => 500
             );
+
+            // Global Options
+            $global_hide_articles = get_field('global_hide_articles', 'options');
+            if($global_hide_articles){
+                foreach($global_hide_articles as $gha){
+                    $exclude_ids[] = $gha;
+                }
+            }
+            $article_sidebar_hide_articles = get_field('article_sidebar_hide_articles', 'options');
+            if($article_sidebar_hide_articles){
+                foreach($article_sidebar_hide_articles as $asha){
+                    $exclude_ids[] = $asha;
+                }
+            }
+
+            // URL Settings
+            if(get_query_var('exclude_ids')){
+                $url_hide_articles = explode(',',get_query_var('exclude_ids'));
+                foreach($url_hide_articles as $uha){
+                    $exclude_ids[] = $uha;
+                }
+            }
+
+            // Exclude IDs from related articles
+            if(count($exclude_ids) > 0){
+                $args['post__not_in'] = $exclude_ids;
+            }
 
                 
             if(!empty($article_conditions) && !empty($article_tags)){

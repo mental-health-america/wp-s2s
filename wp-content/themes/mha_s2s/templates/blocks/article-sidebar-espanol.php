@@ -123,6 +123,18 @@
                 "posts_per_page" => 500
             );
 
+            // Global Options
+            $global_hide_articles = get_field('global_hide_articles', 'options');
+            foreach($global_hide_articles as $gha){
+                $exclude_ids[] = $gha;
+            }
+            $article_sidebar_hide_articles = get_field('article_sidebar_hide_articles', 'options');
+            foreach($article_sidebar_hide_articles as $asha){
+                $exclude_ids[] = $asha;
+            }
+            if(count($exclude_ids) > 0){
+                $args['post__not_in'] = $exclude_ids;
+            }
                 
             if(!empty($article_conditions) && !empty($article_tags)){
                 $args['tax_query']['relation'] = 'OR';

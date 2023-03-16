@@ -23,7 +23,7 @@ else:
     
     $next_step_terms = [];
     $next_step_manual = [];
-    $exclude_ids = [];
+    $excluded_ids = [];
     $result_cta = [];
     $demo_steps = [];
     $result_title = '';
@@ -32,6 +32,29 @@ else:
     $partner_var = get_query_var('partner'); // Partner layout overrides
     $iframe_var = get_query_var('iframe'); // Template flags when site is viewed in an iframe
 
+    // Global Default Options
+    $global_hide_articles = get_field('global_hide_articles', 'options');
+    if($global_hide_articles){
+        foreach($global_hide_articles as $gha){
+            $excluded_ids[] = $gha;
+        }
+    }
+
+    $screen_results_hide_articles = get_field('screen_results_hide_articles', 'options');
+    if($screen_results_hide_articles){
+        foreach($screen_results_hide_articles as $srha){
+            $excluded_ids[] = $srha;
+        }
+    }
+
+    $url_exclude = get_query_var('exclude_ids');
+    if($url_exclude){
+        $url_exclude_array = explode(',',$url_exclude);
+        foreach($url_exclude_array as $ue){
+            $excluded_ids[] = $ue;
+        }
+    }
+    
     // A/B Testing
     $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
 
@@ -223,76 +246,25 @@ else:
 
                             ?>
                                         
-                            <div id="screen-result-buttons" class="button-grid pt-3 pb-3 pl-0 pr-0 pl-md-5 pr-md-5">
-
-                                <?php 
-                                    if( !get_field('survey', $user_screen_result['screen_id']) || get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                                    ?>
-                                        <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">       
-                                            <?php 
-                                                echo ($espanol ? 'Sobre su puntuación: ' : 'About your Score: '); 
-                                                echo $user_screen_result['total_score'].' / '.$max_score; 
-                                            ?>    
-                                        </button>
-
-                                        <?php
-                                            if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d'), $layout))){
-                                                get_template_part( 'templates/results/action', 'email_button', array( 
-                                                    'espanol' => $espanol 
-                                                ) ); 
-                                            }
-                                        ?>
-                                    <?php 
-                                    endif; 
-                                ?>
-
-                                <button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">
-                                    <?php echo ($espanol ? 'Sus respuestas' : 'Your Answers'); ?>
-                                </button>
-                                <?php
-                                    if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d', 'btn_hide_take_test'), $layout))){
-                                        get_template_part( 'templates/results/action', 'take_test', array( 'url' => $take_another_url, 'espanol' => $espanol ) ); 
-                                    }
-                                ?>
-
-                                <?php 
-                                    if( count(array_intersect( array('btn_login_save', 'btn_login_save_blue'), $layout)) && !is_user_logged_in() ):
-                                        $login_button_args = array( 
-                                            'espanol' => $espanol
-                                        );
-                                        if( count(array_intersect( array('btn_login_save_blue'), $layout)) ){
-                                            $login_button_args = array( 
-                                                'espanol' => $espanol,
-                                                'button_color' => 'blue'
-                                            );
-                                        }
-                                        get_template_part( 'templates/results/action', 'login_button', $login_button_args ); 
-                                    endif;
-                                ?>
-
-                            </div>
-
-                            <?php if( count(array_intersect( array('btn_login_save', 'btn_login_save_blue'), $layout)) && !is_user_logged_in() ): ?>
-                                <div id="login-email-results" class="collapse">
-                                    <?php get_template_part( 'templates/results/action', 'login_email_display', array( 'espanol' => $espanol, 'id' => $user_screen_result['result_id'], 'with_email' => false) ); ?>
-                                </div>
-                            <?php endif; ?>
-
-                            <?php             
-                                if( count(array_intersect( array('login_cta_blw_btns'), $layout)) ):
-                                    get_template_part( 'templates/results/cta', 'login', array( 
-                                        'width' => 'narrow', 
-                                        'corners' => '', 
-                                        'iframe_var' => $iframe_var, 
-                                        'id' => $user_screen_result['result_id'] 
-                                    ) ); 
-                                endif;
+                            <?php 
+                                /**
+                                 * Default Result Button Placement
+                                 */
+                                if(!count(array_intersect( array('result_buttons_below'), $layout))){
+                                    get_template_part( 'templates/results/result', 'buttons', array( 
+                                        'layout' => $layout,
+                                        'user_screen_result' => $user_screen_result,
+                                        'max_score' => $max_score,
+                                        'espanol' => $espanol,
+                                        'take_another_url' => $take_another_url 
+                                    ) );  
+                                }
                             ?>
                             
                             <div id="screen-result-content" class="pt-4">
 
                                 <?php
-                                    if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d'), $layout))){
+                                    if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d', 'result_buttons_below'), $layout))){
                                         get_template_part( 'templates/results/action', 'email_display', array( 
                                             'width' => 'normal', 
                                             'show' => 0, 
@@ -304,25 +276,18 @@ else:
                                     }
                                 ?>
                                 
-                                <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="score-interpretation">
-                                <div class="inner small">
-                                    <div class="container-fluid">
-                                        <!--<h3 class="section-title dark-teal mb-4">Interpretation of Scores</h3>-->
-                                        <?php the_field('interpretation_of_scores', $user_screen_result['screen_id']); ?>
-                                    </div>
-                                </div>
-                                </div>     
-
-                                <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="your-answers">
-                                <div class="inner small">
-                                    <div class="container-fluid p-0">
-                                        <?php 
-                                            echo ($espanol ? '<h3 class="section-title dark-teal mb-4">Sus respuestas</h3>' : '<h3 class="section-title dark-teal mb-4">Your Answers</h3>');
-                                            echo $user_screen_result['your_answers']; 
-                                        ?>
-                                    </div>
-                                </div>
-                                </div>
+                                <?php 
+                                    /**
+                                     * Default Your Answer/More Info Dropdowns Placement
+                                     */
+                                    if(!count(array_intersect( array('result_buttons_below'), $layout))){
+                                        get_template_part( 'templates/results/result', 'dropdowns', array( 
+                                            'layout' => $layout,
+                                            'user_screen_result' => $user_screen_result,
+                                            'espanol' => $espanol,
+                                        ) );  
+                                    }
+                                ?>
                                 
                                 <div class="screen-result-content-inner d-print-none">
                                     <?php
@@ -373,6 +338,38 @@ else:
                                 </div>
 
                             </div>
+                                    
+                            <?php 
+                                /**
+                                 * A/B TestResult Button Placement
+                                 */
+                                if(count(array_intersect( array('result_buttons_below'), $layout))){
+
+                                    get_template_part( 'templates/results/result', 'buttons', array( 
+                                        'layout' => $layout,
+                                        'user_screen_result' => $user_screen_result,
+                                        'max_score' => $max_score,
+                                        'espanol' => $espanol,
+                                        'take_another_url' => $take_another_url,
+                                    ) ); 
+                                    
+                                    get_template_part( 'templates/results/action', 'email_display', array( 
+                                        'width' => 'normal', 
+                                        'show' => 0, 
+                                        'screen_id' => $user_screen_result['screen_id'], 
+                                        'user_screen_id' => $user_screen_id,
+                                        'espanol' => $espanol,
+                                        'entry_id' => $user_screen_result['result_id']
+                                    ) ); 
+
+                                    get_template_part( 'templates/results/result', 'dropdowns', array( 
+                                        'layout' => $layout,
+                                        'user_screen_result' => $user_screen_result,
+                                        'espanol' => $espanol,
+                                    ) );  
+
+                                }                                
+                            ?>
 
                         <?php
                     }
@@ -409,12 +406,12 @@ else:
         $answered_demos['result_id'] = array($user_screen_result['result_id']);
 
         // Screen specific demo steps/CTAs
-        $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );        
+        $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );      
+        foreach($demo_data['excluded_ids'] as $ex){ 
+            $excluded_ids[] = $ex;
+        }
         foreach($demo_data['demo_steps'] as $e){
             $demo_steps[] = $e;
-        }
-        foreach($demo_data['exclude_ids'] as $e){
-            $exclude_ids[] = $e;
         }
         foreach($demo_data['ctas'] as $e){
             $result_cta[] = $e;
@@ -424,9 +421,6 @@ else:
         $demo_data_global = get_mha_demo_steps( 'options', $answered_demos );
         foreach($demo_data_global['demo_steps'] as $e){
             $demo_steps[] = $e;
-        }
-        foreach($demo_data_global['exclude_ids'] as $e){
-            $exclude_ids[] = $e;
         }
         foreach($demo_data_global['ctas'] as $e){
             $result_cta[] = $e;
@@ -675,7 +669,7 @@ else:
                         'demo_steps'         => $demo_steps,
                         'next_step_manual'   => $next_step_manual,
                         'user_screen_result' => $user_screen_result,
-                        'exclude_ids'        => $exclude_ids,
+                        'excluded_ids'       => $excluded_ids,
                         'next_step_terms'    => $next_step_terms,
                         'espanol'            => $espanol,
                         'iframe_var'         => $iframe_var,
@@ -689,7 +683,9 @@ else:
                     if(in_array('related_v1', $layout)){
                         mha_results_related_articles_simple( $related_article_args );
                     } else {
-                        mha_results_related_articles( $related_article_args );
+                        $related_articles = mha_results_related_articles( $related_article_args );
+                        $excluded_ids = $related_articles['excluded_ids'];
+                        echo $related_articles['html'];
                     }
                 ?>
             </div>
@@ -807,10 +803,11 @@ else:
                 'demo_steps'         => $demo_steps,
                 'next_step_manual'   => $next_step_manual,
                 'user_screen_result' => $user_screen_result,
-                'exclude_ids'        => $exclude_ids,
+                'excluded_ids'       => $excluded_ids,
                 'next_step_terms'    => $next_step_terms,
                 'espanol'            => $espanol,
-                'iframe_var'         => $iframe_var,
+                'espanol'            => $espanol,
+                'total'              => 20,
                 'partner_var'        => $partner_var,
                 'answered_demos'     => $answered_demos,
                 'layout'             => $layout
@@ -821,13 +818,15 @@ else:
              * Layout: actions_hide_ns_r
              */
             if(!in_array('actions_ns_top_r', $layout)){
-                $related_article_args['skip'] = 5;
+                //$related_article_args['skip'] = 5;
             }
 
             if(in_array('related_v1', $layout)){
                 mha_results_related_articles_simple( $related_article_args );
             } else {
-                mha_results_related_articles( $related_article_args );
+                $related_articles_2 = mha_results_related_articles( $related_article_args );
+                $excluded_ids = $related_articles_2['excluded_ids'];
+                echo $related_articles_2['html'];
             }
         ?>
     </div>
