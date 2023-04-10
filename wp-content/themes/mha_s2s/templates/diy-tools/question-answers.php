@@ -11,6 +11,7 @@
 
     // Template Part Args
     $embedded = isset($args['embed']) ? $args['embed'] : 0;
+    $embedded_class = isset($args['embed']) ? 'embedded-diy' : '';
 
     // Placement Options
     $wrap_width = $embedded ? 'full' : 'wide';
@@ -43,7 +44,7 @@
 	
 <?php if( $questions ): ?>
 <div class="wrap <?php echo $wrap_width; ?> no-margin-mobile">	
-    <form id="diy-questions-container" action="#" method="POST" data-skippable="<?php echo $allow_question_skipping; ?>" data-aos="fade-left">	
+    <form id="diy-questions-container" class="<?php echo $embedded_class; ?>" action="#" method="POST" data-skippable="<?php echo $allow_question_skipping; ?>" data-aos="fade-left">	
 
         <?php if($show_next_previews): ?>
             <?php if($allow_question_skipping): ?>
@@ -68,7 +69,7 @@
                             <div class="question bubble light-blue round-bl mb-4" data-question="q<?php echo $row_index; ?>">
                             <div class="inner">
 
-                                <?php if(get_sub_field('question')): ?><div class="label bold"><?php the_sub_field('question'); ?></div><?php endif; ?>
+                                <?php if(get_sub_field('question')): ?><div class="label bold mb-1"><?php the_sub_field('question'); ?></div><?php endif; ?>
                                 <?php if(get_sub_field('description')): ?><p><?php the_sub_field('description'); ?></p><?php endif; ?>
                                 <p>
                                     <textarea name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" tabindex="-1" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>></textarea>

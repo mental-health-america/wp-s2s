@@ -88,8 +88,8 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20230216' );
-	// wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20230410' );
+	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
 	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20220817', 'print' );
@@ -118,7 +118,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20230302', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20230410', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
@@ -393,6 +393,8 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'layout'; // A/B testing override
     $qvars[] = 'internaltraffic'; // Staff exclusions for analytics
     $qvars[] = 'first_login'; // New registered users
+    $qvars[] = 'exclude_ids'; // URL exclusions for articles
+    $qvars[] = 'include_ids'; // URL inclusions for articles
 
 	// Resource filters
 	$qvars[] = 'treatment';
@@ -817,6 +819,20 @@ function wpc_gravity_registration_autologin( $user_id, $feed, $entry, $user_pass
 
 	wp_set_auth_cookie( $user_id, false, is_ssl() );
 
+}
+
+/**
+ * Gravity Forms
+ * Adjust form edit screenc columns
+ */
+add_filter( 'gform_form_list_columns', 'change_columns', 10, 1 );
+function change_columns( $columns ){
+    $columns = array(
+        'is_active'  => '',
+        'title'      => esc_html__( 'Form Title', 'gravityforms' ),
+        'id'         => esc_html__( 'ID', 'gravityforms' ),
+    );
+    return $columns;
 }
 
 

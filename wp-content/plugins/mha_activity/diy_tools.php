@@ -41,6 +41,7 @@ function mhaDiySubmit(){
         'opened_diy'            => null,
         'opened_diy_question'   => null,
         'crowdsource_hidden'    => null,
+        'embedded'              => 0,
     );    
     parse_str($_POST['data'], $data);  
     $args = wp_parse_args( $data, $defaults ); 
@@ -182,15 +183,17 @@ function getDiyCrowdsource(){
         'activity_id'   => null,
         'carousel'      => null,
         'offset'        => 0,
-        'page'          => 0
+        'page'          => 0,
+        'embedded'      => 0
     );    
     parse_str($_POST['data'], $data);  
     $args = wp_parse_args( $data, $defaults ); 
     $result['html'] = '';
     $result['args'] = $args;
+    $args['page'] = intval($args['page']);
     
     // Pagination settings
-    $per_page = 15;
+    $per_page = $args['embedded'] ? 5 : 15; // Different page counts for display types
     $args['offset'] = (intval($args['page']) - 1) * $per_page;
 
     // Future helpers
@@ -204,12 +207,14 @@ function getDiyCrowdsource(){
     $responses_collection = []; // Uses for storing response IDs
 
 	// Return JSON contents if available if not an admin
-	$json = plugin_dir_path( __FILE__ ).'tmp/'.$args['activity_id'].'_'.$args['page'].'.json'; 
     $use_cache = false;
+    /*
+	$json = plugin_dir_path( __FILE__ ).'tmp/'.$args['activity_id'].'_'.$args['page'].'.json'; 
     if (file_exists($json) && filemtime($json) > strtotime('-1 day') && $args['page'] == 1 ) {
         $responses = json_decode(file_get_contents($json), true);
         $use_cache = true;
     }
+    */
 
     if(!$use_cache && $args['page'] == 1 || $args['page'] > 1){
 
@@ -314,7 +319,7 @@ function getDiyCrowdsource(){
         }
 
         // Print responses, sorted by likes
-        usort($responses, function ($a, $b) {return $a['score'] < $b['score'];});
+        usort($responses, function ($a, $b) {return $a['score'] <=> $b['score'];} );
 
         // Update the cache file
         /*
@@ -327,10 +332,11 @@ function getDiyCrowdsource(){
 
     // Build HTML to return
     $result['responses'] = $responses;
-    $result['html'] .= '<div class="question-container" data-question="'.$args['question'].'">';  
+    $result['html'] .= '<div class="question-container" data-page="'.$args['page'].'">';  
     
     if($args['page'] > 1 && count($responses) > 0){
-        $result['html'] .= '<div class="wrap narrow crowdsource-page-label text-center text-teal mb-3"><hr class="mt-4 mb-0" style="border-color: #1fb4bb;" />New</div>';   
+        //$result['html'] .= '<div class="wrap narrow crowdsource-page-label text-center text-teal mb-3"><hr class="mt-4 mb-0" style="border-color: #1fb4bb;" />New</div>';   
+        $result['html'] .= '<div class="wrap narrow crowdsource-page-label text-center text-teal mb-3">Page '.$args['page'].'</div>';   
     }
 
     foreach($responses as $r){
@@ -373,12 +379,12 @@ function getDiyCrowdsource(){
             $like_class = mha_liked_response( $user_likes, $r['pid'], $qid ) ? ' liked' : '';
             
             $result['html'] .= '<div class="col-12 col-md-5 px-0 thought-actions text-right">
-                <button class="icon thought-like mr-4 '.$like_class.'" data-nonce="'.wp_create_nonce("thoughtLike").'" data-pid="'.$r['pid'].'" data-row="'.$qid.'">
+                <button class="icon thought-like mr-3 mr-md-3 mx-md-3 text-right '.$like_class.'" data-nonce="'.wp_create_nonce("thoughtLike").'" data-pid="'.$r['pid'].'" data-row="'.$qid.'">
                     <span class="image mr-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30.93" height="25.99"viewBox="0 0 30.93 25.99" class="heart"><g transform="translate(0 0)"><g transform="translate(0 0)"><path d="M25.592,28s11.175-6.421,11.175-12.608A6.012,6.012,0,0,0,25.592,12.3a6.012,6.012,0,0,0-11.175,3.087C14.417,21.576,25.592,28,25.592,28Z"transform="translate(-10.127 -5.505)" stroke-linecap="round"stroke-linejoin="round" stroke-width="2" /></g></g></svg></span>
                     <span class="text">I relate</span>
                 </button>';
         
-            $result['html'] .= '<button class="icon thought-flagger px-md-0" data-toggle="tooltip" data-placement="top" title="'.$diy_flag_message.'" aria-controls="#thought-'.$r['pid'].'-'.$qid.'">
+            $result['html'] .= '<button class="icon thought-flagger px-md-0 mx-md-3 mt-md-3 text-right" data-toggle="tooltip" data-placement="top" title="'.$diy_flag_message.'" aria-controls="#thought-'.$r['pid'].'-'.$qid.'">
                     <span class="image mr-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18.231" height="23.342"viewBox="0 0 18.231 23.342" class="flag"><g><path d="M0,23.068a.425.425,0,0,0,.849,0V.7A.425.425,0,0,0,0,.7Z" transform="translate(0 -0.151)" fill="#3d3d3d"stroke="#264a5c" stroke-width="2" /><path class="sail" d="M18.819,11.351H4V1.831Z" transform="translate(-3.287 -0.987)" stroke-miterlimit="10" stroke-width="2" /></g></svg></span>
                     <span class="text">Report</span>
                 </button>  
@@ -443,7 +449,12 @@ function getDiyCrowdsource(){
 
     // Next Page
     if(count($responses)){
-        $result['html'] .= '<div id="diy-load-more-container" class="text-center"><button id="diy-load-more" class="button gray round-br">Load More Responses</button></div>';
+        $result['html'] .= '<div id="diy-load-more-container" class="text-center mt-4">';
+            if(($args['page'] - 1) > 0){
+                $result['html'] .= '<button class="button gray round-tl mr-3 diy-previous-page" data-show-page="'.($args['page'] - 1).'">Previous Page</button>';
+            }
+            $result['html'] .= '<button class="diy-load-more button teal round-br" data-show-page="'.($args['page'] + 1).'">Next Page</button>';
+        $result['html'] .= '</div>';
     } else {
         $result['html'] .= '<div class="wrap narrow crowdsource-page-label text-center text-orange mb-4 mt-4"><em>No more responses available.</em><hr class="mb-4 mt-2" style="border-color: #FA6767;" /></div>';   
     }
@@ -496,5 +507,36 @@ function get_diy_response_display( $args ) {
 
         return $response;
     }
+
+}
+
+/**
+ * Get users results
+ */
+add_action("wp_ajax_nopriv_mhaDiyGetConfirmation", "mhaDiyGetConfirmation");
+add_action("wp_ajax_mhaDiyGetConfirmation", "mhaDiyGetConfirmation");
+function mhaDiyGetConfirmation() {
+    
+	// General variables
+    $result = [];
+
+    // Post data
+    $defaults = array(
+        'id' => null,
+        'embedded' => 0
+    );    
+    parse_str($_POST['data'], $data);  
+    $args = wp_parse_args( $data, $defaults ); 	
+    $result['args'] = $args;
+    $result['title'] = get_the_title($args['id']);
+
+    ob_start();
+    //get_template_part( 'templates/diy-tools/cta', 'login', array( 'id' => $args['id'], 'embedded' => $args['embedded'] ) ); 
+    get_template_part( 'templates/diy-tools/page', 'confirmation', array( 'id' => $args['id'], 'embedded' => $args['embedded'] ) );	
+    $result['html'] = ob_get_contents();
+    ob_end_clean();
+
+    echo json_encode($result);
+    exit();
 
 }
