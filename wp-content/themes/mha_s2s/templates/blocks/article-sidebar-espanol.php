@@ -115,6 +115,7 @@
         //if(count(array_intersect($article_type, $resources)) > 0 || count( array_intersect($article_type, array('condition')) ) > 0 && $has_screen_cta == 0 ):       
 
             $related_articles = [];
+            $exclude_ids = [];
             $primary_condition = get_field('primary_condition');
             $args = array(
                 "post_type"      => 'article',
@@ -125,12 +126,16 @@
 
             // Global Options
             $global_hide_articles = get_field('global_hide_articles', 'options');
-            foreach($global_hide_articles as $gha){
-                $exclude_ids[] = $gha;
+            if($global_hide_articles){
+                foreach($global_hide_articles as $gha){
+                    $exclude_ids[] = $gha;
+                }
             }
             $article_sidebar_hide_articles = get_field('article_sidebar_hide_articles', 'options');
-            foreach($article_sidebar_hide_articles as $asha){
-                $exclude_ids[] = $asha;
+            if($article_sidebar_hide_articles){
+                foreach($article_sidebar_hide_articles as $asha){
+                    $exclude_ids[] = $asha;
+                }
             }
             if(count($exclude_ids) > 0){
                 $args['post__not_in'] = $exclude_ids;

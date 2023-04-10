@@ -256,7 +256,8 @@ else:
                                         'user_screen_result' => $user_screen_result,
                                         'max_score' => $max_score,
                                         'espanol' => $espanol,
-                                        'take_another_url' => $take_another_url 
+                                        'take_another_url' => $take_another_url,
+                                        'iframe_var' => $iframe_var
                                     ) );  
                                 }
                             ?>
@@ -351,6 +352,7 @@ else:
                                         'max_score' => $max_score,
                                         'espanol' => $espanol,
                                         'take_another_url' => $take_another_url,
+                                        'iframe_var' => $iframe_var
                                     ) ); 
                                     
                                     get_template_part( 'templates/results/action', 'email_display', array( 

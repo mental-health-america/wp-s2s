@@ -160,6 +160,14 @@
         font-size: 1.45em;
         line-height: 1.3em;
         @include montserrat(700);
+
+        // Colors
+        &.white { color: $white; }
+        &.cerulean { color: $cerulean; }
+        &.blue { color: $blue; }
+        .text-dark-blue &,
+        .dark-blue &,
+        &.dark-blue { color: $mediumTeal; }
     }
     h3 {
         margin: 0 0 .75em 0;

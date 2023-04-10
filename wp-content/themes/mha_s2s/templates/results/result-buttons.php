@@ -4,6 +4,7 @@
     $max_score = isset($args['max_score']) ? $args['max_score'] : '';
     $espanol = isset($args['espanol']) ? $args['espanol'] : false;
     $take_another_url = isset($args['take_another_url']) ? $args['take_another_url'] : false;
+    $iframe_var = isset($args['iframe_var']) && $args['iframe_var'] ? $args['iframe_var'] : null;
 ?>
 
 <div id="screen-result-buttons" class="button-grid pt-3 pb-3 pl-0 pr-0 pl-md-5 pr-md-5">
