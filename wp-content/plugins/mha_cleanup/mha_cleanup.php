@@ -69,9 +69,14 @@ function mhacleanuppage(){
                         </td>
                     </tr>
                     <tr>
+                        <th scope="row"><label for="end_date">Form IDs</label></th>
+                        <td>
+                            <input type="text" name="form_ids" id="form_ids" value="15,8,10,1,13,12,5,18,17,9,11,16,14,27" />
+                        </td>
+                    </tr>
+                    <tr>
                         <td colspan="2">    
                             <p>
-                                <input type="hidden" name="form_ids" value="15,8,10,1,13,12,5,18,17,9,11,16,14" />
                                 <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhacleanupsnonce'); ?>" />
                                 <button id="mha-start-clean-up" class="button button-primary button-large">Clean Up Data</button>
                                 <button id="mha-cleanup-data-begin" type="submit" class="button button-secondary button-large hidden">Are you Sure?</button>
