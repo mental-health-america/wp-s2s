@@ -1116,5 +1116,13 @@ function gf_admin_is_not_spam( $is_spam, $form, $entry ) {
     return $is_spam;
 }
 
+/**
+ * Disable custom field aggregation to help with Gravity Forms Performance
+ */
+add_filter( 'gform_disable_custom_field_names_query', 'disable_gf_fieldnames_query', 10, 1 );
+function disable_gf_fieldnames_query( $disable_query ){
+	return true;
+}
+
 // FacetWP Options
 include_once('inc/functions_facetwp.php');

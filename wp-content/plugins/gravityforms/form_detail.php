@@ -67,7 +67,8 @@ class GFFormDetail {
 		<script type="text/javascript"  data-js-reload="gforms-scripts-form-scripts" >
 
 			function has_entry(fieldNumber) {
-				var submitted_fields = [<?php echo RGFormsModel::get_submitted_fields( $form_id ); ?>];
+				//var submitted_fields = [<?php //echo RGFormsModel::get_submitted_fields( $form_id ); ?>];
+				var submitted_fields = []; // C+K & MHA Performance Fix
 				for (var i = 0; i < submitted_fields.length; i++) {
 					if (submitted_fields[i] == fieldNumber)
 						return true;
