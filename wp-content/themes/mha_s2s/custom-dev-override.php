@@ -1,5 +1,5 @@
 <?php
-/* Template Name: Custom Dev Override */
+/* Template Name: Custom Dev Override Tool - PTSD/Trauma conversion */
 get_header();
 
 function my_remove_post_term( $post_id, $term, $taxonomy ) {
@@ -28,9 +28,10 @@ function my_remove_post_term( $post_id, $term, $taxonomy ) {
 
 
 $args = array(
-	"post_type" 	 => 'article',
+	"post_type" 	 => 'article', // article, reading_path
 	"post_status" 	 => array('publish','draft'),
-	"posts_per_page" => 500,
+	"posts_per_page" => 600,
+	/*
 	'tax_query' => array(
 		array(
 			'taxonomy' => 'condition',
@@ -39,6 +40,14 @@ $args = array(
 			'operator' => 'IN'
 		),
 	)
+	*/                        
+	'meta_query'     => array(
+		array(
+			'key'       => 'primary_condition',
+			'value'     => '92', // 92, 112
+			'compare'   => 'LIKE',
+		)
+	)
 );
 $loop = new WP_Query($args);
 echo 'Total: '.$loop->found_posts;
@@ -46,20 +55,28 @@ while($loop->have_posts()) : $loop->the_post();
 	$pid = get_the_ID();
 	
 	// Add new term
-	wp_set_post_terms($pid, 118, 'condition', true);
+	//wp_set_post_terms($pid, 119, 'condition', true); // Trauma & PTSD
 
 	// Remove old terms
-	my_remove_post_term($pid, 92, 'condition');
-	my_remove_post_term($pid, 112, 'condition');
+	//my_remove_post_term($pid, 92, 'condition'); // PTSD
+	//my_remove_post_term($pid, 112, 'condition'); // Trauma
 
 	// Display
 	the_title('<p>','</p>');
+	$pc = get_field("primary_condition");
+	//pre($pc);
+	echo $pc->term_id;
+	echo $pc->taxonomy;
+	/*
 	$terms = get_the_terms( $pid, 'condition');
+	echo '<ol>';
 	foreach($terms as $t){
 		if($t->slug == 'ptsd' || $t->slug == 'trauma' || $t->slug == 'trauma-ptsd'){
-			echo $t->slug.'<br />';
+			echo '<li>'.$t->slug.'</li>';
 		}
 	}
+	echo '</ol>';
+	*/
 
 
 	echo '<hr />';
