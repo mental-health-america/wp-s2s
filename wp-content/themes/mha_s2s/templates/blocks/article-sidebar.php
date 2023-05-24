@@ -10,6 +10,20 @@
 <div class="inner-sidebar pb-4">
 
 <?php   
+
+    // Image
+    if(!count(array_intersect( array('featured_image_article'), $layout))){
+        if(has_post_thumbnail()){
+            echo '<div class="featured-image mb-5">';
+                the_post_thumbnail();
+            echo '</div>';
+        } elseif( get_field('featured_image') ) {
+            echo '<div class="featured-image mb-5">';                                
+            echo wp_get_attachment_image( get_field('featured_image'), 'banner' );
+            echo '</div>';
+        }
+    }
+    
     // Future vars
     $article_id = get_the_ID();
     $resources = array('diy','connect','treatment','provider');
@@ -474,6 +488,18 @@
                 }
             }
 
+            // Manual Related Links
+            if( have_rows('more_links', $article_id) ):
+            while( have_rows('more_links', $article_id) ) : the_row();                                        
+                $page = get_sub_field('page');
+                if($page){          
+                    $related_articles[$page->ID]['id'] = $page->ID;
+                    $related_articles[$page->ID]['custom_title'] = get_sub_field('custom_title') ? get_sub_field('custom_title') : $page->post_title;
+                    $related_articles[$page->ID]['score'] = 200 - get_row_index();
+                }
+            endwhile;
+            endif;
+
             // Get popular articles for later
             $pop_array = mha_monthly_pop_articles( 'read' );
 
@@ -483,6 +509,11 @@
                 $new_cond = get_the_terms( $new_id, 'condition' );
                 $new_tags = get_the_terms( $new_id, 'post_tag' );
                 $new_primary = get_field('primary_condition', $new_id);
+
+                // Skip already added articles
+                if( isset($related_articles[$new_id]) ){
+                    continue;
+                }
 
                 // Skip local providers
                 if(get_field('area_served')){
@@ -554,28 +585,18 @@
                     <?php 
                         echo '<ol class="plain ml-2 ml-lg-5 mb-0">';                                             
 
-                            // Manual Related Links
-                            if( have_rows('more_links', $article_id) ):
-                            while( have_rows('more_links', $article_id) ) : the_row();                                        
-                                $page = get_sub_field('page');
-                                if($page){
-                                    echo '<li><a class="plain white bold montserrat bold" href="'.get_the_permalink($page).'">';
-                                        if(get_sub_field('custom_title')){
-                                            the_sub_field('custom_title');
-                                        } else {
-                                            echo get_the_title($page);
-                                        }
-                                    echo '</a></li>';
-                                }
-                            endwhile;
-                            endif;
-
                             // Related Articles
                             foreach($related_articles_display as $rad){
                                 if($rad['id'] == $article_id){
                                     continue;// Skip if the same article
                                 }
-                                echo '<li><a class="plain white bold montserrat bold" href="'.get_the_permalink($rad['id']).'">'.get_the_title($rad['id']).'</a></li>';
+                                echo '<li><a class="plain white bold montserrat bold" href="'.get_the_permalink($rad['id']).'">';
+                                if( isset($rad['custom_title']) && $rad['custom_title'] != ''){
+                                    echo $rad['custom_title'];
+                                } else {
+                                    echo get_the_title($rad['id']);
+                                }
+                                echo '</a></li>';
                             }
 
                         echo '</ol>';

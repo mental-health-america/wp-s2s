@@ -16,6 +16,7 @@ $customClasses = '';
 $customContentClasses = '';
 $resources = array('diy','connect','treatment','provider');
 $article_type = get_field('type');
+$layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
 
 // Custom styling for resources
 if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
@@ -56,10 +57,16 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                     <?php 
 
                         // Image
-                        if(has_post_thumbnail()){
-                            echo '<div class="featured-image mb-5">';
-                                the_post_thumbnail();
-                            echo '</div>';
+                        if(count(array_intersect( array('featured_image_article'), $layout))){
+                            if(has_post_thumbnail()){
+                                echo '<div class="featured-image mb-5">';
+                                    the_post_thumbnail();
+                                echo '</div>';
+                            } elseif( get_field('featured_image') ) {
+                                echo '<div class="featured-image mb-5">';                                
+                                echo wp_get_attachment_image( get_field('featured_image'), 'banner' );
+                                echo '</div>';
+                            }
                         }
 
                         // Featured Link
