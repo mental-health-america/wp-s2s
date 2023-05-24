@@ -168,9 +168,9 @@ function mha_results_related_articles( $args ){
         foreach($include_ids as $iid){
             if( !in_array($iid, $args['excluded_ids']) ){
 
-                $new_list_item = '<a class="'.$list_link_class.' rec-screen-demobased" href="'.get_the_permalink($iid).'">'.get_the_title($iid);
+                $new_list_item = '<a class="'.$list_link_class.' rec-screen-urlbased" href="'.get_the_permalink($iid).'">'.get_the_title($iid);
                 if (current_user_can('edit_posts') && !in_array('ras_r', $args['layout'])) {
-                    $new_list_item .= '<br /><span class="small text-red">(Demographic Based Condition)</span>';
+                    $new_list_item .= '<br /><span class="small text-red">(URL Based)</span>';
                 }
                 $new_list_item .= '</a>';
                 $list_items[] = $new_list_item;
@@ -565,10 +565,11 @@ function mha_results_related_articles( $args ){
         $related_articles);
     }
     
-    $related_articles_display = array_slice($related_articles, 0, $args['total']);
+    $related_articles_display = array_slice($related_articles, 0, $args['total'] - count($list_items));
     $ti = 1;
+
     foreach($related_articles_display as $rad){
-        if($ti > $args['total']){
+        if($ti >= $args['total']){
             break;
         }
         $article_display = '<a class="'.$rad['list_link_class'].' rec-auto"'.$rad['related_link_target'].' href="'.$rad['related_link'].'">'.$rad['title'];
@@ -582,6 +583,7 @@ function mha_results_related_articles( $args ){
         $list_items[] = $article_display;
         $ti++;
     }
+
 
 
     // Print all the items
