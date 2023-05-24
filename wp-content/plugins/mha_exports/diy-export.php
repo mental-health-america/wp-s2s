@@ -163,8 +163,10 @@ function mha_export_diy_tool_data(){
             $total_likes = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_likes WHERE pid = '.$response_id.' AND row = '.$ar['id'].' AND unliked = 0');
             $total_flags = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_flags WHERE pid = '.$response_id.' AND row = '.$ar['id'].' AND status = 0');
 
+            $ar_date_convert = str_replace('/', '-', $ar['date']);
+            
             $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Response'] = $ar['answer'];
-            $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Date']     = $ar['date'];
+            $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Date']     = date('m-d-Y H:i:s', strtotime($ar_date_convert));
             $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Updated']  = $ar['updated'];
             $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Likes']    = $total_likes ? $total_likes : "0";
             $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Flags']    = $total_flags ? $total_flags : "0";
@@ -178,7 +180,6 @@ function mha_export_diy_tool_data(){
         $i++;
     endwhile;        
     endif;
-    
 
     /**
      * Set next step variables

@@ -71,8 +71,34 @@
 
                                 <?php if(get_sub_field('question')): ?><div class="label bold mb-1"><?php the_sub_field('question'); ?></div><?php endif; ?>
                                 <?php if(get_sub_field('description')): ?><p><?php the_sub_field('description'); ?></p><?php endif; ?>
+
                                 <p>
-                                    <textarea name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" tabindex="-1" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>></textarea>
+                                    <?php
+                                        $question_type = get_sub_field('question_type');
+                                        switch($question_type){
+                                            case 'checkbox':
+                                            case 'radio':
+                                                $question_options = get_sub_field('options');
+                                                $brackets = $question_type == 'checkbox' ? '[]' : '';
+                                                foreach($question_options as $q):
+                                                    $field_id = 'answer_'.$row_index.'_'.sanitize_title($q['option_text']);
+                                                ?>
+                                                    <label for="<?php echo $field_id; ?>">
+                                                        <input name="answer_<?php echo $row_index; echo $brackets; ?>" id="<?php echo $field_id; ?>" type="<?php echo $question_type; ?>" value="<?php echo $q['option_text']; ?>" tabindex="-1" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?> />
+                                                        <span class="label-text pt-1 pl-2"><?php echo $q['option_text']; ?></span>
+                                                    </label>
+                                                <?php
+                                                endforeach;
+                                                break;
+
+                                            case 'text':
+                                            default:
+                                                ?>
+                                                    <textarea name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" tabindex="-1" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>></textarea>
+                                                <?php
+                                                break;
+                                        }
+                                    ?>
                                 </p>
                                 
                                 <div class="container-fluid">

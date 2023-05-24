@@ -194,9 +194,10 @@
 			 */
 			var questionStart = $('#diy-questions').attr('data-start'),
 				questionPeek = $('#diy-questions').attr('data-peek'),
-				questionAllowSkip = $('#diy-questions').attr('data-skip');
+				questionAllowSkip = $('#diy-questions').attr('data-skip'),
+				questionsTotal = $('#diy-questions .glide__slide').length;
 			$('.question-direct[data-question=q'+questionStart+']').parent('li').addClass('active');
-
+			
 			// Setup Glide
 			var glideOptions = {
 				type: 'slider',
@@ -235,7 +236,7 @@
 					}
 				}
 			}
-			if(questionAllowSkip == 0){
+			if(questionAllowSkip == 0 || questionsTotal < 2){
 				glideOptions.swipeThreshold = false;
 				glideOptions.dragThreshold = false
 			}
@@ -337,9 +338,35 @@
 					$nextButton.prop('disabled', false);
 					$parent.addClass('valid');
 				}
+				
 				// Simple validation*
 				$(this).on("input", function() {
 					if($(this).val() != ''){
+						$nextButton.prop('disabled', false);
+						$parent.addClass('valid');
+					} else {
+						$nextButton.prop('disabled', true);
+						$parent.removeClass('valid');
+					}
+				});
+			});
+
+			
+			$("#diy-questions[data-skip=0] input[type='radio'], #diy-questions[data-skip=0] input[type='checkbox']").each(function(e){
+				let $parent = $(this).parents('li'),
+					inputName = $(this).attr('name'),
+					$nextButton = $parent.find('.action-button');
+
+				// Enable in case of refresh
+				if($(this).is(":checked")){
+					$nextButton.prop('disabled', false);
+					$parent.addClass('valid');
+				}
+				
+
+				// Simple validation*
+				$('#diy-questions[data-skip=0] input[name="'+inputName+'"]').on("change", function(event) {
+					if($(this).is(":checked")){
 						$nextButton.prop('disabled', false);
 						$parent.addClass('valid');
 					} else {
@@ -377,8 +404,6 @@
 					if( $(this).hasClass('submit')) {
 						args += '&submit=1';
 					}
-
-					//console.log(args);
 					
 					$.ajax({
 						type: "POST",
@@ -391,7 +416,7 @@
 							
 							$('.action-button.next-question[data-question='+q_id+']').prop('disabled', false);		
 							var res = JSON.parse(results);
-							//console.log(res);
+							console.log(res);
 
 							var current_post = $('input[name="diytool_current_id"]').val();
 							if(current_post == ''){

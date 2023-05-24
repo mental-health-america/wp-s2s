@@ -74,7 +74,9 @@ function mhaDiySubmit(){
         foreach($args as $k => $v){
             if(strpos($k, 'answer_') !== false){
                 $r_id = str_replace("answer_", "", $k);
-                $answer = sanitize_text_field($args['answer_'.$r_id]);
+
+                $answer = is_array($args['answer_'.$r_id]) ? sanitize_text_field( implode(', ', $args['answer_'.$r_id]) ) : sanitize_text_field($args['answer_'.$r_id]);
+
                 if($answer != ''){
                     $new_row = array(
                         'field_634840ef4cbb3'	=> $r_id, // Question ID
