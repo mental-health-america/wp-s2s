@@ -211,7 +211,7 @@ add_action( 'wp_footer', function() {
 
 // English default facet
 add_filter( 'facetwp_preload_url_vars', function( $url_vars ) {
-    if ( 'diy' == FWP()->helper->get_uri() ) {
+    if ( 'diy' == FWP()->helper->get_uri() || 'diy-tools' == FWP()->helper->get_uri() ) {
         if ( empty( $url_vars['language'] ) ) {
             $url_vars['language'] = [ '0' ];
         }
