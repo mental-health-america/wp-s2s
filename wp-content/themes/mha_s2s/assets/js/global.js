@@ -289,11 +289,12 @@
 
 		// Sticky Sidebars		
 		//$("aside.article-right .sticky").stick_in_parent();
-		$('aside.article-right .sticky').stickySidebar({
-			topSpacing: 24,
-			bottomSpacing: 24
-		});
-
+		if($('aside.article-right .sticky').length){
+			$('aside.article-right .sticky').stickySidebar({
+				topSpacing: 24,
+				bottomSpacing: 24
+			});
+		}
 
 		/**
 		 * Iframe mode options
@@ -445,15 +446,31 @@
 
 	});
 
+	$(window).on('load', function () {
+
+		if($('.progress-container.sticky').length){
+			$('.progress-container.sticky').stickySidebar({
+				topSpacing: 0,
+				bottomSpacing: 0,
+				minWidth: 1025,
+				resizeSensor: true,
+				containerSelector: '.page-intro .gform_wrapper',
+			});
+			$('.progress-container.sticky').stickySidebar('updateSticky');
+		}	
+
+	});
 
 	/**
 	 * Window Resize Functions
 	 */
+	/*
 	$(window).resize(function() {
 		
 		// Filter Display
 		// showFilters();
 
 	});
+	*/
 
 })( jQuery );

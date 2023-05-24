@@ -24,27 +24,6 @@
         <?php if(!$embedded): ?>
             <h2 class="entry-title"><?php echo get_the_title($activity_id); ?></h2>
         <?php endif; ?>
-
-        <?php 
-            if($embedded){
-                echo '<h3 class="dark-blue mb-3 text-center">';
-            } else {
-                echo '<p class="bold text-blue text-center">';
-            }
-        ?>            
-    
-        Submitted on <?php echo get_the_date('F j, Y', $activity_id); ?><br />
-        <?php if(!$embedded): ?>
-            <a class="button cerulean round-small-tl mt-3" href="<?php echo get_the_permalink($activity_id); ?>">View <?php echo get_the_title($activity_id); ?> Activity</a>            
-        <?php endif; ?>
-
-        <?php 
-            if($embedded){
-                echo '</h3>';
-            } else {
-                echo '</p>';
-            }
-        ?>
         
         <div class="page-intro mx-auto">
             <?php 
@@ -66,6 +45,24 @@
     </div>
     </div>
 </article>
+
+<?php 
+    if($embedded){
+        echo '<h3 class="dark-blue mb-3 text-center">';
+    } else {
+        echo '<p class="bold text-blue text-center">';
+    }
+?>            
+
+Submitted on <?php echo get_the_date('F j, Y', $activity_id); ?><br />
+
+<?php 
+    if($embedded){
+        echo '</h3>';
+    } else {
+        echo '</p>';
+    }
+?>
 
 <div class="wrap<?php echo $embedded ? '' : ' medium'; ?>">	
     <div class="question bubble light-blue round-bl <?php if(!$embedded) { echo 'mb-4'; } ?>">
@@ -96,45 +93,44 @@
     </div>
 </div>
 
+<div class="wrap <?php echo $embedded ? '' : ' medium'; ?> no-margin-mobile">
+<div class="container-fluid">
+    <div class="row">
 
-<?php if($embedded): ?>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-6 text-start text-left pl-0 pl-md-4">
-<?php endif; ?>
+        <div class="col-12 col-md-6 order-md-last order-first text-md-right mb-md-0 mb-4 text-center">
+            <?php if(!$embedded): ?>
+                <a class="button cerulean round-small-tl" href="<?php echo get_the_permalink($activity_id); ?>">
+                    <?php echo get_field('try_again_label', $activity_id) ? get_field('try_again_label', $activity_id) : 'Try this activity again'; ?>
+                </a>            
+            <?php endif; ?>
+        </div>
 
-<?php 
-    $crowdsource_expanded = $crowdsource_default_visible ? 'true' : 'false';
-    $crowdsource_classes[] = $crowdsource_default_visible ? 'collapse show' : 'collapse';  
-    if($embedded) { $crowdsource_classes[] = 'embedded-diy'; }
-    if($allow_crowdsource_viewing): 
-    ?>
+        <div class="col-12 col-md-6 order-md-first order-last text-center text-md-left">
+            <?php 
+                $crowdsource_expanded = $crowdsource_default_visible ? 'true' : 'false';
+                $crowdsource_classes[] = $crowdsource_default_visible ? 'collapse show' : 'collapse';  
+                if($embedded) { 
+                    $crowdsource_classes[] = 'embedded-diy'; 
+                }
+                if($allow_crowdsource_viewing): 
+                ?>                    
+                    <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughtsAll" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-controls="crowdthoughtsAll" tabindex="-1">
+                        <?php echo $crowdsource_button_label; ?> &raquo;
+                    </button>
+                    <input type="hidden" name="current_url" value="<?php echo sanitize_url("https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); ?>" />
+                <?php 
+                endif; 
+            ?>            
+        </div>
         
-        <div class="wrap <?php echo $embedded ? '' : ' wide'; ?> no-margin-mobile">
-            <div class="<?php echo $embedded ? 'text-left' : 'text-center'; ?>">
-                <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughtsAll" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-controls="crowdthoughtsAll" tabindex="-1">
-                    <?php echo $crowdsource_button_label; ?> &raquo;
-                </button>
-                <input type="hidden" name="current_url" value="<?php echo sanitize_url("https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); ?>" />
-            </div>
-        </div>
-
-    <?php 
-    endif; 
-?>
-
-<?php if($embedded): ?>
-            </div>
-            <div class="col-6 text-end text-right">
-                <?php get_template_part( 'templates/diy-tools/cta', 'login', array( 'id' => $args['id'], 'embedded' => $args['embedded'] ) ); ?> 
-            </div>
-        </div>
     </div>
-<?php endif; ?>
+</div>
+</div>
 
 <?php if($embedded): ?>
     </div>
     </div>
+    <?php get_template_part( 'templates/diy-tools/cta', 'login', array( 'id' => $args['id'], 'embedded' => $args['embedded'] ) ); ?> 
 <?php endif; ?>
 
 <div class="wrap <?php echo $embedded ? '' : ' wide'; ?> no-margin-mobile">

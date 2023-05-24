@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20230410' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20230524' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -110,15 +110,14 @@ function mha_s2s_scripts() {
 		wp_enqueue_script( 'mha_s2s-chart-js', get_template_directory_uri() . '/assets/js/chart.js', array(), '2.7.2', false );
 	}
 
-	//wp_enqueue_script( 'mha_s2s-sticky', get_template_directory_uri() . '/assets/js/jquery.sticky-kit.js', array(), '1.1.2', true );
-	wp_enqueue_script( 'mha_s2s-sticky', get_template_directory_uri() . '/assets/js/jquery.sticky-sidebar.min.js', array(), '3.3.1', true );
+	wp_enqueue_script( 'mha_s2s-sticky', get_template_directory_uri() . '/assets/js/jquery.sticky-sidebar.min.js', array(), '1.1.2_ck.1', true );
 
 	// Load the html5 shiv.
 	wp_enqueue_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '3.7.3' );
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20230410', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20230524', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
@@ -456,19 +455,29 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 
 	if( in_array('show_progress', $layout) && !in_array('hide_progress', $layout) || !in_array('hide_progress', $layout) ){
 
+		$progress_bar = '';
+
+		if( in_array('side_progress', $layout) ){
+			$progress_bar .= '<div class="progress-container sticky">';
+		}
+
 		if(get_field('espanol')){
-			$progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+			$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
 				<li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
 				<li class="step-2"><span>Preguntas<br />Opcionales</span></li>
 				<li class="step-3"><span>Sus<br />Resultados</span></li>
 			</ol>';
 		} else {
 			$demo_label = in_array('alt_demo_label', $layout) ? 'Optional<br />Questions' : 'Demographic<br />Information';
-			$progress_bar = '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+			$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
 				<li class="step-1"><span>Test<br />Questions</span></li>
 				<li class="step-2"><span>'.$demo_label.'</span></li>
 				<li class="step-3"><span>'.$last_progress_label.'</span></li>
 			</ol>';
+		}
+
+		if( in_array('side_progress', $layout) ){
+			$progress_bar .= '</div>';
 		}
 
 	} else {
@@ -480,6 +489,11 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
     return $progress_bar;
 }
 
+// Add Clearfix class to form tags
+add_filter( 'gform_form_tag', function ( $form_tag, $form ) {
+	$form_tag = preg_replace( "|action='|", "class='clearfix' action='", $form_tag );
+	return $form_tag;
+}, 10, 2 );
 
 /**
  * Export labels instead of values for excel exports
@@ -650,11 +664,13 @@ function mha_s2s_realestate_column( $column, $post_id ) {
 	// Article Type
 	if ( 'type' === $column ) {
 		$types = get_field('type', $post_id);
-		foreach($types as $type){
-			$type_name = ucfirst($type);
-			//$html = '<a href="'.admin_url( 'edit.php?post_type=article&type=' . urlencode( $type ) ).'">';
-			$html .= str_replace('Diy','DIY', $type_name);
-			//$html .= '</a>';
+		if($types){
+			foreach($types as $type){
+				$type_name = ucfirst($type);
+				//$html = '<a href="'.admin_url( 'edit.php?post_type=article&type=' . urlencode( $type ) ).'">';
+				$html .= str_replace('Diy','DIY', $type_name);
+				//$html .= '</a>';
+			}
 		}
 		echo $html;
 	}
