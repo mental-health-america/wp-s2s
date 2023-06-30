@@ -14,8 +14,10 @@
         ?>
             <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">       
                 <?php 
-                    echo ($espanol ? 'Sobre su puntuación: ' : 'About your Score: '); 
-                    echo $user_screen_result['total_score'].' / '.$max_score; 
+                    echo ($espanol ? 'Sobre su puntuación' : 'About your score'); 
+                    if(!get_field('hide_result_score', $user_screen_result['screen_id'])){
+                        echo ': '.$user_screen_result['total_score'].' / '.$max_score; 
+                    }
                 ?>    
             </button>
 
@@ -40,11 +42,11 @@
     ?>
 
     <?php 
-        if( count(array_intersect( array('btn_login_save', 'btn_login_save_blue'), $layout)) && !is_user_logged_in() ):
+        if( !count(array_intersect( array('login_prompt_og'), $layout)) && !is_user_logged_in() ):
             $login_button_args = array( 
                 'espanol' => $espanol
             );
-            if( count(array_intersect( array('btn_login_save_blue'), $layout)) ){
+            if( !count(array_intersect( array('login_prompt_og'), $layout)) ){
                 $login_button_args = array( 
                     'espanol' => $espanol,
                     'button_color' => 'blue'
@@ -56,7 +58,7 @@
 
 </div>
 
-<?php if( count(array_intersect( array('btn_login_save', 'btn_login_save_blue'), $layout)) && !is_user_logged_in() ): ?>
+<?php if( !count(array_intersect( array('login_prompt_og'), $layout)) && !is_user_logged_in() ): ?>
     <div id="login-email-results" class="collapse">
         <?php get_template_part( 'templates/results/action', 'login_email_display', array( 'espanol' => $espanol, 'id' => $user_screen_result['result_id'], 'with_email' => false) ); ?>
     </div>

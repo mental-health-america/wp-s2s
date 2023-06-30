@@ -444,7 +444,7 @@ else:
 
         <div class="py-4">
             <?php             
-                if( !count(array_intersect( array('login_cta_top', 'actions_e', 'login_cta_blw_btns', 'hide_login_prompt'), $layout)) ):
+                if( !count(array_intersect( array('login_cta_top', 'actions_e', 'login_cta_blw_btns'), $layout)) && count(array_intersect( array('login_prompt_og'), $layout)) ):
                     get_template_part( 'templates/results/cta', 'login', array( 
                         'width' => 'narrow', 
                         'corners' => '', 
@@ -765,6 +765,14 @@ else:
                 if(count($unique_result_cta) > $max_ctas){
                     shuffle($unique_result_cta);
                     $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas);
+                }
+
+                // Veteran CTA Override 5/26/2023
+                if(
+                    isset($answered_demos['Which of the following populations describes you?']) && 
+                    in_array('Veteran or active-duty military', $answered_demos['Which of the following populations describes you?'])
+                ){
+                    $unique_result_cta = array('126533');
                 }
 
                 global $post;
