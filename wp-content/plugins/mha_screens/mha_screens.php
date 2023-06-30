@@ -204,6 +204,7 @@ function getUserScreenResults( $user_screen_id ) {
         $user_screen_results['custom_result_row'] = '';
         if($user_screen_results['custom_results_logic']){
             $custom_result_logic_data = custom_logic_checker($user_screen_results['general_score_data'], $user_screen_results['custom_results_logic']);
+            $user_screen_results['custom_result_logic_data'] = $custom_result_logic_data;
             $user_screen_results['total_score'] = $custom_result_logic_data['total_score'];
             $user_screen_results['custom_result_row'] = $custom_result_logic_data['custom_result_row'];
         }
@@ -596,20 +597,24 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 		$total_score = round($total_score, 2);
 		$results['total_score'] = $total_score;
 
-		if($general_score_data[49] > 0){
-			$bmi = $general_score_data[67] / $general_score_data[68] / $general_score_data[68] * 703;
+        if( $general_score_data[67] == '' || $general_score_data[68] == '' ){
+            $bmi = NULL; // Height/Weight are optional, don't calculate BMI in this instance
+        } else if($general_score_data[49] > 0){
+            $bmi = $general_score_data[67] / $general_score_data[68] / ( $general_score_data[68] * 703 );
 		} else {
 			$bmi = 0;
 		}
+		$results['general_score_data'] = $general_score_data;
+		$results['bmi_raw'] = $bmi;
 		$results['bmi'] = $total_score;
 		
-		if (($bmi < 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+		if (($bmi !== NULL && $bmi < 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
 			$custom_result_row = 1; // At Risk for Eating Disorder
 		} elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
 			$custom_result_row = 1; // At Risk for Eating Disorder
 		} elseif (($general_score_data[53] > 1) && (($general_score_data[70] + $general_score_data[71] + $general_score_data[72] + $general_score_data[73] + $general_score_data[74]) >= 3) && ($general_score_data[75] >= 4) && (($general_score_data[53] >= 12) && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 3)) {
 			$custom_result_row = 1; // At Risk for Eating Disorder
-		} elseif (($bmi >= 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+		} elseif (($bmi !== NULL && $bmi >= 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
 			$custom_result_row = 1; // At Risk for Eating Disorder
 		} elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 3 && $general_score_data[53] < 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 3 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
 			$custom_result_row = 1; // At Risk for Eating Disorder
