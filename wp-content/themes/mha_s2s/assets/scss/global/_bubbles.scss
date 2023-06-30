@@ -299,6 +299,27 @@
         }
     }
 
+    // Red Alt
+    &.red-full {
+        background: $red;
+        color: $white;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $white;
+        }
+        &.bubble-border {
+            border-color: $red;
+        }
+        a {
+            color: $white;
+            &:visited {
+                color: $white;
+            }
+        }
+    }
+
     // Teal
     &.teal {
         background: $teal;

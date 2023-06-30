@@ -303,12 +303,15 @@ if (strpos($account_action, 'save_screen_') !== false) {
                             // Limit results
                             //if(count($graph_data[$test_title]['labels']) < 21){   
                             if(!get_field('survey', $screen_id)){
+                                $graph_data[$test_title]['hide_scores'] = get_field('hide_result_score', $screen_id);
                                 $graph_data[$test_title]['labels'][] = date('M', strtotime($data['date_created']));
                                 $graph_data[$test_title]['scores'][] = $total_score;
                                 $graph_data[$test_title]['max'] = $max_score;
                                 $graph_data[$test_title]['steps'] = get_field('chart_steps', $screen_id);
                             }
                             //}
+
+                            $your_results_display[$test_title][$count_results]['screen_id'] = $screen_id;
 
                             if(!get_field('survey', $screen_id)){
                                 $your_results_display[$test_title][$count_results]['test_id'] = isset($data['entry_id']) ? $data['entry_id'] : null;     
@@ -463,7 +466,13 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                                 </div>
                                                 <a href="/screening-results/?sid=<?php echo $result['test_link']; ?>" class="bubble mint thinner round-small bubble-link text-dark-blue">
                                                     <span class="inner result caps text-center bold montserrat block">
-                                                        About your Score: <?php echo $result['total_score']; ?> / <?php echo $result['max_score']; ?>
+                                                        <?php 
+                                                            if(!get_field('hide_result_score', $result['screen_id'])){
+                                                                echo 'About your score: '.$result['total_score']; ?> / <?php echo $result['max_score']; 
+                                                            } else {
+                                                                echo 'About your result'; 
+                                                            }
+                                                        ?>
                                                     </span>
                                                 </a>
                                             </div>
@@ -521,7 +530,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
             <?php 
                 $chart_counter = 0;
-                if(!empty($graph_data)){
+                if(!empty($graph_data)):
                     foreach($graph_data as $k => $v): 
                     ?>
                     <div class="container-fluid loading-container pt-4<?php if($chart_counter > 0){ echo ' hidden'; } ?>" data-test-group="<?php echo sanitize_title($k); ?>">
@@ -536,31 +545,35 @@ if (strpos($account_action, 'save_screen_') !== false) {
                             <div class="bubble bubble-border round-tl results-graph">
                             <div class="inner">
                             <?php
-                                // Better chronological data
-                                $reverse_labels = array_reverse($v['labels']);
-                                $reverse_scores = array_reverse($v['scores']);
-                                $pre_data = [
-                                    'borderWidth' => 3,
-                                    'fill' => false,
-                                    'backgroundColor' => '#199aa0',
-                                    'borderColor' => '#199aa0',
-                                    'pointRadius' => 4,
-                                    'data' => $reverse_scores
-                                ];
-                                
-                                echo '<div class="chart-container"><canvas id="canvas-'.$chart_counter.'"></canvas></div>';
-                                $chartData = [
-                                    'id' => 'canvas-'.$chart_counter,
-                                    'labels' => $reverse_labels,
-                                    'data' => [$pre_data],
-                                    'ymax' => $v['max'],
-                                    'steps' => $v['steps'] 
-                                ];
-                                $cdata = json_encode($chartData,JSON_NUMERIC_CHECK);
-                                ?>
+                                if(!$v['hide_scores']):
+                                    // Better chronological data
+                                    $reverse_labels = array_reverse($v['labels']);
+                                    $reverse_scores = array_reverse($v['scores']);
+                                    $pre_data = [
+                                        'borderWidth' => 3,
+                                        'fill' => false,
+                                        'backgroundColor' => '#199aa0',
+                                        'borderColor' => '#199aa0',
+                                        'pointRadius' => 4,
+                                        'data' => $reverse_scores
+                                    ];
+                                    
+                                    echo '<div class="chart-container"><canvas id="canvas-'.$chart_counter.'"></canvas></div>';
+                                    $chartData = [
+                                        'id' => 'canvas-'.$chart_counter,
+                                        'labels' => $reverse_labels,
+                                        'data' => [$pre_data],
+                                        'ymax' => $v['max'],
+                                        'steps' => $v['steps'] 
+                                    ];
+                                    $cdata = json_encode($chartData,JSON_NUMERIC_CHECK);
+                                    ?>
 
-                                <script>loadLineChart(<?=$cdata?>);</script>
-                                <?php
+                                    <script>loadLineChart(<?=$cdata?>);</script>
+                                    <?php
+                                else:
+                                    echo '<p class="p-5 text-center text-gray"><em>Numbered scores not available for this test.</em></p>';
+                                endif;
                                 $chart_counter++;
                             ?>
                             </div>
@@ -581,7 +594,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                     </div>   
                     <?php 
                     endforeach;
-                } 
+                endif; 
             ?>         
 
         </div>

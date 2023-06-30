@@ -4,7 +4,7 @@ get_header();
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-    <div class="page-heading bar red">	
+    <div class="page-heading bar">	
     <div class="wrap normal">				
         <?php 
             get_template_part( 'templates/blocks/breadcrumbs' );
@@ -30,7 +30,7 @@ get_header();
 
             <div id="diy-filter" class="search-filters form-container collapse show">
 
-                <a href="/diy-tools" class="right plain pt-1 red small bold">Clear All</a>
+                <a href="/diy-tools" class="right plain pt-1 small bold">Clear All</a>
                 <p class="bold text-dark-blue caps nb-3 intro-label montserrat">Filters</p>
 
                 <?php echo facetwp_display( 'facet', 'search' ); ?>
@@ -61,7 +61,8 @@ get_header();
 
             <?php
                 $options = array(
-                    'type' => 'treatment'
+                    'type' => 'treatment',
+                    'color' => 'cerulean'
                 );
                 echo get_articles_faceted( $options ); 
             ?>

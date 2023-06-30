@@ -4,6 +4,7 @@
         $corners = isset($args['corners']) ? $args['corners'] : '';
         $iframe_var = isset($args['iframe_var']) ? $args['iframe_var'] : null;
         $embedded = isset($args['embedded']) ? $args['embedded'] : 0;
+        $login_target = $iframe_var ? ' target="_blank"' : '';
     ?>
 
     <?php if($embedded): ?>
@@ -19,11 +20,6 @@
             <div class="bubble round blue thin mb-1 <?php echo $corners; ?>">
             <div class="inner bold text-center">
                 <?php 
-                    if($iframe_var){    
-                        $login_target = ' target="_blank"';
-                    } else {
-                        $login_target = '';
-                    }
                 ?>
                 <a class="append-thought-id text-white"<?php echo $login_target; ?> href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_diy_').$args['id'] ?>">Log in</a>
                 or

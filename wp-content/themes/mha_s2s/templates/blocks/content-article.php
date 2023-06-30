@@ -14,7 +14,8 @@
 $type = get_post_type();
 $customClasses = '';
 $customContentClasses = '';
-$resources = array('diy','connect','treatment','provider');
+//$resources = array('diy','connect','treatment','provider');
+$resources = array('diy','connect','provider');
 $article_type = get_field('type');
 $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
 

@@ -51,6 +51,12 @@ article {
                     margin-left: 20px;
                 }
             }
+
+            &.half-width {
+                display: inline-block;
+                width: auto;
+                margin-right: 25px;
+            }
         }
         li {
             color: unset;

@@ -1,6 +1,9 @@
 <?php
     // Placement addendum for desktop/mobile
     $placement = $args['placement'] ? '_'.$args['placement'] : '';
+    
+    // A/B Testing
+    $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
 ?>
 
 <div class="sticky">
@@ -22,7 +25,8 @@
 
     // Future vars
     $article_id = get_the_ID();
-    $resources = array('diy','connect','treatment','provider');
+    //$resources = array('diy','connect','treatment','provider');
+    $resources = array('diy','connect','provider');
     $article_type = get_field('type');
     $more_links = get_field('more_links');
     
@@ -266,7 +270,7 @@
 
             if(count($related_articles_display) > 0 || $more_links):     
                 $related_color = 'coral';
-                if(count(array_intersect($article_type, array('condition'))) > 0){
+                if(count(array_intersect($article_type, array('condition'))) > 0 || count(array_intersect($article_type, $resources)) == 0){
                     $related_color = 'teal';
                 }
             ?>

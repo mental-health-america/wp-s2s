@@ -43,7 +43,8 @@ get_header();
 		endif; 
 
 		// Reading Path
-		$resources = array('diy','connect','treatment','provider');
+		//$resources = array('diy','connect','treatment','provider');
+		$resources = array('diy','connect','provider');
 		$article_type = get_field('type');
 		$link_skip = [];
 
@@ -87,7 +88,7 @@ get_header();
 
 					<?php if($next_id): ?>
 					<p class="text-left mt-3 pt-5 mb-5">
-						<a class="button round-small-tl thick <?php echo $button_color; ?> next next-article" href="<?php echo add_query_arg('pathway', $path_id, get_the_permalink($next_id)); ?>">
+						<a class="button round-small-tl thick red next next-article" href="<?php echo add_query_arg('pathway', $path_id, get_the_permalink($next_id)); ?>">
 							<?php if(get_field('espanol')): ?>
 								Siguiente artículo
 							<?php else: ?>

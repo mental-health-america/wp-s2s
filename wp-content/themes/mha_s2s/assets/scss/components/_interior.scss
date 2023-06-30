@@ -1005,6 +1005,11 @@ button.icon.like-button {
             box-shadow: 0 0px 3px $grayMedium;
         }
 
+        &.cerulean {
+            background: $bluePale;
+            border: 1px solid $cerulean;
+        }
+
         .inner-text {
             padding: 20px;
             font-size: .9em;

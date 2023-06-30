@@ -191,7 +191,7 @@ $term = null;
 
 				<?php if(!$espanol): ?>
 					<div class="left-col ">
-					<div class="bubble round-br dark-blue normal">
+					<div class="bubble round-br red-full normal">
 						<div class="inner">		
 							<?php 
 								if($has_reading_path): 

@@ -173,3 +173,57 @@
     }
 }
 
+
+
+/* Translation header */
+.wpml-ls-legacy-dropdown {
+    display: inline-block;
+    width: auto;
+    min-width: 140px;
+    margin-left: 5px;
+    max-width: 100%;
+    text-align: left;
+    a {
+        display: block;
+        text-decoration: none;
+        color: $blue;
+        border: 0;
+        background-color: $lightBlue;
+        padding: 10px 25px 10px 15px;
+        @extend .bubble;
+        @extend .round-tiny-br;
+        @include transitions(color 150ms ease, background-color 150ms ease, border-radius 150ms ease);
+        &:hover {
+            background: $ceruleanLight;
+        }
+    }
+    .wpml-ls-current-language:hover > a {
+        background: $ceruleanLight;
+        border-bottom-left-radius: 0;
+    }
+
+    // Dropdown
+    .wpml-ls-sub-menu {
+        opacity: 0;
+        top: calc(100% - 5px);
+        border-top: 1px solid $cerulean;
+        @include transitions(top 150ms ease, opacity 150ms ease);
+        a {
+            @extend .bubble;
+            @include radius(0);
+            background: $ceruleanLight;
+            color: $blue;
+            &:hover {
+                background: $cerulean;
+                color: $white;
+            }
+        }
+
+    }
+
+    .wpml-ls-current-language:focus .wpml-ls-sub-menu,
+    .wpml-ls-current-language:hover .wpml-ls-sub-menu {
+        opacity: 1;
+        top: calc(100% - 0px);
+    }
+}
