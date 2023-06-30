@@ -3,6 +3,7 @@
 
 add_action('init', 'mhaContentScripts');
 function mhaContentScripts() {
+	wp_enqueue_script('mha_ab_testing_script', plugin_dir_url( __FILE__ ).'js/ab_testing.js', 'jquery', time(), true);
 	wp_enqueue_script('process_mhaContent', plugin_dir_url( __FILE__ ).'js/scripts.js', 'jquery', '20221206_1', true);
 	wp_localize_script('process_mhaContent', 'do_mhaContent', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
@@ -554,6 +555,7 @@ function get_articles_faceted( $options ){
 		'paged' 			=> 1, 
 		'espanol' 	    	=> '!=', 
 		'all_conditions' 	=> null,
+		'color' 			=> 'red',
 	);
 	$options = wp_parse_args( $options, $defaults );
 
@@ -797,7 +799,8 @@ function get_articles_faceted( $options ){
 				get_template_part( 'templates/blocks/resource', 'item', array( 
 					'score' => isset($treatment_articles_og[$post]) ? $treatment_articles_og[$post]['score'] : 0, 
 					'score_labels' => isset($treatment_articles_og[$post]) ? $treatment_articles_og[$post]['score_labels'] : '',
-					'paginated_display' => $faux_paging
+					'paginated_display' => $faux_paging,
+					'color' => $options['color'],
 				));
 			//}
 			$counter++;			
