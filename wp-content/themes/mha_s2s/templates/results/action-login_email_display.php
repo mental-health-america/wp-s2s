@@ -22,7 +22,7 @@
                 <p>Or, you can enter an email address and have us email your results to you.</p>
                 <?php endif; ?>
 
-                <a class="append-thought-id button navy round"<?php echo $login_target; ?> href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$args['id'] ?>">Log in to save results</a>                
+                <a class="append-thought-id button navy round"<?php echo $login_target; ?> href="/sign-up/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$args['id'] ?>">Register or log in to save results</a>
             </div>
             </div>
         </div>
