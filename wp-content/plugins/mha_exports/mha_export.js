@@ -453,6 +453,156 @@
 
     });
 
+
+    /**
+     * Feedback Form Exports
+     */
+    function feedbackExportDataLooper( results ){
+
+        var res = JSON.parse(results);
+
+        if(res.error){
+
+            // Error
+            $('#feedback-export-error').html(res.error);        
+
+        } else {
+            
+            if(res.next_page != ''){
+
+                $.ajax({
+                    type: "POST",
+                    url: do_mhaThoughts.ajaxurl,
+                    data: { 
+                        action: 'mha_export_feedback_data',
+                        data: res,
+                        start: 0
+                    },
+                    success: function( results_2 ) {  
+                        var res = JSON.parse(results_2);
+                        //console.log(res);
+                        $('#feedback-exports-progress').slideDown();
+                        $('#feedback-exports-progress .bar').css('width', res.percent+'%');
+                        $('#feedback-exports-progress .label-number').html( res.percent );         
+                        feedbackExportDataLooper( results_2 );
+                    },
+                    error: function(xhr, ajaxOptions, thrownError){                        
+                        console.error(xhr,thrownError);
+                    }
+                });	
+
+            } else {
+
+                // Export is done 
+                if(!res.export_single){ 
+                    $('#export_feedback_link').prop('disabled', false).text('Download');	
+                    $('#feedback-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                }
+                
+                if(res.all_forms_continue == 1){    
+                    $('input[name="all_forms"]').val(res.all_forms);
+                    
+                    //console.log(res);
+                    if(res.export_single == 1){    
+                        let single_continue_data = '&export_single_continue=1&filename='+res.filename;
+                        feedbackExportDataStart( 1, 1, single_continue_data );                    
+                    } else {
+                        feedbackExportDataStart( 1, null );                    
+                    }
+
+                    $('#feedback-exports-progress .bar').css('width', '0%');
+                    $('#feedback-exports-progress .bar').css('background-color', '');
+                    $('#feedback-exports-progress .label-number').html( 'Calculating...' );   
+                } else {       
+                    $('#feedback-exports-progress .bar').css('width', '100%');
+                    $('#feedback-exports-progress .bar').css('background-color', '#f89941').removeClass('loading');
+                    $('#feedback-exports-download').slideDown().append('<li>Done!</li>');
+                }
+
+            }
+
+        }
+    }
+
+    function feedbackExportDataStart( all_loop_checker = null, single_file = null, single_continue_data = null ){
+        
+        // All Forms loop check
+        if(all_loop_checker == 1){
+            
+            var all_forms = $('input[name="all_forms"]').val(),
+                form_ids = all_forms.split(',');
+
+            $('input[name="form_id"]').val( form_ids.shift() );
+            $('input[name="all_forms"]').val( form_ids.join() );  
+
+        } else {
+            
+            if($('.form-checkboxes:checked').length > 1){
+                // Start of a multi form export
+                var form_ids = new Array();
+                $('.form-checkboxes:checked').each(function(e){
+                    form_ids.push( $(this).val() );
+                });
+                $('input[name="form_id"]').val( form_ids.shift() );
+                $('input[name="all_forms"]').val( form_ids.join() );
+            } else {
+                // Single checkbox checked
+                $('input[name="form_id"]').val( $('.form-checkboxes:checked').val() );
+            }
+            
+        }
+
+        var args = $('#mha-feedback-exports').serialize();
+        if(single_file == 1 && single_continue_data){
+            args = args + '' + single_continue_data;
+        }
+
+
+        $('#export_feedback_link').prop('disabled', true).text('Processing...');
+        $('#feedback-exports-progress .bar').css('background-color', '').addClass('loading');
+        $('#feedback-exports-progress .label-number').html( 'Calculating...' );  
+        $('#feedback-export-error').html('');
+
+        $.ajax({
+            type: "POST",
+            url: do_mhaThoughts.ajaxurl,
+            data: { 
+                action: 'mha_export_feedback_data',
+                data: args,
+                start: 1
+            },
+            success: function( results ) {
+                
+                if(results){
+                    var res = JSON.parse(results);
+                    //console.log(res);
+                    if(res.error){
+                        alert(res.error+' Please refresh this page and try again.');
+                    } else {
+                        $('#feedback-exports-progress').slideDown();
+                        $('#feedback-exports-progress .bar').css('width', res.percent+'%');
+                        $('#feedback-exports-progress .label-number').html( res.percent );   
+                        feedbackExportDataLooper( results );
+                    }
+                } else {                
+                    $('#feedback-exports-progress').slideDown();
+                    $('#feedback-exports-progress .bar').css('width', '100%');
+                    $('#feedback-exports-progress .bar').css('background-color', '#ed5d66').removeClass('loading');
+                    $('#feedback-exports-progress .label-number').html( '100' );   
+                    $('#feedback-exports-download').slideDown().append('<li>No data available for this query.</li>');
+                }
+
+            },
+            error: function(xhr, ajaxOptions, thrownError){                
+                console.error(xhr,thrownError);
+            }
+        });	
+        
+    }
+    $(document).on("submit", '#mha-feedback-exports', function(event){
+        event.preventDefault();
+        feedbackExportDataStart();    
+    });
     
 
 })( jQuery );

@@ -184,6 +184,70 @@ function mhathoughtexport(){
     </form>
     <br />
 
+
+    <form id="mha-feedback-exports" action="#" method="POST">
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
+        
+            <div id="feedback-export-error"></div>
+            <h2>Feedback Form Exports</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label for="export_feedback_start_date">Start Date</label></th>
+                    <td>
+                        <input type="text" name="export_feedback_start_date" id="export_feedback_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')); ?>-01" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_feedback_end_date">End Date</label></th>
+                    <td>
+                        <input type="text" name="export_feedback_end_date" id="export_feedback_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_feedback_scores">Export radio/checkbox values instead of labels</label></th>
+                    <td>
+                        <input type="checkbox" name="export_feedback_scores" id="export_feedback_scores" value="1" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_feedback_ref">Form(s)</label><br /></th>
+                    <td>
+                        <?php 
+                            $gforms = GFAPI::get_forms(true, false, 'title'); 
+                            foreach($gforms as $gf){
+                                if (strpos(strtolower($gf['title']), 'feedback') !== false ) {
+                                    echo '<p><label><input type="radio" name="form_ids" class="form-checkboxes" value="'.$gf['id'].'"> '.$gf['title'].'</label></p>';                                    
+                                }
+                            }
+                        ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+
+                        <p>
+                            <input type="hidden" name="form_id" value="" />
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_feedback_link"  value="Download Feedback Form Data">
+                        </p>
+                        
+                        <div id="feedback-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <ul id="feedback-exports-download" style="display: none;"></ul>      
+                        <br /><br />
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </form>
+    <br />
+
     <form id="mha-user-exports" action="#" method="POST">
         <div class="acf-columns-2">
         <div class="acf-column-1">

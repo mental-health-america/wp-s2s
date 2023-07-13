@@ -344,6 +344,7 @@ function mha_export_screen_data(){
         $csv_data[$i]['Created'] = $row_date->format("Y-m-d H:i:s");     
         $csv_data[$i]['Remote IP address'] = $entry['ip'];    
         $csv_data[$i]['uid'] = $temp_array['uid'] ? md5($temp_array['uid']) : '';
+        $csv_data[$i]['post_id'] = $entry['id']; 
 
         $i++;
     }
@@ -458,13 +459,16 @@ function mha_export_screen_data(){
             moveArrayKeyToLast($csv_headers, array_search('Referer', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('IP Identifier', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('uid', $csv_headers) ); 
+            moveArrayKeyToLast($csv_headers, array_search('post_id', $csv_headers) ); 
                         
             // Move items first
             unset($csv_headers[ array_search('Created', $csv_headers) ]);
             $csv_headers = array_values($csv_headers);
             unset($csv_headers[ array_search('Remote IP address', $csv_headers) ]);
             $csv_headers = array_values($csv_headers);
-            array_unshift($csv_headers, "Created", "Remote IP address");
+            unset($csv_headers[ array_search('post_id', $csv_headers) ]);
+            $csv_headers = array_values($csv_headers);
+            array_unshift($csv_headers, "Created", "Remote IP address", "post_id");
 
             // Set order for later
             $args['csv_headers'] = array_values($csv_headers);
