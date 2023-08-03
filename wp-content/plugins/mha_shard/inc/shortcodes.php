@@ -382,6 +382,7 @@ function mha_diy_shortcode_display( $atts ){
     ob_start();
 
     $id = isset($atts['id']) ? intval($atts['id']) : null;
+    $type = isset($atts['type']) ? sanitize_text_field($atts['type']) : 'full';
 			
     if($id){
 		$args = array(
@@ -398,7 +399,8 @@ function mha_diy_shortcode_display( $atts ){
 				switch($tool_type){
 					case 'question_answer':
 						$template_options = array(
-							'embed' => 1
+							'embed' => 1,
+							'embed_type' => $type
 						);
 						get_template_part( 'templates/diy-tools/question', 'answers', $template_options ); 
 						break;

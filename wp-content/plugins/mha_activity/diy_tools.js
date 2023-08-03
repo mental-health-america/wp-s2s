@@ -385,18 +385,30 @@
 
 				// Vars for later
 				let q_id = $(this).attr('data-question'),
-					response_id = $('#diy-questions-container').attr('diy-questions-container'),
-					q_answer = $('textarea[data-question='+q_id+']').val();
+					$diy_container = $('#diy-questions-container'),
+					response_id = $diy_container.attr('diy-questions-container'),
+					q_answer = $('textarea[data-question='+q_id+']').val(),
+					embed_single = $diy_container.attr('data-embed-single'),
+					embed_action = $diy_container.attr('data-action');
 		
 				if(q_answer != ''){
+
+					// Single embed redirect override
+					if(embed_single){
+						var embed_action_url = new URL(embed_action);
+						embed_action_url.searchParams.append('diy_continue', 1);
+						$('#diy-questions-container').append('<div class="loading-next-diy"></div>')
+						$diy_container.attr('action', embed_action_url.href).submit();
+						return;
+					}
 
 					// Disable submit
 					$('.action-button.next-question[data-question='+q_id+']').prop('disabled', true);	
 
 					// Prep the data
-					var args = $('#diy-questions-container').serialize();
+					var args = $diy_container.serialize();
 
-					if($('#diy-questions-container').hasClass('embedded-diy')){
+					if($diy_container.hasClass('embedded-diy')){
 						args += '&embedded=1';
 					}
 
@@ -493,7 +505,7 @@
 					});		
 
 				} else {
-					
+					//
 				}
 
 			});
@@ -503,6 +515,17 @@
 				// getCurrentQuestions();
 				getMhaDiyCrowdsource();
 			});
+
+
+			// Continuing a started embed submission, go to second question
+			if($('#diy-questions-container').attr('data-embed-continue') == 'true'){
+				console.log('checking');
+				if( $('#diy-questions .question').eq(0).find('textarea').val() ){
+					console.log('click');
+					$('button.next-question[data-question="0"]').click();
+					question.go('>');
+				}
+			}
 
 		}
 

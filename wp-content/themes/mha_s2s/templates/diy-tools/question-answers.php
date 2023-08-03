@@ -9,9 +9,14 @@
     $show_breadcrumbs = get_field('show_breadcrumbs');
     $questions = get_field('questions');
 
-    // Template Part Args
+    // Embed Related Args
     $embedded = isset($args['embed']) ? $args['embed'] : 0;
     $embedded_class = isset($args['embed']) ? 'embedded-diy' : '';
+    $embed_type = isset($args['embed_type']) ? $args['embed_type'] : '';
+    $single_form_atts = $embed_type == 'single' ? ' data-embed-single="true" data-action="'.get_permalink($activity_id).'"' : '';
+    if(get_query_var('diy_continue')){
+        $single_form_atts = ' data-embed-continue="true"';
+    }
 
     // Placement Options
     $wrap_width = $embedded ? 'full' : 'wide';
@@ -44,7 +49,7 @@
 	
 <?php if( $questions ): ?>
 <div class="wrap <?php echo $wrap_width; ?> no-margin-mobile">	
-    <form id="diy-questions-container" class="<?php echo $embedded_class; ?>" action="#" method="POST" data-skippable="<?php echo $allow_question_skipping; ?>" data-aos="fade-left">	
+    <form id="diy-questions-container" class="<?php echo $embedded_class; ?>" action="#" method="POST" data-skippable="<?php echo $allow_question_skipping; ?>" data-aos="fade-left"<?php echo $single_form_atts; ?>>	
 
         <?php if($show_next_previews): ?>
             <?php if($allow_question_skipping): ?>
@@ -93,8 +98,12 @@
 
                                             case 'text':
                                             default:
+                                                $textarea_value = '';
+                                                if(get_query_var('diy_continue') && $_POST["answer_$row_index"]){ 
+                                                    $textarea_value = sanitize_text_field( $_POST["answer_$row_index"] ); 
+                                                }
                                                 ?>
-                                                    <textarea name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" tabindex="-1" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>></textarea>
+                                                    <textarea name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" tabindex="-1" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>><?php echo $textarea_value; ?></textarea>
                                                 <?php
                                                 break;
                                         }
@@ -160,6 +169,12 @@
                             
                         </li>
                     <?php
+
+                    // When embed type is "single", only show the first question.
+                    if($embed_type == 'single'){
+                        break;
+                    }
+                    
                     endwhile;
                     wp_reset_query();
                 ?>
@@ -202,6 +217,7 @@
     <?php 
         // Placement Options
         $wrap_width_bread = $embedded ? 'full' : 'medium';
+        if($embed_type != 'single'):
     ?>
     <div class="wrap <?php echo $wrap_width_bread; ?>">
         <?php if($show_breadcrumbs): ?>
@@ -223,6 +239,7 @@
         </ol>
         <?php endif; ?>
     </div>
+    <?php endif; ?>
 
 
 <?php endif; ?>

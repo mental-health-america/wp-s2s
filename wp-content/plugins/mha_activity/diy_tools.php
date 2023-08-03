@@ -222,7 +222,12 @@ function getDiyCrowdsource(){
 
         // Get top recent likes
         global $wpdb;
-        $date_old = date('Y-m-d', strtotime('30 days ago'));
+        
+        $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $args['activity_id']);
+
+        $date_old = date('Y-m-d', strtotime( $crowdsource_scoring_date_range ));
+        $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $args['activity_id']);
+
         if($args['page'] == 1){
             $top_likes = $wpdb->get_results("
                 SELECT pid, COUNT(*) as total_likes 
@@ -236,10 +241,14 @@ function getDiyCrowdsource(){
             if($top_likes){
                 foreach($top_likes as $tl){
                     if(get_post($tl->pid) && !get_field('crowdsource_hidden', $tl->pid)){
+                        $response_likes_override = $relate_bonus ? ($relate_bonus * $tl->total_likes) : $tl->total_likes;
                         $responses_collection[$tl->pid] = array(
                             'id'    => $tl->pid,
-                            'likes' => $tl->total_likes ? $tl->total_likes : 0
-                        );
+                            'date'  => get_the_date('', $tl->pid),
+                            'likes' => ($tl->total_likes > 0) ? $response_likes_override : 0,
+                            'true_likes' => $tl->total_likes,
+                        );  
+                        
                     }
                 }
             }
@@ -301,9 +310,13 @@ function getDiyCrowdsource(){
                     GROUP BY pid 
                     ORDER BY total_likes DESC 
                 ");
+
+                $response_likes_override = $relate_bonus ? ($relate_bonus * $response_likes) : $response_likes;
                 $responses_collection[$pid] = array(
                     'id'    => $pid,
-                    'likes' => $response_likes ? $response_likes : 0
+                    'date'  => get_the_date('', $pid),
+                    'likes' => ($response_likes > 0) ? $response_likes_override : 0,
+                    'true_likes' => $response_likes,
                 );  
             }
             
@@ -313,15 +326,17 @@ function getDiyCrowdsource(){
         foreach($responses_collection as $k => $v){
             $response_args = array(
                 'pid'               => $k,
+                'true_likes'        => $v['true_likes'],
                 'likes'             => $v['likes'],
                 'args'              => $args,
+                'date'              => get_the_date('', $pid),
                 'total_questions'   => $total_questions
             );
             $responses[] = get_diy_response_display( $response_args );
         }
 
         // Print responses, sorted by likes
-        usort($responses, function ($a, $b) {return $a['score'] <=> $b['score'];} );
+        usort($responses, function ($a, $b) {return $b['score'] <=> $a['score'];} );
 
         // Update the cache file
         /*
@@ -334,6 +349,7 @@ function getDiyCrowdsource(){
 
     // Build HTML to return
     $result['responses'] = $responses;
+    //$result['html'] .= '<pre>'.print_r($responses, true).'</pre>';
     $result['html'] .= '<div class="question-container" data-page="'.$args['page'].'">';  
     
     if($args['page'] > 1 && count($responses) > 0){
@@ -402,9 +418,10 @@ function getDiyCrowdsource(){
                     $result['html'] .= '&bull; Date Started: '.get_field('started', $r['pid']).'<br />';     
                     $result['html'] .= '&bull; Question Index: '.$qid.'<br /><br />';   
 
-                    $result['html'] .= '&bull; Likes: '.$r['likes'].'<br />';                                 
+                    $result['html'] .= '&bull; True Likes: '.$r['true_likes'].'<br />';                                 
+                    $result['html'] .= '&bull; Modified Likes: '.$r['likes'].'<br />';                                 
                     $result['html'] .= '&bull; All Answered: ';                  
-                    $result['html'] .=  ($r['total_answers'] == $total_questions) ? 'Yes (+1)' : 'No (+0)';   
+                    $result['html'] .=  ($r['total_answers'] == $total_questions) ? 'Yes' : 'No (+0)';   
         
                     $result['html'] .= '<br />&bull; Total Score: '.$r['score'];     
                     $result['html'] .= '<br />&bull; [<a target="_blank" href="'.get_edit_post_link($r['pid']).'">Edit Submission</a>]<br />';             
@@ -474,17 +491,21 @@ function get_diy_response_display( $args ) {
     // Post data
     $defaults = array(
         'pid'               => null,
+        'true_likes'        => 0,
         'likes'             => 0,
         'args'              => array(),
+        'date'              => null,
         'total_questions'   => array(),
     );    
     $args = wp_parse_args( $args, $defaults ); 
+    $complete_bonus = get_field('crowdsource_scoring_complete_answers_bonus', $args['args']['activity_id']);
 
     $response = [];
 
     if($args['pid']){
 
         $response['pid'] = $args['pid'];
+        $response['true_likes'] = $args['true_likes'];
         $response['likes'] = $args['likes'];
         $response['qresponses'] = get_field('response', $args['pid']);
         $response['total_answers'] = 0;
@@ -505,7 +526,26 @@ function get_diy_response_display( $args ) {
             }
         }
 
-        $response['score'] = ($response['total_answers'] == $args['total_questions']) ? $args['likes'] + 1 : $args['likes'];
+        $total_answers_bonus = $complete_bonus ? get_field('crowdsource_scoring_complete_answers_bonus', $args['args']['activity_id']) : 0;
+        $response['score'] = ($response['total_answers'] == $args['total_questions']) ? $args['likes'] + $total_answers_bonus : $args['likes'];
+
+        // Additional Recency Bias calculations
+        $recency_check = get_field('crowdsource_scoring_recency_bias', $args['args']['activity_id']);
+        $p_date = strtotime($args['date']);
+        if( $recency_check ):
+            $i = 0;
+            foreach( $recency_check as $r ):
+                $r_date = strtotime($r['date_range']);
+                $r_score = $r['score'];
+                $response[$i]['r_date'] = $r_date;
+                $response[$i]['r_score'] = $r_score;
+                $response[$i]['p_date'] = $p_date;
+                if($r_date >= $p_date){
+                    $response['score'] = $response['score'] + $r_score;
+                }
+                $i++;
+            endforeach;
+        endif; 
 
         return $response;
     }

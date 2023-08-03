@@ -597,17 +597,35 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 		$total_score = round($total_score, 2);
 		$results['total_score'] = $total_score;
 
-        if( $general_score_data[67] == '' || $general_score_data[68] == '' ){
+        // BMI Calculation
+        $height_choice = $general_score_data[119]; // Height Choice
+        $height_ft = $general_score_data[124]; // Feet
+        $height_in = $general_score_data[125]; // Inches
+        $height_cm = $general_score_data[126]; // Centimeters
+        $height_final = null;
+        
+        if($height_choice == 'feet'){
+            if($height_ft != '' || $height_in != ''){
+                $height_final = ($height_ft * 12) + $height_in;
+            }
+        } elseif ($height_choice == 'centimeters'){
+            $height_final = ($height_cm / 2.54);
+        }
+
+        if( $height_final != null || $general_score_data[68] == '' ){
             $bmi = NULL; // Height/Weight are optional, don't calculate BMI in this instance
         } else if($general_score_data[49] > 0){
-            $bmi = $general_score_data[67] / $general_score_data[68] / ( $general_score_data[68] * 703 );
+            $bmi = $height_final / $general_score_data[68] / ( $general_score_data[68] * 703 );
 		} else {
 			$bmi = 0;
 		}
 		$results['general_score_data'] = $general_score_data;
 		$results['bmi_raw'] = $bmi;
 		$results['bmi'] = $total_score;
+		$results['height_final'] = $height_final;
+		$results['height_calcs'] = "Choice:$height_choice, FT:$height_ft, IN: $height_in, CM: $height_cm";
 		
+        // Test Scoring
 		if (($bmi !== NULL && $bmi < 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
 			$custom_result_row = 1; // At Risk for Eating Disorder
 		} elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
