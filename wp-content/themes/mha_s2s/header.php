@@ -164,6 +164,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 						</div>
 					</div>
 				<?php endif; ?>	
+				<?php
+					echo " | ";
+					do_action('wpml_add_language_selector');
+				?>
 			</span>
 
 			<button id="mobile-menu-button" class="menu-toggle button" aria-controls="main-menu" aria-label="Toggle Menu" aria-expanded="false">
@@ -184,14 +188,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				wp_nav_menu([
 					'theme_location' => 'main',
 					'menu_id'        => 'main-menu',
-					'menu_class'     => 'sf-menu',
-					//'walker' 		 => new Dropdown_Walker_Nav_Menu()
+					'menu_class'     => 'sf-menu'
 				]);
 				
 				// CTA Buttons
 				wp_nav_menu([
 					'theme_location' => 'secondary',
-					'menu_id'        => 'main-menu-buttons'
+					'menu_id'        => 'main-menu-buttons',
+					'menu_class'     => 'secondary-menu',
 				]);
 			?>			
 		</nav>
