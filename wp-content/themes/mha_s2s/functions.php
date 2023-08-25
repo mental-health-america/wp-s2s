@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20230524' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20230803' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -394,6 +394,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'first_login'; // New registered users
     $qvars[] = 'exclude_ids'; // URL exclusions for articles
     $qvars[] = 'include_ids'; // URL inclusions for articles
+    $qvars[] = 'diy_continue'; // Flag for a continuing DIY tool submission from an embed
 
 	// Resource filters
 	$qvars[] = 'treatment';
