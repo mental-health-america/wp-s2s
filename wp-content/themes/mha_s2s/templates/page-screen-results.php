@@ -768,12 +768,15 @@ else:
                 }
 
                 // Veteran CTA Override 5/26/2023
+                 // Disabled on 2023-08-14
+                 /*
                 if(
                     isset($answered_demos['Which of the following populations describes you?']) && 
                     in_array('Veteran or active-duty military', $answered_demos['Which of the following populations describes you?'])
                 ){
                     $unique_result_cta = array('126533');
                 }
+                */
 
                 global $post;
                 foreach($unique_result_cta as $cta){
