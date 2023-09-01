@@ -204,6 +204,9 @@ input[type="button"] {
     // Color Options
     &.white {
         background: $white;
+        &:visited {
+            color: $blue;
+        }
         &:focus,
         &:hover {
             background: $cerulean;
@@ -868,6 +871,12 @@ p {
 .small { 
     font-size: .85em; 
     line-height: 1.6em; 
+    font-weight: inherit;
+}
+
+.smaller { 
+    font-size: .75em; 
+    line-height: 1.5em; 
     font-weight: inherit;
 }
 

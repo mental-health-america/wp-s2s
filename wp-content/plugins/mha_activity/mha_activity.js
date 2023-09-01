@@ -652,10 +652,9 @@ jQuery(function ($) {
 
 	$(document).on('click', '.cancel-flag-thought', function(event){
 		event.preventDefault();
-		var id = $(this).parents('li').attr('id');
-		console.log(id);
-		$('#'+id + ' .inner').show();
-		$('#'+id + ' .thought-flag-confirm-container').addClass('hidden');
+		var id = $(this).parents('li');
+		$(id).find('.inner').show();
+		$(id).find('.thought-flag-confirm-container').addClass('hidden');
 	});
 
 	$(document).on('click', '.thought-flag', function(event){

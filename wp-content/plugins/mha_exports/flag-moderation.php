@@ -201,7 +201,7 @@ if($flag_query){ ?>
                                 }
                             } else {
 
-                                $flagged_response = $wpdb->get_results( 'SELECT * FROM thoughts_flags WHERE pid = '.$pid );
+                                $flagged_response = $wpdb->get_results( 'SELECT * FROM thoughts_flags WHERE pid = '.$pid.' GROUP BY pid');
                                 foreach($flagged_response as $fr){
                                     echo $responses[$fr->row]['answer'].'<br />';                                       
                                 }

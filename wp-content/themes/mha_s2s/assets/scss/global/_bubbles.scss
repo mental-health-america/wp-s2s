@@ -30,6 +30,14 @@
     
 
     // Size Options
+    &.thinish {
+        .inner {
+            padding: 40px;
+            @media only screen and (max-width: 679px){
+                padding: 30px;
+            }
+        }
+    }
     &.thin {
         .inner {
             padding: 30px;

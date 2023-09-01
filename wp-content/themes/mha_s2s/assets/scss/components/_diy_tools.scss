@@ -354,3 +354,7 @@ button.peek {
     background: url('../images/loading-white.gif') center center no-repeat;
     background-size: contain;
 }
+
+.embed-type-single .glide--swipeable {
+    cursor: auto; // Disable cursor on single embeds
+}

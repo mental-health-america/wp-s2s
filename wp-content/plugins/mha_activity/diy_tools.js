@@ -39,6 +39,7 @@
 				current_activity = $('#crowdthoughtsContent').attr('data-activity'),
 				current_post = $('input[name="diytool_current_id"]').length ? $('input[name="diytool_current_id"]').val() : $('#crowdthoughtsContent').attr('data-current'),
 				carousel = $('#crowdthoughtsContent').attr('data-carousel'),
+				embed_type = $('#crowdthoughtsContent').attr('data-carousel'),
 				activity_page = parseInt( $('#crowdthoughtsContent').attr('data-page') ),
 				crowdsource_loaded = parseInt( $('#crowdthoughtsContent').attr('data-loaded') ),
 				data = 'question='+current_question+'&activity_id='+current_activity+'&carousel='+carousel+'&current='+current_post+'&page='+activity_page;
@@ -46,8 +47,9 @@
 			if( $('#diy-questions-container').hasClass('embedded-diy') || $('#crowdthoughtsAll').hasClass('embedded-diy') ){
 				data = data+'&embedded=1';
 			}
-
-			//console.log(data);
+			if( $('#diy-questions-container').attr('data-embed-single') == 'true' ){
+				data = data+'&single_embed=1';
+			}
 
 			// Crowdsource already loaded, no need to reload it
 			if( crowdsource_loaded == 1 && load_page == false){
@@ -71,7 +73,7 @@
 				$('input[name="opened_diy"]').val('1');
 				$('input[name="opened_diy_question"]').val(current_question);
 			}
-
+					
 			// Get the question content 
 			$.ajax({
 				type: "POST",
@@ -81,7 +83,6 @@
 					data: data
 				},
 				success: function( results ) {
-					
 					var res = JSON.parse(results);
 					$('#crowdthoughtsContent').removeClass('loading');
 
@@ -107,21 +108,28 @@
 						$('#crowdthoughtsContent').attr('data-page', (activity_page + 1) );
 					}
 
-					var sliders = document.querySelectorAll('.crowdsource-responses:not(.glide--slider)');	
+					var sliders = document.querySelectorAll('.crowdsource-responses:not(.glide--slider)'),
+						questionAllowSkip = $('#diy-questions').attr('data-skip'),
+						questionsTotal = $('#crowdthoughtsContent .crowdsource-responses:first ol li').length;
+						questionPeek = $('#diy-questions').length ? $('#diy-questions').attr('data-peek') : 1;	
+
 					for (var i = 0; i < sliders.length; i++) {
-						var crowdGlide = new Glide(sliders[i], {
+						var crowdGlide = {
 							type: 'slider',
 							start: current_question,
 							focusAt: 'center',
 							perView: 1,
 							gap: 40,
 							rewind: false,
-							autoHeight: true,
-							peek: {
+							autoHeight: true							
+						};		
+									
+						if(questionPeek == 1){
+							crowdGlide.peek = {
 								before: 150,
 								after: 150
-							},
-							breakpoints: {
+							}
+							crowdGlide.breakpoints = {
 								880: {
 									gap: 20,
 									peek: {
@@ -137,8 +145,20 @@
 									}
 								}
 							}
-						});						
-						crowdGlide.mount();
+						} else {
+							crowdGlide.breakpoints = {
+								880: {
+									gap: 20
+								}
+							}
+						}
+						if(questionAllowSkip == 0 || questionsTotal < 2){
+							crowdGlide.swipeThreshold = false;
+							crowdGlide.dragThreshold = false
+						}
+
+						new Glide(sliders[i], crowdGlide ).mount();
+						
 					}
 
 				},
@@ -246,7 +266,6 @@
 				return {
 					mount () {
 						Events.emit('slider.length', Components.Sizes.length);
-						//console.log('Console log', Components.Sizes.length);
 					}
 				}
 			}
@@ -304,9 +323,6 @@
 
 				// Get the direction
 				let dir = this.getAttribute("data-glide-dir");
-
-				//console.log(dir);
-				//console.log( $('.glide__slide--active'));
 
 				// Prevent skips
 				if( $('#diy-questions-container').attr('data-skippable') == 0){
@@ -428,7 +444,6 @@
 							
 							$('.action-button.next-question[data-question='+q_id+']').prop('disabled', false);		
 							var res = JSON.parse(results);
-							console.log(res);
 
 							var current_post = $('input[name="diytool_current_id"]').val();
 							if(current_post == ''){
@@ -443,8 +458,6 @@
 								$('.next-question.submit').tooltip('show');
 
 							} else {
-
-								//console.log(res);
 
 								if(res.redirect){
 
@@ -519,9 +532,7 @@
 
 			// Continuing a started embed submission, go to second question
 			if($('#diy-questions-container').attr('data-embed-continue') == 'true'){
-				console.log('checking');
 				if( $('#diy-questions .question').eq(0).find('textarea').val() ){
-					console.log('click');
 					$('button.next-question[data-question="0"]').click();
 					question.go('>');
 				}
@@ -580,6 +591,60 @@
 			}, 0);
 		});
 		
+		/**
+		 * Toggle question display on crowdsource
+		 */
+		$(document).on('click', '.question-label-toggle', function(e){
+			$(this).find('.question-label-short').toggleClass("d-none");
+			$(this).find('.question-label-long').toggleClass("d-none");
+		});
+
+		$(document).on('change', '#crowdsource_hidden', function(e){
+			var updateMsg = '';
+			if( this.checked ){
+				updateMsg = 'This submission will be hidden from other users and only visible only to you.';
+			} else {
+				updateMsg = 'This submission will be visible to other users. Submissions are anonymous; no usernames are displayed.';
+			}
+			if(updateMsg != ''){
+				$('.diy-opt-out-message').removeClass('invisible').find('.inner').html(updateMsg);
+			}
+		});
+
+		$(document).on('click', '.toggle_private_thought', function(e){
+
+			let $checkbox = $(this),
+				pid = $checkbox.attr('data-id'),
+				value = $checkbox.prop( "checked" ) ? 1 : 0;
+
+			$checkbox.prop('disabled', true).addClass('loading');
+
+			$.ajax({
+				type: "POST",
+				url: do_mhaDiyTools.ajaxurl,
+				data: { 
+					action: 'mhaToggleHideThought',
+					data: 'pid='+pid+'&value='+value
+				},
+				success: function( results ) {					
+					var res = JSON.parse(results),
+						updateMsg = '';
+					if(res.new_value == true){
+						updateMsg = 'This submission has been hidden from other users and is now visible only to you.';
+					} else if ( res.new_value == false){
+						updateMsg = 'This submission is now visible to other users. Submissions are anonymous; no usernames are displayed.';
+					}
+					$checkbox.prop('disabled', false).removeClass('loading');
+					if(updateMsg != ''){
+						$('.toggle_private_thought_message[data-thought="'+pid+'"]').removeClass('d-none').find('.inner').html(updateMsg);
+					}
+				},
+				error: function(xhr, ajaxOptions, thrownError){
+					console.error(xhr,thrownError);
+				}
+			});	
+			
+		});
 
 	});
 

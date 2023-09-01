@@ -62,6 +62,14 @@ article {
             color: unset;
         }
     }
+    .gfield {
+        &.indent {
+            margin-left: 40px;
+            @media only screen and (max-width: 767px){
+                margin-left: 20px;
+            }
+        }
+    }
 
     .gfield_html_formatted {
         max-width: 720px;

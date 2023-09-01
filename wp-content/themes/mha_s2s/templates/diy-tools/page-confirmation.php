@@ -6,6 +6,7 @@
     $questions = get_field('questions', $activity_id);
     $crowdsource_heading = get_field('crowdsource_heading', $activity_id);
     $allow_crowdsource_viewing = get_field('allow_crowdsource_viewing', $activity_id) ? get_field('allow_crowdsource_viewing', $activity_id) : 0;
+    $show_next_previews = get_field('show_next_previews', $activity_id) ? get_field('show_next_previews', $activity_id) : 0;
     $crowdsource_button_label = get_field('crowdsource_button_label', $activity_id);
     $crowdsource_default_visible = get_field('crowdsource_default_visible', $activity_id);
     $article_classes = get_post_class( 'article-diy-page-confirmation', $pid );
@@ -88,6 +89,22 @@ Submitted on <?php echo get_the_date('F j, Y', $activity_id); ?><br />
             endwhile;
             endif;
         ?>
+
+        <p>
+            <hr />
+            <label for="private_thought_<?php echo $pid; ?>">
+                <input type="checkbox" 
+                    value="1" 
+                    class="toggle_private_thought"
+                    name="private_thought_<?php echo $pid; ?>"
+                    id="private_thought_<?php echo $pid; ?>" 
+                    data-id="<?php echo $pid; ?>" 
+                    <?php if(get_field('crowdsource_hidden', $pid)){ echo 'checked'; }; ?> 
+                />
+                Hide this from public submissions (all submissions are anonymous)
+            </label>
+            <div data-thought="<?php echo $pid; ?>" class="toggle_private_thought_message bubble white thinner d-none round-tl"><div class="inner"></div></div>
+        </p>
 
     </div>
     </div>

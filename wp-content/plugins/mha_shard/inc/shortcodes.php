@@ -19,13 +19,14 @@ function mha_popular_articles( $options ) {
 	);
 	$atts = wp_parse_args( $options, $defaults );
 
-	$month_range = date('Ym').','.date('Ym', strtotime("-1 months")).','.date('Ym', strtotime("-2 months")); // Last 3 months
-	
+	//$month_range = date('Ym').','.date('Ym', strtotime("-1 months")).','.date('Ym', strtotime("-1 months")); // Last 3 months
+	$month_range = date('Ymd', strtotime("now -3 months")); // Last 3 months
+
 	if($atts['tag']){	
 
 		// JSON Source File
 		$json = plugin_dir_path( __FILE__ ).'tmp/pop_'.$atts['tag'].'_articles.json'; 
-		
+
 		// Return JSON contents
 		if(file_exists($json) && filemtime($json) > strtotime('-1 months')) {
 			
@@ -47,12 +48,12 @@ function mha_popular_articles( $options ) {
 
 				WHERE posts.post_status LIKE "publish"
 				AND posts.post_type LIKE "article" 
-				AND postview.period IN ('.$month_range.') 
+				AND postview.period > '.$month_range.'
 				AND postmeta.meta_value LIKE "condition"
 
 				OR (posts.post_status LIKE "publish"
 				AND posts.post_type LIKE "article" 
-				AND postview.period IN ('.$month_range.') 
+				AND postview.period > '.$month_range.'
 				AND postmeta.meta_value LIKE \'%"condition"%\')
 
 				GROUP BY posts.ID
@@ -86,10 +87,10 @@ function mha_popular_articles( $options ) {
 	} else {
 
 		// JSON Source File
-		$json = plugin_dir_path( __FILE__ ).'tmp/pop_8_articles.json'; 
-		
+		$json = plugin_dir_path( __FILE__ ).'tmp/pop_articles.json'; 
+
 		// Return JSON contents
-		if(file_exists($json) && filemtime($json) > strtotime('-1 months')) {
+		if( file_exists($json) && filemtime($json) > strtotime('-1 months')) {
 			
 			$pop_data = file_get_contents($json);
 			$articles = json_decode( json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $pop_data), true ), true );
@@ -109,14 +110,15 @@ function mha_popular_articles( $options ) {
 
 				WHERE posts.post_status LIKE "publish"
 				AND posts.post_type LIKE "article" 
-				AND postview.period IN ('.$month_range.') 
-				AND postmeta.meta_value LIKE "condition"
+				AND postview.period > '.$month_range.'
+				AND postmeta.meta_key = "type"
+				AND postmeta.meta_value LIKE "%condition%"
 
 				GROUP BY posts.ID
 				ORDER BY total DESC
 				LIMIT 8'
 			);
-			
+
 			$articles = [];
 			foreach($article_query as $pa){
 				$articles[] = $pa->ID;
@@ -132,7 +134,6 @@ function mha_popular_articles( $options ) {
 	}
 
 	if($articles){
-
 		$inline_list = [];
 
 		if($atts['style'] == 'inline'){
@@ -185,13 +186,40 @@ function mha_conditions() {
 	$conditions = [];
 	if($query){
 		foreach($query as $c){
+
 			if(!get_field('hide_on_front_end', $c->taxonomy.'_'.$c->term_id)){
-				$conditions[] = '<a class="plain cerulean" href="'.get_term_link($c->term_id).'">'.$c->name.'</a>';
+
+				$args = array(
+					"post_type" => 'page',
+					"post_status" => 'publish',
+					"meta_query"		=> array(
+						'relation'	 	=> 'AND',
+						array(
+							'key'       => '_wp_page_template',
+							'value'     => 'templates/page-path-collection.php'
+						),
+						array(
+							'key'       => 'condition',
+							'value'     => $c->term_id
+						)
+					)
+				);
+				$loop = new WP_Query($args);
+				
+				if($loop->have_posts()):
+					while($loop->have_posts()) : $loop->the_post();
+						$conditions[] = '<a class="plain cerulean link-reading-path" href="'.get_the_permalink().'">'.$c->name.'</a>';
+					endwhile;
+				else:
+					$conditions[] = '<a class="plain cerulean link-tag" href="'.get_term_link($c->term_id).'">'.$c->name.'</a>';
+				endif; 
+
 			}
 		}
 		$html = '<div class="conditions-list">';
 		$html .= implode('&nbsp;<span class="noto" role="separator">|</span>&nbsp; ', $conditions);
 		$html .= '</div>';
+		wp_reset_postdata();
 		return $html;
 	}
 
@@ -393,7 +421,7 @@ function mha_diy_shortcode_display( $atts ){
 		$loop = new WP_Query($args);
 
 		if($loop->have_posts()):
-			echo '<div class="diy-tool-shortcode">';
+			echo '<div class="diy-tool-shortcode embed-type-'.$type.'">';
 			while($loop->have_posts()) : $loop->the_post();
 				$tool_type = get_field('tool_type', $id);
 				switch($tool_type){
@@ -409,7 +437,7 @@ function mha_diy_shortcode_display( $atts ){
 			echo '</div>';
 		endif;
 		wp_reset_postdata();
-
+		wp_reset_query();
     } 
 
     return ob_get_clean();

@@ -100,6 +100,13 @@ label {
             }
         }
 
+        &#sign-up-form {
+            li,
+            p {
+                clear: left;
+            }
+        }
+
         .gform_fields li {
             margin: 0;
             padding: 0 0 20px 0;
@@ -559,7 +566,7 @@ label {
             list-style-type: none;
             margin: 0;
             padding: 0;
-            &.question.indent {
+            &.indent {
                 margin-left: 40px;
                 @media only screen and (max-width: 767px){
                     margin-left: 20px;

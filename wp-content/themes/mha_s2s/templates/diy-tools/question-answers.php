@@ -17,6 +17,17 @@
     if(get_query_var('diy_continue')){
         $single_form_atts = ' data-embed-continue="true"';
     }
+    if($embed_type == 'single'){
+        $show_next_previews = 0;
+    }
+    
+    if( isset($args['start_page']) ){
+        $start_page = intval($args['start_page']);
+    } else if( isset($_POST['start_page']) ){
+        $start_page = intval($_POST['start_page']);
+    } else {
+        $start_page = '';
+    }
 
     // Placement Options
     $wrap_width = $embedded ? 'full' : 'wide';
@@ -145,11 +156,14 @@
                                     ?>
                                     <div class="col-12 col-md-5 text-right text-md-end p-0"<?php echo $container_atts; ?>>
                                         <button <?php echo $button_atts; ?> tabindex="-1">
-                                            <?php echo get_sub_field('next_button'); ?>&nbsp;&raquo;
+                                            <?php
+                                                echo ($embed_type == 'single') ? 'Continue' : get_sub_field('next_button');
+                                            ?>&nbsp;&raquo;
                                         </button>
 
                                         <?php if( $crowdsource_ask && get_field('allow_user_opt_out_of_crowdsource') ): ?>
                                             <div class="diy-opt-out small pt-3"><?php echo $crowdsource_ask; ?></div>
+                                            <div class="diy-opt-out-message invisible text-left bubble white thinner round-tl"><div class="inner smaller"><br /><br /></div></div>
                                         <?php endif; ?>
                                     </div>
 
@@ -180,7 +194,7 @@
                 ?>
             </ol>
         </div>
-</div>
+        </div>
 
         <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('diySubmission'); ?>" />
         <input type="hidden" name="activity_id" value="<?php echo $activity_id; ?>" />
@@ -190,6 +204,7 @@
         <input type="hidden" name="diytool_current_id" value="" />
         <input type="hidden" name="opened_diy" value="" />
         <input type="hidden" name="opened_diy_question" value="" />
+        <input type="hidden" name="start_page" value="<?php echo $start_page; ?>" />
     </form>
     
     <?php 
@@ -240,7 +255,6 @@
         <?php endif; ?>
     </div>
     <?php endif; ?>
-
 
 <?php endif; ?>
 </div>
