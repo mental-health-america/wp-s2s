@@ -110,7 +110,7 @@
                                             case 'text':
                                             default:
                                                 $textarea_value = '';
-                                                if(get_query_var('diy_continue') && $_POST["answer_$row_index"]){ 
+                                                if(get_query_var('diy_continue') && isset($_POST["answer_$row_index"])){ 
                                                     $textarea_value = sanitize_text_field( $_POST["answer_$row_index"] ); 
                                                 }
                                                 ?>
