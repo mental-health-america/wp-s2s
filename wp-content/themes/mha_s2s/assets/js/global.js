@@ -442,6 +442,9 @@
 				return false;
 			}
 		});
+
+		// Bootstrap tooltips
+		$('[data-toggle="tooltip"]').tooltip()
 	
 
 	});
