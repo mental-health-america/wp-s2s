@@ -61,21 +61,21 @@ function mha_export_screen_data(){
             'export_single'             => null,
             'export_single_continue'    => null,
 
-            'debug'                     => null
+            'debug'                     => 0
         );      
 
         // Testing options
         if($defaults['debug'] == 1){
-            $defaults['form_id']                   = 34;
+            $defaults['form_id']                   = 17;
             $defaults['export_only_demographic']   = 0;
-            $defaults['export_screen_start_date']  = '2023-01-01';
-            $defaults['export_screen_end_date']    = '2023-01-02';
+            $defaults['export_screen_start_date']  = '2023-01-19';
+            $defaults['export_screen_end_date']    = '2023-01-19';
             $defaults['all_forms_ids']             = null;
             $args = $defaults;
+        } else {
+            parse_str( $_POST['data'], $data);
+            $args = wp_parse_args( $data, $defaults );  
         }
-
-        parse_str( $_POST['data'], $data);
-        $args = wp_parse_args( $data, $defaults );  
         
     } else {        
 
@@ -357,7 +357,7 @@ function mha_export_screen_data(){
     $max_pages = ceil($total_count / $page_size);
     //if($max_pages == 0){ $max_pages = 1; }
     $args['max'] = $max_pages;
-    $args['percent'] = round( ( ($args['page'] / $max_pages) * 100 ), 2 );
+    $args['percent'] = $max_pages ? round( ( ($args['page'] / $max_pages) * 100 ), 2 ) : 100;
     if($args['page'] >= $max_pages){
         $args['next_page'] = '';
     } else {
@@ -497,13 +497,13 @@ function mha_export_screen_data(){
 
         // Write the results to the CSV
         $writer->insertAll(new ArrayIterator($csv_data_ordered));
+        /*
         $encoder = (new CharsetConverter())
             ->inputEncoding('utf-8')
             ->outputEncoding('iso-8859-15')
-        ;
-        
+        ;        
         $writer->addFormatter($encoder);
-
+        */
 
     } catch (CannotInsertRecord $e) {
         $args['error'] = $e->getRecords();

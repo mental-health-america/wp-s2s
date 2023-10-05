@@ -4,6 +4,7 @@
 #aggregate-progress,
 #diyTool-exports-progress,
 #feedback-exports-progress,
+#abTesting-exports-progress,
 #nonaggregate-progress {
     width: 401px;
     height: 41px;
@@ -17,6 +18,7 @@
 #screen-exports-progress .bar-wrapper,
 #update-screen-results-progress .bar-wrapper,
 #aggregate-progress .bar-wrapper,
+#abTesting-exports-progress .bar-wrapper,
 #nonaggregate-progress .bar-wrapper {
     position: relative;
     height: 38px;
@@ -29,6 +31,7 @@
 #screen-exports-progress .bar,
 #update-screen-results-progress .bar,
 #aggregate-progress .bar,
+#abTesting-exports-progress .bar,
 #nonaggregate-progress .bar {
     position: absolute;
     z-index: 2;
@@ -46,6 +49,7 @@
 #screen-exports-progress .bar.loading:after,
 #update-screen-results-progress .bar.loading:after,
 #aggregate-progress .bar.loading:after,
+#abTesting-exports-progress .bar.loading:after,
 #nonaggregate-progress .bar.loading:after {  
     content: "";
     position: absolute;
@@ -65,6 +69,7 @@
 #user-exports-download
 #screen-exports-download,
 #aggregate-download,
+#abTesting-download,
 #nonaggregate-download {
     padding-top: 15px;
 }

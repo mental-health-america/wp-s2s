@@ -6,7 +6,6 @@ use League\Csv\CharsetConverter;
 use League\Csv\Writer;
 use League\Csv\Reader;
 
-
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsExportScripts');
 function mhaDiyToolsExportScripts() {
@@ -70,11 +69,13 @@ function mha_export_diy_tool_data(){
         1 => 'ipiden',
         2 => 'username',
         3 => 'hidden_from_my_account',
-        5 => 'hidden_from_crowdsource',
-        6 => 'hidden_from_my_account',
-        7 => 'ref_code',
-        8 => 'post_status',
-        9 => 'post_id',
+        4 => 'hidden_from_crowdsource',
+        5 => 'hidden_from_my_account',
+        6 => 'start_page',
+        7 => 'started_on_embed',
+        8 => 'ref_code',
+        9 => 'post_status',
+        10 => 'post_id',
     ];
 
     // Begin query
@@ -142,6 +143,8 @@ function mha_export_diy_tool_data(){
             'hidden_from_my_account'            => get_field('hidden'),
             'hidden_from_crowdsource'           => get_field('crowdsource_hidden'),
             'viewed_crowdsource'                => get_field('user_viewed_crowdsource'),
+            'start_page'                        => get_field('start_page'),
+            'started_on_embed'                  => get_field('start_page') ? 1 : 0,
             'ref_code'                          => get_field('ref_code'),
             'post_status'                       => get_post_status(),
             'post_id'                           => $response_id
@@ -164,9 +167,11 @@ function mha_export_diy_tool_data(){
             $total_flags = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_flags WHERE pid = '.$response_id.' AND row = '.$ar['id'].' AND status = 0');
 
             $ar_date_convert = str_replace('/', '-', $ar['date']);
+            $row_date = new DateTime($ar_date_convert);
+            $row_date->setTimezone($timezone);
             
             $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Response'] = $ar['answer'];
-            $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Date']     = date('m-d-Y H:i:s', strtotime($ar_date_convert));
+            $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Date']     = $row_date->format("Y-m-d H:i:s");
             $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Updated']  = $ar['updated'];
             $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Likes']    = $total_likes ? $total_likes : "0";
             $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Flags']    = $total_flags ? $total_flags : "0";
@@ -176,6 +181,7 @@ function mha_export_diy_tool_data(){
         $csv_data[$i]['Total Likes'] = $response_total_likes;
         $csv_data[$i]['Total Flags'] = $response_total_flags;
         $csv_data[$i]['Admin Notes'] = get_field('admin_notes');
+        $csv_data[$i]['Post Date'] = get_the_date('Y-m-d H:i:s');
 
         $i++;
     endwhile;        
@@ -203,8 +209,10 @@ function mha_export_diy_tool_data(){
      */
     try {
 
-        $form_slug = sanitize_title (get_the_title($args['tool_id']) );
-        $args['filename'] = $args['filename'] ? $args['filename'] : $form_slug.'--'.$args['diytool_export_start_date'].'_'.$args['diytool_export_end_date'].'--'.date('U').'.csv';
+        if(!$args['filename']){
+            $form_slug = sanitize_title (get_the_title($args['tool_id']) );
+            $args['filename'] = $args['filename'] ? $args['filename'] : $form_slug.'--'.$args['diytool_export_start_date'].'_'.$args['diytool_export_end_date'].'--'.date('U').'.csv';
+        }
         $writer_type = $args['filename'] ? 'a+' : 'w+';
                 
         if($args['page'] >= $args['max']){
@@ -244,12 +252,14 @@ function mha_export_diy_tool_data(){
 
         // Write the results to the CSV
         $writer->insertAll(new ArrayIterator($csv_data_ordered));
+        /*
         $encoder = (new CharsetConverter())
             ->inputEncoding('utf-8')
             ->outputEncoding('iso-8859-15')
         ;
         
         $writer->addFormatter($encoder);
+        */
 
 
     } catch (CannotInsertRecord $e) {

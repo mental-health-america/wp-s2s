@@ -185,6 +185,49 @@ function mhathoughtexport(){
     <br />
 
 
+    <form id="mha-ab-testing-export" action="#" method="POST">
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
+        
+            <div id="ab-testing-export-error"></div>
+            <h2>A/B Testing Logs</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label for="abtesting_export_start_date">Start Date</label></th>
+                    <td>
+                        <input type="text" name="abtesting_export_start_date" id="abtesting_export_start_date" value="<?php //echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="abtesting_export_end_date">End Date</label></th>
+                    <td>
+                        <input type="text" name="abtesting_export_end_date" id="abtesting_export_end_date" value="<?php //echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+
+                        <p>
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhaabtesting'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_abtesting_link"  value="Download A/B Testing Logs">
+                        </p>
+                        
+                        <div id="abTesting-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <ul id="abTesting-exports-download" style="display: none;"></ul>      
+                        <br /><br />
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </form>
+    <br />
+
     <form id="mha-feedback-exports" action="#" method="POST">
         <div class="acf-columns-2">
         <div class="acf-column-1">
