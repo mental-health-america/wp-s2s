@@ -231,13 +231,37 @@ function mhausercleanupper() {
                     GFAPI::delete_entry( $eid6->id );
                 }
 
+                $results_7 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}posts WHERE post_author = ".$user_id." AND post_type = 'diy_responses'", OBJECT ); 
+                $response['message'] .= '<br /><strong>'.count($results_7).'</strong> DIY Responses removed.';
+                foreach($results_7 as $eid7){
+                    wp_delete_post($eid7->id, true);   
+                }
+            
+                $results_8 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}posts WHERE post_author = ".$user_id." AND post_type = 'thought'", OBJECT ); 
+                $response['message'] .= '<br /><strong>'.count($results_8).'</strong> Thoughts removed.';
+                foreach($results_8 as $eid8){
+                    wp_delete_post($eid8->id, true);  
+                }
+                
+                $results_9 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}relevanssi_log WHERE user_id = ".$user_id."", OBJECT ); 
+                $response['message'] .= '<br /><strong>'.count($results_9).'</strong> Relevanssi log entries removed.';
+                foreach($results_9 as $eid9){
+                    $wpdb->delete( "{$wpdb->prefix}relevanssi_log", array( 'user_id' => $eid9->id ) );
+                }
+
+                $results_10 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}fa_user_logins WHERE user_id = ".$user_id."", OBJECT ); 
+                $response['message'] .= '<br /><strong>'.count($results_10).'</strong> User Login History logs removed.';
+                foreach($results_10 as $eid10){
+                    $wpdb->delete( "{$wpdb->prefix}fa_user_logins", array( 'user_id' => $eid10->id ) );
+                }
+
             } else {
                 $response['error'] = 'There is a problem while deleting the user. Please contact your developer.';
             }
         }
 
     } else {
-        $response['error'] = '<hr />No users match this query. Please confirm that the ID or email address you entered was correct.';
+        $response['error'] = '<hr />No users match this query. Please confirm that the ID you entered was correct.';
     }
 
     // Return our responses

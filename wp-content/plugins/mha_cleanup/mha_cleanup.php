@@ -39,7 +39,7 @@ function mhacleanupPageScripts() {
 
 // Upload Page
 function mhacleanuppage(){
-    ?>
+?>
     
     <div id="poststuff" class="wrap">
     
@@ -108,12 +108,12 @@ function mhacleanuppage(){
                 <div id="mha-usercleanup-error" class="error fade hidden"></div>
 
                 <h2>User Data Removal Tool</h2>
-                <p>Enter the user's ID or email address to delete that user and remove their data.</p>
+                <p>Enter the user's ID to delete that user and remove their data.</p>
                 
                 <table class="form-table" role="presentation">
                 <tbody>
                     <tr>
-                        <th scope="row"><label for="user_data">User ID or Email Address</label></th>
+                        <th scope="row"><label for="user_data">User ID</label></th>
                         <td>
                             <input type="text" name="user_data" id="user_data" value="" />
                         </td>
