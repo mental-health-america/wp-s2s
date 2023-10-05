@@ -395,7 +395,7 @@ else:
             foreach($entry_data as $k => $v){            
                 $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
                 //if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
-                    if(trim($entry_data[$k]) != '' && isset($field->label)){
+                    if(trim($entry_data[$k] ?? '') != '' && isset($field->label)){
                         $answered_demos[$field->label][] = $entry_data[$k];
                     }
                 //}
@@ -682,6 +682,7 @@ else:
                         'layout'             => $layout,
                         'answered_demos'     => $answered_demos
                     );
+
                     if(in_array('related_v1', $layout)){
                         mha_results_related_articles_simple( $related_article_args );
                     } else {
@@ -768,15 +769,12 @@ else:
                 }
 
                 // Veteran CTA Override 5/26/2023
-                 // Disabled on 2023-08-14
-                 /*
                 if(
                     isset($answered_demos['Which of the following populations describes you?']) && 
                     in_array('Veteran or active-duty military', $answered_demos['Which of the following populations describes you?'])
                 ){
                     $unique_result_cta = array('126533');
                 }
-                */
 
                 global $post;
                 foreach($unique_result_cta as $cta){
@@ -812,32 +810,33 @@ else:
     <div class="wrap narrow mb-5 d-print-none">
         <?php 
             // Related Articles
-            $related_article_args = array(
+            $related_article_args_2 = array(
                 'demo_steps'         => $demo_steps,
                 'next_step_manual'   => $next_step_manual,
                 'user_screen_result' => $user_screen_result,
                 'excluded_ids'       => $excluded_ids,
                 'next_step_terms'    => $next_step_terms,
                 'espanol'            => $espanol,
-                'espanol'            => $espanol,
-                'total'              => 20,
+                'iframe_var'         => $iframe_var,
                 'partner_var'        => $partner_var,
-                'answered_demos'     => $answered_demos,
-                'layout'             => $layout
+                'total'              => 20,
+                'skip'               => 0,
+                'layout'             => $layout,
+                'answered_demos'     => $answered_demos
             );
-            
+
             /**
              * A/B Variant
              * Layout: actions_hide_ns_r
              */
             if(!in_array('actions_ns_top_r', $layout)){
-                //$related_article_args['skip'] = 5;
+                //$related_article_args_2['skip'] = 5;
             }
 
             if(in_array('related_v1', $layout)){
-                mha_results_related_articles_simple( $related_article_args );
+                mha_results_related_articles_simple( $related_article_args_2 );
             } else {
-                $related_articles_2 = mha_results_related_articles( $related_article_args );
+                $related_articles_2 = mha_results_related_articles( $related_article_args_2 );
                 $excluded_ids = $related_articles_2['excluded_ids'];
                 echo $related_articles_2['html'];
             }
