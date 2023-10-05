@@ -61,6 +61,15 @@ label {
     }
 }  
 
+.float-label,
+.float-label.filled {
+    label.error {
+        top: auto;
+        position: relative;
+        font-size: 1em !important;
+    }
+}
+
 .email_doublecheck {
     position: absolute !important;
     left: -999em;

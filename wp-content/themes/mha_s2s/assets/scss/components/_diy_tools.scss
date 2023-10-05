@@ -68,10 +68,6 @@ article.type-diy {
 #diy-questions-container {
     display: block;
     position: relative;
-    @media only screen and (max-width: 767px){
-        font-size: .8em;
-        line-height: 1.5em;
-    }
 }
 
 .peek,
@@ -320,6 +316,33 @@ button.peek {
             opacity: 1;
         }
     }
+
+    // Connecting bar
+    .thought-response-container {
+        position: relative;
+        z-index: 2;
+        &:before {
+            content: "";
+            display: block;
+            height: 5px;
+            background: $blueLight;
+            position: absolute;
+            z-index: 1;
+            top: 50%;
+            right: -50px;
+            width: 50px;
+        }
+    }
+
+    // Hide on last slide
+    .glide__slides {
+        .glide__slide:last-child {
+            .thought-response-container:before {
+                display: none;
+            }
+        }
+    }
+
 }
 
 
@@ -328,6 +351,7 @@ button.peek {
     width: calc(100% + 20px);
     margin: 0 0 50px -10px;
 
+    /*
     .bubble {
         .inner {
             padding: 30px;
@@ -336,6 +360,7 @@ button.peek {
             }
         }
     }
+    */
     .question-breadcrumb {
         width: 100%;
         margin-left: 0;
@@ -348,6 +373,10 @@ button.peek {
     }
 }
 
+.diy-opt-out-message {
+    max-width: 400px;
+}
+
 .loading-next-diy {
     width: 100%;
     height: 40px;
@@ -357,4 +386,49 @@ button.peek {
 
 .embed-type-single .glide--swipeable {
     cursor: auto; // Disable cursor on single embeds
+}
+
+#question-breadcrumb-container {
+    @include transitions(background-color 150ms ease);
+    &:before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 15px;
+        opacity: 0;
+        top: -15px;
+        position: relative;
+        background-color: rgba(255,255,255,1);
+        background: -moz-linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+        background: -webkit-linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+        background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#FFFFFF",endColorstr="#ffffff",GradientType=1);
+        @include transitions(opacity 150ms ease);
+    }
+    &.sticky {
+        position: fixed;
+        z-index: 100;
+        bottom: 0;
+        width: 100%;
+        left: 0;
+        background-color: rgba(255,255,255,1);
+        @media only screen and (max-width: 940px){
+            bottom: 54px;
+        }
+        &:before {
+            opacity: 1;
+        }
+        .question-breadcrumb{
+            margin-top: 0;
+        }
+        &.not-fixed {
+            bottom: -30px;
+            position: absolute;
+        }
+        &.max-top {
+            position: absolute;
+            bottom: auto;
+            top: 15px;
+        }
+    }
 }

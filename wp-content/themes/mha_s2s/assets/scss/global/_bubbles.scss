@@ -48,6 +48,11 @@
             padding: 15px 25px;
         }
     }
+    &.thinnest {
+        .inner {
+            padding: 10px 20px;
+        }
+    }
     &.narrow {
         .inner {
             padding: 30px 50px;
@@ -99,6 +104,14 @@
             &:visited {
                 color: $white;
             }
+        }
+        .gfield_label {
+            color: $white;
+            margin: 0;
+            padding-bottom: 5px;
+        }
+        .button {
+            @extend .round;
         }
     }
 

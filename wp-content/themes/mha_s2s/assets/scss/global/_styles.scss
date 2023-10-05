@@ -523,6 +523,22 @@ input[type="button"] {
         }
     }
 
+    // Color overrides
+    &.text-black { color: $gray; }
+    &.text-gray { color: $gray; }
+    &.text-red { color: $red; }
+    &.text-blue { color: $blue; }
+    &.text-bright-blue { color: $brightBlue; }
+    &.text-teal,
+    &.text-green { color: $teal; }
+    &.text-blue-dark, 
+    &.text-dark-blue { color: $darkBlue; }
+    &.text-dark-teal { color: $darkTeal; }
+    &.text-cerulean { color: $cerulean; }
+    &.text-silver { color: $silver; }
+    &.text-orange { color: $orange; }
+    &.text-dark-orange { color: $orangeBurnt; }
+
 }
 
 button.accordion-button {
