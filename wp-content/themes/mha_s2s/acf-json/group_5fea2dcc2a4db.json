@@ -1,0 +1,514 @@
+{
+    "key": "group_5fea2dcc2a4db",
+    "title": "Additional Article Details",
+    "fields": [
+        {
+            "key": "field_5fea3169a7ec5",
+            "label": "Additional Content",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_600b34eca4fc9",
+            "label": "Introductory Content",
+            "name": "introductory_content",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "This will display above the editor content when viewing the individual page.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "basic",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_5fea2f7063cde",
+            "label": "Featured Link",
+            "name": "featured_link",
+            "aria-label": "",
+            "type": "url",
+            "instructions": "This should be a direct link to the relevant website or tool.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": ""
+        },
+        {
+            "key": "field_5fedf6b5b7dc2",
+            "label": "Featured Link Text",
+            "name": "featured_link_text",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "The text that should display for the featured link.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "Visit Website",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_60a80c3047984",
+            "label": "Customer Service Email",
+            "name": "customer_service_email",
+            "aria-label": "",
+            "type": "email",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_60a80c3947985",
+            "label": "Customer Service Contact Form",
+            "name": "customer_service_contact_form",
+            "aria-label": "",
+            "type": "url",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": ""
+        },
+        {
+            "key": "field_60a80c4447986",
+            "label": "Customer Service Phone",
+            "name": "customer_service_phone",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5fea315ca7ec4",
+            "label": "Pricing Information",
+            "name": "pricing_information",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "We want to make sure that any pricing information is clear and easy to understand for the consumer. Please provide a plain language description of your pricing as well as a link to full details. If there is no cost, please state that here.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "basic",
+            "media_upload": 0,
+            "delay": 0
+        },
+        {
+            "key": "field_5fea3372584f9",
+            "label": "Privacy Information",
+            "name": "privacy_information",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "We want to make sure that any of our visitors fully understand how you will collect their data and what you might plan to do with it. If you are required to comply with HIPAA, please state here. You should include a brief, plain language summary of your privacy policy, letting people know how their data may be stored and\/or shared. You must also provide a link to your full privacy policy. If this doesn't apply to you (books, videos, printed worksheets), please enter N\/A.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "basic",
+            "media_upload": 0,
+            "delay": 0
+        },
+        {
+            "key": "field_5fea337d584fa",
+            "label": "Disclaimer",
+            "name": "disclaimer",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "Please include any other information that is relevant for your DIY tool in terms of disclaimers and liability. For example, you may want to note that your product is not intended as a substitute for treatment, or that your service is a CBT-based service rather than CBT. If your DIY tool is intended for or appropriate for children, it is important to share that information as well. MHA may contact you for further information in this area.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "basic",
+            "media_upload": 0,
+            "delay": 0
+        },
+        {
+            "key": "field_5fea327fa3cc0",
+            "label": "Accolades",
+            "name": "accolades",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "Share external reviews, user quotes, or other accolades if appropriate. Please indicate the source.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_repeater_stylised_button": 0,
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "table",
+            "button_label": "Add Accolade",
+            "sub_fields": [
+                {
+                    "key": "field_5fea329fa3cc1",
+                    "label": "Text",
+                    "name": "text",
+                    "aria-label": "",
+                    "type": "textarea",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "maxlength": "",
+                    "rows": "",
+                    "new_lines": "",
+                    "acfe_textarea_code": 0,
+                    "parent_repeater": "field_5fea327fa3cc0"
+                },
+                {
+                    "key": "field_5fea32afa3cc2",
+                    "label": "Source",
+                    "name": "source",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5fea327fa3cc0"
+                }
+            ],
+            "rows_per_page": 20
+        },
+        {
+            "key": "field_6511e0c6bc96e",
+            "label": "Footer Content",
+            "name": "article_footer_content",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "This will display below the content, after the sidebar to contain a full width content section.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "basic",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_5fea3172a7ec6",
+            "label": "Contact Information",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_5fea2e5763cd8",
+            "label": "Point of Contact Name",
+            "name": "point_of_contact_name",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Who can MHA contact for further questions about your application or service? Generally this should be the person completing the form.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5fea359ded711",
+            "label": "Point of Contact Title",
+            "name": "point_of_contact_title",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5fea2ee063cd9",
+            "label": "Point of Contact Email",
+            "name": "point_of_contact_email",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5fea2ee963cda",
+            "label": "Point of Contact Phone",
+            "name": "point_of_contact_phone",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_617af252120d7",
+            "label": "Trial subscription code for MHA staff (where applicable)",
+            "name": "trial_subscription_code",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "Mental Health America vets resources before adding them to our website. <strong>For apps and other online services with subscription fees or premium plans<\/strong>, please provide a trail code or login information MHA staff can use to try out your resource. Because MHA cannot guarantee an immediate review of your submission, please make sure the code is <strong>valid for at least 90 days<\/strong>.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "maxlength": "",
+            "rows": 3,
+            "new_lines": "",
+            "acfe_textarea_code": 0
+        },
+        {
+            "key": "field_5fea32d137be1",
+            "label": "Front End Connnections",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_5fea2f6663cdd",
+            "label": "Featured Image",
+            "name": "featured_image",
+            "aria-label": "",
+            "type": "image",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "acfe_save_meta": 1,
+            "uploader": "basic",
+            "return_format": "id",
+            "acfe_thumbnail": 0,
+            "min_width": "",
+            "min_height": "",
+            "min_size": "",
+            "max_width": "",
+            "max_height": "",
+            "max_size": "",
+            "mime_types": "",
+            "preview_size": "thumbnail",
+            "library": "all"
+        },
+        {
+            "key": "field_617af23c120d6",
+            "label": "Tagline",
+            "name": "tagline",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Describe your resource in 15 words or less.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5fea68ca84a7c",
+            "label": "Drupal ID",
+            "name": "drupal_id",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "For migration only.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "article"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "left",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0,
+    "acfe_display_title": "",
+    "acfe_autosync": [
+        "json"
+    ],
+    "acfe_form": 0,
+    "acfe_meta": "",
+    "acfe_note": "",
+    "modified": 1698416404
+}

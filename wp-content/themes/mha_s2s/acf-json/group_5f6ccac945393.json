@@ -1,0 +1,1361 @@
+{
+    "key": "group_5f6ccac945393",
+    "title": "Screen Options",
+    "fields": [
+        {
+            "key": "field_5f6e429a5728a",
+            "label": "General",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_permissions": "",
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_5f6e42aa5728b",
+            "label": "Interpretation of Scores",
+            "name": "interpretation_of_scores",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_5f74f4698c95f",
+            "label": "Warning Message",
+            "name": "warning_message",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "If a user answers a question marked \"warning\", this text will display above the results content.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_permissions": "",
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_5fd94b0229cd6",
+            "label": "Survey",
+            "name": "survey",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "Check this if this screen is actually a survey.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "ui": 1,
+            "ui_on_text": "",
+            "ui_off_text": ""
+        },
+        {
+            "key": "field_612f84194e4a5",
+            "label": "Show Survey Results",
+            "name": "show_survey_results",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "Surveys do not display the scores\/results by default. Check this to re-enable them.",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_5fd94b0229cd6",
+                        "operator": "==",
+                        "value": "1"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "ui": 1,
+            "ui_on_text": "",
+            "ui_off_text": ""
+        },
+        {
+            "key": "field_6216514d157b9",
+            "label": "Invisible",
+            "name": "invisible",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "Screen will still be accessible but otherwise hidden from listing pages.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "ui": 1,
+            "ui_on_text": "",
+            "ui_off_text": ""
+        },
+        {
+            "key": "field_5f6e430b5728c",
+            "label": "User Results",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_5f6e43155728d",
+            "label": "Results",
+            "name": "results",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "row",
+            "button_label": "Add Result",
+            "sub_fields": [
+                {
+                    "key": "field_5f6e43a957291",
+                    "label": "Result Title",
+                    "name": "result_title",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_permissions": "",
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5f74abff69557",
+                    "label": "Content",
+                    "name": "",
+                    "aria-label": "",
+                    "type": "tab",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_permissions": "",
+                    "placement": "top",
+                    "endpoint": 0,
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5f6e435057290",
+                    "label": "Result Content",
+                    "name": "result_content",
+                    "aria-label": "",
+                    "type": "wysiwyg",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "tabs": "all",
+                    "toolbar": "full",
+                    "media_upload": 1,
+                    "delay": 0,
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5f74abf169556",
+                    "label": "Conditions",
+                    "name": "",
+                    "aria-label": "",
+                    "type": "tab",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_permissions": "",
+                    "placement": "top",
+                    "endpoint": 0,
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5f6e431e5728e",
+                    "label": "Score Range (Minimum)",
+                    "name": "score_range_minimum",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "min": "",
+                    "max": "",
+                    "step": "",
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5f6e432f5728f",
+                    "label": "Score Range (Maximum)",
+                    "name": "score_range_max",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_permissions": "",
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "min": "",
+                    "max": "",
+                    "step": "",
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5ff09b192a843",
+                    "label": "Advanced Conditions",
+                    "name": "advanced_conditions",
+                    "aria-label": "",
+                    "type": "repeater",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_repeater_stylised_button": 0,
+                    "collapsed": "",
+                    "min": 0,
+                    "max": 0,
+                    "layout": "table",
+                    "button_label": "Add Advanced Condition",
+                    "sub_fields": [
+                        {
+                            "key": "field_5ff09b2b2a844",
+                            "label": "Question ID",
+                            "name": "question_id",
+                            "aria-label": "",
+                            "type": "text",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "default_value": "",
+                            "placeholder": "",
+                            "prepend": "",
+                            "append": "",
+                            "maxlength": "",
+                            "parent_repeater": "field_5ff09b192a843"
+                        },
+                        {
+                            "key": "field_5ff09b342a845",
+                            "label": "Score Range (Minimum)",
+                            "name": "score_range_minimum",
+                            "aria-label": "",
+                            "type": "text",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "default_value": "",
+                            "placeholder": "",
+                            "prepend": "",
+                            "append": "",
+                            "maxlength": "",
+                            "parent_repeater": "field_5ff09b192a843"
+                        },
+                        {
+                            "key": "field_5ff0a35eb7aaa",
+                            "label": "Score Range (Maximum)",
+                            "name": "score_range_max",
+                            "aria-label": "",
+                            "type": "text",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "default_value": "",
+                            "placeholder": "",
+                            "prepend": "",
+                            "append": "",
+                            "maxlength": "",
+                            "parent_repeater": "field_5ff09b192a843"
+                        }
+                    ],
+                    "rows_per_page": 20,
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5f76447b044ce",
+                    "label": "Required Tags",
+                    "name": "required_tags",
+                    "aria-label": "",
+                    "type": "acfe_taxonomy_terms",
+                    "instructions": "These terms must be present for this result to appear (e.g. Severe Depression for ages 25-34)",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_permissions": "",
+                    "taxonomy": "",
+                    "allow_terms": "",
+                    "allow_level": "",
+                    "field_type": "select",
+                    "default_value": "",
+                    "return_format": "id",
+                    "ui": 1,
+                    "allow_null": 0,
+                    "placeholder": "",
+                    "multiple": 1,
+                    "ajax": 0,
+                    "save_terms": 0,
+                    "load_terms": 0,
+                    "choices": [],
+                    "layout": "",
+                    "toggle": 0,
+                    "allow_custom": 0,
+                    "other_choice": 0,
+                    "search_placeholder": "",
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5ff11ba01bd6b",
+                    "label": "Custom Logic Condition",
+                    "name": "custom_logic_condition",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5f7603e9104c2",
+                    "label": "Next Steps",
+                    "name": "",
+                    "aria-label": "",
+                    "type": "tab",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_permissions": "",
+                    "placement": "top",
+                    "endpoint": 0,
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5f6e46c352090",
+                    "label": "Relevant Tags",
+                    "name": "relevant_tags",
+                    "aria-label": "",
+                    "type": "acfe_taxonomy_terms",
+                    "instructions": "These terms will be used to pull content for the Next Steps links.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_permissions": "",
+                    "taxonomy": "",
+                    "allow_terms": "",
+                    "allow_level": "",
+                    "field_type": "select",
+                    "default_value": "",
+                    "return_format": "id",
+                    "ui": 1,
+                    "allow_null": 0,
+                    "placeholder": "",
+                    "multiple": 1,
+                    "ajax": 0,
+                    "save_terms": 0,
+                    "load_terms": 0,
+                    "choices": [],
+                    "layout": "",
+                    "toggle": 0,
+                    "allow_custom": 0,
+                    "other_choice": 0,
+                    "search_placeholder": "",
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5f7603c2104c0",
+                    "label": "Featured Next Steps",
+                    "name": "featured_next_steps",
+                    "aria-label": "",
+                    "type": "repeater",
+                    "instructions": "Manually specify links to display.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_permissions": "",
+                    "acfe_repeater_stylised_button": 0,
+                    "collapsed": "",
+                    "min": 0,
+                    "max": 0,
+                    "layout": "table",
+                    "button_label": "Add Item",
+                    "sub_fields": [
+                        {
+                            "key": "field_5f7603c2104c1",
+                            "label": "Link",
+                            "name": "link",
+                            "aria-label": "",
+                            "type": "post_object",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "acfe_permissions": "",
+                            "post_type": [
+                                "page",
+                                "article",
+                                "diy_tool"
+                            ],
+                            "taxonomy": "",
+                            "allow_null": 0,
+                            "multiple": 0,
+                            "return_format": "object",
+                            "save_custom": 0,
+                            "save_post_type": "post",
+                            "save_post_status": "publish",
+                            "acfe_bidirectional": {
+                                "acfe_bidirectional_enabled": "0",
+                                "acfe_bidirectional_related": ""
+                            },
+                            "ui": 1,
+                            "bidirectional_target": [],
+                            "parent_repeater": "field_5f7603c2104c0"
+                        }
+                    ],
+                    "rows_per_page": 20,
+                    "parent_repeater": "field_5f6e43155728d"
+                },
+                {
+                    "key": "field_5ff63600cd1bb",
+                    "label": "Featured Call to Actions",
+                    "name": "featured_call_to_actions",
+                    "aria-label": "",
+                    "type": "post_object",
+                    "instructions": "Create \"Call to Action\" posts and they will be selectable here. They will only display if published.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "post_type": [
+                        "cta"
+                    ],
+                    "taxonomy": "",
+                    "allow_null": 0,
+                    "multiple": 1,
+                    "return_format": "id",
+                    "save_custom": 0,
+                    "save_post_status": "publish",
+                    "acfe_bidirectional": {
+                        "acfe_bidirectional_enabled": "0"
+                    },
+                    "ui": 1,
+                    "bidirectional_target": [],
+                    "save_post_type": "",
+                    "parent_repeater": "field_5f6e43155728d"
+                }
+            ],
+            "rows_per_page": 20,
+            "acfe_repeater_stylised_button": 0
+        },
+        {
+            "key": "field_5ff0d2bcd9153",
+            "label": "Additional Results",
+            "name": "additional_results",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "These results will be displayed after all of the normal results with the provided labels and total score.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_repeater_stylised_button": 0,
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "table",
+            "button_label": "Add Row",
+            "sub_fields": [
+                {
+                    "key": "field_5ff0d2cad9154",
+                    "label": "Title",
+                    "name": "title",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5ff0d2bcd9153"
+                },
+                {
+                    "key": "field_5ff0d2dad9155",
+                    "label": "Scores",
+                    "name": "scores",
+                    "aria-label": "",
+                    "type": "repeater",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "acfe_repeater_stylised_button": 0,
+                    "collapsed": "",
+                    "min": 0,
+                    "max": 0,
+                    "layout": "table",
+                    "button_label": "Add Row",
+                    "sub_fields": [
+                        {
+                            "key": "field_5ff0d2e4d9156",
+                            "label": "Question ID",
+                            "name": "question_id",
+                            "aria-label": "",
+                            "type": "text",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "default_value": "",
+                            "placeholder": "",
+                            "prepend": "",
+                            "append": "",
+                            "maxlength": "",
+                            "parent_repeater": "field_5ff0d2dad9155"
+                        }
+                    ],
+                    "rows_per_page": 20,
+                    "parent_repeater": "field_5ff0d2bcd9153"
+                }
+            ],
+            "rows_per_page": 20
+        },
+        {
+            "key": "field_5ff0d95f6f6a4",
+            "label": "Custom Results Logic",
+            "name": "custom_results_logic",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Enter a keyword to override the normal scoring logic at the code level. (e.g. \"eating_disorder\")",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5fde39e115d67",
+            "label": "Overall Max Score",
+            "name": "overall_max_score",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_647a547b5240a",
+            "label": "Hide Result Score",
+            "name": "hide_result_score",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "Check this to hide the score from users.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "message": "",
+            "default_value": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
+        },
+        {
+            "key": "field_5fea000b8d954",
+            "label": "Chart Steps",
+            "name": "chart_steps",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Defined fixed step size for the scale when results are displayed in a chart.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_62cf2a564f65e",
+            "label": "Results Footer",
+            "name": "results_footer",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "This will display directly underneath user results content for all results.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_5f6d111e641cc",
+            "label": "Next Steps",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_5fd2a78a1b33a",
+            "label": "Next Steps Subtitle",
+            "name": "next_steps_subtitle",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_permissions": "",
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5f6ccad7c2e9b",
+            "label": "Featured Next Steps",
+            "name": "featured_next_steps",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "Manually specify links to display.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_permissions": "",
+            "acfe_repeater_stylised_button": 0,
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "table",
+            "button_label": "Add Item",
+            "sub_fields": [
+                {
+                    "key": "field_5f6e4dcb42fe8",
+                    "label": "Link",
+                    "name": "link",
+                    "aria-label": "",
+                    "type": "post_object",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "post_type": [
+                        "article",
+                        "page",
+                        "diy"
+                    ],
+                    "taxonomy": "",
+                    "return_format": "object",
+                    "multiple": 0,
+                    "save_custom": 0,
+                    "save_post_status": "publish",
+                    "acfe_bidirectional": {
+                        "acfe_bidirectional_enabled": "0"
+                    },
+                    "allow_null": 0,
+                    "ui": 1,
+                    "save_post_type": "",
+                    "bidirectional_target": [],
+                    "parent_repeater": "field_5f6ccad7c2e9b"
+                }
+            ],
+            "rows_per_page": 20
+        },
+        {
+            "key": "field_607612c67a437",
+            "label": "Call to Actions (All Results)",
+            "name": "call_to_actions_all_results",
+            "aria-label": "",
+            "type": "post_object",
+            "instructions": "The selected CTA(s) will display for every result.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "post_type": [
+                "cta"
+            ],
+            "taxonomy": "",
+            "allow_null": 0,
+            "multiple": 1,
+            "return_format": "id",
+            "save_custom": 0,
+            "save_post_status": "publish",
+            "acfe_bidirectional": {
+                "acfe_bidirectional_enabled": "0"
+            },
+            "ui": 1,
+            "bidirectional_target": [],
+            "save_post_type": ""
+        },
+        {
+            "key": "field_5f6d112c641cd",
+            "label": "Related Tags",
+            "name": "related_tags",
+            "aria-label": "",
+            "type": "acfe_taxonomy_terms",
+            "instructions": "Automatically show articles and tools with these tags.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_permissions": "",
+            "taxonomy": "",
+            "allow_terms": "",
+            "allow_level": "",
+            "field_type": "select",
+            "default_value": "",
+            "return_format": "object",
+            "ui": 1,
+            "allow_null": 0,
+            "placeholder": "",
+            "multiple": 1,
+            "ajax": 0,
+            "save_terms": 0,
+            "load_terms": 0,
+            "choices": [],
+            "layout": "",
+            "toggle": 0,
+            "allow_custom": 0,
+            "other_choice": 0,
+            "search_placeholder": ""
+        },
+        {
+            "key": "field_5fd2aa4f629d3",
+            "label": "See All Link",
+            "name": "see_all_link",
+            "aria-label": "",
+            "type": "page_link",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_permissions": "",
+            "post_type": [
+                "page"
+            ],
+            "taxonomy": "",
+            "allow_null": 0,
+            "allow_archives": 1,
+            "multiple": 0
+        },
+        {
+            "key": "field_5fd2adb0c5ced",
+            "label": "See All Link Text",
+            "name": "see_all_link_text",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_permissions": "",
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_616897889436e",
+            "label": "Demographic Based Next Steps",
+            "name": "demographic_next_steps",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_repeater_stylised_button": 0,
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "table",
+            "button_label": "Add Step",
+            "sub_fields": [
+                {
+                    "key": "field_616897949436f",
+                    "label": "Operator",
+                    "name": "operator",
+                    "aria-label": "",
+                    "type": "select",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "5",
+                        "class": "",
+                        "id": ""
+                    },
+                    "choices": {
+                        "or": "Or",
+                        "and": "And"
+                    },
+                    "default_value": "or",
+                    "allow_null": 0,
+                    "multiple": 0,
+                    "ui": 0,
+                    "return_format": "value",
+                    "ajax": 0,
+                    "placeholder": "",
+                    "allow_custom": 0,
+                    "search_placeholder": "",
+                    "parent_repeater": "field_616897889436e"
+                },
+                {
+                    "key": "field_616897b694370",
+                    "label": "Condition(s)",
+                    "name": "conditions",
+                    "aria-label": "",
+                    "type": "repeater",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "60",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "acfe_repeater_stylised_button": 0,
+                    "layout": "row",
+                    "min": 0,
+                    "max": 0,
+                    "collapsed": "",
+                    "button_label": "Add Row",
+                    "rows_per_page": 20,
+                    "sub_fields": [
+                        {
+                            "key": "field_616897be94371",
+                            "label": "Key",
+                            "name": "key",
+                            "aria-label": "",
+                            "type": "text",
+                            "instructions": "The label of the form field (e.g. \"State\"), \"user_result\", or \"screen_id\".",
+                            "required": 1,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "default_value": "",
+                            "placeholder": "",
+                            "prepend": "",
+                            "append": "",
+                            "maxlength": "",
+                            "parent_repeater": "field_616897b694370"
+                        },
+                        {
+                            "key": "field_616897ce94372",
+                            "label": "Condition",
+                            "name": "condition",
+                            "aria-label": "",
+                            "type": "select",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "choices": {
+                                "is": "Is",
+                                "is_not": "Is Not",
+                                "contain": "Contains",
+                                "not_contain": "Does Not Contain",
+                                "any": "Any Of",
+                                "none": "None Of",
+                                "greater": ">",
+                                "less": "<",
+                                "is_null": "Is Null",
+                                "not_null": "Not Null"
+                            },
+                            "default_value": "is",
+                            "allow_null": 0,
+                            "multiple": 0,
+                            "ui": 0,
+                            "return_format": "value",
+                            "ajax": 0,
+                            "placeholder": "",
+                            "allow_custom": 0,
+                            "search_placeholder": "",
+                            "parent_repeater": "field_616897b694370"
+                        },
+                        {
+                            "key": "field_616897e294373",
+                            "label": "Value",
+                            "name": "value",
+                            "aria-label": "",
+                            "type": "textarea",
+                            "instructions": "Separate multiple values with | (e.g. one|two)",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "default_value": "",
+                            "placeholder": "",
+                            "maxlength": "",
+                            "rows": 1,
+                            "acfe_textarea_code": 1,
+                            "new_lines": "",
+                            "parent_repeater": "field_616897b694370"
+                        },
+                        {
+                            "key": "field_6402770e7ff72",
+                            "label": "Exclude",
+                            "name": "exclude",
+                            "aria-label": "",
+                            "type": "true_false",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "relevanssi_exclude": 0,
+                            "message": "",
+                            "default_value": 0,
+                            "ui_on_text": "",
+                            "ui_off_text": "",
+                            "ui": 1,
+                            "parent_repeater": "field_616897b694370"
+                        }
+                    ],
+                    "parent_repeater": "field_616897889436e"
+                },
+                {
+                    "key": "field_6168985e94374",
+                    "label": "Link(s)",
+                    "name": "links",
+                    "aria-label": "",
+                    "type": "post_object",
+                    "instructions": "",
+                    "required": 1,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "20",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "post_type": [
+                        "article",
+                        "cta",
+                        "page",
+                        "reading_path",
+                        "screen",
+                        "diy"
+                    ],
+                    "taxonomy": "",
+                    "return_format": "object",
+                    "multiple": 1,
+                    "save_custom": 0,
+                    "save_post_status": "publish",
+                    "acfe_bidirectional": {
+                        "acfe_bidirectional_enabled": "0"
+                    },
+                    "allow_null": 0,
+                    "ui": 1,
+                    "save_post_type": "",
+                    "bidirectional_target": [],
+                    "parent_repeater": "field_616897889436e"
+                },
+                {
+                    "key": "field_616898ce94375",
+                    "label": "Admin Note",
+                    "name": "admin_note",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_616897889436e"
+                }
+            ],
+            "rows_per_page": 20
+        },
+        {
+            "key": "field_626aac0f44636",
+            "label": "Tests",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_626aac1744637",
+            "label": "Next Steps",
+            "name": "next_steps",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "These will display directly below screen results if the URL contains the \"layout\" parameter and contains \"actions_ns_custom\"",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_repeater_stylised_button": 0,
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "row",
+            "button_label": "Add Step",
+            "sub_fields": [
+                {
+                    "key": "field_626aac4644638",
+                    "label": "Content",
+                    "name": "content",
+                    "aria-label": "",
+                    "type": "wysiwyg",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "tabs": "all",
+                    "toolbar": "full",
+                    "media_upload": 1,
+                    "delay": 0,
+                    "parent_repeater": "field_626aac1744637"
+                },
+                {
+                    "key": "field_626aac6344639",
+                    "label": "Layout Condition",
+                    "name": "layout_condition",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "This will appear for the listed layout parameter condition (e.g. actions_layout_b). Assign multiple conditions by providing a comma separated list.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_626aac1744637"
+                },
+                {
+                    "key": "field_626aac714463a",
+                    "label": "Custom Classes",
+                    "name": "custom_classes",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Defaults to \"bubble round-tl mb-5 mint\"",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_626aac1744637"
+                }
+            ],
+            "rows_per_page": 20
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "screen"
+            }
+        ]
+    ],
+    "menu_order": 1,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "left",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0,
+    "acfe_display_title": "",
+    "acfe_autosync": [
+        "json"
+    ],
+    "acfe_form": 0,
+    "acfe_meta": "",
+    "acfe_note": "",
+    "modified": 1698416602
+}

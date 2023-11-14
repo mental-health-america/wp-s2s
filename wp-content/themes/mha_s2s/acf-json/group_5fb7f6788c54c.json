@@ -1,0 +1,616 @@
+{
+    "key": "group_5fb7f6788c54c",
+    "title": "Article Details",
+    "fields": [
+        {
+            "key": "field_5fdbcbac06dab",
+            "label": "Featured",
+            "name": "featured",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "ui": 1,
+            "ui_on_text": "",
+            "ui_off_text": ""
+        },
+        {
+            "key": "field_5fd3eec524b34",
+            "label": "Type",
+            "name": "type",
+            "aria-label": "",
+            "type": "checkbox",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "condition": "Condition",
+                "diy": "DIY Tool",
+                "connect": "Connect",
+                "treatment": "Treatment",
+                "provider": "Provider"
+            },
+            "allow_custom": 0,
+            "default_value": [],
+            "layout": "horizontal",
+            "toggle": 0,
+            "return_format": "value",
+            "save_custom": 0,
+            "custom_choice_button_text": "Add new choice"
+        },
+        {
+            "key": "field_5fd3f1a935255",
+            "label": "DIY Type",
+            "name": "diy_type",
+            "aria-label": "",
+            "type": "checkbox",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_5fd3eec524b34",
+                        "operator": "==",
+                        "value": "diy"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "document": "Document",
+                "website": "Website",
+                "mobile-app": "Mobile App",
+                "video": "Video",
+                "book": "Book",
+                "other": "Other"
+            },
+            "allow_custom": 0,
+            "default_value": [],
+            "layout": "horizontal",
+            "toggle": 0,
+            "return_format": "value",
+            "save_custom": 0,
+            "custom_choice_button_text": "Add new choice"
+        },
+        {
+            "key": "field_5fea345c4d25c",
+            "label": "DIY Issue",
+            "name": "diy_issue",
+            "aria-label": "",
+            "type": "checkbox",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_5fd3eec524b34",
+                        "operator": "==",
+                        "value": "diy"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "anger": "Anger",
+                "changing-thoughts": "Changing Thoughts",
+                "confidence": "Confidence",
+                "fear": "Fear",
+                "legal": "Legal",
+                "life-trauma": "Life & Trauma",
+                "sadness": "Sadness",
+                "sleep": "Sleep",
+                "stress": "Stress",
+                "the-brain": "The Brain"
+            },
+            "allow_custom": 0,
+            "default_value": [],
+            "layout": "horizontal",
+            "toggle": 0,
+            "return_format": "value",
+            "save_custom": 0,
+            "custom_choice_button_text": "Add new choice"
+        },
+        {
+            "key": "field_5fd3f7a3951ad",
+            "label": "Treatment Type",
+            "name": "treatment_type",
+            "aria-label": "",
+            "type": "checkbox",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_5fd3eec524b34",
+                        "operator": "==",
+                        "value": "treatment"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "alternative-medicine": "Alternative Medicine",
+                "community-support": "Community Support",
+                "lifestyle-changes": "Lifestyle Changes",
+                "online": "Online",
+                "therapy": "Therapy",
+                "medical": "Medical",
+                "social-support": "Social Support"
+            },
+            "allow_custom": 0,
+            "default_value": [],
+            "layout": "horizontal",
+            "toggle": 0,
+            "return_format": "value",
+            "save_custom": 0,
+            "custom_choice_button_text": "Add new choice"
+        },
+        {
+            "key": "field_5fd3eef624b35",
+            "label": "Area Served",
+            "name": "area_served",
+            "aria-label": "",
+            "type": "checkbox",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_5fd3eec524b34",
+                        "operator": "==",
+                        "value": "provider"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "national": "National",
+                "local": "Local"
+            },
+            "allow_custom": 0,
+            "default_value": [],
+            "layout": "horizontal",
+            "toggle": 0,
+            "return_format": "value",
+            "save_custom": 0,
+            "custom_choice_button_text": "Add new choice"
+        },
+        {
+            "key": "field_5fdc0a1448b13",
+            "label": "Service Type",
+            "name": "service_type",
+            "aria-label": "",
+            "type": "checkbox",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_5fd3eec524b34",
+                        "operator": "==",
+                        "value": "provider"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "community-support": "Community Support",
+                "groups": "Groups",
+                "medical": "Medical",
+                "online": "Online",
+                "peer-run": "Peer-Run",
+                "therapy": "Therapy"
+            },
+            "allow_custom": 0,
+            "default_value": [],
+            "layout": "horizontal",
+            "toggle": 0,
+            "return_format": "array",
+            "save_custom": 0,
+            "custom_choice_button_text": "Add new choice"
+        },
+        {
+            "key": "field_5fd3ef47dab98",
+            "label": "Locations",
+            "name": "location",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "Local resources are displayed to users within a <strong>50-mile radius<\/strong> of the street address provided. The street address is also listed on the resource's profile page. Click \"Add location\" to provide addresses for resources with multiple locations. If all locations share the same phone number, you may leave the \"Phone\" field blank and use the \"Customer Service Phone\" field further down.",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_5fd3eec524b34",
+                        "operator": "==",
+                        "value": "provider"
+                    },
+                    {
+                        "field": "field_5fd3eef624b35",
+                        "operator": "==",
+                        "value": "local"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_repeater_stylised_button": 0,
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "table",
+            "button_label": "Add Location",
+            "sub_fields": [
+                {
+                    "key": "field_5fd3efa1c74a4",
+                    "label": "Address",
+                    "name": "address",
+                    "aria-label": "",
+                    "type": "textarea",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "maxlength": "",
+                    "rows": 4,
+                    "new_lines": "",
+                    "acfe_textarea_code": 0,
+                    "parent_repeater": "field_5fd3ef47dab98"
+                },
+                {
+                    "key": "field_5feca600b09ad",
+                    "label": "City",
+                    "name": "city",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5fd3ef47dab98"
+                },
+                {
+                    "key": "field_5feca604b09ae",
+                    "label": "State",
+                    "name": "state",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5fd3ef47dab98"
+                },
+                {
+                    "key": "field_5fd3efa5c74a5",
+                    "label": "Latitude",
+                    "name": "latitude",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5fd3ef47dab98"
+                },
+                {
+                    "key": "field_5fd3efaac74a6",
+                    "label": "Longitude",
+                    "name": "longitude",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5fd3ef47dab98"
+                },
+                {
+                    "key": "field_60a80d1fa6715",
+                    "label": "Phone",
+                    "name": "phone",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5fd3ef47dab98"
+                }
+            ],
+            "rows_per_page": 20
+        },
+        {
+            "key": "field_6008b40cc7ec1",
+            "label": "Whole State",
+            "name": "whole_state",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "If this provider services an entire state, please enter it here (e.g. Minnesota). If multiple states are served, simply comma separate them (e.g. Maryland, Virginia)",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_5fd3eec524b34",
+                        "operator": "==",
+                        "value": "provider"
+                    },
+                    {
+                        "field": "field_5fd3eef624b35",
+                        "operator": "==",
+                        "value": "local"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_5ff7556f879eb",
+            "label": "Hide Locations?",
+            "name": "hide_locations",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "Hide the list of locations for this page?",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_5fd3eec524b34",
+                        "operator": "==",
+                        "value": "provider"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "ui": 1,
+            "ui_on_text": "",
+            "ui_off_text": ""
+        },
+        {
+            "key": "field_5fdb9d86962fc",
+            "label": "More Links",
+            "name": "more_links",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "Define additional related links that appear on the bottom of the page.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "acfe_repeater_stylised_button": 0,
+            "collapsed": "",
+            "min": 0,
+            "max": 0,
+            "layout": "table",
+            "button_label": "Add Row",
+            "sub_fields": [
+                {
+                    "key": "field_5fdb9d90962fd",
+                    "label": "Page",
+                    "name": "page",
+                    "aria-label": "",
+                    "type": "post_object",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "post_type": [
+                        "thought_activity",
+                        "screen",
+                        "article",
+                        "page",
+                        "diy"
+                    ],
+                    "taxonomy": "",
+                    "return_format": "object",
+                    "multiple": 0,
+                    "save_custom": 0,
+                    "save_post_status": "publish",
+                    "acfe_bidirectional": {
+                        "acfe_bidirectional_enabled": "0"
+                    },
+                    "allow_null": 0,
+                    "ui": 1,
+                    "save_post_type": "",
+                    "bidirectional_target": [],
+                    "parent_repeater": "field_5fdb9d86962fc"
+                },
+                {
+                    "key": "field_5fdba15b0b20a",
+                    "label": "Custom Title",
+                    "name": "custom_title",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Leave blank to use the page's default title.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "maxlength": "",
+                    "parent_repeater": "field_5fdb9d86962fc"
+                }
+            ],
+            "rows_per_page": 20
+        },
+        {
+            "key": "field_6021bc785b6fa",
+            "label": "Default Pathway",
+            "name": "default_pathway",
+            "aria-label": "",
+            "type": "post_object",
+            "instructions": "If no reading path is set in the URL display this reading path as the default for this article. Only pathways with this Article in it will display here.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "post_type": [
+                "reading_path"
+            ],
+            "taxonomy": "",
+            "return_format": "id",
+            "multiple": 0,
+            "save_custom": 0,
+            "save_post_status": "publish",
+            "acfe_bidirectional": {
+                "acfe_bidirectional_enabled": "0"
+            },
+            "allow_null": 1,
+            "ui": 1,
+            "save_post_type": "",
+            "bidirectional_target": []
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "article"
+            }
+        ],
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "diy"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "acf_after_title",
+    "style": "default",
+    "label_placement": "left",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0,
+    "acfe_display_title": "",
+    "acfe_autosync": [
+        "json"
+    ],
+    "acfe_form": 0,
+    "acfe_meta": "",
+    "acfe_note": "",
+    "modified": 1698416412
+}

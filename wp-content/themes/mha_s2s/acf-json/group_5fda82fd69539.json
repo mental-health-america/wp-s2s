@@ -1,0 +1,69 @@
+{
+    "key": "group_5fda82fd69539",
+    "title": "Path Collection Details",
+    "fields": [
+        {
+            "key": "field_5fda8316e04c1",
+            "label": "Condition\/Tag",
+            "name": "condition",
+            "aria-label": "",
+            "type": "acfe_taxonomy_terms",
+            "instructions": "",
+            "required": 1,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "taxonomy": [
+                "condition",
+                "post_tag"
+            ],
+            "allow_terms": "",
+            "allow_level": "",
+            "field_type": "select",
+            "default_value": "",
+            "return_format": "id",
+            "ui": 0,
+            "allow_null": 0,
+            "multiple": 0,
+            "save_terms": 0,
+            "load_terms": 0,
+            "choices": [],
+            "ajax": 0,
+            "placeholder": "",
+            "layout": "",
+            "toggle": 0,
+            "allow_custom": 0,
+            "other_choice": 0,
+            "search_placeholder": ""
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_template",
+                "operator": "==",
+                "value": "templates\/page-path-collection.php"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "acf_after_title",
+    "style": "default",
+    "label_placement": "left",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "",
+    "show_in_rest": 0,
+    "acfe_display_title": "",
+    "acfe_autosync": [
+        "json"
+    ],
+    "acfe_form": 0,
+    "acfe_meta": "",
+    "acfe_note": "",
+    "modified": 1698416550
+}
