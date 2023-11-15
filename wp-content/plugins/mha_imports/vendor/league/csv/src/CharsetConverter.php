@@ -15,6 +15,7 @@ namespace League\Csv;
 
 use OutOfRangeException;
 use php_user_filter;
+
 use function array_combine;
 use function array_map;
 use function in_array;
@@ -27,7 +28,6 @@ use function stream_bucket_append;
 use function stream_bucket_make_writeable;
 use function stream_filter_register;
 use function stream_get_filters;
-use function strpos;
 use function strtolower;
 use function substr;
 
@@ -36,42 +36,43 @@ use function substr;
  */
 class CharsetConverter extends php_user_filter
 {
-    const FILTERNAME = 'convert.league.csv';
+    public const FILTERNAME = 'convert.league.csv';
+    public const BOM_SEQUENCE = 'bom_sequence';
+    public const SKIP_BOM_SEQUENCE = 'skip_bom_sequence';
+
+    protected string $input_encoding = 'UTF-8';
+    protected string $output_encoding = 'UTF-8';
+    protected bool $skipBomSequence =  false;
 
     /**
-     * the filter name used to instantiate the class with.
-     *
-     * @var string
+     * Static method to add the stream filter to a {@link Reader} object to handle BOM skipping.
      */
-    public $filtername;
+    public static function addBOMSkippingTo(Reader $document, string $output_encoding = 'UTF-8'): Reader
+    {
+        self::register();
 
-    /**
-     * @var mixed value passed to passed to stream_filter_append or stream_filter_prepend functions.
-     */
-    public $params;
+        $document->addStreamFilter(
+            self::getFiltername(match ($document->getInputBOM()) {
+                ByteSequence::BOM_UTF16_LE => 'UTF-16LE',
+                ByteSequence::BOM_UTF16_BE => 'UTF-16BE',
+                ByteSequence::BOM_UTF32_LE => 'UTF-32LE',
+                ByteSequence::BOM_UTF32_BE => 'UTF-32BE',
+                default => 'UTF-8',
+            }, $output_encoding),
+            [self::BOM_SEQUENCE => self::SKIP_BOM_SEQUENCE]
+        );
 
-    /**
-     * The records input encoding charset.
-     *
-     * @var string
-     */
-    protected $input_encoding = 'UTF-8';
-
-    /**
-     * The records output encoding charset.
-     *
-     * @var string
-     */
-    protected $output_encoding = 'UTF-8';
+        return $document;
+    }
 
     /**
      * Static method to add the stream filter to a {@link AbstractCsv} object.
      */
-    public static function addTo(AbstractCsv $csv, string $input_encoding, string $output_encoding): AbstractCsv
+    public static function addTo(AbstractCsv $csv, string $input_encoding, string $output_encoding, array $params = null): AbstractCsv
     {
         self::register();
 
-        return $csv->addStreamFilter(self::getFiltername($input_encoding, $output_encoding));
+        return $csv->addStreamFilter(self::getFiltername($input_encoding, $output_encoding), $params);
     }
 
     /**
@@ -79,9 +80,9 @@ class CharsetConverter extends php_user_filter
      */
     public static function register(): void
     {
-        $filtername = self::FILTERNAME.'.*';
-        if (!in_array($filtername, stream_get_filters(), true)) {
-            stream_filter_register($filtername, self::class);
+        $filter_name = self::FILTERNAME.'.*';
+        if (!in_array($filter_name, stream_get_filters(), true)) {
+            stream_filter_register($filter_name, self::class);
         }
     }
 
@@ -108,7 +109,7 @@ class CharsetConverter extends php_user_filter
         static $encoding_list;
         if (null === $encoding_list) {
             $list = mb_list_encodings();
-            $encoding_list = array_combine(array_map('strtolower', $list), $list);
+            $encoding_list = array_combine(array_map(strtolower(...), $list), $list);
         }
 
         $key = strtolower($encoding);
@@ -119,63 +120,60 @@ class CharsetConverter extends php_user_filter
         throw new OutOfRangeException('The submitted charset '.$encoding.' is not supported by the mbstring extension.');
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function onCreate(): bool
     {
         $prefix = self::FILTERNAME.'.';
-        if (0 !== strpos($this->filtername, $prefix)) {
+        if (!str_starts_with($this->filtername, $prefix)) {
             return false;
         }
 
         $encodings = substr($this->filtername, strlen($prefix));
-        if (1 !== preg_match(',^(?<input>[-\w]+)\/(?<output>[-\w]+)$,', $encodings, $matches)) {
+        if (1 !== preg_match(',^(?<input>[-\w]+)/(?<output>[-\w]+)$,', $encodings, $matches)) {
             return false;
         }
 
         try {
             $this->input_encoding = self::filterEncoding($matches['input']);
             $this->output_encoding = self::filterEncoding($matches['output']);
-        } catch (OutOfRangeException $e) {
+            $this->skipBomSequence = is_array($this->params)
+                && isset($this->params[self::BOM_SEQUENCE])
+                && self::SKIP_BOM_SEQUENCE === $this->params[self::BOM_SEQUENCE];
+        } catch (OutOfRangeException) {
             return false;
         }
 
         return true;
     }
 
-    /**
-     * @param resource $in
-     * @param resource $out
-     * @param int      $consumed
-     * @param bool     $closing
-     */
-    public function filter($in, $out, &$consumed, $closing): int
+    public function filter($in, $out, &$consumed, bool $closing): int
     {
-        while ($res = stream_bucket_make_writeable($in)) {
-            $res->data = @mb_convert_encoding($res->data, $this->output_encoding, $this->input_encoding);
-            $consumed += $res->datalen;
-            stream_bucket_append($out, $res);
+        set_error_handler(fn (int $errno, string $errstr, string $errfile, int $errline) => true);
+        $alreadyRun = false;
+        while (null !== ($bucket = stream_bucket_make_writeable($in))) {
+            $content = $bucket->data;
+            if (!$alreadyRun && $this->skipBomSequence && null !== ($bom = Info::fetchBOMSequence($content))) {
+                $content = substr($content, strlen($bom));
+            }
+            $alreadyRun = true;
+            $bucket->data = mb_convert_encoding($content, $this->output_encoding, $this->input_encoding);
+            $consumed += $bucket->datalen;
+            stream_bucket_append($out, $bucket);
         }
+        restore_error_handler();
 
         return PSFS_PASS_ON;
     }
 
     /**
-     * Convert Csv records collection into UTF-8.
+     * Converts Csv records collection into UTF-8.
      */
     public function convert(iterable $records): iterable
     {
-        if ($this->output_encoding === $this->input_encoding) {
-            return $records;
-        }
-
-        if (is_array($records)) {
-            return array_map($this, $records);
-        }
-
-        /* @var \Traversable $records */
-        return new MapIterator($records, $this);
+        return match (true) {
+            $this->output_encoding === $this->input_encoding => $records,
+            is_array($records) => array_map($this, $records),
+            default => new MapIterator($records, $this),
+        };
     }
 
     /**
@@ -194,18 +192,15 @@ class CharsetConverter extends php_user_filter
 
     /**
      * Walker method to convert the offset and the value of a CSV record field.
-     *
-     * @param mixed $value  can be a scalar type or null
-     * @param mixed $offset can be a string or an int
      */
-    protected function encodeField($value, $offset): array
+    protected function encodeField(int|float|string|null $value, int|string $offset): array
     {
         if (null !== $value && !is_numeric($value)) {
-            $value = mb_convert_encoding((string) $value, $this->output_encoding, $this->input_encoding);
+            $value = mb_convert_encoding($value, $this->output_encoding, $this->input_encoding);
         }
 
         if (!is_numeric($offset)) {
-            $offset = mb_convert_encoding((string) $offset, $this->output_encoding, $this->input_encoding);
+            $offset = mb_convert_encoding($offset, $this->output_encoding, $this->input_encoding);
         }
 
         return [$offset, $value];

@@ -1,33 +1,32 @@
-<?php return array (
-  'root' => 
-  array (
-    'pretty_version' => 'dev-master',
-    'version' => 'dev-master',
-    'aliases' => 
-    array (
+<?php return array(
+    'root' => array(
+        'name' => '__root__',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '959b82432a11959832c406e5c878e165f95f1bea',
+        'type' => 'library',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => true,
     ),
-    'reference' => 'c5059e4fed6aed307863078c9534efb897afa163',
-    'name' => '__root__',
-  ),
-  'versions' => 
-  array (
-    '__root__' => 
-    array (
-      'pretty_version' => 'dev-master',
-      'version' => 'dev-master',
-      'aliases' => 
-      array (
-      ),
-      'reference' => 'c5059e4fed6aed307863078c9534efb897afa163',
+    'versions' => array(
+        '__root__' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '959b82432a11959832c406e5c878e165f95f1bea',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'league/csv' => array(
+            'pretty_version' => '9.11.0',
+            'version' => '9.11.0.0',
+            'reference' => '33149c4bea4949aa4fa3d03fb11ed28682168b39',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../league/csv',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
     ),
-    'league/csv' => 
-    array (
-      'pretty_version' => '9.7.1',
-      'version' => '9.7.1.0',
-      'aliases' => 
-      array (
-      ),
-      'reference' => '0ec57e8264ec92565974ead0d1724cf1026e10c1',
-    ),
-  ),
 );

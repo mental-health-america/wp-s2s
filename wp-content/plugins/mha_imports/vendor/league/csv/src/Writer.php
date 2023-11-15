@@ -13,104 +13,73 @@ declare(strict_types=1);
 
 namespace League\Csv;
 
+use function array_map;
 use function array_reduce;
 use function implode;
-use function preg_match;
-use function preg_quote;
+use function restore_error_handler;
+use function set_error_handler;
 use function str_replace;
-use function strlen;
-use const PHP_VERSION_ID;
-use const SEEK_CUR;
+
 use const STREAM_FILTER_WRITE;
 
 /**
  * A class to insert records into a CSV Document.
  */
-class Writer extends AbstractCsv
+class Writer extends AbstractCsv implements TabularDataWriter
 {
     protected const STREAM_FILTER_MODE = STREAM_FILTER_WRITE;
 
-    /**
-     * callable collection to format the record before insertion.
-     *
-     * @var callable[]
-     */
-    protected $formatters = [];
+    /** @var array<callable> callable collection to format the record before insertion. */
+    protected array $formatters = [];
+    /** @var array<callable> callable collection to validate the record before insertion. */
+    protected array $validators = [];
+    protected string $newline = "\n";
+    protected int $flush_counter = 0;
+    protected ?int $flush_threshold = null;
+    protected bool $enclose_all = false;
+    /** @var array{0:array<string>,1:array<string>} */
+    protected array $enclosure_replace;
 
-    /**
-     * callable collection to validate the record before insertion.
-     *
-     * @var callable[]
-     */
-    protected $validators = [];
-
-    /**
-     * newline character.
-     *
-     * @var string
-     */
-    protected $newline = "\n";
-
-    /**
-     * Insert records count for flushing.
-     *
-     * @var int
-     */
-    protected $flush_counter = 0;
-
-    /**
-     * Buffer flush threshold.
-     *
-     * @var int|null
-     */
-    protected $flush_threshold;
-
-    /**
-     * Regular expression used to detect if RFC4180 formatting is necessary.
-     *
-     * @var string
-     */
-    protected $rfc4180_regexp;
-
-    /**
-     * double enclosure for RFC4180 compliance.
-     *
-     * @var string
-     */
-    protected $rfc4180_enclosure;
-
-    /**
-     * {@inheritdoc}
-     */
     protected function resetProperties(): void
     {
-        $characters = preg_quote($this->delimiter, '/').'|'.preg_quote($this->enclosure, '/');
-        $this->rfc4180_regexp = '/[\s|'.$characters.']/x';
-        $this->rfc4180_enclosure = $this->enclosure.$this->enclosure;
+        parent::resetProperties();
+
+        $this->enclosure_replace = [
+            [$this->enclosure, $this->escape.$this->enclosure.$this->enclosure],
+            [$this->enclosure.$this->enclosure, $this->escape.$this->enclosure],
+        ];
     }
 
     /**
-     * Returns the current newline sequence characters.
+     * Returns the current end of line sequence characters.
      */
-    public function getNewline(): string
+    public function getEndOfLine(): string
     {
         return $this->newline;
     }
 
     /**
-     * Get the flush threshold.
-     *
-     * @return int|null
+     * Returns the flush threshold.
      */
-    public function getFlushThreshold()
+    public function getFlushThreshold(): ?int
     {
         return $this->flush_threshold;
     }
 
     /**
+     * Tells whether new entries will all be enclosed on writing.
+     */
+    public function encloseAll(): bool
+    {
+        return $this->enclose_all;
+    }
+
+    /**
      * Adds multiple records to the CSV document.
-     *
      * @see Writer::insertOne
+     *
+     * @throws CannotInsertRecord
+     * @throws Exception
      */
     public function insertAll(iterable $records): int
     {
@@ -128,120 +97,32 @@ class Writer extends AbstractCsv
     /**
      * Adds a single record to a CSV document.
      *
-     * A record is an array that can contains scalar types values, NULL values
+     * A record is an array that can contain scalar type values, NULL values
      * or objects implementing the __toString method.
      *
      * @throws CannotInsertRecord If the record can not be inserted
+     * @throws Exception If the record can not be inserted
      */
     public function insertOne(array $record): int
     {
-        $method = 'addRecord';
-        if (70400 > PHP_VERSION_ID && '' === $this->escape) {
-            $method = 'addRFC4180CompliantRecord';
-        }
+        $insert = fn (array $record): int|false => match (true) {
+            $this->enclose_all => $this->document->fwrite(implode(
+                $this->delimiter,
+                array_map(
+                    fn ($content) => $this->enclosure.$content.$this->enclosure,
+                    str_replace($this->enclosure_replace[0], $this->enclosure_replace[1], $record)
+                )
+            ).$this->newline),
+            default => $this->document->fputcsv($record, $this->delimiter, $this->enclosure, $this->escape, $this->newline),
+        };
 
-        $record = array_reduce($this->formatters, [$this, 'formatRecord'], $record);
+        $record = array_reduce($this->formatters, fn (array $record, callable $formatter): array => $formatter($record), $record);
         $this->validateRecord($record);
-        $bytes = $this->$method($record);
-        if (false === $bytes || 0 >= $bytes) {
+        set_error_handler(fn (int $errno, string $errstr, string $errfile, int $errline) => true);
+        $bytes = $insert($record);
+        restore_error_handler();
+        if (false === $bytes) {
             throw CannotInsertRecord::triggerOnInsertion($record);
-        }
-
-        return $bytes + $this->consolidate();
-    }
-
-    /**
-     * Adds a single record to a CSV Document using PHP algorithm.
-     *
-     * @see https://php.net/manual/en/function.fputcsv.php
-     *
-     * @return int|false
-     */
-    protected function addRecord(array $record)
-    {
-        return $this->document->fputcsv($record, $this->delimiter, $this->enclosure, $this->escape);
-    }
-
-    /**
-     * Adds a single record to a CSV Document using RFC4180 algorithm.
-     *
-     * @see https://php.net/manual/en/function.fputcsv.php
-     * @see https://php.net/manual/en/function.fwrite.php
-     * @see https://tools.ietf.org/html/rfc4180
-     * @see http://edoceo.com/utilitas/csv-file-format
-     *
-     * String conversion is done without any check like fputcsv.
-     *
-     *     - Emits E_NOTICE on Array conversion (returns the 'Array' string)
-     *     - Throws catchable fatal error on objects that can not be converted
-     *     - Returns resource id without notice or error (returns 'Resource id #2')
-     *     - Converts boolean true to '1', boolean false to the empty string
-     *     - Converts null value to the empty string
-     *
-     * Fields must be delimited with enclosures if they contains :
-     *
-     *     - Embedded whitespaces
-     *     - Embedded delimiters
-     *     - Embedded line-breaks
-     *     - Embedded enclosures.
-     *
-     * Embedded enclosures must be doubled.
-     *
-     * The LF character is added at the end of each record to mimic fputcsv behavior
-     *
-     * @return int|false
-     */
-    protected function addRFC4180CompliantRecord(array $record)
-    {
-        foreach ($record as &$field) {
-            $field = (string) $field;
-            if (1 === preg_match($this->rfc4180_regexp, $field)) {
-                $field = $this->enclosure.str_replace($this->enclosure, $this->rfc4180_enclosure, $field).$this->enclosure;
-            }
-        }
-        unset($field);
-
-        return $this->document->fwrite(implode($this->delimiter, $record)."\n");
-    }
-
-    /**
-     * Format a record.
-     *
-     * The returned array must contain
-     *   - scalar types values,
-     *   - NULL values,
-     *   - or objects implementing the __toString() method.
-     */
-    protected function formatRecord(array $record, callable $formatter): array
-    {
-        return $formatter($record);
-    }
-
-    /**
-     * Validate a record.
-     *
-     * @throws CannotInsertRecord If the validation failed
-     */
-    protected function validateRecord(array $record): void
-    {
-        foreach ($this->validators as $name => $validator) {
-            if (true !== $validator($record)) {
-                throw CannotInsertRecord::triggerOnValidation($name, $record);
-            }
-        }
-    }
-
-    /**
-     * Apply post insertion actions.
-     */
-    protected function consolidate(): int
-    {
-        $bytes = 0;
-        if ("\n" !== $this->newline) {
-            $this->document->fseek(-1, SEEK_CUR);
-            /** @var int $newlineBytes */
-            $newlineBytes = $this->document->fwrite($this->newline, strlen($this->newline));
-            $bytes =  $newlineBytes - 1;
         }
 
         if (null === $this->flush_threshold) {
@@ -255,6 +136,20 @@ class Writer extends AbstractCsv
         }
 
         return $bytes;
+    }
+
+    /**
+     * Validates a record.
+     *
+     * @throws CannotInsertRecord If the validation failed
+     */
+    protected function validateRecord(array $record): void
+    {
+        foreach ($this->validators as $name => $validator) {
+            if (true !== $validator($record)) {
+                throw CannotInsertRecord::triggerOnValidation($name, $record);
+            }
+        }
     }
 
     /**
@@ -278,21 +173,19 @@ class Writer extends AbstractCsv
     }
 
     /**
-     * Sets the newline sequence.
+     * Sets the end of line sequence.
      */
-    public function setNewline(string $newline): self
+    public function setEndOfLine(string $endOfLine): self
     {
-        $this->newline = $newline;
+        $this->newline = $endOfLine;
 
         return $this;
     }
 
     /**
-     * Set the flush threshold.
+     * Sets the flush threshold.
      *
-     * @param ?int $threshold
-     *
-     * @throws InvalidArgument if the threshold is a integer lesser than 1
+     * @throws InvalidArgument if the threshold is a integer less than 1
      */
     public function setFlushThreshold(?int $threshold): self
     {
@@ -309,5 +202,103 @@ class Writer extends AbstractCsv
         $this->document->fflush();
 
         return $this;
+    }
+
+    public function relaxEnclosure(): self
+    {
+        $this->enclose_all = false;
+
+        return $this;
+    }
+
+    public function forceEnclosure(): self
+    {
+        $this->enclose_all = true;
+
+        return $this;
+    }
+
+    /**
+     * DEPRECATION WARNING! This method will be removed in the next major point release.
+     *
+     * @deprecated since version 9.8.0
+     * @codeCoverageIgnore
+     *
+     * Format a record.
+     *
+     * The returned array must contain
+     *   - scalar types values,
+     *   - NULL values,
+     *   - or objects implementing the __toString() method.
+     */
+    protected function formatRecord(array $record, callable $formatter): array
+    {
+        return $formatter($record);
+    }
+
+    /**
+     * DEPRECATION WARNING! This method will be removed in the next major point release.
+     *
+     * @deprecated Since version 9.9.0
+     * @codeCoverageIgnore
+     *
+     * Adds a single record to a CSV Document using PHP algorithm.
+     *
+     * @see https://php.net/manual/en/function.fputcsv.php
+     */
+    protected function addRecord(array $record): int|false
+    {
+        return $this->document->fputcsv($record, $this->delimiter, $this->enclosure, $this->escape, $this->newline);
+    }
+
+    /**
+     * DEPRECATION WARNING! This method will be removed in the next major point release.
+     *
+     * @deprecated Since version 9.9.0
+     * @codeCoverageIgnore
+     *
+     * Applies post insertion actions.
+     */
+    protected function consolidate(): int
+    {
+        if (null === $this->flush_threshold) {
+            return 0;
+        }
+
+        ++$this->flush_counter;
+        if (0 === $this->flush_counter % $this->flush_threshold) {
+            $this->flush_counter = 0;
+            $this->document->fflush();
+        }
+
+        return 0;
+    }
+
+    /**
+     * DEPRECATION WARNING! This method will be removed in the next major point release.
+     *
+     * @see Writer::getEndOfLine()
+     * @deprecated Since version 9.10.0
+     * @codeCoverageIgnore
+     *
+     * Returns the current newline sequence characters.
+     */
+    public function getNewline(): string
+    {
+        return $this->getEndOfLine();
+    }
+
+    /**
+     * DEPRECATION WARNING! This method will be removed in the next major point release.
+     *
+     * @see Writer::setEndOfLine()
+     * @deprecated Since version 9.10.0
+     * @codeCoverageIgnore
+     *
+     * Sets the newline sequence.
+     */
+    public function setNewline(string $newline): self
+    {
+        return $this->setEndOfLine($newline);
     }
 }
