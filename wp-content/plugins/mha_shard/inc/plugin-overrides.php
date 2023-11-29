@@ -10,11 +10,19 @@
  * Add an ACF Options page for site configuration
  */
 if( function_exists('acf_add_options_page') ) {
-	$settings = array(
+
+	// General Options
+	acf_add_options_page( array(
 		'page_title' => __('MHA Global Options'),
 		'icon_url' => '/wp-content/themes/mha_s2s/assets/images/mha_icon.png',
-	);
-	acf_add_options_page( $settings );	
+	));	
+
+	// General Options
+	acf_add_options_page( array(
+		'page_title' => __('MHA Redirects'),
+		'icon_url' => 'dashicons-networking',
+	));	
+
 }
 
 
