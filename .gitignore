@@ -167,6 +167,9 @@ wp-content/mysql.sql
 !/wp-content/plugins/mha_exports
 !/wp-content/plugins/mha_imports
 !/wp-content/plugins/mha_cleanup
+!/wp-content/plugins/mha_sso
+/wp-content/plugins/mha_sso/vendor
+/wp-content/plugins/mha_imports/vendor
 !/wp-content/plugins/gravityforms
-
 !/wp-content/themes/mha_s2s
+bak
