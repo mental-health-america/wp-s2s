@@ -343,7 +343,7 @@
 		if($('.next-steps.masonry').length){	
 			$('.next-steps.masonry').addClass('masonry-loaded');		
 			let macyNextSteps = Macy({
-				container: '.next-steps',
+				container: '.next-steps.masonry',
 				trueOrder: true,
 				waitForImages: false,
 				margin: {

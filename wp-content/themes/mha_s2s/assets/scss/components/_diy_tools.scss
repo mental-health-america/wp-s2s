@@ -1,4 +1,4 @@
-#diy-questions {
+.diy-questions {
     .question {
         textarea {
             padding: 10px 0;
@@ -27,6 +27,14 @@
                 }
             }
         }        
+    }
+
+    input[type=checkbox] {
+        outline: 2px solid rgba(20, 75, 94, 0) !important;
+        @include transitions(border 150ms ease);
+        &:focus {
+            outline: 2px solid rgba(20, 75, 94, .33) !important;
+        }
     }
 
     // Active/Inactive Look
@@ -65,7 +73,7 @@ article.type-diy {
     }
 }
 
-#diy-questions-container {
+.diy-questions-container {
     display: block;
     position: relative;
 }
@@ -134,8 +142,7 @@ button.peek {
         margin-left: 0;
     }
     @media only screen and (max-width: 580px){
-        display: none;
-
+        //display: none;
     }
     &:before {
         content: "";
@@ -257,7 +264,7 @@ button.peek {
 
 }
 
-#crowdthoughtsContent {
+.crowdthoughtsContent {
     position: relative;
     padding-bottom: 40px;
     min-height: 150px;
@@ -388,8 +395,9 @@ button.peek {
     cursor: auto; // Disable cursor on single embeds
 }
 
-#question-breadcrumb-container {
+.question-breadcrumb-container {
     @include transitions(background-color 150ms ease);
+    
     &:before {
         content: '';
         display: block;
@@ -405,12 +413,15 @@ button.peek {
         filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#FFFFFF",endColorstr="#ffffff",GradientType=1);
         @include transitions(opacity 150ms ease);
     }
+    
     &.sticky {
         position: fixed;
         z-index: 100;
         bottom: 0;
         width: 100%;
         left: 0;
+        right: 0;
+        margin: 0 auto;
         background-color: rgba(255,255,255,1);
         @media only screen and (max-width: 940px){
             bottom: 54px;
@@ -428,7 +439,102 @@ button.peek {
         &.max-top {
             position: absolute;
             bottom: auto;
-            top: 15px;
+            top: 25px;
+        }
+    }
+
+    .embed-type-full & {
+        background-color: rgba(255,255,255,0);
+
+        &:before { display: none; }
+
+        .wrap-inner:before {
+            content: '';
+            display: block;
+            width: calc(100% + 20px);
+            margin-left: -10px;
+            height: 15px;
+            opacity: 0;
+            top: -15px;
+            position: relative;
+            background-color: rgba(255,255,255,1);
+            background: -moz-linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+            background: -webkit-linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+            background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#FFFFFF",endColorstr="#ffffff",GradientType=1);
+            @include transitions(opacity 150ms ease);
+        }
+        
+        .wrap-inner:after {  
+            content: "";
+            display: block;
+            width: 10px;
+            left: -10px;
+            top: 0px;
+            background-color: #FFF;
+            height: 100%;
+            position: absolute;
+        }
+        
+        &.sticky {
+            .wrap-inner:before {
+                opacity: 1;
+            }
+            .wrap-inner {
+                background-color: rgba(255,255,255,1);
+                @media only screen and (max-width: 992px){
+                    margin: 0 10px;
+                }
+            }
+        }
+
+        .wrap.full {
+            position: relative;
+            max-width: 1080px;
+            margin: 0 auto;
+            @media only screen and (max-width: 992px){
+                max-width: 100%;
+            }
+            .wrap-inner {
+                max-width: 716px;
+                @media only screen and (max-width: 992px){
+                    max-width: 100%;
+                }
+            }
+        }
+
+        .article--footer_content & {
+            .wrap.full {
+                width: 100%;
+                max-width: 1080px;
+                .wrap-inner {
+                    width: 100%;
+                    max-width: 1080px;
+                }
+            }
+            &.sticky {
+                width: 100%;
+                max-width: 1070px;
+                .wrap-inner {
+                    width: 100%;
+                    max-width: 1070px;
+                }
+            }
+        }
+
+    }
+
+}
+
+
+// Featured Next Steps Test Styles
+.featured-next-steps-test-group {
+    ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        li {
+            list-style-type: none;
         }
     }
 }

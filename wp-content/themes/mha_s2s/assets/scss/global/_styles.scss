@@ -719,6 +719,7 @@ button.bar {
         background: $coral; 
         @include transitions(width 150ms ease);
     }
+    &:focus,
     &:hover {
         text-decoration: none;
         &:after {

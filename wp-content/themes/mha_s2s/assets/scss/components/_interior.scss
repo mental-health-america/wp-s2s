@@ -368,6 +368,17 @@ ol.next-steps.columned {
                        break-inside: avoid;
     }
 }
+ol.next-steps.single-column {
+    margin: 0;
+    padding: 0;
+    li {
+        display: block;
+        list-style-type: none;
+        margin: 0 0 1em 0;
+        padding: 0;
+        @include montserrat(600);
+    }
+}
 
 ol.next-steps.masonry {
     margin: 0;
