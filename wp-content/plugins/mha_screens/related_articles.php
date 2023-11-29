@@ -19,13 +19,29 @@ function mha_results_related_articles( $args ){
         'hide_all'           => false
     );   
     $list_items = [];
+    $temp_excluded = [];
+    $used_ids = [];
     $args = wp_parse_args( $args, $defaults );
     $user_screen_result = $args['user_screen_result'];
 
     $return = [];
     $return_html = '';
 
-    $list_link_class = ($args['style'] == 'button') ? 'button green thin round mr-3 mb-3' : 'dark-gray plain';
+    switch($args['style']):
+        case 'button';
+            $list_link_class = 'button green thin round mr-3 mb-3';
+        break;
+        case 'featured';
+            $list_link_class = 'button green thin round mr-3 rec-screen-featured-style';
+        break;
+        default:
+            $list_link_class = 'dark-gray plain';
+            break;
+    endswitch;
+
+    if($args['style'] == 'featured'){
+        $return_html .= '<div class="wrap narrow mb-5">';
+    }
 
     // Demographic Data for later
     $user_demo_ages = [];
@@ -84,28 +100,35 @@ function mha_results_related_articles( $args ){
         }
     }
 
-    if($args['style'] != 'button'){
-        if(!in_array('ras_r', $args['layout'])){
-            $return_html = '<ol class="next-steps masonry">';
+    if($args['style'] != 'button' && $args['style'] != 'featured' ){
+        if(!in_array('ras_r', $args['layout']) ){
+            $return_html .= '<ol class="next-steps masonry">';
         } else {
-            $return_html = '<ol class="next-steps columned">';
+            $return_html .= '<ol class="next-steps columned">';
         }
+    }
+
+    if($args['style'] == 'featured' ){
+        $return_html .= '<ol class="next-steps single-column">';
     }
     
     /**
      * Demo Based Steps
      */
     foreach($args['demo_steps'] as $link){
-        if( !in_array($link->ID, $args['excluded_ids']) ){
+        if( !in_array($link->ID, $args['excluded_ids']) && !in_array($link->ID, $temp_excluded) ){
 
             $new_list_item = '<a class="'.$list_link_class.' rec-screen-demobased" href="'.get_the_permalink($link->ID).'">'.$link->post_title;
             if (current_user_can('edit_posts') && !in_array('ras_r', $args['layout'])) {
-                $new_list_item .= '<br /><span class="small text-red">(Demographic Based Condition)</span>';
+                $new_list_item .= '<br /><span class="small text-red">ID: #'.$link->ID.'</span> <span class="small text-red">(Demographic Based Condition)</span>';
             }
             $new_list_item .= '</a>';
-            $list_items[] = $new_list_item;
-
-            $args['excluded_ids'][] = $link->ID;
+            $list_items[] = array(
+                'id' => $link->ID,
+                'type' => 'demo',
+                'html' => $new_list_item
+            );
+            $temp_excluded[] = $link->ID;
         }
     }
 
@@ -113,19 +136,24 @@ function mha_results_related_articles( $args ){
      * Result Based Manual Steps
      */
     foreach($args['next_step_manual'] as $step){
-        $step_link = get_the_permalink($step);
-        $step_link_target = '';
-        if($args['partner_var'] && in_array($args['partner_var'], mha_approved_partners() )){                                    
-            //$step_link = add_query_arg( 'partner', $args['partner_var'], $step_link );
-        }
-        if($args['iframe_var']){                                         
-            //$step_link = add_query_arg( 'iframe','true', $step_link );
-            $step_link_target = ' target="_blank"';
-        }
-        if(!in_array($step, $args['excluded_ids'])){
-            $list_items[] = '<a class="'.$list_link_class.' rec-result-manual"'.$step_link_target.' href="'.$step_link.'">'.get_the_title($step).'</a>';
-            echo 'test1 ';
-            $args['excluded_ids'][] = $step;
+        if( !in_array($step, $args['excluded_ids']) && !in_array($step, $temp_excluded) ){
+            $step_link = get_the_permalink($step);
+            $step_link_target = '';
+            if($args['partner_var'] && in_array($args['partner_var'], mha_approved_partners() )){                                    
+                //$step_link = add_query_arg( 'partner', $args['partner_var'], $step_link );
+            }
+            if($args['iframe_var']){                                         
+                //$step_link = add_query_arg( 'iframe','true', $step_link );
+                $step_link_target = ' target="_blank"';
+            }
+            if(!in_array($step, $args['excluded_ids'])){
+                $list_items[] = array(
+                    'id' => $step,
+                    'type' => 'manual',
+                    'html' => '<a class="'.$list_link_class.' rec-result-manual"'.$step_link_target.' href="'.$step_link.'">'.get_the_title($step).'</a>'
+                );
+                $temp_excluded[] = $step;
+            }
         }
     }
 
@@ -135,7 +163,7 @@ function mha_results_related_articles( $args ){
     if( have_rows('featured_next_steps', $user_screen_result['screen_id']) ):
     while( have_rows('featured_next_steps', $user_screen_result['screen_id']) ) : the_row();
         $step = get_sub_field('link');
-        if($step && !in_array($step->ID, $args['excluded_ids'])){
+        if($step && !in_array($step->ID, $args['excluded_ids']) && !in_array($step->ID, $temp_excluded)){
             $manual_step_link = get_the_permalink($step->ID);
             $manual_step_target = '';
             if($args['partner_var'] && in_array($args['partner_var'], mha_approved_partners() )){                                    
@@ -148,16 +176,18 @@ function mha_results_related_articles( $args ){
 
             $new_list_item = '<a class="'.$list_link_class.' rec-screen-manual"'.$manual_step_target.' href="'.$manual_step_link.'">'.$step->post_title;
             if (current_user_can('edit_posts') && !in_array('ras_r', $args['layout'])) {
-                $new_list_item .= '<br /><span class="small text-red">(Manual Condition)</span>';
+                $new_list_item .= '<br /><span class="small text-red">ID: #'.$step->ID.'</span> <span class="small text-red">(Manual Condition)</span>';
             }
             $new_list_item .= '</a>';
-            $list_items[] = $new_list_item;
-
-            $args['excluded_ids'][] = $step->ID;
+            $list_items[] = array(
+                'id' => $step->ID,
+                'type' => 'manual',
+                'html' => $new_list_item
+            );
+            $temp_excluded[] = $step->ID;
         }
     endwhile;        
     endif;
-
 
 
     /**
@@ -166,16 +196,18 @@ function mha_results_related_articles( $args ){
     if(get_query_var('include_ids')){
         $include_ids = explode(',', get_query_var('include_ids'));
         foreach($include_ids as $iid){
-            if( !in_array($iid, $args['excluded_ids']) ){
-
+            if( !in_array($iid, $args['excluded_ids']) && !in_array($iid, $temp_excluded) ){
                 $new_list_item = '<a class="'.$list_link_class.' rec-screen-urlbased" href="'.get_the_permalink($iid).'">'.get_the_title($iid);
                 if (current_user_can('edit_posts') && !in_array('ras_r', $args['layout'])) {
-                    $new_list_item .= '<br /><span class="small text-red">(URL Based)</span>';
+                    $new_list_item .= '<br /><span class="small text-red">ID: #'.$iid.'</span> <span class="small text-red">(URL Based)</span>';
                 }
                 $new_list_item .= '</a>';
-                $list_items[] = $new_list_item;
-
-                $args['excluded_ids'][] = $iid;
+                $list_items[] = array(
+                    'id' => $iid,
+                    'type' => 'include_ids',
+                    'html' => $new_list_item
+                );
+                $temp_excluded[] = $iid;
             }
         }
     }
@@ -183,14 +215,6 @@ function mha_results_related_articles( $args ){
     /**
      * Automatic Query Args
      */
-    /*
-    if(!empty($args['excluded_ids'])){
-        $total_exclude = count($args['excluded_ids']);
-    } else {
-        $total_exclude = 0;
-    }
-    $total_recs = $args['total'] - $total_exclude;
-    */
 
     $loop_args = array(
         "post_type" => 'article',
@@ -330,8 +354,8 @@ function mha_results_related_articles( $args ){
         $article_primary_condition = get_field('primary_condition', $article_id);
 
         // Immediate skips
-        if(in_array($article_id, $args['excluded_ids'])){
-            //continue;
+        if(in_array($article_id, $args['excluded_ids']) || in_array($article_id, $temp_excluded)){
+            continue;
         }
 
         // Defaults
@@ -371,15 +395,6 @@ function mha_results_related_articles( $args ){
             $rel_score = $rel_score + get_field('scoring_popular', 'options');
             $related_articles[$article_id]['score_debug'] .= 'IsPopular ';
         }
-
-        // Matching Types
-        /*
-        $rel_intersect = count(array_intersect($article_type, get_field('type', $article_id)));
-        if($rel_intersect > 0){
-            $rel_score = $rel_score + $rel_intersect;
-            $related_articles[$article_id]['score_debug'] .= 'Matching ';
-        }
-        */
 
         // Matching conditions     
         if(is_array($article_conditions)):
@@ -569,9 +584,6 @@ function mha_results_related_articles( $args ){
     $ti = 1;
 
     foreach($related_articles_display as $rad){
-        if($ti >= $args['total']){
-            break;
-        }
         $article_display = '<a class="'.$rad['list_link_class'].' rec-auto"'.$rad['related_link_target'].' href="'.$rad['related_link'].'">'.$rad['title'];
         if (current_user_can('edit_posts') && !in_array('ras_r', $args['layout'])) {
             // Scoring debug options for Editors
@@ -579,26 +591,33 @@ function mha_results_related_articles( $args ){
         }
         $article_display .= '</a>';
         
-        $args['excluded_ids'][] = $rad['id'];
-        $list_items[] = $article_display;
+        $list_items[] = array(
+            'id' => $rad['id'],
+            'type' => 'display',
+            'html' => $article_display
+        );
+        $temp_excluded[] = $rad['id'];
         $ti++;
     }
-
-
 
     // Print all the items
     $i = 1;
 
     foreach($list_items as $item){
-        // Skip items if its set
+
+        if($i > $args['total']){
+            break;
+        }
         if($args['skip'] > 0 && $i <= $args['skip']){
             $i++;
             continue;
         }
 
         if($args['style'] != 'button'){ $return_html .= '<li>'; }
-        $return_html .= $item;
+        $return_html .= $item['html'];
         if($args['style'] != 'button'){ $return_html .= '</li>'; }
+
+        $args['excluded_ids'][] = $item['id'];
 
         $i++;
     }
@@ -627,8 +646,33 @@ function mha_results_related_articles( $args ){
         $return_html .=  '</ol>';
     }
 
+    if($args['style'] == 'featured'){
+        $return_html .= '</div>';
+    }
+
     $return['html'] = $return_html;
     $return['excluded_ids'] = $args['excluded_ids'];
+
+    // October 2023 Custom Featured Next Steps Return
+    if($args['style'] == 'featured'){  
+
+        $link_groups = [];
+        $used_counter = 1;
+        shuffle($temp_excluded);
+        foreach($temp_excluded as $lnk){
+            $link_groups['related_links'][$used_counter] = $lnk;
+            $used_counter++;
+        }
+        $results = array(
+            'heading' => 'Next Steps',
+            'hide_group_titles' => 1,
+            'link_groups' => $link_groups,
+            'additional_result_text' => [],
+            'used_links' => $temp_excluded,
+        );
+        return json_encode( $results, false, JSON_UNESCAPED_SLASHES );      
+
+    }
 
     return $return;
 
@@ -688,7 +732,7 @@ function mha_results_related_articles_simple( $args ){
 
             $new_list_item = '<a class="'.$list_link_class.' rec-result-manual"'.$step_link_target.' href="'.$step_link.'">'.get_the_title($step);
             if (current_user_can('edit_posts') && !in_array('ras_r', $args['layout'])) {
-                $new_list_item .= '<br /><span class="small text-red">(Result Based Manual Condition)</span>';
+                $new_list_item .= '<br /><span class="small text-red">ID: #'.$iid.'</span> <span class="small text-red">(Result Based Manual Condition)</span>';
             }
             $new_list_item .= '</a>';
             $list_items[] = $new_list_item;

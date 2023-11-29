@@ -1,5 +1,5 @@
 <?php 
-/* Template Name: Screen Results */
+/* Template Name: Screen Results - Original */
 get_header(); 
 global $wpdb;
 
@@ -7,7 +7,7 @@ global $wpdb;
 $user_screen_id = get_query_var('sid');
 
 // Get the gravity forms entry ID for easier lookups
-$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
+$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC"); 
 
 if ( is_wp_error( $entry_id ) || !$entry_id ):
 
@@ -19,26 +19,14 @@ else:
     // Entry exists, continue
 
     // Get Screen Results
-    $user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
+    $user_screen_result = getUserScreenResults( $entry_id );  
     
-    // Update featured links based on result page attributes
-    // To debug, comment this out to not lock in answers so refreshing works
-    if($user_screen_result['featured_next_steps_data'] && str_contains(get_query_var('layout'), 'mhats')){
-        /*
-        $update_featured_links = mha_screen_submission_update_entry_featured_links(
-            array(
-                'entry_id'              => $entry_id,
-                'user_screen_result'    => $user_screen_result
-            )
-        );
-        */
-    }
-    wp_reset_query();
-    
+    $next_step_terms = [];
+    $next_step_manual = [];
     $excluded_ids = [];
     $result_cta = [];
     $demo_steps = [];
-    $featured_next_steps_data = null;
+    $result_title = '';
     $max_score = get_field('overall_max_score', $user_screen_result['screen_id']); // Get the screen's overall max score
     $espanol = get_field('espanol', $user_screen_result['screen_id']); // Spanish page
     $partner_var = get_query_var('partner'); // Partner layout overrides
@@ -66,6 +54,26 @@ else:
             $excluded_ids[] = $ue;
         }
     }
+
+
+    // Get the user's answered demographic questions for later
+    $entry_data = GFAPI::get_entry( $user_screen_result['result_id'] );
+    $answered_demos = [];
+    if(!is_wp_error($entry_data)){
+        foreach($entry_data as $k => $v){            
+            $field = GFFormsModel::get_field( $entry_data['form_id'], $k );  
+            //if (isset($field->cssClass) && strpos($field->cssClass, 'optional') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false) {
+                if(trim($entry_data[$k] ?? '') != '' && isset($field->label)){
+                    $answered_demos[$field->label][] = $entry_data[$k];
+                }
+            //}
+        }        
+    }
+
+    // Additional custom demo results to reference
+    $answered_demos['user_result'] = array($result_title);
+    $answered_demos['screen_id'] = array($user_screen_result['screen_id']);
+    $answered_demos['result_id'] = array($user_screen_result['result_id']);
     
     // A/B Testing
     $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
@@ -142,203 +150,286 @@ else:
             /**
              * Screening Results
              */
-            
-            // Result Based CTAs
-            if($user_screen_result['featured_cta'] && count($user_screen_result['featured_cta']) > 0){
-                foreach($user_screen_result['featured_cta'] as $cta){
-                    $result_cta[] = $cta;
-                }
-            }
-
-            if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                
-                /**
-                 * Survey Results
-                 */
-                $result = get_field('results', $user_screen_result['screen_id']);
-                ?>
-                    <div class="bubble thin teal round-small-bl mb-4">
-                    <div class="inner">
-
-                    <span id="screen-name" style="display: none;"><?php echo get_the_title($user_screen_result['screen_id']); ?></span>
-                        <?php if(!get_field('show_survey_results', $user_screen_result['screen_id']) && !in_array('results_header_v1', $layout) ): ?>
-                            <h1 class="subtitle thin montserrat block pb-1">
-                                Thank you for completing this survey!
-                            </h1>
-                            <h2 class="white small m-0">
-                                <strong><?php echo get_the_title($user_screen_result['screen_id']); ?></strong>
-                            </h2>
-                        <?php else: ?>
-                            <h2 class="white small m-0">
-                                <strong>
-                                    <?php echo $user_screen_result['result_title']; ?>
-                                </strong>
-                            </h2>
-                        <?php endif; ?>
-                    </div>
-                    </div>
-                <?php
-            else:
-                /** 
-                 * Test Results
-                 */
-                ?>
-                    <div class="bubble thin teal round-small-bl mb-4">
-                    <div class="inner">
-                        <h1 class="subtitle thin block pb-1 <?php if(in_array('results_header_v1', $layout)){ echo 'caps'; } else { echo 'montserrat'; } ?>">
-                            <?php if($espanol): ?>
-                                Su resultado para la <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span> fue
-                            <?php else: ?>
-                                <?php if(in_array('results_header_v1', $layout)): ?>
-                                    Your <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span> score was
-                                <?php else: ?>
-                                    Your Results &mdash; <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span>:
-                                <?php endif; ?>
-                            <?php endif; ?>
-                        </h1>
-                        <h2 class="white small m-0">
-                            <strong>
-                                <?php echo $user_screen_result['result_title']; ?>
-                            </strong>
-                        </h2>
-                    </div>
-                    </div>
-                <?php 
-            endif; 
-        ?>
+            if( have_rows('results', $user_screen_result['screen_id']) ):
+                                
+                // Result Display
+                while( have_rows('results', $user_screen_result['screen_id']) ) : the_row();
+                    $min = get_sub_field('score_range_minimum');
+                    $max = get_sub_field('score_range_max');
+                    $custom_logic_condition_row = get_sub_field('custom_logic_condition');
                     
-        <?php 
-            /**
-             * Default Result Button Placement
-             */
-            if(!count(array_intersect( array('result_buttons_below'), $layout))){
-                get_template_part( 'templates/results/result', 'buttons', array( 
-                    'layout' => $layout,
-                    'user_screen_result' => $user_screen_result,
-                    'max_score' => $max_score,
-                    'espanol' => $espanol,
-                    'take_another_url' => $take_another_url,
-                    'iframe_var' => $iframe_var
-                ) );  
-            }
-        ?>
-        
-        <div id="screen-result-content" class="pt-4">
+                    if(
+                        $user_screen_result['total_score'] >= $min && $user_screen_result['total_score'] <= $max || 
+                        $user_screen_result['has_advanced_conditions'] > 0 && $user_screen_result['advanced_condition_row'] == get_row_index() || 
+                        isset($user_screen_result['custom_results_logic']) && $user_screen_result['custom_results_logic'] != '' && $user_screen_result['custom_result_row'] == $custom_logic_condition_row ){
 
-            <?php
-                if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d', 'result_buttons_below'), $layout))){
-                    get_template_part( 'templates/results/action', 'email_display', array( 
-                        'width' => 'normal', 
-                        'show' => 0, 
-                        'screen_id' => $user_screen_result['screen_id'], 
-                        'user_screen_id' => $user_screen_id,
-                        'espanol' => $espanol,
-                        'entry_id' => $user_screen_result['result_id']
-                    ) ); 
-                }
-            ?>
-            
-            <?php 
-                /**
-                 * Default Your Answer/More Info Dropdowns Placement
-                 */
-                if(!count(array_intersect( array('result_buttons_below'), $layout))){
-                    get_template_part( 'templates/results/result', 'dropdowns', array( 
-                        'layout' => $layout,
-                        'user_screen_result' => $user_screen_result,
-                        'espanol' => $espanol,
-                    ) );  
-                }
-            ?>
-            
-            <div class="screen-result-content-inner d-print-none">
-                <?php
-                    /**
-                     * Begin Result Content
-                     */
+                        // Advanced Condition Double Check (in case score condition passes)
+                        if($user_screen_result['has_advanced_conditions'] > 0){
+                            if($user_screen_result['advanced_condition_row'] != get_row_index()){ 
+                                continue;
+                            }
+                        }
 
-                    // Alert message
-                    if($user_screen_result['alert'] > 0){
-                        echo '<div class="bold warning-message mb-4">';
-                            echo $user_screen_result['warning'];
-                        echo '</div>';
+                        // Custom Condition Double Check (in case score condition passes)
+                        if(isset($user_screen_result['custom_results_logic']) && $user_screen_result['custom_results_logic'] != ''){
+                            if($user_screen_result['custom_result_row'] != $custom_logic_condition_row){ 
+                                continue;
+                            }
+                        }
+                        
+                        // Required Tags Check
+                        if(empty($user_screen_result['required_result_tags']) && !empty(get_sub_field('required_tags'))){
+                            continue;
+                        }
+
+                        // Relevant Tags
+                        if(get_sub_field('relevant_tags')){
+                            $tags = get_sub_field('relevant_tags');
+                            foreach($tags as $t){
+                                $next_step_terms[] = $t;
+                            }
+                        }
+
+                        // Manual Next Steps
+                        $next = get_sub_field('featured_next_steps');
+                        if($next){
+                            foreach($next as $n){
+                                if(isset($n['link']->ID)){
+                                    $next_step_manual[] = $n['link']->ID;
+                                }
+                            }
+                        }
+                        
+                        $featured_cta = get_sub_field('featured_call_to_actions');
+                        if($featured_cta){
+                            foreach($featured_cta as $cta){
+                                $result_cta[] = $cta;
+                            }
+                        }
+                        ?>
+
+                            <?php 
+                                /** 
+                                 * Survey 
+                                 */
+                                if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
+                                    
+                                    /**
+                                     * Survey Results
+                                     */
+                                    $result = get_field('results', $user_screen_result['screen_id']);
+                                    ?>
+                                        <div class="bubble thin teal round-small-bl mb-4">
+                                        <div class="inner">
+
+                                        <span id="screen-name" style="display: none;"><?php echo get_the_title($user_screen_result['screen_id']); ?></span>
+                                            <?php if(!get_field('show_survey_results', $user_screen_result['screen_id']) && !in_array('results_header_v1', $layout) ): ?>
+                                                <h1 class="subtitle thin montserrat block pb-1">
+                                                    Thank you for completing this survey!
+                                                </h1>
+                                                <h2 class="white small m-0">
+                                                    <strong><?php echo get_the_title($user_screen_result['screen_id']); ?></strong>
+                                                </h2>
+                                            <?php else: ?>
+                                                <h2 class="white small m-0">
+                                                    <strong>
+                                                        <?php 
+                                                            $result_title = $result[0]['result_title']; 
+                                                            echo $result_title; 
+                                                        ?>
+                                                    </strong>
+                                                </h2>
+                                            <?php endif; ?>
+                                        </div>
+                                        </div>
+                                    <?php
+                                else:
+                                    /** 
+                                     * Test Results
+                                     */
+                                    ?>
+                                        <div class="bubble thin teal round-small-bl mb-4">
+                                        <div class="inner">
+                                            <h1 class="subtitle thin block pb-1 <?php if(in_array('results_header_v1', $layout)){ echo 'caps'; } else { echo 'montserrat'; } ?>">
+                                                <?php if($espanol): ?>
+                                                    Su resultado para la <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span> fue
+                                                <?php else: ?>
+                                                    <?php if(in_array('results_header_v1', $layout)): ?>
+                                                        Your <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span> score was
+                                                    <?php else: ?>
+                                                        Your Results &mdash; <span id="screen-name"><?php echo get_the_title($user_screen_result['screen_id']); ?></span>:
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                            </h1>
+                                            <h2 class="white small m-0">
+                                                <strong>
+                                                    <?php 
+                                                        $result_title = get_sub_field('result_title'); 
+                                                        echo $result_title;
+                                                    ?>
+                                                </strong>
+                                            </h2>
+                                        </div>
+                                        </div>
+                                    <?php 
+                                endif; 
+                            ?>
+                                        
+                            <?php 
+                                /**
+                                 * Default Result Button Placement
+                                 */
+                                if(!count(array_intersect( array('result_buttons_below'), $layout))){
+                                    get_template_part( 'templates/results/result', 'buttons', array( 
+                                        'layout' => $layout,
+                                        'user_screen_result' => $user_screen_result,
+                                        'max_score' => $max_score,
+                                        'espanol' => $espanol,
+                                        'take_another_url' => $take_another_url,
+                                        'iframe_var' => $iframe_var
+                                    ) );  
+                                }
+                            ?>
+                            
+                            <div id="screen-result-content" class="pt-4">
+
+                                <?php
+                                    if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d', 'result_buttons_below'), $layout))){
+                                        get_template_part( 'templates/results/action', 'email_display', array( 
+                                            'width' => 'normal', 
+                                            'show' => 0, 
+                                            'screen_id' => $user_screen_result['screen_id'], 
+                                            'user_screen_id' => $user_screen_id,
+                                            'espanol' => $espanol,
+                                            'entry_id' => $user_screen_result['result_id']
+                                        ) ); 
+                                    }
+                                ?>
+                                
+                                <?php 
+                                    /**
+                                     * Default Your Answer/More Info Dropdowns Placement
+                                     */
+                                    if(!count(array_intersect( array('result_buttons_below'), $layout))){
+                                        get_template_part( 'templates/results/result', 'dropdowns', array( 
+                                            'layout' => $layout,
+                                            'user_screen_result' => $user_screen_result,
+                                            'espanol' => $espanol,
+                                        ) );  
+                                    }
+                                ?>
+                                
+                                <div class="screen-result-content-inner d-print-none">
+                                    <?php
+                                        /**
+                                         * Begin Result Content
+                                         */
+
+                                        // Alert message
+                                        if($user_screen_result['alert'] > 0){
+                                            echo '<div class="bold warning-message mb-4">';
+                                                echo get_field('warning_message', $user_screen_result['screen_id']);
+                                            echo '</div>';
+                                        }
+
+                                        // Additional scores to display
+                                        if(have_rows('additional_results', $user_screen_result['screen_id'])):
+                                            echo '<p class="additional-result-scores">';
+
+                                                // Overall Score
+                                                echo '<strong>Overall Score:</strong> '.$user_screen_result['total_score'].' / '.$max_score.'<br />';
+
+                                                // Specific Score Groups
+                                                while( have_rows('additional_results', $user_screen_result['screen_id']) ) : the_row();  
+                                                    $add_scores = get_sub_field('scores');
+                                                    $add_score_total = 0;
+                                                    $add_score_max = 0;
+                                                    foreach($add_scores as $score){
+                                                        $add_score_total = intval($user_screen_result['general_score_data'][$score['question_id']]) + $add_score_total;
+                                                        $add_score_max = $add_score_max + $user_screen_result['max_values'][$score['question_id']];
+                                                    }
+
+                                                    echo '<strong>'.get_sub_field('title').'</strong> '.$add_score_total.' / '.intval($add_score_max).'<br />';                                                
+                                                endwhile;
+
+                                            echo '</p>';
+                                        endif;
+
+                                        // Result content
+                                        if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ){
+                                            echo $result[0]['result_content'];
+                                        } else {
+                                            echo get_sub_field('result_content');
+                                        }
+
+                                        // Footer Content
+                                        the_field('results_footer', $user_screen_result['screen_id']);
+                                    ?>
+                                </div>
+
+                            </div>
+                                    
+                            <?php 
+                                /**
+                                 * A/B Test Result Button Placement
+                                 */
+                                if(count(array_intersect( array('result_buttons_below'), $layout))){
+
+                                    get_template_part( 'templates/results/result', 'buttons', array( 
+                                        'layout' => $layout,
+                                        'user_screen_result' => $user_screen_result,
+                                        'max_score' => $max_score,
+                                        'espanol' => $espanol,
+                                        'take_another_url' => $take_another_url,
+                                        'iframe_var' => $iframe_var
+                                    ) ); 
+                                    
+                                    get_template_part( 'templates/results/action', 'email_display', array( 
+                                        'width' => 'normal', 
+                                        'show' => 0, 
+                                        'screen_id' => $user_screen_result['screen_id'], 
+                                        'user_screen_id' => $user_screen_id,
+                                        'espanol' => $espanol,
+                                        'entry_id' => $user_screen_result['result_id']
+                                    ) ); 
+
+                                    get_template_part( 'templates/results/result', 'dropdowns', array( 
+                                        'layout' => $layout,
+                                        'user_screen_result' => $user_screen_result,
+                                        'espanol' => $espanol,
+                                    ) );  
+
+                                }                                
+                            ?>
+
+                        <?php
                     }
 
-                    // Additional scores to display
-                    if(isset($user_screen_result['additional_scores']) && count($user_screen_result['additional_scores']) > 0):
-                        echo '<p class="additional-result-scores">';
-                            echo '<strong>Overall Score:</strong> '.$user_screen_result['total_score'].' / '.$max_score.'<br />';
-                            foreach($user_screen_result['additional_scores'] as $addl_score):
-                                echo '<strong>'.$addl_score['title'].'</strong> '.$addl_score['total'].' / '.$addl_score['max'].'<br />';    
-                            endforeach;
-                        echo '</p>';
-                    endif;
+                endwhile;
+            endif;
 
-                    // Result content
-                    echo $user_screen_result['text'];
 
-                    // Footer Content
-                    echo $user_screen_result['footer'];
-                ?>
-            </div>
-
-        </div>
-                
-        <?php 
-
-            /**
-             * A/B Test Result Button Placement
-             */
-            if(count(array_intersect( array('result_buttons_below'), $layout))){
-
-                get_template_part( 'templates/results/result', 'buttons', array( 
-                    'layout' => $layout,
-                    'user_screen_result' => $user_screen_result,
-                    'max_score' => $max_score,
-                    'espanol' => $espanol,
-                    'take_another_url' => $take_another_url,
-                    'iframe_var' => $iframe_var
-                ) ); 
-                
-                get_template_part( 'templates/results/action', 'email_display', array( 
-                    'width' => 'normal', 
-                    'show' => 0, 
-                    'screen_id' => $user_screen_result['screen_id'], 
-                    'user_screen_id' => $user_screen_id,
-                    'espanol' => $espanol,
-                    'entry_id' => $user_screen_result['result_id']
-                ) ); 
-
-                get_template_part( 'templates/results/result', 'dropdowns', array( 
-                    'layout' => $layout,
-                    'user_screen_result' => $user_screen_result,
-                    'espanol' => $espanol,
-                ) );  
-
-            }   
-            
             /**
              * Featured Next Steps Test Setup
              */
-            $displayed_featured_links = false;
-            //pre($user_screen_result['featured_next_steps_data']);
-            if($user_screen_result['featured_next_steps_data'] && !in_array('related_v1', $layout)):
-
-                // Display the featured links
-                $featured_next_steps_data = json_decode($user_screen_result['featured_next_steps_data']);
-                echo display_featured_next_steps( $featured_next_steps_data );
-                
-                // Update excluded links
-                $used_links = $featured_next_steps_data->used_links;
-                if(count($used_links)){
-                    foreach($used_links as $ul){
-                        $excluded_ids[] = $ul;
-                    }
-                    // Flag that we've already shown featured links
-                    $displayed_featured_links = true;
+            $featured_next_steps_test_args = array(
+                'user_screen_result' => $user_screen_result,
+                'result_title'       => $result_title,
+                'espanol'            => $espanol,
+                'iframe_var'         => $iframe_var,
+                'partner_var'        => $partner_var,
+                'answered_demos'     => $answered_demos
+            );            
+            $featured_next_steps_test = mha_featured_next_steps_test($featured_next_steps_test_args);
+            if($featured_next_steps_test):
+                $featured_next_steps_test_display = display_featured_next_steps_test($featured_next_steps_test);
+                echo $featured_next_steps_test_display['html'];
+                foreach($featured_next_steps_test_display['used_links'] as $ul){
+                    $excluded_ids[] = $ul;
                 }
+            endif;
 
-            endif;                
+            
         ?>
     </article>
     </div>
@@ -350,7 +441,7 @@ else:
         */
 
         // Screen specific demo steps/CTAs
-        $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $user_screen_result['answered_demos'] );      
+        $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $answered_demos );      
         foreach($demo_data['excluded_ids'] as $ex){ 
             $excluded_ids[] = $ex;
         }
@@ -362,7 +453,7 @@ else:
         }
 
         // Global demo steps/CTAs
-        $demo_data_global = get_mha_demo_steps( 'options', $user_screen_result['answered_demos'] );
+        $demo_data_global = get_mha_demo_steps( 'options', $answered_demos );
         foreach($demo_data_global['demo_steps'] as $e){
             $demo_steps[] = $e;
         }
@@ -397,12 +488,12 @@ else:
         ?>
 
         <?php
+            
             /**
              * A/B Variant
              * Layout: actions_hide_ns_r
              */    
-            if(
-                !in_array('actions_hide_ns_r', $layout) && !in_array('actions_hide_nsh', $layout) && !$displayed_featured_links && !$featured_next_steps_data ):
+            if(!in_array('actions_hide_ns_r', $layout) && !in_array('actions_hide_nsh', $layout) && !$featured_next_steps_test ):
         ?>
             <?php if(!in_array('results_header_v1', $layout)): ?><div class="wrap narrow"><?php endif; ?>
 
@@ -424,7 +515,7 @@ else:
              * Layout: actions_hide_ns
              */
 
-            if(!in_array('actions_hide_ns', $layout) && !$displayed_featured_links):          
+            if(!in_array('actions_hide_ns', $layout) && !$featured_next_steps_test):          
                 
                 /**
                  * A/B Variant
@@ -597,89 +688,43 @@ else:
              * A/B Variant
              * Layout: actions_ns_top
              */
-            if(!in_array('actions_ns_top_r', $layout) && !$displayed_featured_links):     
+            if(!in_array('actions_ns_top_r', $layout) && !$featured_next_steps_test):          
         ?>        
-            <!--
             <div class="bubble round-tl mb-5 mint">
-            <div class="inner">       
+            <div class="inner">
+                                    
                 <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
                     <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
                 <?php endif; ?>
-                -->
+                
                 <?php 
                     // Related Articles
                     $related_article_args = array(
                         'demo_steps'         => $demo_steps,
-                        'next_step_manual'   => $user_screen_result['next_step_manual'],
+                        'next_step_manual'   => $next_step_manual,
                         'user_screen_result' => $user_screen_result,
                         'excluded_ids'       => $excluded_ids,
-                        'next_step_terms'    => $user_screen_result['next_step_terms'],
+                        'next_step_terms'    => $next_step_terms,
                         'espanol'            => $espanol,
                         'iframe_var'         => $iframe_var,
                         'partner_var'        => $partner_var,
-                        'total'              => 4,
-                        'style'              => 'featured',
+                        'total'              => 5,
+                        'style'              => 'button',
                         'hide_all'           => true,
                         'layout'             => $layout,
-                        'with_html'          => true,
-                        'answered_demos'     => $user_screen_result['answered_demos']
+                        'answered_demos'     => $answered_demos
                     );
 
-                    if(in_array('related_v1', $layout)){                        
-                        ?>
-                            <div class="bubble round-tl mb-5 mint">
-                            <div class="inner">
-                                                    
-                                <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
-                                    <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
-                                <?php endif; ?>
-                                <?php                                 
-                                    $related_article_args['style'] = 'button';
-                                    mha_results_related_articles_simple( $related_article_args ); 
-                                ?>
-
-                            </div>
-                            </div>
-                        <?php
-
+                    if(in_array('related_v1', $layout)){
+                        mha_results_related_articles_simple( $related_article_args );
                     } else {
-                        
-                        $related_articles = mha_results_related_articles( $related_article_args ); 
-                        ?>
-
-                        <div class="wrap narrow">
-                            <?php
-                                if($related_article_args['style'] == 'featured'){
-
-                                    $related_articles_decoded = json_decode($related_articles);   
-                                    echo display_featured_next_steps( $related_articles_decoded );
-                                    $used_links = $related_articles_decoded->used_links;
-                                    foreach($used_links as $ul){
-                                        $excluded_ids[] = $ul;
-                                    }
-
-                                } else {
-                            ?>
-                                <div class="bubble round-tl mb-5 mint">
-                                <div class="inner">
-                                    <?php
-                                    echo $related_articles['html'];
-                                    $used_links = $related_articles_decode['excluded_ids'];
-                                    foreach($used_links as $ul){
-                                        $excluded_ids[] = $ul;
-                                    }
-                                    ?>
-                                </div>
-                                </div>
-                            <?php } ?>
-                        </div>
-                    <?php
+                        $related_articles = mha_results_related_articles( $related_article_args );
+                        $excluded_ids = $related_articles['excluded_ids'];
+                        echo $related_articles['html'];
                     }
                 ?>
-            <!--
             </div>
             </div>
-            -->
         <?php endif; // Hide 'actions_ns_top_r' ?>
 
         <?php 
@@ -757,15 +802,10 @@ else:
 
                 // Veteran CTA Override 5/26/2023
                 if(
-                    isset($user_screen_result['answered_demos']['Which of the following populations describes you?']) && 
-                    in_array('Veteran or active-duty military', $user_screen_result['answered_demos']['Which of the following populations describes you?'])
+                    isset($answered_demos['Which of the following populations describes you?']) && 
+                    in_array('Veteran or active-duty military', $answered_demos['Which of the following populations describes you?'])
                 ){
                     $unique_result_cta = array('126533');
-                }
-
-                // Featured Next Step CTA Override
-                if( isset($featured_next_steps_data->ctas) ){
-                    $unique_result_cta = $featured_next_steps_data->ctas;
                 }
 
                 global $post;
@@ -782,7 +822,7 @@ else:
 
         <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
             <?php if(!in_array('results_header_v1', $layout)): ?><div class="wrap narrow"><?php endif; ?>
-            <h2 class="section-title dark-blue small bold">
+            <h2 class="section-title cerulean small bold">
                 <?php 
                 if($espanol){
                     echo 'Más información y recursos';
@@ -804,17 +844,17 @@ else:
             // Related Articles
             $related_article_args_2 = array(
                 'demo_steps'         => $demo_steps,
-                'next_step_manual'   => $user_screen_result['next_step_manual'],
+                'next_step_manual'   => $next_step_manual,
                 'user_screen_result' => $user_screen_result,
                 'excluded_ids'       => $excluded_ids,
-                'next_step_terms'    => $user_screen_result['next_step_terms'],
+                'next_step_terms'    => $next_step_terms,
                 'espanol'            => $espanol,
                 'iframe_var'         => $iframe_var,
                 'partner_var'        => $partner_var,
                 'total'              => 20,
                 'skip'               => 0,
                 'layout'             => $layout,
-                'answered_demos'     => $user_screen_result['answered_demos']
+                'answered_demos'     => $answered_demos
             );
 
             /**

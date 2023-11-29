@@ -9,7 +9,7 @@
  */
 
 // General Vars
-define( 'MHASCREENS_VERSION', '1.1.20221213pm' );
+define( 'MHASCREENS_VERSION', '1.2.1' );
 
 // Enqueing Scripts
 add_action('init', 'mhaScreenScripts');
@@ -316,7 +316,7 @@ function mhaScreenEmail(){
 		// Send the email
 		$to = $email;
 		$subject = 'Mental Health America '.get_the_title($screen_id).' Results';
-		$body = getScreenAnswers( $screen_user_id, $screen_id, $entry_id );
+		$body = mha_get_screen_email_body( $screen_user_id, $screen_id, $entry_id );
 		$headers = array('Content-Type: text/html; charset=UTF-8');	
 		$headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
 
@@ -336,7 +336,55 @@ function mhaScreenEmail(){
 add_action("wp_ajax_nopriv_mhaScreenEmail", "mhaScreenEmail");
 add_action("wp_ajax_mhaScreenEmail", "mhaScreenEmail");
 
+// Get users response for email/plain text
+function mha_get_screen_email_body( $user_screen_id, $screen_id, $entry_id ){
+    
+    // Vars setup
+    $user_screen_result = mha_get_user_screen_results( $entry_id, false );
 
+	$html = '';
+    $header = '';
+    
+    // Result Header
+    $header .= '<h1 style="margin-top: 0; padding-top: 0;"><strong>'.$user_screen_result['result_title'].'</strong></h1>';
+
+    $intro = str_replace('class="layout-action', 'style="display: none !important; visibility: hidden !important;" class="layout-action', $user_screen_result['text']);
+    $intro = str_replace('h3>', 'h2>', $intro);
+    $header .= $intro;
+    
+    $header .= '<p><strong>Overall Score:</strong> '.$user_screen_result['total_score'].' / '.get_field('overall_max_score', $screen_id).'<br />';
+    if(count($user_screen_result['additional_scores']) > 0):
+        foreach($user_screen_result['additional_scores'] as $addl_score):
+            $header .= '<strong>'.$addl_score['title'].'</strong> '.$addl_score['total'].' / '.$addl_score['max'].'<br />';    
+        endforeach;
+        $header .= '</p>';
+    endif;
+
+    // Link back to results page
+    $header .= '<p><a href="'.get_site_url().'/screening-results/?sid='.$user_screen_id.'">View your results online and see next steps</a></p>';
+
+    // Body
+    $html .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';   
+    
+    $answers_clean = str_replace('class="col-sm-7 col-12 text-gray"', 'style="font-weight: bold;"', $user_screen_result['your_answers']);
+    $answers_clean = str_replace('class="col-sm-5 col-12 bold caps text-dark-blue"', '', $answers_clean);
+    $answers_clean = str_replace('class="row pb-4 pl-0"', 'style="margin-bottom: 10px;"', $answers_clean);
+    $html .= $answers_clean;
+
+    if($user_screen_result['warning'] != ''){
+        $html .= '<div style="background: #FA6767; color: #FFF !important; padding: 5px 10px;"><strong>'.$user_screen_result['warning'].'</strong></div>';
+    }
+    
+    $explanation = get_field('interpretation_of_scores', $screen_id);
+    $answers_clean = str_replace('h3>', 'h2>', $answers_clean);
+    $html .= '<div class="explanation">'.get_field('interpretation_of_scores', $screen_id).'</div>';
+
+    return $header.''.$html;
+    
+}
+
+
+// Old email function (Deprecated 10/2023)
 function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
 	
 	// Vars
@@ -349,8 +397,6 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
     $data = GFAPI::get_entry( $entry_id );
 
     if($data){
-
-		// Got a response, proceed!
 
 		// Text
 		$label = '';
@@ -580,7 +626,6 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
 
 }
 
-
 /**
  * Custom Logic Overrides
  */
@@ -597,35 +642,17 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 		$total_score = round($total_score, 2);
 		$results['total_score'] = $total_score;
 
-        // BMI Calculation
-        $height_choice = $general_score_data[119]; // Height Choice
-        $height_ft = $general_score_data[124]; // Feet
-        $height_in = $general_score_data[125]; // Inches
-        $height_cm = $general_score_data[126]; // Centimeters
-        $height_final = null;
-        
-        if($height_choice == 'feet'){
-            if($height_ft != '' || $height_in != ''){
-                $height_final = ($height_ft * 12) + $height_in;
-            }
-        } elseif ($height_choice == 'centimeters'){
-            $height_final = ($height_cm / 2.54);
-        }
-
-        if( $height_final != null || $general_score_data[68] == '' ){
+        if( $general_score_data[67] == '' ){
             $bmi = NULL; // Height/Weight are optional, don't calculate BMI in this instance
         } else if($general_score_data[49] > 0){
-            $bmi = $height_final / $general_score_data[68] / ( $general_score_data[68] * 703 );
+            $bmi = $general_score_data[67] / $general_score_data[68] / ( $general_score_data[68] * 703 );
 		} else {
 			$bmi = 0;
 		}
 		$results['general_score_data'] = $general_score_data;
 		$results['bmi_raw'] = $bmi;
 		$results['bmi'] = $total_score;
-		$results['height_final'] = $height_final;
-		$results['height_calcs'] = "Choice:$height_choice, FT:$height_ft, IN: $height_in, CM: $height_cm";
 		
-        // Test Scoring
 		if (($bmi !== NULL && $bmi < 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
 			$custom_result_row = 1; // At Risk for Eating Disorder
 		} elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
@@ -685,6 +712,7 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 
 
 
+
 /**
  * Add User Results to Screen
  */
@@ -692,11 +720,13 @@ function updateUserScreenResults( $options ){
     
 	// Default Args
     $defaults = array (
-        'entry_id'              => null, 
-        'user_score'            => null, 
-        'user_result'           => null,
-        'additional_scores'     => null,
-        'duplicate'             => null
+        'entry_id'                  => null, 
+        'user_score'                => null, 
+        'user_result'               => null,
+        'additional_scores'         => null,
+        'duplicate'                 => null,
+        'featured_next_steps_data'  => null,
+        'admin_user_result'         => null
     );
 
     $atts = wp_parse_args( $options, $defaults );
@@ -712,6 +742,8 @@ function updateUserScreenResults( $options ){
         $sub_score_2 = null;
         $sub_score_3 = null;
         $duplicate = null;
+        $admin_user_result = null;
+        $featured_link_test_data = null;
         
         foreach($entry as $k => $v){
             
@@ -734,6 +766,22 @@ function updateUserScreenResults( $options ){
                 }
             }
 
+            // Admin User Result
+            if (isset($field->label) && strpos($field->label, 'Admin User Result') !== false) {  
+                if($atts['admin_user_result'] != $entry[$field->id]){
+                    $admin_user_result = strval($atts['admin_user_result']);
+                    $entry[$field->id] = $admin_user_result;
+                }
+            }
+
+            // Featured Link Test Data
+            if (isset($field->label) && strpos($field->label, 'Featured Link Data') !== false) {  
+                if($atts['featured_next_steps_data'] != $entry[$field->id]){
+                    $featured_link_test_data = strval($atts['featured_next_steps_data']);
+                    $entry[$field->id] = $featured_link_test_data;
+                }
+            }
+
             // Sub Score 1
             if (isset($field->label) && strpos($field->label, 'Sub Score 1') !== false) {  
                 if(isset($atts['additional_scores'][0]) && $atts['additional_scores'][0] != $entry[$field->id]){
@@ -753,14 +801,6 @@ function updateUserScreenResults( $options ){
                 if(isset($atts['additional_scores'][2]) && $atts['additional_scores'][2] != $entry[$field->id]){
                     $sub_score_3 = strval($atts['additional_scores'][2]);
                     $entry[$field->id] = $sub_score_3;
-                }
-            }
-
-            // Duplicate
-            if (isset($field->label) && strpos($field->label, 'Duplicate') !== false) {  
-                if(!is_null($atts['duplicate'])){
-                    $duplicate = true;
-                    $entry[$field->id] = '1';
                 }
             }
 
@@ -804,6 +844,8 @@ function mha_screening_pre_submission_handler( $form ) {
 }
 
 // Other Files
+include_once 'result_content.php';
 include_once 'result_scoring.php';
 include_once 'demographic_steps.php';
 include_once 'related_articles.php';
+include_once 'featured_next_steps.php';
