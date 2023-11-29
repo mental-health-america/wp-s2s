@@ -196,7 +196,7 @@ function thoughtLike(){
 		}		
 
 		// Check if liked previously
-		$db_like = $wpdb->get_results("SELECT * FROM $table WHERE $user_where AND row = $row AND pid = $pid");		
+		$db_like = $wpdb->get_results("SELECT * FROM $table WHERE $user_where AND 'row' = $row AND pid = $pid");		
 		//$result['db_liked'] = $db_like[0]->id;		
 		
 		if($db_like && $db_like[0]->unliked == 0){
@@ -285,7 +285,7 @@ function thoughtFlag(){
 		}		
 
 		// Check if flagged previously
-		$db_flag = $wpdb->get_results("SELECT * FROM $table WHERE $user_where AND row = $row AND pid = $pid");		
+		$db_flag = $wpdb->get_results("SELECT * FROM $table WHERE $user_where AND 'row' = $row AND pid = $pid");		
 		
 		if($db_flag){
 
@@ -324,25 +324,28 @@ add_action("wp_ajax_thoughtFlag", "thoughtFlag");
  * Cheeck if thought was liked or not
  */
 function likeChecker($pid, $row){
-	global $wpdb;
 
-	// Vars
-	$table = 'thoughts_likes';
-	$ipiden = get_ipiden();	
-	$uid = get_current_user_id();
+	if($pid){
+		global $wpdb;
 
-	// Handle anonymous or logged in differently
-	if($uid == 0){			
-		$user_where = "uid = 4 AND ipiden = '$ipiden'";
-	} else {
-		$user_where = "uid = $uid";
-	}	
+		// Vars
+		$table = 'thoughts_likes';
+		$ipiden = get_ipiden();	
+		$uid = get_current_user_id();
 
-	$db_like = $wpdb->get_var("SELECT id FROM $table WHERE $user_where AND row = $row AND pid = $pid AND unliked = 0");	
+		// Handle anonymous or logged in differently
+		if($uid == 0){			
+			$user_where = "uid = 4 AND ipiden = '$ipiden'";
+		} else {
+			$user_where = "uid = $uid";
+		}	
 
-	if($db_like){
-		return true;
-	} 
+		$db_like = $wpdb->get_var("SELECT id FROM $table WHERE $user_where AND 'row' = $row AND pid = $pid AND unliked = 0");	
+
+		if($db_like){
+			return true;
+		} 
+	}
 	
 	return false;
 }
@@ -359,7 +362,7 @@ function get_all_mha_user_likes(){
 
 	// Get Results
 	global $wpdb;
-	$db_likes = $wpdb->get_results("SELECT pid, row FROM thoughts_likes WHERE $user_where AND unliked = 0 ORDER BY date DESC LIMIT 100");	
+	$db_likes = $wpdb->get_results("SELECT pid, 'row' FROM thoughts_likes WHERE $user_where AND unliked = 0 ORDER BY date DESC LIMIT 100");	
 
 	return $db_likes ? $db_likes : false;
 }
@@ -614,6 +617,12 @@ function thoughtRow($pid = null, $text = null, $index = null) {
 		echo '<div class="thought-actions">';
 			// Relate
 			$like_class = (likeChecker($pid, $index)) ? ' liked' : '';
+
+			/*
+			echo '<div style="display: none;" class="admin-debug-checker">';
+			echo pre($like_class);
+			echo '</div>';
+			*/
 			echo '<button class="icon thought-like'.$like_class.'" data-nonce="'.wp_create_nonce('thoughtLike').'" data-pid="'.$pid.'" data-row="0">';
 				echo '<span class="image">';
 					include("assets/heart.svg");
@@ -641,7 +650,7 @@ function thoughtRow($pid = null, $text = null, $index = null) {
 			<div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
 				<p class="mb-3"><em>&quot;'.$text.'&quot;</em></p>
 				<p class="mb-3">This will alert moderators that the comment may be inappropriate. Continue?</p>
-				<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0" data-thought-id="#thought-'.$pid.'">Yes, report this comment</button></p>
+				<p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$pid.'" data-row="0" data-thought-id="#thought-'.$pid.'"Yes, this comment is inappropriate</button></p>
 				<button class="cancel-flag-thought button blue thin round small">Nevermind</button>
 			</div>
 		</div>';
@@ -655,12 +664,15 @@ function thoughtRow($pid = null, $text = null, $index = null) {
  * Get a thought's total likes
  */
 function getThoughtLikes($pid, $row = 0){
-	global $wpdb;
-	$like_count = $wpdb->get_var( "SELECT COUNT(*) FROM thoughts_likes WHERE pid = $pid AND row = $row AND unliked = 0" );
-	if(!$like_count){
-		$like_count = 0;
-	}
-	return $like_count;
+	if($pid){
+		global $wpdb;
+		$like_count = $wpdb->get_var( "SELECT COUNT(*) FROM thoughts_likes WHERE pid = $pid AND 'row' = $row AND unliked = 0" );
+		if(!$like_count){
+			$like_count = 0;
+		}
+		return $like_count;
+	} 
+	return false;
 }
 
 

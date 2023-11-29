@@ -55,7 +55,7 @@
     }
 ?>            
 
-Submitted on <?php echo get_the_date('F j, Y', $activity_id); ?><br />
+Submitted on <?php echo get_the_date('F j, Y', $pid); ?><br />
 
 <?php 
     if($embedded){
@@ -151,10 +151,10 @@ Submitted on <?php echo get_the_date('F j, Y', $activity_id); ?><br />
 <?php endif; ?>
 
 <div class="wrap <?php echo $embedded ? '' : ' wide'; ?> no-margin-mobile">
-    <div id="crowdthoughtsAll" class="pt-5 <?php echo implode(' ', $crowdsource_classes); ?>">
+    <div id="crowdthoughtsAll" class="crowdthoughtsAll pt-5 <?php echo implode(' ', $crowdsource_classes); ?>">
         <div class="pb-2">
             <h3 class="text-center text-blue mb-0 pb-3"><?php echo $crowdsource_heading; ?></h3>
         </div>
-        <div id="crowdthoughtsContent" class="carousel" data-carousel="1" data-question="0" data-activity="<?php echo $activity_id; ?>" data-current="<?php echo $pid; ?>" data-page="1"></div>
+        <div class="crowdthoughtsContent carousel" data-moving="0" data-carousel="1" data-question="0" data-activity="<?php echo $activity_id; ?>" data-current="<?php echo $pid; ?>" data-page="1"></div>
     </div>
 </div>

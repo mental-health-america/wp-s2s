@@ -6,7 +6,8 @@
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsScripts');
 function mhaDiyToolsScripts() {
-	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', 'jquery', 'v20230901', true);
+	//wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20231120', true);
+	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), time(), true);
 	wp_localize_script('process_mhaDiyTools', 'do_mhaDiyTools', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 
@@ -57,6 +58,7 @@ function mhaDiySubmit(){
 		$uid = get_current_user_id() ? get_current_user_id() : 4; // Default "anonymous" user is 4	
 
         // Draft Already Exists
+        /*
 		$current_post_args = array(
 			"post_type" 	 => 'diy_responses',
 			"author"		 => $uid,
@@ -66,10 +68,11 @@ function mhaDiySubmit(){
 			"posts_per_page" => 1,
 			"ipiden"         => $ipiden,
         );
-		$current_post_loop = new WP_Query($current_post_args);
+        */
+		// $current_post_loop = new WP_Query($current_post_args);
         // $current_post_id = $current_post_loop->found_posts ? $current_post_loop->post->ID : null;
         $current_post_id = $args['diytool_current_id'] ? $args['diytool_current_id'] : null;
-    
+        
         $response_rows = array();
         $answer_count = 0;
         foreach($args as $k => $v){
@@ -91,6 +94,17 @@ function mhaDiySubmit(){
         }
 
         $result['answer_count'] = $answer_count;
+        $result['current_responses'] = $current_post_id ? get_field('field_63483d064cbb0', $current_post_id) : null;
+
+        if($result['current_responses']){
+            foreach($response_rows as $nrk => $nrv){
+                foreach($result['current_responses'] as $cr){
+                    if($nrv['field_634840ef4cbb3'] == $cr['id']){
+                        $response_rows[$nrk]['field_6348579d4cbb5'] = $cr['date'];
+                    }
+                }
+            }
+        }
         $result['response_rows'] = $response_rows;
 
         if($current_post_id){
@@ -125,7 +139,7 @@ function mhaDiySubmit(){
             
             $result['updated_activity_id'] = update_field('activity_id', array($args['activity_id']), $result['post_id']); // Post object needs an array to submit?
             $result['updated_ipiden'] = update_field('ipiden', $ipiden, $result['post_id']);
-            $result['updated_started'] = update_field('started', $timestamp, $result['post_id']);
+            $result['updated_started'] = !get_field('started', $result['post_id']) ? update_field('started', $timestamp, $result['post_id']) : get_field('started', $result['post_id']);
             $result['updated_ref_code'] = update_field('ref_code', sanitize_text_field($args['ref_code']), $result['post_id']);         
             $result['updated_user_viewed_crowdsource'] = update_field('user_viewed_crowdsource', $args['opened_diy'], $result['post_id']);               
             $result['updated_crowdsource_hidden'] = update_field('crowdsource_hidden', $args['crowdsource_hidden'], $result['post_id']);
@@ -135,9 +149,6 @@ function mhaDiySubmit(){
             if(!get_field('start_page', $result['post_id'])){
                 $result['updated_start_page'] = update_field('start_page', $args['start_page'], $result['post_id']);
             }
-
-            $current_responses = get_field('field_63483d064cbb0', $result['post_id']);
-            $result['current_responses'] = $current_responses;
             
             // If crowdsource is viewed and hasn't been previously updated...
             if(!get_field('user_viewed_crowdsource', $result['post_id'])){            
@@ -211,7 +222,7 @@ function getDiyCrowdsource(){
     $diy_flag_message = get_field('flag_message', 'options');
     $diy_flag_confirm = get_field('flag_confirmation', 'options');
     $activity_questions = get_field('questions', $args["activity_id"]);
-    $total_questions = count($activity_questions);
+    $total_questions = $activity_questions ? count($activity_questions) : 0;
     $user_likes = get_all_mha_user_likes();
     $show_next_previews = get_field('show_next_previews', $args["activity_id"]) ? get_field('show_next_previews', $args["activity_id"]) : 0;
 
@@ -237,19 +248,26 @@ function getDiyCrowdsource(){
         // Get top recent likes
         global $wpdb;
         
-        $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $args['activity_id']);
-
-        $date_old = date('Y-m-d', strtotime( $crowdsource_scoring_date_range ));
-        $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $args['activity_id']);
+        // Crowdsource Scoring Options
+        if( get_field('override_crowdsource_scoring', $args['activity_id']) ){
+            $crowdsource_scoring_id = $args['activity_id'];
+        } else {
+            $crowdsource_scoring_id = 'options';
+        }
+        $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $crowdsource_scoring_id);
+        $crowdsource_scoring_time = strtotime( $crowdsource_scoring_date_range );
+        $date_old = date('Y-m-d', $crowdsource_scoring_time);
+        $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $crowdsource_scoring_id);
 
         //if($args['page'] == 1){
 
             // Get flags for later
             $top_flags = [];
             $top_flags_query = $wpdb->get_results("
-                SELECT pid, row, COUNT(pid) AS highflags 
+                SELECT pid, 'row', COUNT(pid) AS highflags 
                 FROM thoughts_flags 
-                WHERE ref_pid = {$args["activity_id"]} 
+                WHERE 
+                    ref_pid = {$args["activity_id"]}
                 GROUP BY pid
                 HAVING (highflags >= 1) 
                 ORDER BY date DESC 
@@ -311,7 +329,20 @@ function getDiyCrowdsource(){
             "post_status"       => 'publish',
             "posts_per_page"    => $per_page,
             "paged"             => $args['page'],
-            "post__not_in"      => $top_flags
+            "post__not_in"      => $top_flags,
+            'date_query' => array(
+                array(
+                    'after'     => $date_old,
+                    'inclusive' => true
+                ),
+            ),
+            "meta_query"		=> array(
+                array(
+                    'key'       => 'activity_id',
+                    'value'     => '"'.$args['activity_id'].'"',
+                    'compare'   => 'LIKE'
+                )
+            )
         );
         
         if($args['current']){
@@ -320,7 +351,7 @@ function getDiyCrowdsource(){
 
         // Get the answers for this question
         $crowd_loop = new WP_Query($crowd_args); 
-        $result['total_pages'] = $crowd_loop->max_num_pages; 
+        $args['total_pages'] = $crowd_loop->max_num_pages; 
         
         if($crowd_loop->have_posts()):
         while($crowd_loop->have_posts()) : $crowd_loop->the_post();   
@@ -356,12 +387,13 @@ function getDiyCrowdsource(){
 
         foreach($responses_collection as $k => $v){
             $response_args = array(
-                'pid'               => $k,
-                'true_likes'        => $v['true_likes'],
-                'likes'             => $v['likes'],
-                'args'              => $args,
-                'date'              => get_the_date('', $pid),
-                'total_questions'   => $total_questions
+                'pid'                       => $k,
+                'true_likes'                => $v['true_likes'],
+                'likes'                     => $v['likes'],
+                'args'                      => $args,
+                'date'                      => get_the_date('', $pid),
+                'total_questions'           => $total_questions,
+                'crowdsource_scoring_id'    => $crowdsource_scoring_id
             );
             $responses[] = get_diy_response_display( $response_args );
         }
@@ -430,7 +462,7 @@ function getDiyCrowdsource(){
                 $question_label_display = '<div class="question-label small mb-3"><strong>'.$question_label_full.'</strong></div>';
             }
 
-            $result['html'] .= '<div class="bubble round-bl light-blue thinish" id="thought-'.$r['pid'].'-'.$qid.'">
+            $result['html'] .= '<div class="thought-response-container bubble round-bl light-blue thinish" id="thought-'.$r['pid'].'-'.$qid.'">
                 <div class="inner">
                     <div class="container-fluid">
                     <div class="row">
@@ -458,7 +490,7 @@ function getDiyCrowdsource(){
                 $result['html'] .= '<div class="col-12 admin-debug px-0 pt-4 small caps bold">';
                     $result['html'] .= 'Admin Debug:<br />';   
                     
-                    $result['html'] .= '&bull; Activity ID: '.$args["activity_id"].'<br />';  
+                    $result['html'] .= '&bull; Activity ID: '.get_field('activity_id', $r['pid'])->ID.'<br />';  
                     $result['html'] .= '&bull; Response ID: '.$r['pid'].'<br />';   
                     $result['html'] .= '&bull; Date Started: '.get_field('started', $r['pid']).'<br />';     
                     $result['html'] .= '&bull; Question Index: '.$qid.'<br /><br />';   
@@ -482,7 +514,7 @@ function getDiyCrowdsource(){
                 <div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
                     <p class="mb-3"><em>&quot;'.$answer.'&quot;</em></p>
                     <p class="mb-3">'.$diy_flag_confirm.'</p>
-                    <p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$r['pid'].'" data-row="'.$qid.'" data-thought-id="#thought-'.$r['pid'].'-'.$qid.'">Yes, report this comment</button></p>
+                    <p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$r['pid'].'" data-row="'.$qid.'" data-thought-id="#thought-'.$r['pid'].'-'.$qid.'">Yes, this comment is inappropriate</button></p>
                     <button class="cancel-flag-thought button blue thin round small">Nevermind</button>
                 </div>
             </div>';
@@ -520,11 +552,11 @@ function getDiyCrowdsource(){
 
     // Next Page
     if(count($responses)){
-        $result['html'] .= '<div id="diy-load-more-container" class="text-center mt-4">';
-            if(($args['page'] - 1) > 1){
+        $result['html'] .= '<div id="diy-load-more-container" class="text-center mt-4 pb-5">';
+            if($args['page'] > 1 ){
                 $result['html'] .= '<button class="button gray round-tl mr-3 diy-previous-page" data-show-page="'.($args['page'] - 1).'">Previous Page</button>';
             }
-            if($args['total_pages'] > 0){
+            if($args['total_pages'] > 0 && $args['page'] < $args['total_pages']){
                 $result['html'] .= '<button class="diy-load-more button teal round-br" data-show-page="'.($args['page'] + 1).'">Next Page</button>';
             }
         $result['html'] .= '</div>';
@@ -558,9 +590,13 @@ function get_diy_response_display( $args ) {
         'args'              => array(),
         'date'              => null,
         'total_questions'   => array(),
+        'crowdsource_scoring_id' => 'options'
     );    
     $args = wp_parse_args( $args, $defaults ); 
-    $complete_bonus = get_field('crowdsource_scoring_complete_answers_bonus', $args['args']['activity_id']);
+
+    // Scoring options
+    $complete_bonus = get_field('crowdsource_scoring_complete_answers_bonus', $args['crowdsource_scoring_id']);
+    $recency_check = get_field('crowdsource_scoring_recency_bias', $args['crowdsource_scoring_id']);
 
     $response = [];
 
@@ -588,11 +624,10 @@ function get_diy_response_display( $args ) {
             }
         }
 
-        $total_answers_bonus = $complete_bonus ? get_field('crowdsource_scoring_complete_answers_bonus', $args['args']['activity_id']) : 0;
+        $total_answers_bonus = $complete_bonus ? get_field('crowdsource_scoring_complete_answers_bonus', $args['crowdsource_scoring_id']) : 0;
         $response['score'] = ($response['total_answers'] == $args['total_questions']) ? $args['likes'] + $total_answers_bonus : $args['likes'];
 
         // Additional Recency Bias calculations
-        $recency_check = get_field('crowdsource_scoring_recency_bias', $args['args']['activity_id']);
         $p_date = strtotime($args['date']);
         if( $recency_check ):
             $i = 0;

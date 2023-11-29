@@ -283,7 +283,7 @@ jQuery(function ($) {
 							data: userThoughtArgs
 						},
 						success: function( results ) {		
-
+							console.log(results);
 							$('#thoughts-submitted').html(results);
 							sortThoughts();
 
@@ -506,7 +506,8 @@ jQuery(function ($) {
 					action: 'getThoughtsSubmitted',
 					data: userThoughtArgs
 				},
-				success: function( results ) {		
+				success: function( results ) {	
+					console.log(results);
 
 					$('#thoughts-submitted').html(results);					
 					sortThoughts();
