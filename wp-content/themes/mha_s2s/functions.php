@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20231005' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20231116_2' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -118,7 +118,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20231005', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20231116_2', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
@@ -340,6 +340,22 @@ function mha_screening_uid_hash( $form ) {
  */
 add_filter( 'gform_confirmation', function ( $confirmation, $form, $entry ) {
 
+	// A/B Testing Redirect
+	/*
+	if( str_contains( $confirmation['redirect'], '/screening-results/' ) ){
+		$new_redirect_args = array(
+			'current_pid'            => 27,
+			'return_redirect'        => true,
+			'current_url'           => $confirmation['redirect'],
+			'current_referrer'      => $entry['source_url'],
+		); 
+		$new_redirect = mha_ab_redirects($new_redirect_args);
+		if($new_redirect){
+			$confirmation['redirect'] = $new_redirect;
+		}
+	}
+	*/
+
 	// Default behavior
     if ( ! is_array( $confirmation ) || empty( $confirmation['redirect'] ) ) {
         return $confirmation;
@@ -358,8 +374,6 @@ add_filter( 'gform_confirmation', function ( $confirmation, $form, $entry ) {
 		$confirmation['redirect'] = add_query_arg( $query_args, $confirmation['redirect'] );
 		
 	}
-
-
 
     return $confirmation;
 
