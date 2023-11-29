@@ -46,3 +46,6 @@ include_once 'inc/newsletter.php';
 
 // Admin Specific Scripts
 include_once 'inc/admin.php';
+
+// Admin Specific Scripts
+include_once 'inc/ab_testing.php';
