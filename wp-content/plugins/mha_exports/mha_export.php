@@ -93,6 +93,7 @@ define('ROOTDIR', plugin_dir_path(__FILE__));
 require_once(ROOTDIR . 'entries-export.php');
 require_once(ROOTDIR . 'diy-export.php');
 require_once(ROOTDIR . 'ab-testing.php');
+require_once(ROOTDIR . 'cta-code-export.php');
 require_once(ROOTDIR . 'feedback-export.php');
 require_once(ROOTDIR . 'page-export.php');
 require_once(ROOTDIR . 'page-update_results.php');

@@ -33,7 +33,7 @@ function mhaImporterUploader(){
     */
 
     // Upload the file
-    $filename = $_FILES['file']['name'];
+    $filename = date('U').'_'.$_FILES['file']['name'];
     //$uploadedfile = $_FILES['import_provider_file'];
     //$movefile = wp_handle_upload($uploadedfile, array('test_form' => false, 'mimes' => array('csv' => 'text/csv')));
     $uploadedfile = plugin_dir_path(__FILE__)."/tmp/".$filename;
@@ -41,7 +41,7 @@ function mhaImporterUploader(){
 
     if ($movefile && !isset($movefile['error'])) {
         $result['file'] = urlencode($filename); 
-        $result['next_page'] = 0;
+        $result['page'] = 0;
         $result['error'] = false;
     } else {
         $result['file'] = false;
@@ -215,5 +215,77 @@ function mhaImporterLooper( $data = null ) {
 
     // Return our responses
     echo json_encode($data);
+    exit();
+}
+
+
+
+/**
+ * Unique CTA Code Importer
+ */
+add_action( 'wp_ajax_mhaCtaCodeImporter', 'mhaCtaCodeImporter' );
+function mhaCtaCodeImporter(){
+
+    // Defaults
+    $defaults = array(
+        'file'                       => null,
+        'page'                       => 0,
+        'max_pages'                  => null,
+        'log'                        => '',
+        'percent'                    => 0,
+    );      
+    parse_str( $_POST['data'], $data);
+    $args = wp_parse_args( $data, $defaults );  
+    
+    // General Vars
+    $result = $args;
+    
+    // Load CSV and get data
+    $filepath = WP_PLUGIN_DIR . '/mha_imports/tmp/'.$result['file'];
+    $csv = Reader::createFromPath($filepath, 'r');
+    $csv->setHeaderOffset(0);
+    $records = iterator_to_array($csv->getRecords());
+
+    // Pagination
+    $pager = 10000;
+    if(!$result['max_pages']){
+        $total_records = count($records);
+        $result['max_pages'] = ceil($total_records / $pager);
+    }
+    $start_records = $args['page'] * $pager;
+    $end_records = $start_records + $pager;
+
+    // Loop data
+    $i = 0;
+
+    global $wpdb;
+    $record_uploads = [];
+    if($records){
+        foreach ($records as $record) {
+            if($i > $end_records){
+                break;
+            }
+            if($i >= $start_records && $i < $end_records){
+                //$record_uploads[] = $record;
+                $wpdb->insert( 'cta_codes', $record); 
+            }
+            $i++;
+        }
+    } else {
+        // Return our responses
+        $result['error'] = 'No records to upload.';
+        echo json_encode($result);
+        exit();
+    }
+
+    //$result['records'] = $record_uploads;
+
+    //$result['record_uploads'] = $record_uploads; // Debug
+    $result['page'] = $result['page'] + 1; // Next Page
+    $max_pages = ($result['max_pages'] && $result['max_pages'] > 0) ? $result['max_pages'] : 1;
+    $result['percent'] = round( ( ( intval($result['page']) / intval($max_pages)) * 100 ), 2 ); // Percent complete
+        
+    // Return our responses
+    echo json_encode($result);
     exit();
 }

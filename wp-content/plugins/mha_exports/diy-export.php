@@ -163,8 +163,8 @@ function mha_export_diy_tool_data(){
         $response_total_likes = 0;
         $response_total_flags = 0;
         foreach($activity_response as $ar){       
-            $total_likes = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_likes WHERE pid = '.$response_id.' AND row = '.$ar['id'].' AND unliked = 0');
-            $total_flags = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_flags WHERE pid = '.$response_id.' AND row = '.$ar['id'].' AND status = 0');
+            $total_likes = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_likes WHERE pid = '.$response_id.' AND \'row\' = '.$ar['id'].' AND unliked = 0');
+            $total_flags = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_flags WHERE pid = '.$response_id.' AND \'row\' = '.$ar['id'].' AND status = 0');
 
             $ar_date_convert = str_replace('/', '-', $ar['date']);
             $row_date = new DateTime($ar_date_convert);

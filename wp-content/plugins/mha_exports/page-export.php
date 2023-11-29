@@ -291,6 +291,57 @@ function mhathoughtexport(){
     </form>
     <br />
 
+
+    <form id="mha-cta-codes-export" action="#" method="POST">
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
+        
+            <div id="cta-codes-export-error"></div>
+            <h2>Used CTA Codes Export</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label for="export_start_date">Start Date</label></th>
+                    <td>
+                        <input type="text" name="export_start_date" id="export_start_date" value="<?php //echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_end_date">End Date</label></th>
+                    <td>
+                        <input type="text" name="export_end_date" id="export_end_date" value="<?php //echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_source">Source</label></th>
+                    <td>
+                        <p><label><input type="radio" name="export_source" class="form-radio" value="recruit">Recruit Link</label></p>
+                        <p><label><input type="radio" name="export_source" class="form-radio" value="redcap">Redcap Survey</label></p>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+
+                        <p>
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhactacodes'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_ctdacodes_link"  value="Download Used CTA Codes">
+                        </p>
+                        
+                        <div id="ctaCodes-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <ul id="ctaCodes-exports-download" style="display: none;"></ul>      
+                        <br /><br />
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </form>
+    <br />
+
     <form id="mha-user-exports" action="#" method="POST">
         <div class="acf-columns-2">
         <div class="acf-column-1">
@@ -1073,7 +1124,7 @@ function mha_nonaggregate_data_export(){
         }
 
         // Get the rows with actual likes
-        $like_query = 'SELECT date, pid, row FROM thoughts_likes WHERE (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = "'.$post_id.'" AND unliked = 0) OR (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = 0 AND unliked = 0) ORDER BY date ASC';
+        $like_query = 'SELECT date, pid, "row" FROM thoughts_likes WHERE (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = "'.$post_id.'" AND unliked = 0) OR (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = 0 AND unliked = 0) ORDER BY date ASC';
         $user_likes = $wpdb->get_results( $like_query );
         $user_like_counter = 1;
         foreach($user_likes as $like){
@@ -1109,7 +1160,7 @@ function mha_nonaggregate_data_export(){
         /**
          * User Flags During this Thought
          */
-        $flag_query = 'SELECT date, pid, row FROM thoughts_flags WHERE (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = "'.$post_id.'") OR (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = 0) ORDER BY date DESC';
+        $flag_query = 'SELECT date, pid, "row" FROM thoughts_flags WHERE (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = "'.$post_id.'") OR (uid = '.$author_id.' AND ipiden = "'.$ipiden.'" AND ref_pid = 0) ORDER BY date DESC';
         $user_flags = $wpdb->get_results( $flag_query );
         $user_flag_counter = 1;
         foreach($user_flags as $flag){
