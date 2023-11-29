@@ -53,7 +53,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
             <div class="container-fluid">
             <div class="row <?php echo $customContentClasses; ?>">
 
-                <div class="page-content article-left col-12 <?php if(strpos(get_query_var('layout'), 'actions_ah_sidebar') === false): ?>col-lg-8 <?php endif; ?>pl-0 pr-0 pr-md-4">
+                <div class="page-content article-left col-12 <?php if(strpos(get_query_var('layout'), 'actions_ah_sidebar') === false): ?>col-lg-8 <?php endif; ?>pl-0 pr-0 pr-lg-4">
 
                     <?php 
 
@@ -213,6 +213,17 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
 						}
 					?>
                 </aside>
+                
+                <?php if(get_field('article_footer_content')): ?>
+                <div class="col-12">
+                    <?php
+                        // Introductory Content
+                        echo '<div class="article--footer_content">';
+                        the_field('article_footer_content');
+                        echo '</div>';
+                    ?>
+                </div>
+                <?php endif; ?>
 
             </div>
             </div>

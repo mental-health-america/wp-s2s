@@ -19,7 +19,7 @@
     });
 </script>
 
-<div class="content-block block-text block-cta <?php echo $custom; ?> mb-4 mt-4" data-cta-title="<?php echo $cta_title; ?>">
+<div class="content-block block-text block-cta <?php echo $custom; ?> mb-5 mt-4" data-cta-title="<?php echo $cta_title; ?>">
         
     <?php
         // Open Wrappers
