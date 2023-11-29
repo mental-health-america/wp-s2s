@@ -1,6 +1,11 @@
 <?php 
 /* Template Name: Sign Up */
 get_header(); 
+$signup_url = '/log-in';
+$redirect_query = get_query_var('redirect_to');
+if($redirect_query){
+    $signup_url = add_query_arg( 'redirect_to', $redirect_query, $signup_url ); 
+}
 ?>
 
 <div class="wrap medium">
@@ -17,14 +22,16 @@ get_header();
 
         <div id="sign-up-form" class="form-container line-form blue">
 
-            <div class="existing-account right">                
-                <?php 
-                    $signup_url = '/log-in';
-                    if(get_query_var('redirect_to')){
-                        $signup_url = add_query_arg( 'redirect_to', get_query_var('redirect_to'), $signup_url ); 
-                    }
-                ?>
-                <a href="<?php echo $signup_url; ?>">Have an account? <strong>Log in here</strong></a>
+            <div class="existing-account right">     
+                <p class="w-100">
+                    <a class="button round-small-br small w-100" href="<?php echo $signup_url; ?>">Have an account?<br /> <strong>Log in here</strong></a>
+                </p>
+
+                <p class="w-100">
+                    <?php 
+                        echo mha_sso_google( $redirect_query ); 
+                    ?>
+                </p>
             </div>
 
             <?php echo do_shortcode('[gravityform id="2" title="false" description="false"]'); ?>

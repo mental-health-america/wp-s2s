@@ -103,8 +103,8 @@ function recent_flagged_thoughts() {
                         <?php 
                             $user = get_userdata($flag->uid); 
                             echo '<a href="'.get_edit_user_link($flag->uid).'">';
-                            //echo $user->user_login;
-                            echo (strlen($user->user_login) > 16) ? substr($user->user_login,0,15).'...' : $user->user_login;
+                            $user_display = $user ? $user->user_login : 'Deleted UID #'.$flag->uid;
+                            echo (strlen($user_display) > 16) ? substr($user_display,0,15).'...' : $user_display;
                             echo '</a>';
                         ?>
                     </td>

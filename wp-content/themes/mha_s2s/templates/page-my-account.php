@@ -152,8 +152,11 @@ if (strpos($account_action, 'save_screen_') !== false) {
 			
 			<div class="bubble narrow round-small-bl blue width-50" id="account-settings">
 			<div class="inner">
-				<div class="caps montserrat">DISPLAY NAME:</div>
-				<?php echo '<h3 class="text-white">'.$current_user->nickname.'</h3>'; ?>
+				<div class="caps montserrat"><?php _e('Welcome', 'mhas2s'); ?>,</div>
+				<?php 
+                    $display_name = $current_user->first_name ? $current_user->first_name : $current_user->display_name;
+                    echo '<h3 class="text-white text-truncate">'.$display_name.'</h3>'; 
+                ?>
 
 				<div class="pt-2">
 					<button class="button white plain caps p-0 hover-bar" type="button" data-toggle="collapse" data-target="#account-settings-form" aria-expanded="false" aria-controls="account-settings-form">Account Settings</button> | 
@@ -161,7 +164,14 @@ if (strpos($account_action, 'save_screen_') !== false) {
 				</div>
 
 				<div id="account-settings-form" class="form-container line-form collapse">
-					<?php echo do_shortcode('[gravityform id="3" title="false" description="false"]'); ?>
+					<?php 
+                        $user_sso = get_field('sso', 'user_'.$current_user->ID);
+                        if($user_sso != ''){
+                            echo "<div class=\"pt-3\"><em>You account information is associated with your $user_sso account and cannot be modified here.</em></div>";
+                        } else {
+                            echo do_shortcode('[gravityform id="3" title="false" description="false"]'); 
+                        }
+                    ?>
 				</div>
 
 			</div>
@@ -300,8 +310,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 $total_score = $max_score;
                             }
 
-                            // Limit results
-                            //if(count($graph_data[$test_title]['labels']) < 21){   
+                            // Limit results 
                             if(!get_field('survey', $screen_id)){
                                 $graph_data[$test_title]['hide_scores'] = get_field('hide_result_score', $screen_id);
                                 $graph_data[$test_title]['labels'][] = date('M', strtotime($data['date_created']));
@@ -309,18 +318,17 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 $graph_data[$test_title]['max'] = $max_score;
                                 $graph_data[$test_title]['steps'] = get_field('chart_steps', $screen_id);
                             }
-                            //}
 
                             $your_results_display[$test_title][$count_results]['screen_id'] = $screen_id;
 
-                            if(!get_field('survey', $screen_id)){
+                            //if(!get_field('survey', $screen_id)){
                                 $your_results_display[$test_title][$count_results]['test_id'] = isset($data['entry_id']) ? $data['entry_id'] : null;     
                                 $your_results_display[$test_title][$count_results]['test_date'] = $test_date;
                                 $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
                                 $your_results_display[$test_title][$count_results]['total_score'] = $total_score;
                                 $your_results_display[$test_title][$count_results]['max_score'] = $max_score;
                                 $your_results_display[$test_title][$count_results]['test_link'] = $test_id;     
-                            }
+                            //}
 
                             if($total_score >= $min_score && $total_score <= $max_score){
                                 if(get_sub_field('required_tags')){
@@ -416,8 +424,8 @@ if (strpos($account_action, 'save_screen_') !== false) {
                 <div id="test-results-container">
                     <?php 
                         if($your_results_display):
-                            $group_counter = 1; 
-                            foreach($your_results_display as $k => $v): 
+                        $group_counter = 1; 
+                        foreach($your_results_display as $k => $v): 
                             $total_test_results = count($v);
                             $group_slug = 'test-results-group-'.sanitize_title($k);
                             ?>
@@ -438,9 +446,14 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                                 <div class="inner montserrat medium">
                                                 <div class="relative">
 
-                                                    <div class="type-date small mb-2"><?php echo $result['test_date'].'<br />'. $result['test_title']; ?></div>
+                                                    <div class="type-date small mb-2">
+                                                        <?php 
+                                                            echo isset($result['test_date']) ? $result['test_date'].'<br />' : '&nbsp;<br />';
+                                                            echo isset($result['test_title']) ? $result['test_title'] : ''; 
+                                                        ?>
+                                                    </div>
                                                     <div class="caps small">Your test score was:</div>
-                                                    <div class="result bold large"><?php echo $result['result_title']; ?></div>
+                                                    <div class="result bold large"><?php echo isset($result['result_title']) ? $result['result_title'] : '&ndash;'; ?></div>
 
                                                     
                                                     <button class="hide-screen button teal round" 
@@ -631,14 +644,16 @@ if (strpos($account_action, 'save_screen_') !== false) {
                     
                     $initial_response = '';
                     $diy_key = 0;
-                    foreach($responses as $r){
-                        if($r['answer'] != ''){
-                            // Get the first response
-                            $initial_response = $r['answer'];
-                            $diy_key = $r['id'];
-                            break;
+                    if($responses):
+                        foreach($responses as $r){
+                            if($r['answer'] != ''){
+                                // Get the first response
+                                $initial_response = $r['answer'];
+                                $diy_key = $r['id'];
+                                break;
+                            }
                         }
-                    }
+                    endif;
                     
                     if( $initial_response == '' ){
                         $initial_response = ' &mdash; (<em>This submission was removed</em>)';
@@ -659,12 +674,27 @@ if (strpos($account_action, 'save_screen_') !== false) {
                             <div class="coll-12 col-md-8 monsterrat medium text-blue-dark pb-2 pb-md-0">
                                 <div class="mb-0">
                                     <div class="label bold mb-3"><a class="button teal tiny round-tiny-bl" href="<?php echo get_the_permalink($activity_id); ?>" target="_blank"><?php echo get_the_title($activity_id); ?></a></div>
-                                    <?php if(isset($questions[$diy_key]['question'])): ?><div class="label bold small"><?php echo $questions[$diy_key]['question']; ?></div><?php endif; ?>
+                                    <?php if(isset($questions[$diy_key]['question'])): ?><div class="label bold small mb-3"><?php echo $questions[$diy_key]['question']; ?></div><?php endif; ?>
                                     <?php echo $initial_response; ?>
                                 </div>
                             </div>
                             <div class="col-12 col-md-4">
-                                <?php echo '<a class="bar plain" href="'.get_the_permalink($answer_id).'">Review your submission&nbsp;&raquo;</a>'; ?>
+                                <p><?php echo '<a class="bar plain" href="'.get_the_permalink($answer_id).'">Review your submission&nbsp;&raquo;</a>'; ?></p>
+
+                                <p>
+                                    <label for="private_thought_<?php echo $answer_id; ?>">
+                                        <input type="checkbox" 
+                                            value="1" 
+                                            class="toggle_private_thought"
+                                            name="private_thought_<?php echo $answer_id; ?>"
+                                            id="private_thought_<?php echo $answer_id; ?>" 
+                                            data-id="<?php echo $answer_id; ?>" 
+                                            <?php if(get_field('crowdsource_hidden', $answer_id)){ echo 'checked'; }; ?> 
+                                        />
+                                        Hide this from public submissions (all submissions are anonymous)
+                                    </label>
+                                    <div data-thought="<?php echo $answer_id; ?>" class="toggle_private_thought_message bubble white thinner d-none round-tl"><div class="inner"></div></div>
+                                </p>
                             </div>
                         </div>
                         </div>
@@ -694,7 +724,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                 <?php 
                 $counter++;
                 endwhile; 
-                else : ?>
+                else: ?>
                     <p>You have no DIY Tool submissions.</p>
                     <p><a class="button blue round" href="/diy">Explore DIY Tools</a></p>
                 <?php
@@ -702,6 +732,17 @@ if (strpos($account_action, 'save_screen_') !== false) {
                 
                 if($counter > 3 && $loop_total > 3){
                     echo '</div>';
+                }
+                if($loop_total > 3){
+                    ?>
+                    <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12 col-sm-6 text-sm-left text-center pl-0 mb-3 mb-sm-0">
+                            <button class="button teal round-tl" type="button" data-toggle="collapse" data-target="#allDiyTools" aria-expanded="false" aria-controls="allDiyTools">View All DIY Tool Submissions</button>
+                        </div>
+                    </div>
+                    </div>
+                    <?php
                 }
                 wp_reset_query();
             ?>
@@ -805,7 +846,6 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
                         </div>
 
-                    </div>
                     </div>
                     </div>
                     <?php 

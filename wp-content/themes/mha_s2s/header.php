@@ -76,7 +76,7 @@
 </script>
 
 <!-- Google Optimize -->
-<script src="https://www.googleoptimize.com/optimize.js?id=OPT-PNLZZ5R"></script>
+<!-- <script src="https://www.googleoptimize.com/optimize.js?id=OPT-PNLZZ5R"></script> -->
 
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -160,12 +160,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 									<a class="plain" href="/sign-up">Sign Up</a>
 								</div>	
 							</div>
+							<div class="clear text-center pt-3 center">
+								<hr class="mt-0 mb-3" />
+								<?php
+									echo mha_sso_google();
+								?>
+							</div>
 						</div>
 						</div>
 					</div>
 				<?php endif; ?>	
 				<?php
-					echo " | ";
+					echo ' <span>&nbsp;</span> ';
 					do_action('wpml_add_language_selector');
 				?>
 			</span>

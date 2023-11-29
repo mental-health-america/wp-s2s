@@ -3,10 +3,9 @@
 get_header(); 
 ?>
 
-<?php
-    $mha_sso = new MHA();
-    echo $mha_sso->signin;
-?>
+<div class="wrap medium">
+<?php mha_sso_google(); ?>
+</div>
 
 <?php
 get_footer();
