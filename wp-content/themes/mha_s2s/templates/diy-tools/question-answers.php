@@ -65,15 +65,13 @@
 
         <?php if($show_next_previews): ?>
             <?php if($allow_question_skipping): ?>
-                <button class="peek diy-carousel-nav fade-left" data-glide-dir="<"></button>
-                <button class="peek diy-carousel-nav fade-right" data-glide-dir=">"></button>
+                <button class="peek diy-carousel-nav fade-left" data-glide-dir="<">Previous</button>
             <?php else : ?>
                 <div class="peek fade-left"></div>
-                <div class="peek fade-right"></div>
             <?php endif; ?>
         <?php endif; ?>
 
-        <div class="diy-questions glide" data-start="<?php echo $activity_start_row; ?>" data-peek="<?php echo $show_next_previews; ?>" data-skip="<?php echo $allow_question_skipping; ?>">	
+        <div class="diy-questions glide" data-start="<?php echo $activity_start_row; ?>" data-peek="<?php echo $show_next_previews; ?>" data-skip="<?php echo $allow_question_skipping; ?>" role="slider">	
         <div class="glide__track" data-glide-el="track">
             <ol class="glide__slides">
                 <?php
@@ -82,6 +80,12 @@
                     $row_index = get_row_index();
                     //$row_index = get_sub_field('id');
                     $required_field = $allow_question_skipping ? '' : ' required';
+
+                    // Default tabindexes
+                    $tabindex = '-1';
+                    if($row_index == 0){
+                        $tabindex = '0';
+                    }
                     ?>
                         <li class="glide__slide">
                             <div class="question bubble light-blue round-bl mb-4" data-question="q<?php echo $row_index; ?>">
@@ -102,7 +106,7 @@
                                                     $field_id = 'answer_'.$row_index.'_'.sanitize_title($q['option_text']);
                                                 ?>
                                                     <label for="<?php echo $field_id; ?>">
-                                                        <input name="answer_<?php echo $row_index; echo $brackets; ?>" id="<?php echo $field_id; ?>" type="<?php echo $question_type; ?>" value="<?php echo $q['option_text']; ?>" <?php if($row_index > 0):?>tabindex="-1"<?php endif; ?> data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?> />
+                                                        <input name="answer_<?php echo $row_index; echo $brackets; ?>" id="<?php echo $field_id; ?>" type="<?php echo $question_type; ?>" value="<?php echo $q['option_text']; ?>" tabindex="<?php echo $tabindex; ?>" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?> />
                                                         <span class="label-text pt-1 pl-2"><?php echo $q['option_text']; ?></span>
                                                     </label>
                                                 <?php
@@ -116,7 +120,7 @@
                                                     $textarea_value = sanitize_text_field( $_POST["answer_$row_index"] ); 
                                                 }
                                                 ?>
-                                                    <textarea notab="notab" name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" <?php if($row_index > 0):?>tabindex="-1"<?php endif; ?> data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>><?php echo $textarea_value; ?></textarea>
+                                                    <textarea name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" tabindex="<?php echo $tabindex; ?>" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>><?php echo $textarea_value; ?></textarea>
                                                 <?php
                                                 break;
                                         }
@@ -131,7 +135,7 @@
                                             if($allow_crowdsource_viewing): 
                                                 $crowdsource_expanded = $crowdsource_default_visible ? 'true' : 'false';
                                                 ?>
-                                                    <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughts<?php echo $unique_activity_id; ?>" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-controls="crowdthoughts<?php echo $unique_activity_id; ?>" tabindex="-1">
+                                                    <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughts<?php echo $unique_activity_id; ?>" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-c1ontrols="crowdthoughts<?php echo $unique_activity_id; ?>" tabindex="<?php echo $tabindex; ?>">
                                                         <?php echo $crowdsource_button_label; ?>&nbsp;&raquo;
                                                     </button>
                                                 <?php 
@@ -148,7 +152,7 @@
                                             $button_atts .= 'class="round-tiny-tl red action-button next-question submit" data-question="q'.$row_index.'"';   
                                             $crowdsource_ask = '
                                                 <label for="crowdsource_hidden_'.$activity_id.'" class="font-weight-normal d-inline-block" data-toggle="tooltip" data-placement="bottom" title="When checked this submission will be hidden from other users and only visible only to you.">
-                                                <input name="crowdsource_hidden" class="crowdsource_hidden" id="crowdsource_hidden_'.$activity_id.'" type="checkbox" value="1" tabindex="-1" /> '.get_field('user_opt_out_language').'</label>';
+                                                <input name="crowdsource_hidden" class="crowdsource_hidden" id="crowdsource_hidden_'.$activity_id.'" type="checkbox" value="1" tabindex="'.$tabindex.'" /> '.get_field('user_opt_out_language').'</label>';
                                         } else {
                                             $container_atts = 'data-glide-el="controls"';        
                                             $button_atts .= 'class="bar action-button next-question" data-glide-dir="='.(get_row_index() + 1).'" data-question="'.$row_index.'"';   
@@ -159,7 +163,7 @@
                                         }
                                     ?>
                                     <div class="col-12 col-md-5 text-right text-md-end p-0"<?php echo $container_atts; ?>>
-                                        <button <?php echo $button_atts; ?> tabindex="-1">
+                                        <button <?php echo $button_atts; ?> tabindex="<?php echo $tabindex; ?>">
                                             <?php
                                                 echo ($embed_type == 'single') ? 'Continue' : get_sub_field('next_button');
                                             ?>&nbsp;&raquo;
@@ -181,7 +185,7 @@
 
                             <?php if($allow_crowdsource_viewing): ?>
                             <div class="col-12 d-md-none d-block text-left pb-4 pl-0">
-                                <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughts" role="button" aria-expanded="false" aria-controls="crowdthoughts" tabindex="-1">
+                                <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughts<?php echo $unique_activity_id; ?>" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-c1ontrols="crowdthoughts<?php echo $unique_activity_id; ?>" tabindex="<?php echo $tabindex; ?>">
                                     <?php echo $crowdsource_button_label; ?>&nbsp;&raquo;
                                 </button>
                             </div>
@@ -201,6 +205,14 @@
             </ol>
         </div>
         </div>
+
+        <?php if($show_next_previews): ?>
+            <?php if($allow_question_skipping): ?>
+                <button class="peek diy-carousel-nav fade-right" data-glide-dir=">">Next</button>
+            <?php else : ?>
+                <div class="peek fade-right"></div>
+            <?php endif; ?>
+        <?php endif; ?>
 
         <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('diySubmission'); ?>" />
         <input type="hidden" name="activity_id" value="<?php echo $activity_id; ?>" />

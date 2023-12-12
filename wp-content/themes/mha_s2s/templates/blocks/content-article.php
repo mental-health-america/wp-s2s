@@ -204,7 +204,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                     ?>
                 </div>      
                 
-                <aside class="article-right col-12 col-md-5 col-lg-4 pl-0 pr-0 pl-md-5 hide-mobile">
+                <aside class="article-right col-12 col-md-5 col-lg-4 pl-0 pr-0 pl-md-5 hide-tablet">
 					<?php 
 						if(get_field('espanol')){
 							get_template_part( 'templates/blocks/article', 'sidebar-espanol', array( 'placement' => 'desktop' ) ); 

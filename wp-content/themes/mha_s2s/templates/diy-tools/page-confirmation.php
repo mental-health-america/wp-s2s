@@ -90,6 +90,9 @@ Submitted on <?php echo get_the_date('F j, Y', $pid); ?><br />
             endif;
         ?>
 
+        <?php
+            if( !get_field('viewed_result', $pid) || get_the_author_meta('ID') == get_current_user_id() ):
+        ?>
         <p>
             <hr />
             <label for="private_thought_<?php echo $pid; ?>">
@@ -105,6 +108,9 @@ Submitted on <?php echo get_the_date('F j, Y', $pid); ?><br />
             </label>
             <div data-thought="<?php echo $pid; ?>" class="toggle_private_thought_message bubble white thinner d-none round-tl"><div class="inner"></div></div>
         </p>
+        <?php 
+            endif; 
+        ?>
 
     </div>
     </div>
@@ -158,3 +164,10 @@ Submitted on <?php echo get_the_date('F j, Y', $pid); ?><br />
         <div class="crowdthoughtsContent carousel" data-moving="0" data-carousel="1" data-question="0" data-activity="<?php echo $activity_id; ?>" data-current="<?php echo $pid; ?>" data-page="1"></div>
     </div>
 </div>
+
+<?php
+// Update "Viewed" checkbox
+if(!get_field('viewed_result', $pid)):
+    update_field('viewed_result', 1, $pid);
+endif;
+?>

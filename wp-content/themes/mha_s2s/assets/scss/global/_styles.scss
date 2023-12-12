@@ -29,6 +29,9 @@ a {
         &:visited {
             color: #055596;
         } 
+        &:focus {
+            outline: 1px solid rgba(58,88,136,.5);
+        }
     }
 
     // Styles
@@ -1195,6 +1198,17 @@ img.alignright {
 .show-mobile {
     display: none;
     @media only screen and (max-width: 768px){
+        display: block;
+    }
+}
+.hide-tablet {
+    @media only screen and (max-width: 991px){
+        display: none;
+    }
+}
+.show-tablet {
+    display: none;
+    @media only screen and (max-width: 991px){
         display: block;
     }
 }

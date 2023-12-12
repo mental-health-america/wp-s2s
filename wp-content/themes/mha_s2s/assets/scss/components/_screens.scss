@@ -57,6 +57,7 @@ article {
                 width: auto;
                 margin-right: 25px;
             }
+
         }
         li {
             color: unset;
@@ -262,6 +263,29 @@ article {
             }
         }
     }
+
+    .gfield.radio-joined {
+        margin-right: 0;
+        .gchoice {
+            margin-right: 0;
+            margin-left: 0;
+        }
+        .gfield_radio {
+            .gchoice {
+                &:first-child {
+                    input[type="radio"] {
+                        border-radius: 40px 0 0 40px;
+                    } 
+                }
+                &:last-child {
+                    input[type="radio"] {
+                        border-radius: 0px 40px 40px 0;
+                    } 
+                }
+            }
+        }
+    }
+    
 
     .gfield.gfield--width-half {
         flex: 1 1 calc(50% - 20px);

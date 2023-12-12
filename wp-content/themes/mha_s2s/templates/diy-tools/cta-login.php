@@ -1,4 +1,7 @@
-<?php if(!is_user_logged_in()): ?>
+<?php 
+    if(!is_user_logged_in()):
+    if( !get_field('viewed_result', $pid) || get_the_author_meta('ID') == get_current_user_id() ):
+?>
     <?php 
         $width = isset($args['width']) ? $args['width'] : 'narrow';
         $corners = isset($args['corners']) ? $args['corners'] : '';
@@ -32,4 +35,7 @@
         
     <?php endif; ?>
 
-<?php endif; ?>
+<?php 
+    endif; 
+    endif; 
+?>

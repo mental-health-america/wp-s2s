@@ -364,7 +364,7 @@
         endif;
     ?>
 
-    <div class="hide-mobile">
+    <div class="hide-tablet">
         <?php get_template_part( 'templates/blocks/article', 'actions', array( 'placement' => $placement ) ); ?>
     </div>
     

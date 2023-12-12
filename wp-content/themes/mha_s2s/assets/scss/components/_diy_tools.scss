@@ -37,6 +37,12 @@
         }
     }
 
+
+    input[type=checkbox]:focus,
+    input[type=radio]:focus {
+        outline: revert !important;
+    }
+
     // Active/Inactive Look
     &.glide--slider { // Only when glide is active
         .glide__slide {
@@ -90,6 +96,8 @@ button.peek {
     padding: 0;
     border: 0;
     z-index: 50;
+    overflow: hidden;
+    text-indent: -999em;
     @media only screen and (max-width: 880px){
         width: 80px;
     }
@@ -127,6 +135,44 @@ button.peek {
             background: -webkit-linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
             background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
             filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ffffff",GradientType=1);
+        }
+    }
+
+    &:before {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        margin: auto;
+        height: 30px;
+        width: 30px;
+        font-size: 60px;
+        line-height: normal;
+        color: $blue;
+        text-indent: 0;
+        opacity: 0;
+        background: url("../images/arrow-left-blue.png") center center no-repeat;
+        background-size: contain;
+        @include transitions(150ms ease opacity);
+    }
+    &.fade-right {
+        &:before {
+            background-image: url("../images/arrow-right-blue.png");
+        }
+    }
+
+    &:hover,
+    &:focus {
+        &:before {
+            opacity: 1;
+        }
+    }
+    &:disabled {
+        &:before {
+            opacity: 0;
         }
     }
 }
@@ -196,7 +242,18 @@ button.peek {
                 @include transitions(background-color 150ms ease);
                 @include radius(50%);           
             }
+            &:hover {
+                &:before {
+                    background-color: $mint;
+                }            
+            }
+            &:focus {
+                &:before {
+                    background-color: $teal;
+                }            
+            }
         }
+
 
         &.active {
             button {
@@ -238,6 +295,16 @@ button.peek {
                     background-image: url('../images/arrow-right-blue.png'); 
                     background-position: 10px center;
                 }
+
+                &.question-prev,
+                &.question-next {
+                    @include transitions(background-color 150ms ease);
+                    &:hover,
+                    &:focus {
+                        background-color: $mint;     
+                    }
+                }
+
                 &:before {
                     display: none;
                 }
@@ -288,6 +355,12 @@ button.peek {
     .question-container {
         opacity: 1;
         @include transitions(opacity 250ms ease);
+        .wrap {
+            max-width: 100%;
+        }
+        &.hidden {
+            width: 0px;
+        }
     }
 
     &.loading {
