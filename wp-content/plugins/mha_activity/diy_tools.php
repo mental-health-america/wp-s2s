@@ -267,7 +267,7 @@ function getDiyCrowdsource(){
                 SELECT pid, 'row', COUNT(pid) AS highflags 
                 FROM thoughts_flags 
                 WHERE 
-                    ref_pid = {$args["activity_id"]}
+                    ref_pid = {$args['activity_id']}
                 GROUP BY pid
                 HAVING (highflags >= 1) 
                 ORDER BY date DESC 
@@ -296,7 +296,7 @@ function getDiyCrowdsource(){
                 SELECT pid, COUNT(*) as total_likes 
                 FROM thoughts_likes 
                 WHERE 
-                    ref_pid = {$args["activity_id"]} AND 
+                    ref_pid = {$args['activity_id']} AND 
                     unliked = 0 AND 
                     date >= '{$date_old}' AND
                     {$where_flag}
@@ -395,7 +395,11 @@ function getDiyCrowdsource(){
                 'total_questions'           => $total_questions,
                 'crowdsource_scoring_id'    => $crowdsource_scoring_id
             );
-            $responses[] = get_diy_response_display( $response_args );
+
+            $get_response_display = get_diy_response_display( $response_args );
+            if($get_response_display){
+                $responses[] = get_diy_response_display( $response_args );
+            }
         }
 
         // Print responses, sorted by likes
@@ -600,7 +604,10 @@ function get_diy_response_display( $args ) {
 
     $response = [];
 
-    if($args['pid']){
+    // Confirm the crowdthought is part of the activity
+    $post_act_id = get_field('activity_id', $args['pid']);
+
+    if($args['pid'] && $post_act_id && $post_act_id->ID == $args['args']['activity_id']){
 
         $response['pid'] = $args['pid'];
         $response['true_likes'] = $args['true_likes'];
@@ -646,6 +653,8 @@ function get_diy_response_display( $args ) {
 
         return $response;
     }
+
+    return false;
 
 }
 

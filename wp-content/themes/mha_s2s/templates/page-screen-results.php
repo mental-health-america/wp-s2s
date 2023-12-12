@@ -24,14 +24,12 @@ else:
     // Update featured links based on result page attributes
     // To debug, comment this out to not lock in answers so refreshing works
     if($user_screen_result['featured_next_steps_data'] && str_contains(get_query_var('layout'), 'mhats')){
-        /*
         $update_featured_links = mha_screen_submission_update_entry_featured_links(
             array(
                 'entry_id'              => $entry_id,
                 'user_screen_result'    => $user_screen_result
             )
         );
-        */
     }
     wp_reset_query();
     
@@ -73,6 +71,7 @@ else:
     // "Take another test" button URL
     $take_another_url = '/screening-tools/';
     if(
+        isset($user_screen_result['referer']) && 
         $user_screen_result['referer'] != '' &&
         strpos($user_screen_result['referer'], 'screening.mhanational.org') === false &&
         strpos($user_screen_result['referer'], 'mhanationalstg.wpengine.com') === false
@@ -321,7 +320,6 @@ else:
              * Featured Next Steps Test Setup
              */
             $displayed_featured_links = false;
-            //pre($user_screen_result['featured_next_steps_data']);
             if($user_screen_result['featured_next_steps_data'] && !in_array('related_v1', $layout)):
 
                 // Display the featured links
@@ -752,7 +750,18 @@ else:
                 $max_ctas = 2;
                 if(count($unique_result_cta) > $max_ctas){
                     shuffle($unique_result_cta);
+
+                    // 2023-12-05 Elevance always first override if present
+                    $first_cta_override = array_search('142207', $unique_result_cta);
+                    if ($first_cta_override !== false && $user_screen_result['screen_id'] != 22) {
+                        $cta_first = $unique_result_cta[$first_cta_override];
+                        unset($unique_result_cta[$first_cta_override]);
+                        array_unshift($unique_result_cta, $cta_first);
+                    }
+
+                    // Return only unique CTAs cut down to the max
                     $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas);
+
                 }
 
                 // Veteran CTA Override 5/26/2023
@@ -764,7 +773,7 @@ else:
                 }
 
                 // Featured Next Step CTA Override
-                if( isset($featured_next_steps_data->ctas) ){
+                if( isset($featured_next_steps_data->ctas) && !empty($featured_next_steps_data->ctas) ){
                     $unique_result_cta = $featured_next_steps_data->ctas;
                 }
 

@@ -358,7 +358,10 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
                 $add_score_total = 0;
                 $add_score_max = 0;
                 foreach($add_scores as $score){
-                    $add_score_total = intval($user_screen_results['general_score_data'][$score['question_id']]) + $add_score_total;
+                    
+                    $new_add_score = isset($user_screen_results['general_score_data'][$score['question_id']]) ? intval($user_screen_results['general_score_data'][$score['question_id']]) : 0;
+
+                    $add_score_total = $new_add_score + $add_score_total;
                     if(isset($user_screen_results['max_values'])){
                         $add_score_max = $add_score_max + $user_screen_results['max_values'][$score['question_id']];
                     }

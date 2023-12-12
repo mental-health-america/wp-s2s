@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20231116_2' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20231212' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -341,8 +341,8 @@ function mha_screening_uid_hash( $form ) {
 add_filter( 'gform_confirmation', function ( $confirmation, $form, $entry ) {
 
 	// A/B Testing Redirect
-	/*
 	if( str_contains( $confirmation['redirect'], '/screening-results/' ) ){
+
 		$new_redirect_args = array(
 			'current_pid'            => 27,
 			'return_redirect'        => true,
@@ -350,11 +350,12 @@ add_filter( 'gform_confirmation', function ( $confirmation, $form, $entry ) {
 			'current_referrer'      => $entry['source_url'],
 		); 
 		$new_redirect = mha_ab_redirects($new_redirect_args);
+
 		if($new_redirect){
 			$confirmation['redirect'] = $new_redirect;
 		}
+
 	}
-	*/
 
 	// Default behavior
     if ( ! is_array( $confirmation ) || empty( $confirmation['redirect'] ) ) {
@@ -858,7 +859,7 @@ function wpc_gravity_registration_autologin( $user_id, $feed, $entry, $user_pass
 
 /**
  * Gravity Forms
- * Adjust form edit screenc columns
+ * Adjust form edit screen columns
  */
 add_filter( 'gform_form_list_columns', 'change_columns', 10, 1 );
 function change_columns( $columns ){
