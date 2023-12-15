@@ -1,4 +1,5 @@
 <?php 
+    $pid = isset($args['id']) ? $args['id'] : get_the_ID();
     if(!is_user_logged_in()):
     if( !get_field('viewed_result', $pid) || get_the_author_meta('ID') == get_current_user_id() ):
 ?>
