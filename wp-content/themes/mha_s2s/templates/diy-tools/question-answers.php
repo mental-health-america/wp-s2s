@@ -147,15 +147,17 @@
                                         $container_atts = '';   
                                         $button_atts = '';
                                         $crowdsource_ask = '';
-                                        if(count($questions) == (get_row_index() + 1) ){                                          
+                                        if(count($questions) == (get_row_index() + 1) ){      
+                                            // Submit button                                    
                                             $container_atts = '';     
                                             $button_atts .= 'class="round-tiny-tl red action-button next-question submit" data-question="q'.$row_index.'"';   
                                             $crowdsource_ask = '
                                                 <label for="crowdsource_hidden_'.$activity_id.'" class="font-weight-normal d-inline-block" data-toggle="tooltip" data-placement="bottom" title="When checked this submission will be hidden from other users and only visible only to you.">
                                                 <input name="crowdsource_hidden" class="crowdsource_hidden" id="crowdsource_hidden_'.$activity_id.'" type="checkbox" value="1" tabindex="'.$tabindex.'" /> '.get_field('user_opt_out_language').'</label>';
                                         } else {
-                                            $container_atts = 'data-glide-el="controls"';        
-                                            $button_atts .= 'class="bar action-button next-question" data-glide-dir="='.(get_row_index() + 1).'" data-question="'.$row_index.'"';   
+                                            // Next
+                                            // $container_atts = 'data-glide-el="controls"';        
+                                            $button_atts .= 'class="bar diy-carousel-nav next-question-button" data-glide-dir=">"';   
                                         }
 
                                         if(!$allow_question_skipping){

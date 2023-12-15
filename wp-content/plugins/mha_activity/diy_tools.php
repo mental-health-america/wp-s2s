@@ -290,7 +290,7 @@ function getDiyCrowdsource(){
             $where_flag = '';
             if(count($top_flags)){
                 $flag_id_string = implode(',', $top_flags);
-                $where_flag = "pid NOT IN($flag_id_string)";
+                $where_flag = "AND pid NOT IN($flag_id_string)";
             }
             $top_likes = $wpdb->get_results("
                 SELECT pid, COUNT(*) as total_likes 
@@ -298,7 +298,7 @@ function getDiyCrowdsource(){
                 WHERE 
                     ref_pid = {$args['activity_id']} AND 
                     unliked = 0 AND 
-                    date >= '{$date_old}' AND
+                    date >= '{$date_old}'
                     {$where_flag}
                 GROUP BY pid 
                 ORDER BY total_likes DESC 
@@ -337,11 +337,27 @@ function getDiyCrowdsource(){
                 ),
             ),
             "meta_query"		=> array(
+                'relation' => 'AND',
                 array(
                     'key'       => 'activity_id',
                     'value'     => '"'.$args['activity_id'].'"',
                     'compare'   => 'LIKE'
+                ),
+                
+                array(
+                    'relation' => 'OR',
+                    array(
+                        'key' => 'crowdsource_hidden',
+                        'value' => '1',
+                        'compare' => '!='
+                    ),
+                    array(
+                        'key' => 'crowdsource_hidden',
+                        'value' => '1',
+                        'compare' => 'NOT EXISTS'
+                        )
                 )
+
             )
         );
         
@@ -359,10 +375,6 @@ function getDiyCrowdsource(){
             // Skip previoulsy retrieved IDs
             $pid = get_the_ID();
             
-            if(get_field('crowdsource_hidden')){
-                continue; // Skip items marked hidden from crowdsource display or flagged
-            }
-
             //$result['html'] .= '<pre>PID: '.print_r($pid, true).'<br /></pre>';
             //if(!isset($responses_collection[$pid])){
                 $response_likes = $wpdb->get_var("
