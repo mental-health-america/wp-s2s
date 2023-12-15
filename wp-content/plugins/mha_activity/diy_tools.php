@@ -215,7 +215,7 @@ function getDiyCrowdsource(){
     $args['page'] = intval($args['page']);
     
     // Pagination settings
-    $per_page = $args['embedded'] ? 5 : 15; // Different page counts for display types
+    $per_page = $args['embedded'] ? 5 : 10; // Different page counts for display types
     $args['offset'] = (intval($args['page']) - 1) * $per_page;
 
     // Future helpers
