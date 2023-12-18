@@ -9,8 +9,10 @@ use League\Csv\Reader;
 // Enqueing Scripts
 add_action('init', 'mhaAbTestingExportScripts');
 function mhaAbTestingExportScripts() {
-    wp_enqueue_script( 'process_abTestingExport', plugin_dir_url(__FILE__) . 'ab_testing.js', array('jquery'), time(), true );
-    wp_localize_script('process_abTestingExport', 'do_mhaAbTestingExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+    if(current_user_can('edit_posts')){
+        wp_enqueue_script( 'process_abTestingExport', plugin_dir_url(__FILE__) . 'ab_testing.js', array('jquery'), time(), true );
+        wp_localize_script('process_abTestingExport', 'do_mhaAbTestingExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+    }
 }
 
 add_action( 'wp_ajax_mha_export_ab_testing_data', 'mha_export_ab_testing_data' );

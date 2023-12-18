@@ -27,7 +27,7 @@
                     },
                     success: function( results_2 ) {  
                         var res = JSON.parse(results_2);
-                        console.log(res);
+                        //console.log(res);
                         $('#diyTool-exports-progress').slideDown();
                         $('#diyTool-exports-progress .bar').css('width', res.percent+'%');
                         $('#diyTool-exports-progress .label-number').html( res.percent );         

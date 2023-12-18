@@ -9,8 +9,10 @@ use League\Csv\Reader;
 // Enqueing Scripts
 add_action('init', 'mhactaCodesExportScripts');
 function mhactaCodesExportScripts() {
-    wp_enqueue_script( 'process_ctaCodesExport', plugin_dir_url(__FILE__) . 'cta_code_export.js', array('jquery'), time(), true );
-    wp_localize_script('process_ctaCodesExport', 'do_mhactaCodesExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+    if(current_user_can('edit_posts')){
+        wp_enqueue_script( 'process_ctaCodesExport', plugin_dir_url(__FILE__) . 'cta_code_export.js', array('jquery'), time(), true );
+        wp_localize_script('process_ctaCodesExport', 'do_mhactaCodesExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+    }
 }
 
 add_action( 'wp_ajax_mha_export_cta_codes', 'mha_export_cta_codes' );
@@ -65,7 +67,7 @@ function mha_export_cta_codes(){
 
     $i = 0;
     $csv_data = [];
-    $per_page = 5;
+    $per_page = 5000;
 
     if($args['page'] == 0){
         $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM cta_codes");
