@@ -14,6 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+//General Keys
+include_once 'keys.php';
+
 /**
  * Google SSO 
  */
@@ -21,8 +24,8 @@ function mha_sso_google( $redirect_query = null ){
 
     require_once 'vendor/autoload.php';
 
-    $client_id = '819582484303-rn798qps23jaqga8lo70fs4q9rijih25.apps.googleusercontent.com';
-    $client_secret = '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';
+    $client_id = GOOGLE_CLIENT_ID;
+    $client_secret = GOOGLE_CLIENT_SECRET;
     $redirect_uri = get_site_url(null, '/sso', 'https');
     if($redirect_query){
         $redirect_uri = add_query_arg( 'redirect_to', $redirect_query, $redirect_uri ); 
@@ -94,54 +97,6 @@ function mha_sso_google( $redirect_query = null ){
         <a type="button" class="login-with-google-btn button round-small-br small w-100 button-normal white text-blue" target="_self" href="<?php echo $client->createAuthUrl(); ?>">
             <i class="fa fa-google" aria-label="Google icon"></i>&nbsp; Sign in with Google
         </a>
-     
-        <?php 
-        /*
-        <script src="https://accounts.google.com/gsi/client" async defer></script>
-        <div id="g_id_onload"
-            data-client_id="819582484303-rn798qps23jaqga8lo70fs4q9rijih25.apps.googleusercontent.com"
-            data-context="signin"
-            data-login_uri="https://mhanationalstg.wpengine.com/sso"
-            data-auto_prompt="false">
-        </div>
-
-        <div class="g_id_signin"
-            data-type="standard"
-            data-shape="rectangular"
-            data-theme="outline"
-            data-text="signin_with"
-            data-size="large"
-            data-logo_alignment="left">
-        </div>
-        */ 
-        ?>
-
     <?php endif;
 
 }
-
-/*
-function mha_sso_facebook(){
-
-    require 'vendor/autoload.php';
-    session_start();
-
-    $fb = new Facebook\Facebook([
-        'app_id' => '638758288355264',
-        'app_secret' => '6847bd6a971109c8bf3b67206cb5041c',
-        'default_graph_version' => 'v2.5',
-    ]);
-
-    $helper = $fb->getRedirectLoginHelper();
-    $permissions = ['email']; // optional
-
-    $facebook_sso_code = get_query_var('fb_id');
-
-    if($facebook_sso_code):
-        echo 'Logging in...';
-    else:
-        echo '<div id="fb-root"></div><script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v17.0&appId=638758288355264&autoLogAppEvents=1" nonce="Hgwd4EvP"></script>';
-        echo '<div class="fb-login-button" data-width="" data-size="" data-button-type="" data-layout="" data-auto-logout-link="false" data-use-continue-as="false"></div>';
-    endif;
-}
-*/
