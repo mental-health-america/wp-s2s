@@ -3,89 +3,51 @@
 /**
  * A custom A/B testing tool based on ACF options
  */
+function mha_ab_redirects( $params = array() ){
 
-add_action('init', 'mhaAbRedirectScripts');
-function mhaAbRedirectScripts() {
-	wp_enqueue_script('process_mhaAbTest', plugin_dir_url( __FILE__ ).'ab_testing.js', array( 'jquery' ), time(), true);
-	wp_localize_script('process_mhaAbTest', 'do_mhaAbTesting', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
-}
-
-add_action( 'wp_body_open', 'mha_ab_redirects_setup');
-function mha_ab_redirects_setup(){
-
-    $ab_setup = [];
-    $ab_setup['current_id'] = get_the_ID();
-    $ab_setup['current_url'] = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-    $ab_setup['current_path'] = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
-    $ab_setup['current_referrer'] = isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : null;
-    $ab_setup['get'] = $_GET;
-    echo '<textarea id="ab-testing-data" style="display: none !important;">'.str_replace( '%2C', ',', json_encode( $ab_setup, JSON_UNESCAPED_SLASHES ) ).'</textarea>';
-    echo '<textarea id="ab-testing-get" style="display: none !important;">'.str_replace( '%2C', ',', json_encode( $_GET, JSON_UNESCAPED_SLASHES ) ).'</textarea>';
-
-}
-
-add_action("wp_ajax_nopriv_mha_ab_redirect_logic", "mha_ab_redirect_logic");
-add_action("wp_ajax_mha_ab_redirect_logic", "mha_ab_redirect_logic");
-function mha_ab_redirect_logic(){
-
-    // Post data
+    // Defaults and passed params
     $defaults = array(
-        'show_debug'             => false,
-        'redirect'               => null,
-        'debug_header'           => null,
-        'debug_log'              => null,
-        'debug_footer'           => null,
-        'current_id'             => null,
-        'current_url'            => null,
-        'current_path'           => null,
-        'current_referrer'       => null,
-        'current_referrer_url'   => null,
-        'get'                    => array(),
+        'current_pid'            => get_the_ID(),
+        'return_redirect'        => false,
+        'redirect_url'           => null,
+        'current_url'            => "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+        'current_referrer'       => isset($_SERVER["HTTP_REFERER"]) ? $_SERVER["HTTP_REFERER"] : null,
+        'skip'                   => false
     );    
+    $args = wp_parse_args( $params, $defaults ); 
 
-    // Main results
-    parse_str(stripslashes($_POST['data']), $data);  
-    $result = wp_parse_args( $data, $defaults ); 
-        
-    // GET Params
-    parse_str(stripslashes($_POST['get']), $get_data);  
-    $result['get'] = $get_data;
+    if($args['current_pid'] == 27){
+        $args['skip'] = true;
+    }
 
-    // Referrer 
-    $result['current_referrer_url'] = sanitize_url($_POST['referrer']);
-    
     $debug_all = false;
     if( get_field('mha_ab_debug', 'options') ){
         $debug_all = true;
     }
-    $current_pid = $result['current_id'];
-    $current_url = $result['current_url'];
-    $current_path = $result['current_path'];
-    $current_referrer = $result['current_referrer_url'];
+    $current_url = $args['current_url'];
+    $current_path = parse_url($current_url, PHP_URL_PATH);
+
+    $current_referrer = $args['current_referrer'];
     $current_referrer_path = $current_referrer ? parse_url($current_referrer, PHP_URL_PATH) : null;
     $current_referrer_params = [];
 
     if($current_referrer){
         $referral_url = parse_url($current_referrer);
-        $result['ref_param_checker_url_source'] = $result['current_referrer_url'];
-        $result['ref_param_checker_original'] = $current_referrer;
-        $result['ref_param_checker'] = $referral_url;
         $referral_string = isset($referral_url['query']) ? $referral_url['query'] : null;
         if($referral_string){
             parse_str($referral_string, $current_referrer_params);
         }
     }
 
-
     $debug_html_header = '
-<button class="button" type="button" data-toggle="collapse" data-target="#collapseABbDebug" aria-expanded="false" aria-controls="collapseABbDebug">
-    Display A/B Test Debug Info
-</button>
-<div class="collapse" id="collapseABbDebug">
-<div class="card card-body large">
+        <button class="button" type="button" data-toggle="collapse" data-target="#collapseABbDebug" aria-expanded="false" aria-controls="collapseABbDebug">
+            Display A/B Test Debug Info
+        </button>
+        <div class="collapse" id="collapseABbDebug">
+        <div class="card card-body large">
 
-<pre class="large">';
-$debug_html_footer = '</pre></div></div>';
+    <pre class="large">';
+    $debug_html_footer = '</pre></div></div>';
 
     $debug_log = [];
     $debug_log['Current URL'] = $current_url;
@@ -126,7 +88,7 @@ $debug_html_footer = '</pre></div></div>';
 
         // Check if on a target page
         foreach( $target_page as $tid ){
-            if( $tid == $current_pid || $tid == 'all' ){
+            if( $tid == $args['current_pid'] || $tid == 'all' ){
 
                 if($debug){
                     $debug_log['Experiment'][$name]['Post ID'] = $tid;
@@ -144,12 +106,9 @@ $debug_html_footer = '</pre></div></div>';
                     $con_type = get_sub_field('type');
                     $con_condition = get_sub_field('condition');
                     $con_key = get_sub_field('key');
-                    //$get_key = isset($result['get'][$con_key]) ? sanitize_text_field($result['get'][$con_key]) : null;
-                    //$get_key = get_query_var($con_key) ? get_query_var($con_key) : 'Nope '.$con_key.' / '.$_GET[$con_key];
-                    $get_key = isset($result['get'][$con_key]) ? sanitize_text_field($result['get'][$con_key]) : null;
+                    $get_key = isset($_GET[$con_key]) ? sanitize_text_field($_GET[$con_key]) : null;
                     $con_value = get_sub_field('value');
 
-                    if($debug){ $debug_log['Experiment'][$name]['condition_type'][] = $con_type; }
                     if($debug){ $debug_log['Experiment'][$name]['condition_key'][] = $con_key; }
                     if($debug){ $debug_log['Experiment'][$name]['condition_value'][] = $con_condition; }
                     if($debug){ $debug_log['Experiment'][$name]['condition_get_key'][] = $get_key; }
@@ -377,8 +336,8 @@ $debug_html_footer = '</pre></div></div>';
                         case 'referrer_parameter':
                             switch($con_condition){
                                 case 'equals':
-                                    if($debug){ $debug_log['Experiment'][$name]['Conditions Met'][] = $con_type.' '.$con_condition.' "'.$con_value.'"'; }
                                     if(isset($current_referrer_params[$con_key]) && $current_referrer_params[$con_key] == $con_value){
+                                        if($debug){ $debug_log['Experiment'][$name]['Conditions Met'][] = $con_type.' '.$con_condition.' "'.$con_value.'"'; }
                                         $con_score++;
                                     }
                                     break;
@@ -490,7 +449,6 @@ $debug_html_footer = '</pre></div></div>';
                     // Get the variant and redirect
                     if(!empty($variants)){
 
-                        $redirect_url = null;
                         $variant_result = get_weighted_random_result($variant_values, $variant_weights);
                         $db_insert = array(
                             'ipiden' => get_ipiden(),
@@ -506,36 +464,37 @@ $debug_html_footer = '</pre></div></div>';
                             
                             switch($variants[$variant_result['key']]['type']){
                                 case 'redirect':                                        
-                                    $redirect_url = $variants[$variant_result['key']]['url'];
+                                    $args['redirect_url'] = $variants[$variant_result['key']]['url'];
                                     break;
 
                                 case 'add_parameter':
-                                    $redirect_url = add_query_arg( $variants[$variant_result['key']]['param_key'], $variants[$variant_result['key']]['param_val'], $current_url );
+                                    $args['redirect_url'] = add_query_arg( $variants[$variant_result['key']]['param_key'], $variants[$variant_result['key']]['param_val'], $current_url );
                                     break;
 
                                 case 'remove_parameter':
-                                    $redirect_url = remove_query_arg( $variants[$variant_result['key']]['param_key'], $current_url );
+                                    $args['redirect_url'] = remove_query_arg( $variants[$variant_result['key']]['param_key'], $current_url );
                                     break;
                             }
-                            $db_insert['redirect'] = $redirect_url;      
+                            $db_insert['redirect'] = $args['redirect_url'];      
     
                             // Debug logging                      
                             // if($debug){ $debug_log['Experiment'][$name]['DB Record'] = $db_insert; }
-                            if($debug){ $debug_log['Experiment'][$name]['Redirecting To'] = $redirect_url; }
-                            if($debug){ 
-                                $debug_log['Redirect'][] = $redirect_url;
-                            }
+                            if($debug){ $debug_log['Experiment'][$name]['Redirecting To'] = $args['redirect_url']; }
 
-                            if($redirect_url == $current_url){
+                            if($args['redirect_url'] == $current_url){
                                 $db_insert['Note'] = 'Already on this URL, redirect skipped.<br />';      
                             }
 
-                            if($active && $redirect_url && $redirect_url != $current_url && !$debug){
+                            if($active && $args['redirect_url'] && $args['redirect_url'] != $current_url && !$debug){
                                 // Final redirect
                                 global $wpdb;  
                                 $db_result = $wpdb->insert( 'ab_redirects', $db_insert );
-                                $result['redirect'] = $redirect_url;
-                            }  
+                                if(!$args['skip']){
+                                    nocache_headers();
+                                    wp_redirect( $args['redirect_url'] );
+                                    exit;
+                                }
+                            }    
     
                         }
     
@@ -555,18 +514,30 @@ $debug_html_footer = '</pre></div></div>';
     endwhile;    
     endif;
 
-    if(
-        $has_debug && current_user_can('editor') || 
-        $has_debug && current_user_can('administrator')
-    ){ 
-        $result['show_debug'] = true;
-        $result['debug_log'] = $debug_html_header.' '.print_r($debug_log, true).' '.$debug_html_footer;
+
+    if($args['return_redirect']){
+
+        if($args['redirect_url']){
+            return $args['redirect_url'];
+        } else {
+            return false;
+        }
+
+    } else {
+
+        if(
+            $has_debug && current_user_can('editor') || 
+            $has_debug && current_user_can('administrator')
+        ){ 
+            echo $debug_html_header; 
+            pre( $debug_log ); 
+            echo $debug_html_footer; 
+        }
+
     }
 
-    // Wrap it up
-    echo json_encode($result);
-    exit();
 }
+add_action( 'template_redirect', 'mha_ab_redirects' );
 
 /**
  * Helper function to select winning weighted result
