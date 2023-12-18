@@ -43,7 +43,7 @@
                     <?php endif; ?>
 
                     <?php if(get_sub_field('title')): ?>
-                        <h4><?php the_sub_field('title'); ?></h4>
+                        <h3><?php the_sub_field('title'); ?></h3>
                     <?php endif; ?>
 
                     <?php the_sub_field('text'); ?>
