@@ -103,7 +103,7 @@ function mha_s2s_scripts() {
 	wp_enqueue_script( 'mha_s2s-popper', get_template_directory_uri() . '/assets/js/popper.min.js', array(), '1.12.9', true );
 	wp_enqueue_script( 'mha_s2s-bootstrap-js', get_template_directory_uri() . '/assets/bootstrap/js/bootstrap.bundle.min.js', array(), '4.3.1', true );
 	wp_enqueue_script( 'mha_s2s-jqueryui', get_template_directory_uri() . '/assets/js/jquery.ui.custom.min.js', array( 'jquery' ), '1.13.1', true );
-	wp_enqueue_script( 'mha_s2s-glide', get_template_directory_uri() . '/assets/js/glide.js', array(), '3.6.0.1', true );
+	wp_enqueue_script( 'mha_s2s-glide', get_template_directory_uri() . '/assets/js/glide.js', array(), time(), true );
 	wp_enqueue_script( 'mha_s2s-aos', get_template_directory_uri() . '/assets/js/aos.min.js', array(), '3.0.0v2', true );
 	wp_enqueue_script( 'mha_s2s-iframeresizer', get_template_directory_uri() . '/assets/js/iframe-resizer.min.js', array(), '4.3.2', true );
 	
@@ -341,7 +341,7 @@ function mha_screening_uid_hash( $form ) {
 add_filter( 'gform_confirmation', function ( $confirmation, $form, $entry ) {
 
 	// A/B Testing Redirect
-	if( str_contains( $confirmation['redirect'], '/screening-results/' ) ){
+	if( isset($confirmation['redirect']) && str_contains( $confirmation['redirect'], '/screening-results/' ) ){
 
 		$new_redirect_args = array(
 			'current_pid'            => 27,
@@ -1099,11 +1099,13 @@ add_filter( 'relevanssi_excerpt_gap', function( $gap, $count_words, $excerpt_len
 add_filter( 'relevanssi_post_content', 'rlv_pre_code', 10 );
 add_filter( 'relevanssi_excerpt_content', 'rlv_pre_code', 10 );
 function rlv_pre_code( $content ) {
-    $content = preg_replace( '#<(.*) class=".*?references".*?</\1>#mis', '', $content );
-    $content = preg_replace( '#<(.*) class=".*?noindex".*?</\1>#mis', '', $content );
-	$content = preg_replace( '#<(.*) id=".*?references".*?</\1>#mis', '', $content);
-	$content = preg_replace( '#<pre.*?</pre>#mis', '', $content );
-	$content = preg_replace( '#<code.*?</code>#mis', '', $content );
+	if($content){
+		$content = preg_replace( '#<(.*) class=".*?references".*?</\1>#mis', '', $content );
+		$content = preg_replace( '#<(.*) class=".*?noindex".*?</\1>#mis', '', $content );
+		$content = preg_replace( '#<(.*) id=".*?references".*?</\1>#mis', '', $content);
+		$content = preg_replace( '#<pre.*?</pre>#mis', '', $content );
+		$content = preg_replace( '#<code.*?</code>#mis', '', $content );
+	}
 	return $content;
 }
 

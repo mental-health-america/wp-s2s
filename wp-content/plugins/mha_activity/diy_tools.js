@@ -441,7 +441,8 @@
 				event.preventDefault();
 
 				// Vars for later
-				let $diyParent = $(this).parents('.diy-tool-container'),
+				let $thisButton = $(this),
+					$diyParent = $(this).parents('.diy-tool-container'),
 					q_id = $(this).attr('data-question'),
 					$diy_container = $diyParent.find('.diy-questions-container'),
 					response_id = $diy_container.attr('diy-questions-container'),
@@ -451,14 +452,7 @@
 		
 				if(q_answer != ''){
 
-					// Single embed redirect override
-					if(embed_single){
-						var embed_action_url = new URL(embed_action);
-						embed_action_url.searchParams.append('diy_continue', 1);
-						$diyParent.find('.diy-questions-container').append('<div class="loading-next-diy"></div>')
-						$diy_container.attr('action', embed_action_url.href).submit();
-						return;
-					}
+					$thisButton.prop('disabled', true);
 
 					// Disable submit
 					$diyParent.find('.action-button.next-question[data-question='+q_id+']').prop('disabled', true);	
@@ -483,79 +477,93 @@
 							data: args
 						},
 						success: function( results ) {
-							
-							$diyParent.find('.action-button.next-question[data-question='+q_id+']').prop('disabled', false);		
-							var res = JSON.parse(results);
-							
-							//console.log(res);
+								
+							if(embed_single){
 
-							var current_post = $diyParent.find('input[name="diytool_current_id"]').val();
-							if(current_post == ''){
-								$diyParent.find('input[name="diytool_current_id"]').val(res.post_id);
-							}
-
-							if(res.error){
-
-								$diyParent.find('.next-question.submit').tooltip({
-									title: res.error,
-								});
-								$diyParent.find('.next-question.submit').tooltip('show');
+								// Single embed redirect override
+								var embed_action_url = new URL(embed_action);
+								embed_action_url.searchParams.append('diy_continue', 1);
+								$diyParent.find('.diy-questions-container').append('<div class="loading-next-diy"></div>');
+								$diy_container.attr('action', embed_action_url.href).submit();
+								return;
 
 							} else {
+
+								// Normal submits
+								$diyParent.find('.action-button.next-question[data-question='+q_id+']').prop('disabled', false);		
+								var res = JSON.parse(results);
 								
-								if(res.redirect){
+								//console.log(res);
 
-									let total_questions = $diyParent.find('.diy-questions textarea').length,
-										total_answers = 0;
-										
-									$diyParent.find('.diy-questions textarea').each(function(){
-										if($(this).val()){
-											total_answers++;
-										}
+								var current_post = $diyParent.find('input[name="diytool_current_id"]').val();
+								if(current_post == ''){
+									$diyParent.find('input[name="diytool_current_id"]').val(res.post_id);
+								}
+
+								if(res.error){
+
+									$diyParent.find('.next-question.submit').tooltip({
+										title: res.error,
 									});
+									$diyParent.find('.next-question.submit').tooltip('show');
 
-									// GA Event - diy_submit
-									window.dataLayer.push({
-										'event': 'diy_submit',
-										'diy_title': $('h1.entry-title').text(),
-										'submitted_url': $('input[name="current_url"]').val(),
-										'diy_total_answers': total_answers,
-										'diy_total_questions': total_questions
-									});
-
-									// Redirect to TY page
-									//window.location.href = res.redirect;
-
-									// Embed TY on page or redirect
-									if(res.args.embedded == 1){
-
-										// Display confirmation without reloading for embedded forms
-										var resultArgs = 'id='+res.post_id+'&embedded=1';
-										$('.tooltip').remove();
-										$.ajax({
-											type: "POST",
-											url: do_mhaDiyTools.ajaxurl,
-											data: { 
-												action: 'mhaDiyGetConfirmation',
-												data: resultArgs
-											},
-											success: function( results ) {
-												var res = JSON.parse(results);
-												//console.log(res);
-												$diyParent.parents('.diy-tool-shortcode').html(res.html);
-											},
-											error: function(xhr, ajaxOptions, thrownError){
-												console.error(xhr,thrownError);
-											}
-										});	
-
-									} else {
-
-										// Normal redirection 
-										window.location.href = res.redirect;
-
-									}
+								} else {
 									
+									if(res.redirect){
+
+										let total_questions = $diyParent.find('.diy-questions textarea').length,
+											total_answers = 0;
+											
+										$diyParent.find('.diy-questions textarea').each(function(){
+											if($(this).val()){
+												total_answers++;
+											}
+										});
+
+										// GA Event - diy_submit
+										window.dataLayer.push({
+											'event': 'diy_submit',
+											'diy_title': $('h1.entry-title').text(),
+											'submitted_url': $('input[name="current_url"]').val(),
+											'diy_total_answers': total_answers,
+											'diy_total_questions': total_questions
+										});
+
+										// Redirect to TY page
+										//window.location.href = res.redirect;
+
+										// Embed TY on page or redirect
+										if(res.args.embedded == 1){
+
+											// Display confirmation without reloading for embedded forms
+											var resultArgs = 'id='+res.post_id+'&embedded=1';
+											$('.tooltip').remove();
+											$.ajax({
+												type: "POST",
+												url: do_mhaDiyTools.ajaxurl,
+												data: { 
+													action: 'mhaDiyGetConfirmation',
+													data: resultArgs
+												},
+												success: function( results ) {
+													var res = JSON.parse(results);
+													//console.log(res);
+													$diyParent.parents('.diy-tool-shortcode').html(res.html);
+												},
+												error: function(xhr, ajaxOptions, thrownError){
+													console.error(xhr,thrownError);
+												}
+											});	
+
+										} else {
+
+											// Normal redirection 
+											window.location.href = res.redirect;
+
+										}
+										
+									}
+
 								}
 
 							}

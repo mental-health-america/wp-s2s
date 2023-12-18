@@ -135,7 +135,7 @@
                                             if($allow_crowdsource_viewing): 
                                                 $crowdsource_expanded = $crowdsource_default_visible ? 'true' : 'false';
                                                 ?>
-                                                    <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughts<?php echo $unique_activity_id; ?>" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-c1ontrols="crowdthoughts<?php echo $unique_activity_id; ?>" tabindex="<?php echo $tabindex; ?>">
+                                                    <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughts<?php echo $unique_activity_id; ?>" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-controls="crowdthoughts<?php echo $unique_activity_id; ?>" tabindex="<?php echo $tabindex; ?>">
                                                         <?php echo $crowdsource_button_label; ?>&nbsp;&raquo;
                                                     </button>
                                                 <?php 
@@ -147,17 +147,16 @@
                                         $container_atts = '';   
                                         $button_atts = '';
                                         $crowdsource_ask = '';
-                                        if(count($questions) == (get_row_index() + 1) ){      
-                                            // Submit button                                    
+                                        if(count($questions) == (get_row_index() + 1) ){                                          
                                             $container_atts = '';     
                                             $button_atts .= 'class="round-tiny-tl red action-button next-question submit" data-question="q'.$row_index.'"';   
                                             $crowdsource_ask = '
                                                 <label for="crowdsource_hidden_'.$activity_id.'" class="font-weight-normal d-inline-block" data-toggle="tooltip" data-placement="bottom" title="When checked this submission will be hidden from other users and only visible only to you.">
                                                 <input name="crowdsource_hidden" class="crowdsource_hidden" id="crowdsource_hidden_'.$activity_id.'" type="checkbox" value="1" tabindex="'.$tabindex.'" /> '.get_field('user_opt_out_language').'</label>';
                                         } else {
-                                            // Next
-                                            // $container_atts = 'data-glide-el="controls"';        
-                                            $button_atts .= 'class="bar diy-carousel-nav next-question-button" data-glide-dir=">"';   
+                                            //$container_atts = 'data-glide-el="controls"';        
+                                            $button_atts .= 'class="bar action-button next-question diy-carousel-nav next-question-button" data-glide-dir=">" data-question="'.$row_index.'"'; 
+                                            //$button_atts .= 'class="bar diy-carousel-nav next-question-button" data-glide-dir=">"';     
                                         }
 
                                         if(!$allow_question_skipping){
@@ -187,7 +186,7 @@
 
                             <?php if($allow_crowdsource_viewing): ?>
                             <div class="col-12 d-md-none d-block text-left pb-4 pl-0">
-                                <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughts<?php echo $unique_activity_id; ?>" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-c1ontrols="crowdthoughts<?php echo $unique_activity_id; ?>" tabindex="<?php echo $tabindex; ?>">
+                                <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughts<?php echo $unique_activity_id; ?>" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-controls="crowdthoughts<?php echo $unique_activity_id; ?>" tabindex="<?php echo $tabindex; ?>">
                                     <?php echo $crowdsource_button_label; ?>&nbsp;&raquo;
                                 </button>
                             </div>
