@@ -97,6 +97,11 @@ article {
             -moz-appearance: textfield;
             width: calc(100% - 30px);
             max-width: 20em;
+            @include transitions(border-color 150ms ease, background-color 150ms ease);
+            &:focus {
+                border-color: $blueDark;
+                background-color: $white;
+            }
         }
     }
 
@@ -182,6 +187,12 @@ article {
                 @include montserrat(600);
                 @include radius(40px);
                 @include transitions(color 100ms ease, background-color 100ms ease);
+                
+                @include transitions(border-color 150ms ease, background-color 150ms ease);
+                &:focus {
+                    border-color: $blueDark;
+                    background-color: $white;
+                }
             }  
             
             input[type="checkbox"],

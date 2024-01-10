@@ -211,11 +211,13 @@
 						crowdGlider.on(['move.after'], () => {	
 							if (crowdGlider.index !== lastIndex && startingIndex == 0) {
 								$diyParent.find('.question-direct[data-question=q'+crowdGlider.index+']').click();
+								$diyParent.find('.diy-direct-slide[data-index='+crowdGlider.index+']').click();
 								lastIndex = crowdGlider.index;
 								startingIndex = 0;
 							}
 							if (startingIndex == lastIndex && startingIndex > 0) {
 								$diyParent.find('.question-direct[data-question=q'+startingIndex+']').click();
+								$diyParent.find('.diy-direct-slide[data-index='+crowdGlider.index+']').click();
 								lastIndex = crowdGlider.index;
 								startingIndex = 0;
 							}
@@ -343,7 +345,7 @@
 					question.on('move', function() {
 						$diyParent.find('.question-breadcrumb li').removeClass('active');
 						$diyParent.find('.question-direct[data-question=q'+question.index+']').parent('li').addClass('active');
-						//$diyParent.find('.question-direct[data-question=q'+question.index+']').find('textarea').focus();
+						$diyParent.find('.question-direct[data-question=q'+question.index+']').find('textarea').focus();
 					});
 
 					// Update active navigation
@@ -352,7 +354,7 @@
 						if( $diyParent.find('.toggle-crowdthoughts').attr('aria-expanded') == 'true' ){
 							$diyParent.find('.crowdsource-responses .glide__arrows .diy-direct-slide[data-index="'+question.index+'"]').click();
 						}
-						//$('.question[data-question="q'+question.index+'"]').find('textarea').focus();
+						$('.question[data-question="q'+question.index+'"]').find('textarea').focus();
 					});
 					
 					// Carousel navigation
