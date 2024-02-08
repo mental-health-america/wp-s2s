@@ -738,33 +738,41 @@ else:
                 }
 
                 $unique_result_cta = array_unique($result_cta);  
-        ?>
-        <div id="cta-col" class="cta-cols total-<?php echo count($unique_result_cta); ?>">
-            <?php       
+
                 /*
                 * Result specific CTA
                 */
 
-                // Limit CTAs to 2 max
-                $total_ctas = 0;
-                $max_ctas = 2;
-                if(count($unique_result_cta) > $max_ctas){
-                    shuffle($unique_result_cta);
-
-                    // 2023-12-05 Elevance always first override if present
-                    $first_cta_override = array_search('142207', $unique_result_cta);
-                    if ($first_cta_override !== false && $user_screen_result['screen_id'] != 22) {
-                        $cta_first = $unique_result_cta[$first_cta_override];
-                        unset($unique_result_cta[$first_cta_override]);
-                        array_unshift($unique_result_cta, $cta_first);
-                    }
-
-                    // Return only unique CTAs cut down to the max
-                    $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas);
-
+                shuffle($unique_result_cta);          
+                $max_ctas = 2; // Limit CTAs to 2 max
+                
+                /** 
+                 * Elevance Overrides 
+                 * 2023-12-05 Elevance always first override if present
+                 * */
+                //$elevance_ads = array('116318','116319','116320','116321','116322', '142207','157517','157528','157529','157530'); // Staging/Dev
+                $elevance_ads = array('142207','157517','157528','157529','157530'); // Production
+                shuffle($elevance_ads);
+                
+                // If elevance ads, put the first at the beginning of the CTAs
+                $unique_result_cta_minus_elevance = array_diff($unique_result_cta, $elevance_ads); // Get non-matching elevance CTAs
+                $unique_result_with_elevance = array_intersect($unique_result_cta, $elevance_ads); // Get matching elevance CTAs
+                if ( count($unique_result_with_elevance) > 0 ) {
+                    array_unshift($unique_result_cta_minus_elevance, $elevance_ads[0]);
+                    $unique_result_cta = $unique_result_cta_minus_elevance;
+                }
+                
+                /**
+                 * Final CTA cleanup
+                 */
+                if( count($unique_result_cta) > $max_ctas ){                   
+                    // Return only unique CTAs cut down to the max 
+                    $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas); 
                 }
 
-                // Veteran CTA Override 5/26/2023
+                /**
+                 * Veteran CTA Override
+                 */
                 if(
                     isset($user_screen_result['answered_demos']['Which of the following populations describes you?']) && 
                     in_array('Veteran or active-duty military', $user_screen_result['answered_demos']['Which of the following populations describes you?'])
@@ -772,16 +780,19 @@ else:
                     $unique_result_cta = array('126533');
                 }
 
-                // Featured Next Step CTA Override
+                /**
+                 * Featured Next Step Override
+                 */
                 if( isset($featured_next_steps_data->ctas) && !empty($featured_next_steps_data->ctas) ){
                     $unique_result_cta = $featured_next_steps_data->ctas;
                 }
-
+        ?>
+        <div id="cta-col" class="cta-cols total-<?php echo count($unique_result_cta); ?>">
+            <?php     
                 global $post;
                 foreach($unique_result_cta as $cta){
                     $post = get_post($cta); 
                     get_template_part( 'templates/blocks/block', 'cta' );  
-                    $total_ctas++;
                 } 
                 wp_reset_postdata();
                 
