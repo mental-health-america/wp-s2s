@@ -55,8 +55,50 @@ function mha_screen_submission_update_entry_featured_links( $atts ) {
         if($updated_featured_links):
             $result = GFAPI::update_entry( $entry );
             return $result;
-        else:
-            return 2;
+        endif;
+    }
+
+    return false;
+}
+
+
+// Update featured data JSON field
+function mha_update_featured_data( $atts ){
+
+    $defaults = array(
+        'entry_id'              => null,
+        'user_screen_result'    => null,
+        'updates'               => array()
+    );   
+    $args = wp_parse_args( $atts, $defaults );
+
+    $entry = GFAPI::get_entry( $args['entry_id'] );
+    $updated_featured_data = false;
+
+    if(!is_wp_error($entry)){
+
+        foreach($entry as $k => $v){            
+            // Get field object
+            $field = GFFormsModel::get_field( $entry['form_id'], $k );  
+
+            // Featured Link Test Data
+            if (isset($field->label) && strpos($field->label, 'Featured Link Data') !== false) {                  
+                $featured_json = strval($args['user_screen_result']['featured_next_steps_data']);
+                $feature_data = json_decode($featured_json, true);
+                if(!empty($args['updates'])){
+                    foreach($args['updates'] as $k => $v){
+                        $feature_data[$k] = $v;
+                    }
+                    $entry[$field->id] = json_encode( $feature_data, false, JSON_UNESCAPED_SLASHES );
+                    $updated_featured_data = true;
+                }
+            }
+
+        }
+
+        if($updated_featured_data):
+            $result = GFAPI::update_entry( $entry );
+            return true;
         endif;
     }
 

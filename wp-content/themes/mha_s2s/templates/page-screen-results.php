@@ -783,8 +783,10 @@ else:
                 /**
                  * Featured Next Step Override
                  */
+                $update_cta_flag = true;
                 if( isset($featured_next_steps_data->ctas) && !empty($featured_next_steps_data->ctas) ){
                     $unique_result_cta = $featured_next_steps_data->ctas;
+                    $update_cta_flag = false;
                 }
         ?>
         <div id="cta-col" class="cta-cols total-<?php echo count($unique_result_cta); ?>">
@@ -798,6 +800,20 @@ else:
                 
             ?>
         </div>
+        <?php
+            if($update_cta_flag){
+                $update_featured_data = mha_update_featured_data(
+                    array(
+                        'entry_id'              => $entry_id,
+                        'user_screen_result'    => $user_screen_result,
+                        'updates' => [ 
+                            'result_ctas' => $unique_result_cta 
+                        ]
+                    )
+                );
+                pre( $update_featured_data );
+            }
+        ?>
         <?php endif; // Hide 'actions_hide_ns' ?>
 
         <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
