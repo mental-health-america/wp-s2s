@@ -44,7 +44,7 @@
         <h2 class="section-title small bold"><?php the_field('headline', $id); ?></h2>
     <?php endif; ?>
 
-    <?php the_field('content', $id); ?>
+    <?php echo get_field('content', $id); ?>
 
     <?php if(get_field('button_url', $id)): ?>
         <?php 
