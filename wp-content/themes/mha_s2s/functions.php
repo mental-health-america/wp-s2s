@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20231212' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20240322' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -509,9 +509,17 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
     return $progress_bar;
 }
 
-// Add Clearfix class to form tags
+/**
+ * Gravity Forms <form> tag overrides
+ */
 add_filter( 'gform_form_tag', function ( $form_tag, $form ) {
+
+	// Add clearfix to form tags
 	$form_tag = preg_replace( "|action='|", "class='clearfix' action='", $form_tag );
+
+	// Don't encode commas in the URL
+	// $form_tag = str_replace( '%2C', ',', $form_tag);
+
 	return $form_tag;
 }, 10, 2 );
 
@@ -676,23 +684,18 @@ function mha_s2s_filter_posts_columns( $columns ) {
 }
 
 // Column Content
-add_action( 'manage_article_posts_custom_column', 'mha_s2s_realestate_column', 10, 2);
-function mha_s2s_realestate_column( $column, $post_id ) {
-
-	$html = '';
-
+add_action( 'manage_article_posts_custom_column', 'mha_s2s_article_column', 10, 2);
+function mha_s2s_article_column( $column, $post_id ) {
 	// Article Type
 	if ( 'type' === $column ) {
 		$types = get_field('type', $post_id);
 		if($types){
+			$type_array = [];
 			foreach($types as $type){
-				$type_name = ucfirst($type);
-				//$html = '<a href="'.admin_url( 'edit.php?post_type=article&type=' . urlencode( $type ) ).'">';
-				$html .= str_replace('Diy','DIY', $type_name);
-				//$html .= '</a>';
+				$type_array[] = str_replace('Diy','DIY', ucfirst($type));
 			}
+			echo implode(', ', $type_array);
 		}
-		echo $html;
 	}
 	
 }
@@ -1164,3 +1167,20 @@ function disable_gf_fieldnames_query( $disable_query ){
 
 // FacetWP Options
 include_once('inc/functions_facetwp.php');
+
+
+/**
+ * Set admin user logins to expire every "next" saturday
+ */
+function set_admin_cookie_expiration($expiration, $user_id, $remember) {
+    if (user_can($user_id, 'administrator')) {
+        // Calculate the timestamp for 2 Saturdays from now
+        $next_saturday = strtotime('next Saturday', strtotime('+1 week'));
+        
+        // Set the expiration to 2 Saturdays from now
+        $expiration = $next_saturday - time();
+    }
+
+    return $expiration;
+}
+add_filter('auth_cookie_expiration', 'set_admin_cookie_expiration', 10, 3);
