@@ -79,7 +79,7 @@ get_header();
 
 			$bubble_color = 'cerulean';
 			$button_color = 'cerulean';
-			if(count(array_intersect($article_type, $resources)) > 0){ 
+			if( is_array($article_type) && count(array_intersect($article_type, $resources)) > 0){ 
 				$bubble_color = 'red';
 				$button_color = 'red';
 			}

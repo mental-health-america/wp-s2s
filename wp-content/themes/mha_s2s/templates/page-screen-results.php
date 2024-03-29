@@ -328,7 +328,7 @@ else:
                 
                 // Update excluded links
                 $used_links = $featured_next_steps_data->used_links;
-                if(count($used_links)){
+                if($used_links && count($used_links)){
                     foreach($used_links as $ul){
                         $excluded_ids[] = $ul;
                     }
@@ -807,11 +807,10 @@ else:
                         'entry_id'              => $entry_id,
                         'user_screen_result'    => $user_screen_result,
                         'updates' => [ 
-                            'result_ctas' => $unique_result_cta 
+                            'ctas' => $unique_result_cta 
                         ]
                     )
                 );
-                pre( $update_featured_data );
             }
         ?>
         <?php endif; // Hide 'actions_hide_ns' ?>
