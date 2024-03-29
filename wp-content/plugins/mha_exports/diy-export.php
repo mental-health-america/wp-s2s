@@ -10,7 +10,8 @@ use League\Csv\Reader;
 add_action('init', 'mhaDiyToolsExportScripts');
 function mhaDiyToolsExportScripts() {
     if(current_user_can('edit_posts')){
-        wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__FILE__) . 'diy_export.js', array('jquery'), 'v1.2', true );
+        //wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__FILE__) . 'diy_export.js', array('jquery'), 'v1.2', true );
+        wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__FILE__) . 'diy_export.js', array('jquery'), time(), true );
         wp_localize_script('process_diyToolsExport', 'do_mhaDiyToolsExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
     }
 }
@@ -28,6 +29,7 @@ function mha_export_diy_tool_data(){
         // For the first pass, set our defaults
         $defaults = array(
             'tool_id'                    => null,
+            'form_id'                    => null,
             'nonce'                      => null,
             'diytool_export_start_date'  => null,
             'diytool_export_end_date'    => null,
@@ -42,7 +44,10 @@ function mha_export_diy_tool_data(){
             'elapsed_end'                => null,
             'total_elapsed_time'         => null,
             'download'                   => null,
-            'debug'                      => null
+            'debug'                      => null,
+
+            'all_forms'                 => null,
+            'all_forms_ids'             => null,
         );      
 
         parse_str( $_POST['data'], $data);
@@ -91,7 +96,7 @@ function mha_export_diy_tool_data(){
         "meta_query"		=> array(
             array(
                 'key'       => 'activity_id',
-                'value'     => $args["tool_id"],
+                'value'     => $args["form_id"],
                 'compare'   => 'LIKE'
             )
         )
@@ -145,8 +150,9 @@ function mha_export_diy_tool_data(){
             'hidden_from_my_account'            => get_field('hidden'),
             'hidden_from_crowdsource'           => get_field('crowdsource_hidden'),
             'viewed_crowdsource'                => get_field('user_viewed_crowdsource'),
-            'start_page'                        => get_field('start_page'),
+            'start_page'                        => get_field('start_page') ? get_the_title( get_field('start_page') ).' (#'.get_field('start_page').')' : '',
             'started_on_embed'                  => get_field('start_page') ? 1 : 0,
+            'start_page_url'                    => get_field('start_page_url'),
             'ref_code'                          => get_field('ref_code'),
             'post_status'                       => get_post_status(),
             'post_id'                           => $response_id
@@ -192,8 +198,10 @@ function mha_export_diy_tool_data(){
     /**
      * Set next step variables
      */    
-    $args['max'] = $diy_res_loop->max_num_pages;    
+    
+    $args['max'] = $diy_res_loop->max_num_pages > 0 ? $diy_res_loop->max_num_pages : 1;    
     $args['percent'] = round( ( ( $args['page'] / $args['max']) * 100 ), 2 );
+    
     if($args['page'] >= $args['max']){
         $args['next_page'] = '';
     } else {
@@ -212,7 +220,7 @@ function mha_export_diy_tool_data(){
     try {
 
         if(!$args['filename']){
-            $form_slug = sanitize_title (get_the_title($args['tool_id']) );
+            $form_slug = sanitize_title (get_the_title($args['form_id']) );
             $args['filename'] = $args['filename'] ? $args['filename'] : $form_slug.'--'.$args['diytool_export_start_date'].'_'.$args['diytool_export_end_date'].'--'.date('U').'.csv';
         }
         $writer_type = $args['filename'] ? 'a+' : 'w+';
@@ -236,8 +244,10 @@ function mha_export_diy_tool_data(){
             $csv_headers = [];
 
             // Create header array
-            foreach($csv_data[array_key_first($csv_data)] as $k => $v){
-                $csv_headers[] = $k;                           
+            if(isset($csv_data[array_key_first($csv_data)])){
+                foreach($csv_data[array_key_first($csv_data)] as $k => $v){
+                    $csv_headers[] = $k;                           
+                }
             }
 
             // Set order for later
@@ -263,11 +273,18 @@ function mha_export_diy_tool_data(){
         $writer->addFormatter($encoder);
         */
 
-
     } catch (CannotInsertRecord $e) {
         $args['error'] = $e->getRecords();
     }
 
+    // All Forms Continuation
+    if(!$args['all_forms']){    
+        $args['all_forms'] = null;
+        $args['all_forms_continue'] = null;
+    } else {
+        $args['all_forms_continue'] = 1;
+    }
+    
     // Set the loops next page
     $args['page'] = $args['next_page'];
     

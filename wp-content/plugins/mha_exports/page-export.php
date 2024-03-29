@@ -84,6 +84,8 @@ function mhathoughtexport(){
                                 }
                             }
                         ?>
+                        <hr />
+                        <p><label><input type="checkbox" name="form_ids_select_toggle" id="form_ids_select_toggle" data-toggle="form_ids" class="form-toggler" value="1">Select All/None</label></p>
                     </td>
                 </tr>
                 <tr>
@@ -155,16 +157,21 @@ function mhathoughtexport(){
                         $loop = new WP_Query($args);
                         if($loop->have_posts()):
                             while($loop->have_posts()) : $loop->the_post();  
-                                echo '<p><label><input type="radio" name="tool_id" class="form-radio" value="'.get_the_ID().'"> '.get_the_title().'</label></p>'; 
+                                echo '<p><label><input type="checkbox" name="form_id" class="form-checkboxes" value="'.get_the_ID().'"> '.get_the_title().'</label></p>'; 
                             endwhile;
                         endif;                                   
                         ?>
+                        <hr />
+                        <p><label><input type="checkbox" name="tool_id_select_toggle" id="tool_id_select_toggle" data-toggle="form_id" class="form-toggler" value="1">Select All/None</label></p>
                     </td>
                 </tr>
                 <tr>
                     <td colspan="2">
 
                         <p>
+                            <input type="hidden" name="form_id" value="" />
+                            <input type="hidden" name="all_forms" value="" />
+                            <input type="hidden" name="all_forms_ids" value="" />
                             <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhadiyexport'); ?>" />
                             <input type="submit" class="button button-primary" id="export_diy_link"  value="Download DIY Tool User Submissions">
                         </p>

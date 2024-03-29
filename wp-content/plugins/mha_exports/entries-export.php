@@ -485,10 +485,7 @@ function mha_export_screen_data(){
         foreach($csv_data as $cd){
             $csv_data_ordered[] = sortArrayByArray($cd, $header_flip);
         }
-
         
-
-
         if($args['debug'] == 1){
             pre($csv_data_ordered);
             pre($args);

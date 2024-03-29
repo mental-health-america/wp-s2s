@@ -47,15 +47,10 @@
                 }
                 
                 if(res.all_forms_continue == 1){    
-                    $('input[name="all_forms"]').val(res.all_forms);
+                    $('#mha-diy-tool-export input[name="all_forms"]').val(res.all_forms);
                     
                     //console.log(res);
-                    if(res.export_single == 1){    
-                        let single_continue_data = '&export_single_continue=1&filename='+res.filename;
-                        diyToolExportDataStart( 1, 1, single_continue_data );                    
-                    } else {
-                        diyToolExportDataStart( 1, null );                    
-                    }
+                    diyToolExportDataStart( 1 );   
 
                     $('#diyTool-exports-progress .bar').css('width', '0%');
                     $('#diyTool-exports-progress .bar').css('background-color', '');
@@ -71,12 +66,36 @@
         }
     }
 
-    function diyToolExportDataStart(){
+    function diyToolExportDataStart( all_loop_checker = null ){
         
+        // All Forms loop check
+        if(all_loop_checker == 1){
+            
+            var all_forms = $('#mha-diy-tool-export input[name="all_forms"]').val(),
+                form_ids = all_forms.split(',');
+
+            $('#mha-diy-tool-export input[name="form_id"]').val( form_ids.shift() );
+            $('#mha-diy-tool-export input[name="all_forms"]').val( form_ids.join() );  
+
+        } else {
+
+            if($('#mha-diy-tool-export .form-checkboxes:checked').length > 1){
+                // Start of a multi form export
+                var form_ids = new Array();
+                $('#mha-diy-tool-export .form-checkboxes:checked').each(function(e){
+                    form_ids.push( $(this).val() );
+                });
+                $('#mha-diy-tool-export input[name="form_id"]').val( form_ids.shift() );
+                $('#mha-diy-tool-export input[name="all_forms"]').val( form_ids.join() );
+            } else {
+                // Single checkbox checked
+                $('#mha-diy-tool-export input[name="form_id"]').val( $('.form-checkboxes:checked').val() );
+            }
+
+        }
+
         var args = $('#mha-diy-tool-export').serialize();
-
-        //console.log(args);
-
+        
         $('#export_diy_link').prop('disabled', true).text('Processing...');
         $('#diyTool-exports-progress .bar').css('background-color', '').addClass('loading');
         $('#diyTool-exports-progress .label-number').html( 'Calculating...' );  

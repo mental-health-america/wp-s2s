@@ -54,7 +54,14 @@
         var all_checked_form_ids = $("#mha-all-screen-exports input[name='form_ids']:checked").map(function(){
             return $(this).val();
         }).toArray();
-        $('input[name="all_forms_ids"]').val( all_checked_form_ids.join(','));
+        $('#mha-all-screen-exports input[name="all_forms_ids"]').val( all_checked_form_ids.join(','));
+    }
+
+    function allFormIdUpdateDiy(){
+        var all_checked_form_ids = $("#mha-diy-tool-export input[name='tool_id']:checked").map(function(){
+            return $(this).val();
+        }).toArray();
+        $('#mha-diy-tool-export input[name="all_forms_ids"]').val( all_checked_form_ids.join(','));
     }
 
     $(document).on('click', '#submit-aggregate-data-export', function(event){
@@ -147,7 +154,7 @@
                 }
                 
                 if(res.all_forms_continue == 1){    
-                    $('input[name="all_forms"]').val(res.all_forms);
+                    $('#mha-all-screen-exports input[name="all_forms"]').val(res.all_forms);
                     
                     //console.log(res);
                     if(res.export_single == 1){    
@@ -178,25 +185,25 @@
         // All Forms loop check
         if(all_loop_checker == 1){
             
-            var all_forms = $('input[name="all_forms"]').val(),
+            var all_forms = $('#mha-all-screen-exports input[name="all_forms"]').val(),
                 form_ids = all_forms.split(',');
 
-            $('input[name="form_id"]').val( form_ids.shift() );
-            $('input[name="all_forms"]').val( form_ids.join() );  
+            $('#mha-all-screen-exports input[name="form_id"]').val( form_ids.shift() );
+            $('#mha-all-screen-exports input[name="all_forms"]').val( form_ids.join() );  
 
         } else {
             
-            if($('.form-checkboxes:checked').length > 1){
+            if($('#mha-all-screen-exports .form-checkboxes:checked').length > 1){
                 // Start of a multi form export
                 var form_ids = new Array();
-                $('.form-checkboxes:checked').each(function(e){
+                $('#mha-all-screen-exports .form-checkboxes:checked').each(function(e){
                     form_ids.push( $(this).val() );
                 });
-                $('input[name="form_id"]').val( form_ids.shift() );
-                $('input[name="all_forms"]').val( form_ids.join() );
+                $('#mha-all-screen-exports input[name="form_id"]').val( form_ids.shift() );
+                $('#mha-all-screen-exports input[name="all_forms"]').val( form_ids.join() );
             } else {
                 // Single checkbox checked
-                $('input[name="form_id"]').val( $('.form-checkboxes:checked').val() );
+                $('#mha-all-screen-exports input[name="form_id"]').val( $('.form-checkboxes:checked').val() );
             }
             
         }
@@ -260,6 +267,11 @@
     allFormIdUpdate();
     $(document).on('keyup click', '#mha-all-screen-exports input[name="form_ids"]', function(){
         allFormIdUpdate();
+    });
+
+    allFormIdUpdateDiy();
+    $(document).on('keyup click', '#mha-diy-tool-export input[name="tool_id"]', function(){
+        allFormIdUpdateDiy();
     });
 
     /**
@@ -353,16 +365,16 @@
 
 
     function export_single_file_reveal(){
-        if($('input[name="export_only_demographic"]').prop('checked')){
+        if($('#mha-all-screen-exports input[name="export_only_demographic"]').prop('checked')){
             $('#export_single_container').show();
         } else {
             $('#export_single_container').hide();
-            $('input[name="export_single"]').prop( "checked", false );
+            $('#mha-all-screen-exports input[name="export_single"]').prop( "checked", false );
         }
     }
     
     export_single_file_reveal();
-    $(document).on('click', 'input[name="export_only_demographic"]', function(event){
+    $(document).on('click', '#mha-all-screen-exports input[name="export_only_demographic"]', function(event){
         export_single_file_reveal();
     });
 
@@ -500,7 +512,7 @@
                 }
                 
                 if(res.all_forms_continue == 1){    
-                    $('input[name="all_forms"]').val(res.all_forms);
+                    $('#mha-feedback-exports input[name="all_forms"]').val(res.all_forms);
                     
                     //console.log(res);
                     if(res.export_single == 1){    
@@ -529,25 +541,25 @@
         // All Forms loop check
         if(all_loop_checker == 1){
             
-            var all_forms = $('input[name="all_forms"]').val(),
+            var all_forms = $('#mha-feedback-exports input[name="all_forms"]').val(),
                 form_ids = all_forms.split(',');
 
-            $('input[name="form_id"]').val( form_ids.shift() );
-            $('input[name="all_forms"]').val( form_ids.join() );  
+            $('#mha-feedback-exports input[name="form_id"]').val( form_ids.shift() );
+            $('#mha-feedback-exports input[name="all_forms"]').val( form_ids.join() );  
 
         } else {
             
-            if($('.form-checkboxes:checked').length > 1){
+            if($('#mha-feedback-exports .form-checkboxes:checked').length > 1){
                 // Start of a multi form export
                 var form_ids = new Array();
                 $('.form-checkboxes:checked').each(function(e){
                     form_ids.push( $(this).val() );
                 });
-                $('input[name="form_id"]').val( form_ids.shift() );
-                $('input[name="all_forms"]').val( form_ids.join() );
+                $('#mha-feedback-exports input[name="form_id"]').val( form_ids.shift() );
+                $('#mha-feedback-exports input[name="all_forms"]').val( form_ids.join() );
             } else {
                 // Single checkbox checked
-                $('input[name="form_id"]').val( $('.form-checkboxes:checked').val() );
+                $('#mha-feedback-exports input[name="form_id"]').val( $('.form-checkboxes:checked').val() );
             }
             
         }
@@ -604,5 +616,20 @@
         feedbackExportDataStart();    
     });
     
+
+    // Select All/None Toggler
+    $('.form-toggler').on('change', function(e){
+        let toggler = $(this).attr('data-toggle'),
+            checked = $(this).prop('checked');
+
+        if( checked ){
+            $('input[name="'+toggler+'"]').prop('checked', true);
+        } else {
+            $('input[name="'+toggler+'"]').prop('checked', false);
+        }
+        allFormIdUpdate();
+        allFormIdUpdateDiy();
+    });
+
 
 })( jQuery );
