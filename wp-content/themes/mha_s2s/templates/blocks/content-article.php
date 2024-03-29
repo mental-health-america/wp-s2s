@@ -85,7 +85,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
 
                         // Introductory Content
                         echo '<div class="article--introductory_content">';
-                        the_field('introductory_content');
+                        echo get_field('introductory_content');
                         echo '</div>';
                     
                         // Main Content
