@@ -351,7 +351,7 @@ function likeChecker($pid, $row){
 }
 
 
-function get_all_mha_user_likes(){
+function get_all_mha_user_likes( $pids = array() ){
 
 	// Vars
 	$ipiden = get_ipiden();	
@@ -359,10 +359,11 @@ function get_all_mha_user_likes(){
 
 	// Handle anonymous or logged in differently
 	$user_where = ($uid == 0) ? "uid = 4 AND ipiden = '$ipiden'" : "uid = $uid";
-
+	$pids_where = $pids ? ' AND pid IN ('.implode(',',$pids).') ' : '';
+	
 	// Get Results
 	global $wpdb;
-	$db_likes = $wpdb->get_results("SELECT pid, 'row' FROM thoughts_likes WHERE $user_where AND unliked = 0 ORDER BY date DESC LIMIT 100");	
+	$db_likes = $wpdb->get_results("SELECT * FROM thoughts_likes WHERE $user_where AND unliked = 0 $pids_where ORDER BY date DESC LIMIT 100");	
 
 	return $db_likes ? $db_likes : false;
 }

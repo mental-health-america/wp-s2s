@@ -6,7 +6,7 @@
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsScripts');
 function mhaDiyToolsScripts() {
-	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20231218', true);
+	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20240402_v1', true);
 	//wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), time(), true);
 	wp_localize_script('process_mhaDiyTools', 'do_mhaDiyTools', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
@@ -84,7 +84,7 @@ function mhaDiySubmit(){
                 if($answer != ''){
                     $new_row = array(
                         'field_634840ef4cbb3'	=> $r_id, // Question ID
-                        'field_634857934cbb4' 	=> $answer, // Answer
+                        'field_634857934cbb4' 	=> strlen($answer) > 1000 ? substr($answer,0,1000)." [[...]]" : $answer, // Answer
                         'field_6348579d4cbb5' 	=> $timestamp, // Date
                     );
                     array_push($response_rows, $new_row);
@@ -144,6 +144,7 @@ function mhaDiySubmit(){
             $result['updated_user_viewed_crowdsource'] = update_field('user_viewed_crowdsource', $args['opened_diy'], $result['post_id']);               
             $result['updated_crowdsource_hidden'] = update_field('crowdsource_hidden', $args['crowdsource_hidden'], $result['post_id']);
             $result['updated_user_viewed_crowdsource_question'] = update_field('user_viewed_crowdsource_question', $args['opened_diy_question'], $result['post_id']);
+            $result['updated_start_page_url'] = update_field('start_page_url', sanitize_url( $args['current_url'] ), $result['post_id']);
 
             // Only add the referring start page for this activity if the value is blank
             if(!get_field('start_page', $result['post_id'])){
@@ -217,13 +218,13 @@ function getDiyCrowdsource(){
     // Pagination settings
     $per_page = $args['embedded'] ? 5 : 10; // Different page counts for display types
     $args['offset'] = (intval($args['page']) - 1) * $per_page;
+    $args['per_page'] = $per_page;
 
     // Future helpers
     $diy_flag_message = get_field('flag_message', 'options');
     $diy_flag_confirm = get_field('flag_confirmation', 'options');
     $activity_questions = get_field('questions', $args["activity_id"]);
     $total_questions = $activity_questions ? count($activity_questions) : 0;
-    $user_likes = get_all_mha_user_likes();
     $show_next_previews = get_field('show_next_previews', $args["activity_id"]) ? get_field('show_next_previews', $args["activity_id"]) : 0;
 
     if($args['single_embed'] == 1){
@@ -233,15 +234,13 @@ function getDiyCrowdsource(){
     $responses = []; // Store carousel of responses
     $responses_collection = []; // Uses for storing response IDs
 
-	// Return JSON contents if available if not an admin
+	// Return JSON contents if available
     $use_cache = false;
-    /*
 	$json = plugin_dir_path( __FILE__ ).'tmp/'.$args['activity_id'].'_'.$args['page'].'.json'; 
     if (file_exists($json) && filemtime($json) > strtotime('-1 day') && $args['page'] == 1 ) {
         $responses = json_decode(file_get_contents($json), true);
         $use_cache = true;
     }
-    */
 
     if(!$use_cache && $args['page'] == 1 || $args['page'] > 1){
 
@@ -259,68 +258,65 @@ function getDiyCrowdsource(){
         $date_old = date('Y-m-d', $crowdsource_scoring_time);
         $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $crowdsource_scoring_id);
 
-        //if($args['page'] == 1){
-
-            // Get flags for later
-            $top_flags = [];
-            $top_flags_query = $wpdb->get_results("
-                SELECT pid, 'row', COUNT(pid) AS highflags 
-                FROM thoughts_flags 
-                WHERE 
-                    ref_pid = {$args['activity_id']}
-                GROUP BY pid
-                HAVING (highflags >= 1) 
-                ORDER BY date DESC 
-                LIMIT 200
-            ");
-            if($top_flags_query){
-                foreach($top_flags_query as $tf){
-                    $top_flags[] = $tf->pid;
-                }
-            }            
-            // Crosscheck with admin notes
-            foreach($top_flags as $k => $v){
-                $admin_note = get_field('admin_notes', $v);
-                if($admin_note && $admin_note != ''){
-                    unset($top_flags[$k]);
-                }
+        // Get flags for later
+        $top_flags = [];
+        $top_flags_query = $wpdb->get_results("
+            SELECT pid, 'row', COUNT(pid) AS highflags 
+            FROM thoughts_flags 
+            WHERE 
+                ref_pid = {$args['activity_id']}
+            GROUP BY pid
+            HAVING (highflags >= 1) 
+            ORDER BY date DESC 
+            LIMIT 200
+        ");
+        if($top_flags_query){
+            foreach($top_flags_query as $tf){
+                $top_flags[] = $tf->pid;
             }
-            
-            // Get Likes
-            $where_flag = '';
-            if(count($top_flags)){
-                $flag_id_string = implode(',', $top_flags);
-                $where_flag = "AND pid NOT IN($flag_id_string)";
+        }            
+        // Crosscheck with admin notes
+        foreach($top_flags as $k => $v){
+            $admin_note = get_field('admin_notes', $v);
+            if($admin_note && $admin_note != ''){
+                unset($top_flags[$k]);
             }
-            $top_likes = $wpdb->get_results("
-                SELECT pid, COUNT(*) as total_likes 
-                FROM thoughts_likes 
-                WHERE 
-                    ref_pid = {$args['activity_id']} AND 
-                    unliked = 0 AND 
-                    date >= '{$date_old}'
-                    {$where_flag}
-                GROUP BY pid 
-                ORDER BY total_likes DESC 
-                LIMIT {$per_page}
-                OFFSET {$args["offset"]}
-            ");
-            if($top_likes){
-                foreach($top_likes as $tl){
-                    if(get_post($tl->pid) && !get_field('crowdsource_hidden', $tl->pid)){
-                        $response_likes_override = $relate_bonus ? ($relate_bonus * $tl->total_likes) : $tl->total_likes;
-                        $responses_collection[$tl->pid] = array(
-                            'id'    => $tl->pid,
-                            'date'  => get_the_date('', $tl->pid),
-                            'likes' => ($tl->total_likes > 0) ? $response_likes_override : 0,
-                            'true_likes' => $tl->total_likes,
-                        );  
-                        
-                    }
+        }
+        
+        // Get Likes
+        $where_flag = '';
+        if(count($top_flags)){
+            $flag_id_string = implode(',', $top_flags);
+            $where_flag = "AND pid NOT IN($flag_id_string)";
+        }
+        /*
+        $top_likes = $wpdb->get_results("
+            SELECT pid, COUNT(*) as total_likes 
+            FROM thoughts_likes 
+            WHERE 
+                ref_pid = {$args['activity_id']} AND 
+                unliked = 0 AND 
+                date >= '{$date_old}'
+                {$where_flag}
+            GROUP BY pid 
+            ORDER BY total_likes DESC
+            LIMIT {$per_page}
+            OFFSET {$args["offset"]}
+        ");
+        if($top_likes){
+            foreach($top_likes as $tl){
+                if(get_post($tl->pid) && !get_field('crowdsource_hidden', $tl->pid)){
+                    $response_likes_override = $relate_bonus ? ($relate_bonus * $tl->total_likes) : $tl->total_likes;
+                    $responses_collection[$tl->pid] = array(
+                        'id'    => $tl->pid,
+                        'date'  => get_the_date('', $tl->pid),
+                        'likes' => ($tl->total_likes > 0) ? $response_likes_override : 0,
+                        'true_likes' => $tl->total_likes,
+                    );                      
                 }
             }
-
-        //}
+        }
+        */
 
         $crowd_args = array(
             "post_type"     	=> 'diy_responses',
@@ -342,8 +338,7 @@ function getDiyCrowdsource(){
                     'key'       => 'activity_id',
                     'value'     => '"'.$args['activity_id'].'"',
                     'compare'   => 'LIKE'
-                ),
-                
+                ),                
                 array(
                     'relation' => 'OR',
                     array(
@@ -374,25 +369,22 @@ function getDiyCrowdsource(){
 
             // Skip previoulsy retrieved IDs
             $pid = get_the_ID();
-            
-            //$result['html'] .= '<pre>PID: '.print_r($pid, true).'<br /></pre>';
-            //if(!isset($responses_collection[$pid])){
-                $response_likes = $wpdb->get_var("
-                    SELECT COUNT(*) as total_likes 
-                    FROM thoughts_likes 
-                    WHERE pid = {$pid} AND unliked = 0 AND date >= '{$date_old}' 
-                    GROUP BY pid 
-                    ORDER BY total_likes DESC 
-                ");
+        
+            $response_likes = $wpdb->get_var("
+                SELECT COUNT(*) as total_likes 
+                FROM thoughts_likes 
+                WHERE pid = {$pid} AND unliked = 0 AND date >= '{$date_old}' 
+                GROUP BY pid 
+                ORDER BY total_likes DESC 
+            ");
 
-                $response_likes_override = $relate_bonus ? ($relate_bonus * $response_likes) : $response_likes;
-                $responses_collection[$pid] = array(
-                    'id'    => $pid,
-                    'date'  => get_the_date('', $pid),
-                    'likes' => ($response_likes > 0) ? $response_likes_override : 0,
-                    'true_likes' => $response_likes,
-                );  
-            //}
+            $response_likes_override = $relate_bonus ? ($relate_bonus * $response_likes) : $response_likes;
+            $responses_collection[$pid] = array(
+                'id'    => $pid,
+                'date'  => get_the_date('', $pid),
+                'likes' => ($response_likes > 0) ? $response_likes_override : 0,
+                'true_likes' => $response_likes,
+            ); 
             
         endwhile;
         endif;    
@@ -418,19 +410,26 @@ function getDiyCrowdsource(){
         usort($responses, function ($a, $b) {return $b['score'] <=> $a['score'];} );
 
         // Update the cache file
-        /*
         $fp = fopen($json, 'w');
         fwrite($fp, json_encode($responses));
         fclose($fp);
-        */
     }
     // End $use_cache
 
+    // Get user likes for this activity to pre-mark them
+    $pids_search = [];
+    foreach($responses as $r){
+        $pids_search[] = $r['pid'];
+    }
+    $user_likes = get_all_mha_user_likes( $pids_search );
+
     // Build HTML to return
     $result['responses'] = $responses;
-    //$result['html'] .= '<pre>'.print_r($responses, true).'</pre>';
+    
+    // Debug helper
     $result['html'] .= '<div class="question-container" data-page="'.$args['page'].'">';  
     
+
     if($args['page'] > 1 && count($responses) > 0){
         //$result['html'] .= '<div class="wrap narrow crowdsource-page-label text-center text-teal mb-3"><hr class="mt-4 mb-0" style="border-color: #1fb4bb;" />New</div>';   
         $result['html'] .= '<div class="wrap narrow crowdsource-page-label text-center text-teal mb-3">Page '.$args['page'].'</div>';   
@@ -572,7 +571,7 @@ function getDiyCrowdsource(){
             if($args['page'] > 1 ){
                 $result['html'] .= '<button class="button gray round-tl mr-3 diy-previous-page" data-show-page="'.($args['page'] - 1).'">Previous Page</button>';
             }
-            if($args['total_pages'] > 0 && $args['page'] < $args['total_pages']){
+            if($args['total_pages'] > 0 && $args['page'] < $args['total_pages'] || $use_cache && count($responses) == $per_page){
                 $result['html'] .= '<button class="diy-load-more button teal round-br" data-show-page="'.($args['page'] + 1).'">Next Page</button>';
             }
         $result['html'] .= '</div>';

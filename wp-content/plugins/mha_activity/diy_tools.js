@@ -110,9 +110,7 @@
 				$('input[name="opened_diy_question"]').val(current_question);
 			}
 
-			// Get the question content 
-			//console.log(data);
-			
+			// Get the question content 			
 			$.ajax({
 				type: "POST",
 				url: do_mhaDiyTools.ajaxurl,
@@ -123,7 +121,7 @@
 				success: function( results ) {
 					var res = JSON.parse(results);
 					$diyParent.find('.crowdthoughtsContent').removeClass('loading');
-
+					
 					// The initial population
 					if(activity_page == 1){
 						$diyParent.find('.crowdthoughtsContent').html(res.html);
@@ -342,19 +340,17 @@
 					});
 
 					// Update active navigation
-					question.on('move', function() {
+					question.on('move', function(e, f) {
 						$diyParent.find('.question-breadcrumb li').removeClass('active');
 						$diyParent.find('.question-direct[data-question=q'+question.index+']').parent('li').addClass('active');
-						$diyParent.find('.question-direct[data-question=q'+question.index+']').find('textarea').focus();
 					});
 
 					// Update active navigation
-					question.on('run.after', function() {
+					question.on('run.after', function(e) {
 						// Scroll to the proper question it was opened on
 						if( $diyParent.find('.toggle-crowdthoughts').attr('aria-expanded') == 'true' ){
 							$diyParent.find('.crowdsource-responses .glide__arrows .diy-direct-slide[data-index="'+question.index+'"]').click();
 						}
-						$('.question[data-question="q'+question.index+'"]').find('textarea').focus();
 					});
 					
 					// Carousel navigation
@@ -451,7 +447,10 @@
 					q_answer = $diyParent.find('textarea[data-question='+q_id+']').val(),
 					embed_single = $diy_container.attr('data-embed-single'),
 					embed_action = $diy_container.attr('data-action');
-		
+
+				// Focus on next question when clicking the "next" button
+				$diyParent.find('.glide__slide.glide__slide--active').next('li').find('textarea').focus();
+
 				if(q_answer != ''){
 
 					$thisButton.prop('disabled', true);
@@ -533,6 +532,7 @@
 
 										// Redirect to TY page
 										//window.location.href = res.redirect;
+										var futureRedirect = res.redirect;
 
 										// Embed TY on page or redirect
 										if(res.args.embedded == 1){
@@ -548,9 +548,17 @@
 													data: resultArgs
 												},
 												success: function( results ) {
-													var res = JSON.parse(results);
-													//console.log(res);
-													$diyParent.parents('.diy-tool-shortcode').html(res.html);
+													
+													var res = JSON.parse(results),
+														$completedDiyContainer = $diyParent.parents('.diy-tool-shortcode');
+
+													$completedDiyContainer.html(res.html);
+
+													// Iframe for a server post log to track completions 
+													let iframeUrl = new URL(futureRedirect);
+													iframeUrl.searchParams.append('completed_embed', 1);
+													$('<iframe id="completedDiyFrame" frameborder="0" width="0" height="0" class="invisible" scrolling="no" />').prop('src', iframeUrl).appendTo( $completedDiyContainer );
+													
 												},
 												error: function(xhr, ajaxOptions, thrownError){
 													console.error(xhr,thrownError);
@@ -731,6 +739,45 @@
 			});	
 			
 		});
+
+
+		$('.diy-carousel-nav.fade-right').on('click', function(e){
+			let $diyParent = $(this).parents('.diy-tool-container');
+			$diyParent.find('.glide__slide.glide__slide--active').next('li').find('textarea').focus();
+		});
+		
+		$('.diy-carousel-nav.fade-left').on('click', function(e){
+			let $diyParent = $(this).parents('.diy-tool-container');
+			$diyParent.find('.glide__slide.glide__slide--active').prev('li').find('textarea').focus();
+		});
+
+		$('.diy-questions .question textarea').keyup(function() {    
+			let characterCount = $(this).val().length,
+				thisName = $(this).attr('name'),
+				current = $('.character-counter[data-answer="'+thisName+'"] .current'),
+				maximum = $('.character-counter[data-answer="'+thisName+'"] .maximum'),
+				theCount = $('.character-counter[data-answer="'+thisName+'"]');
+			
+			current.text(characterCount);
+					
+			/*This isn't entirely necessary, just playin around*/
+			if (characterCount < 900) {
+				current.css('color', '#144B5E');
+			}
+			if (characterCount > 900 && characterCount < 975) {
+				current.css('color', '#F89941');
+			}
+			if (characterCount > 975) {
+				current.css('color', '#C1335D');
+			}
+			
+			if (characterCount >= 900) {
+				theCount.removeClass('d-none').addClass('d-block');
+			} else {
+				theCount.removeClass('d-block').addClass('d-none');
+			}
+		});
+			
 
 	});
 

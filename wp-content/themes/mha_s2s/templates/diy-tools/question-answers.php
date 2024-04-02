@@ -83,8 +83,9 @@
 
                     // Default tabindexes
                     $tabindex = '-1';
+                    $tabindex = $row_index + 1;
                     if($row_index == 0){
-                        $tabindex = '0';
+                        //$tabindex = '0';
                     }
                     ?>
                         <li class="glide__slide">
@@ -120,7 +121,10 @@
                                                     $textarea_value = sanitize_text_field( $_POST["answer_$row_index"] ); 
                                                 }
                                                 ?>
-                                                    <textarea name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" tabindex="<?php echo $tabindex; ?>" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>><?php echo $textarea_value; ?></textarea>
+                                                    <textarea maxlength="1000" name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" tabindex="<?php echo $tabindex; ?>" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>><?php echo $textarea_value; ?></textarea>
+                                                    <span class="character-counter text-right bold d-none" data-answer="answer_<?php echo $row_index; ?>">
+                                                        <span class="current">0</span> <span class="maximum">/ 1000</span>
+                                                    </span>
                                                 <?php
                                                 break;
                                         }
