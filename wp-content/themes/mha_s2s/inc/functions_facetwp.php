@@ -103,7 +103,7 @@ add_filter( 'facetwp_facet_html', function( $output, $params ) {
     return $output;
 }, 10, 2 );
 
-// Override specific labels
+// FacetWP label overrides
 add_filter( 'facetwp_facet_display_value', function( $label, $params ) {
     if ( 'language' == $params['facet']['name'] && 'Yes' == $label ) {
         $label = 'Español';
@@ -124,6 +124,9 @@ add_action( 'wp_head', function() {
 		
 		(function($) {
 
+			/**
+			 * FacetWP sorting
+			 */
 			$(document).on('click', '.sort-order-button', function() {
 				var val = $(this).attr('data-value');
 				FWP.facets['sort_by'] = [val];
@@ -132,6 +135,9 @@ add_action( 'wp_head', function() {
 				FWP.setHash();
 			});
 
+			/**
+			 * FacetWP language toggle
+			 */
 			$(document).on('click', '.language-toggle', function() {
 				if(FWP.facets.language[0] == 1 || FWP.facets.language[0] == '1'){
 					FWP.facets['language'] = ['0'];
@@ -155,8 +161,9 @@ add_action( 'wp_head', function() {
 				$('.facetwp-template').addClass('loaded').animate({ opacity: 1 }, 150);
 			});
 
-
-			var firstLoad = 0;			
+			/**
+			 * FacetWP Loaded
+			 */
 			$(document).on('facetwp-loaded', function() {
 
 				// Change the current sort display on the dropdown
@@ -215,11 +222,6 @@ add_filter( 'facetwp_preload_url_vars', function( $url_vars ) {
         if ( empty( $url_vars['language'] ) ) {
             $url_vars['language'] = [ '0' ];
         }
-    }	
-    if ( 'get-help' == FWP()->helper->get_uri() ) {
-        if ( empty( $url_vars['area_served'] ) ) {
-            $url_vars['area_served'] = [ 'national' ];
-        }
     }
     return $url_vars;
 } );
@@ -230,7 +232,6 @@ add_filter( 'facetwp_proximity_autocomplete_options', function( $options ) {
     $options['componentRestrictions'] = [
         'country' => ['us'],
     ];
-
     return $options;
 });
 
