@@ -119,6 +119,7 @@ button.peek {
     }
     &.fade-left {
         left: 0;
+        border: 0;
         background: rgb(255,255,255);
         background: -moz-linear-gradient(90deg, rgba(255,255,255,1) 10%, rgba(255,255,255,0) 100%);
         background: -webkit-linear-gradient(90deg, rgba(255,255,255,1) 10%, rgba(255,255,255,0) 100%);
@@ -127,6 +128,7 @@ button.peek {
     }
     &.fade-right {
         right: 0;
+        border: 0;
         background: rgb(255,255,255);
         background: -moz-linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 90%);
         background: -webkit-linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 90%);
