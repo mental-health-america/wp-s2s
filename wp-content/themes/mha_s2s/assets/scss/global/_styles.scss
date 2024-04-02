@@ -814,6 +814,15 @@ h2 {
         }
     }
 
+    &.smaller {
+        margin: 0 0 .75em 0;
+        font-size: 1.5em;
+        line-height: 1.15em;
+        @include montserrat(700);
+        color: $blueDark;
+
+    }
+
     &.bold { font-weight: 700; }
 
     // Colors

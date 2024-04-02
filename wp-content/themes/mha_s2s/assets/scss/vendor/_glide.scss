@@ -1,4 +1,5 @@
-.glide {
+.js {
+  .glide {
     position: relative;
     width: 100%;
     box-sizing: border-box;
@@ -133,3 +134,7 @@
     cursor: -moz-grabbing;
     cursor: -webkit-grabbing;
   }
+}
+.glide__slide {
+  list-style-type: none;
+}
