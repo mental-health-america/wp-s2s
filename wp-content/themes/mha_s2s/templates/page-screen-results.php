@@ -20,7 +20,7 @@ else:
 
     // Get Screen Results
     $user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
-    
+
     // Update featured links based on result page attributes
     // To debug, comment this out to not lock in answers so refreshing works
     if($user_screen_result['featured_next_steps_data'] && str_contains(get_query_var('layout'), 'mhats')){
@@ -456,7 +456,7 @@ else:
                         <div class="<?php echo $ns_custom_classes; ?>">
                             <div class="inner">
                                 <?php
-                                    the_sub_field('content');
+                                    echo get_sub_field('content');
                                 ?>
                             </div>
                         </div>
@@ -777,7 +777,13 @@ else:
                     isset($user_screen_result['answered_demos']['Which of the following populations describes you?']) && 
                     in_array('Veteran or active-duty military', $user_screen_result['answered_demos']['Which of the following populations describes you?'])
                 ){
-                    $unique_result_cta = array('126533');
+                    if(
+                        !isset($user_screen_result['answered_demos']['Do you live in the United States or another country?']) ||
+                        isset($user_screen_result['answered_demos']['Do you live in the United States or another country?']) && 
+                        !in_array('I live in another country', $user_screen_result['answered_demos']['Do you live in the United States or another country?'])
+                    ){
+                        $unique_result_cta = array('126533');
+                    }
                 }
 
                 /**

@@ -239,7 +239,7 @@ $term = null;
 							"post_type"         => 'screen',
 							"order"	            => 'DESC',
 							"post_status"       => 'publish',
-							"posts_per_page"    => 50,
+							"posts_per_page"    => 10,
 							'tax_query'      => array(
 								array(
 									'taxonomy' => $tax,
@@ -259,7 +259,8 @@ $term = null;
 									'value' => '1',
 									'compare' => 'NOT EXISTS'
 								)
-							)
+							),
+							'fields' => 'ids'
 						);
 						$loop = new WP_Query($args);
 						$cta_count = 0;
@@ -280,9 +281,9 @@ $term = null;
 											$an_a = 'n ';
 										}
 									?>
-									<?php the_title('<h3>Take a'.$an_a,'</h3>'); ?>   
+									<h3>Take a<?php echo "$an_a $title"; ?></h3> 
 									<div class="excerpt"><?php the_excerpt(); ?></div>
-									<div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
+									<div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo "$an_a $title"; ?></a></div>
 								
 								</div>
 								</div>
@@ -300,7 +301,6 @@ $term = null;
 
 		<?php
 		// Content Blocks
-		wp_reset_query();
 		if( have_rows('block') ):
 		while ( have_rows('block') ) : the_row();
 			$layout = get_row_layout();

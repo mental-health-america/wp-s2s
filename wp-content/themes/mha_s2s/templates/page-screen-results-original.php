@@ -549,7 +549,7 @@ else:
                         <div class="<?php echo $ns_custom_classes; ?>">
                             <div class="inner">
                                 <?php
-                                    the_sub_field('content');
+                                    echo get_sub_field('content');
                                 ?>
                             </div>
                         </div>

@@ -286,7 +286,7 @@ get_header();
 									data-additional-reference="<?php echo get_sub_field('additional_reference'); ?>" 
 									class="question-item<?php echo $row_class; ?>" style="display: <?php echo $display; ?>;">
 
-										<div><?php the_sub_field('introduction'); ?></div>
+										<div><?php echo get_sub_field('introduction'); ?></div>
 
 										<div class="bubble blue round-bl">
 										<div class="inner">

@@ -1,5 +1,11 @@
 <?php 
 /* Template Name: My Account */
+
+if( !is_user_logged_in() ){
+    wp_redirect('/log-in');
+    exit();
+}
+
 get_header(); 
 
 global $wpdb;
@@ -10,11 +16,6 @@ if(get_query_var('admin_uid') && current_user_can('administrator')){
     $uid = get_query_var('admin_uid');
     $current_user = get_user_by( 'id', $uid );
 }
-
-
-if( !get_current_user_id() ):    
-    echo '<p class="text-center">Please <a href="/log-in">log in</a> to view your account.</p>';
-else:
 
 /**
  * Special action overrides
@@ -985,7 +986,5 @@ if (strpos($account_action, 'save_screen_') !== false) {
 </div>
 
 <?php
-
-endif;
 
 get_footer();

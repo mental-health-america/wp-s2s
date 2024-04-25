@@ -30,7 +30,7 @@
             <?php 
                 //if(!$embedded):
                     if(get_field('completed_tool_message', $activity_id)){
-                        the_field('completed_tool_message', $activity_id);
+                        echo get_field('completed_tool_message', $activity_id);
                     } else {
                         $activity = get_post($activity_id);
                         echo apply_filters('the_content', $activity->post_content);

@@ -80,7 +80,7 @@
             <h3 class="block-title"><?php the_sub_field('right_title'); ?></h3>
         <?php endif; ?>
 
-        <?php the_sub_field('right_column'); ?>
+        <?php echo get_sub_field('right_column'); ?>
 
         <?php
             // Close Wrappers

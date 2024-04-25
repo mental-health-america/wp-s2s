@@ -1,11 +1,18 @@
 <?php 
 /* Template Name: Log In */
-get_header(); 
+
 $signup_url = '/sign-up';
 $redirect_query = get_query_var('redirect_to');
 if($redirect_query){
     $signup_url = add_query_arg( 'redirect_to', $redirect_query, $signup_url ); 
 }
+
+if( is_user_logged_in() ){
+    wp_redirect('/my-account');
+    exit();
+}
+
+get_header(); 
 ?>
 
 <div class="wrap medium">
@@ -19,7 +26,7 @@ if($redirect_query){
 <div class="wrap medium">
     <div class="bubble round-small bubble-border light-blue">
     <div class="inner">
-
+    
         <div id="sign-up-form" class="form-container line-form blue">
 
         <div class="existing-account right">      

@@ -8,7 +8,7 @@
                 <?php endif; ?>
                 
                 <div class="text">
-                    <?php the_field('hero_introduction'); ?>
+                    <?php echo get_field('hero_introduction'); ?>
                 </div>
 
                 <?php 

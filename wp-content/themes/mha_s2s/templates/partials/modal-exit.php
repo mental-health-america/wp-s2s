@@ -5,7 +5,7 @@
     <div class="modal-content">
       <div class="modal-header d-none"></div>
       <article class="modal-body">
-        <?php the_field('modal_content'); ?>
+        <?php echo get_field('modal_content'); ?>
       </article>
       <div class="modal-footer border-0">
         <button type="button" class="round-tl blue" data-dismiss="modal">Close</button>

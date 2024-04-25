@@ -16,7 +16,7 @@
         <h2 class="block-title"><?php the_sub_field('headline'); ?></h2>
     <?php endif; ?>
 
-    <?php the_sub_field('content'); ?>
+    <?php echo get_sub_field('content'); ?>
 
     <?php
         // Check rows exists.

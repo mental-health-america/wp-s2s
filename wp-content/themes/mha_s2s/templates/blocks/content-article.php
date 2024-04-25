@@ -164,7 +164,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                         if(get_field('pricing_information')){
                             echo '<div class="mb-4">';
                                 echo '<h2>Pricing Information</h2>';
-                                the_field('pricing_information');
+                                echo get_field('pricing_information');
                             echo '</div>';
                         }
 
@@ -187,7 +187,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                         if(get_field('privacy_information')){
                             echo '<div class="mb-4">';
                                 echo '<h2>Privacy Information</h2>';
-                                the_field('privacy_information');
+                                echo get_field('privacy_information');
                             echo '</div>';
                         }
 
@@ -195,12 +195,12 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                         if(get_field('disclaimer')){
                             echo '<div class="mb-4">';
                                 echo '<h2>Disclaimer</h2>';
-                                the_field('disclaimer');
+                                echo get_field('disclaimer');
                             echo '</div>';
                         }
 
                         // Global article footer
-                        the_field('article_footer_content', 'options');
+                        echo get_field('article_footer_content', 'options');
                     ?>
                 </div>      
                 
@@ -219,7 +219,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                     <?php
                         // Introductory Content
                         echo '<div class="article--footer_content">';
-                        the_field('article_footer_content');
+                        echo get_field('article_footer_content');
                         echo '</div>';
                     ?>
                 </div>
