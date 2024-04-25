@@ -84,6 +84,13 @@ function mha_export_screen_data(){
         
     }
 
+    // Elapsed Time Start
+    if(isset($args['elapsed_start'])){
+        $args['elapsed_start'] = $args['elapsed_start'];
+    } else {
+        $args['elapsed_start'] = time();
+    }
+
     // Pagination
     $page_size = 1500;
     $offset = ($args['page'] - 1) * $page_size;
@@ -125,28 +132,29 @@ function mha_export_screen_data(){
             // Get headers for all forms
             $all_form_demo_fields = [];    
             foreach($all_form_ids as $form_id){
-                $demo_form = GFAPI::get_form( $form_id );
-                foreach($demo_form['fields'] as $df){  
-                    $field = GFAPI::get_field( $form_id, $df['id'] );
-                    $field_type = isset($field->type) ? $field->type : '';
-                    $field_label = isset($field->label) ? $field->label : '';
-                    
-                    // Quick skip fields
-                    if(
-                        isset($field->cssClass) && strpos($field->cssClass, 'question') !== false || 
-                        isset($field->cssClass) && strpos($field->cssClass, 'question-optional') !== false ||
-                        $field_type == 'html' || 
-                        $field_label == 'Token' ||
-                        $field_label == 'Source URL' || 
-                        $field_label == 'Duplicate' ||
-                        $field_label == 'uid hashed' || 
-                        $field_label == ''
-                    ){
-                        continue;
+                foreach($gform['fields'] as $df){  
+                    if($df->adminLabel != ''){
+                        $field_label = $df['adminLabel'];
+                    } else {
+                        $field_label = isset($df['label']) ? $df['label'] : '';
                     }
                     
-                    // Add to array
-                    $all_form_demo_fields[$form_id][$field_label] = $field_label;
+                    // Add only demo fields
+                    if(
+                        $df['pageNumber'] == 2 &&
+                        strpos($df['cssClass'], 'question') === false && 
+                        strpos($df['cssClass'], 'question-optional') === false &&
+                        $df['type'] != 'html' && 
+                        $field_label != 'Token' &&
+                        $field_label != 'Source URL' &&
+                        $field_label != 'Duplicate' &&
+                        $field_label != 'uid hashed' &&
+                        $field_label != ''
+                    ){
+                        // Add to demo field array
+                        $all_form_demo_fields[$form_id][$field_label] = $field_label;
+                    }
+                    
                 }
             }
             
@@ -164,9 +172,8 @@ function mha_export_screen_data(){
         $unique_fields = [];
 
         foreach($gform['fields'] as $gf){  
-            $field = GFAPI::get_field( $args['form_id'], $gf['id'] );
-            $field_type = isset($field->type) ? $field->type : '';
-            $field_label = isset($field->label) ? $field->label : '';
+            $field_type = $gf['type'];
+            $field_label = $gf['label'];
 
             // Normal Export Skips
             if(
@@ -185,9 +192,13 @@ function mha_export_screen_data(){
 
             // Set field order
             if(in_array($gf['label'], $unique_fields)){
-                $label_text = $gf['label']. ' (#'.$gf['id'].')';
+                if($gf['adminLabel'] != ''){
+                    $label_text = $gf['adminLabel']. ' (#'.$gf['id'].')';
+                } else {
+                    $label_text = $gf['label']. ' (#'.$gf['id'].')';
+                }
             } else {
-                $label_text = $gf['label'];
+                $label_text = ($gf['adminLabel'] != '') ? $gf['adminLabel'] : $gf['label'];
             }
             $unique_fields[] = $label_text;
             $args['fields'][$fi] = array(
@@ -329,9 +340,6 @@ function mha_export_screen_data(){
                 case 'Screen ID':
                     $vlabel = 'Screen';
                     break;
-                case 'Enter Gender':
-                    $vlabel = 'Gender Other';
-                    break;
                 default:
                     $vlabel = $v['label'];
                     break;
@@ -343,7 +351,7 @@ function mha_export_screen_data(){
         // Custom field assignments
         $csv_data[$i]['Created'] = $row_date->format("Y-m-d H:i:s");     
         $csv_data[$i]['Remote IP address'] = $entry['ip'];    
-        $csv_data[$i]['uid'] = $temp_array['uid'] ? md5($temp_array['uid']) : '';
+        $csv_data[$i]['uid'] = isset($temp_array['uid']) ? md5($temp_array['uid']) : '';
         $csv_data[$i]['post_id'] = $entry['id']; 
 
         $i++;
@@ -363,15 +371,6 @@ function mha_export_screen_data(){
     } else {
         $args['next_page'] = $args['page'] + 1;
     }  
-
-    /**
-     * Elapsed Time
-     */
-    if(isset($args['elapsed_start'])){
-        $args['elapsed_start'] = $args['elapsed_start'];
-    } else {
-        $args['elapsed_start'] = time();
-    }
     
     if(count($csv_data) == 0){
         $args['download'] = '#';   
@@ -415,41 +414,36 @@ function mha_export_screen_data(){
 
             // Custom Reordering
 
-            // Move items last
-            moveArrayKeyToLast($csv_headers, array_search('Are you taking this test for yourself or for someone else?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Zip/Postal Code', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Age Range', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Gender', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Child\'s Gender', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Gender Other', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Please check this box if you identify as transgender.', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Please check this box if your child identifies as transgender.', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Race/Ethnicity', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Household Income', $csv_headers) );             
-            moveArrayKeyToLast($csv_headers, array_search('Have you ever received treatment/support for a mental health problem?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Are you receiving treatment/support now?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Which of the following populations describes you?', $csv_headers) );             
-            moveArrayKeyToLast($csv_headers, array_search('Is your child caring for someone with a mental or physical health condition?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Is your child caring for someone with a mental or physical health condition? (old)', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Are you caring for someone with a mental or physical health condition?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Caring For - Other', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Which of the following describe your experience of trauma?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Trauma - Other', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Trauma - other', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Think about your mental health test. What are the main things contributing to your mental health problems right now?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Think about your child\'s mental health test. What are the main things contributing to your child\'s mental health problems right now?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Mental Health Problems - Other', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Which of the following best describes your child\'s sexual orientation?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Which of the following best describes your child\'s sexual orientation? (old)', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Which of the following best describes your sexual orientation?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Sexual Orientation - Other', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Do you currently have health insurance?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Does your child have any of the following general health conditions?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Do you have any of the following general health conditions?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search("If 'Other' please specify (for general health conditions)", $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('State', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('Do you live in the United States or another country?', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('What country do you live in?', $csv_headers) ); 
+            // Move demo items last
+            $demoLabels = [];
+            $demoCounter = 0;
+            foreach($gform['fields'] as $g){
+                if(
+                    $g['pageNumber'] == 2 &&
+                    strpos($g['cssClass'], 'question') === false && 
+                    strpos($g['cssClass'], 'question-optional') === false &&
+                    $g['type'] != 'html' && 
+                    $g['label'] != 'Token' &&
+                    $g['label'] != 'Source URL' &&
+                    $g['label'] != 'Duplicate' &&
+                    $g['label'] != 'uid hashed' &&
+                    $g['label'] != ''
+                ){
+
+                    $demoLabels[$demoCounter] = $g['label'];
+                    if(isset($g['adminLabel']) && $g['adminLabel'] != ''){
+                        $demoLabels[$demoCounter] = $g['adminLabel'];
+                    }
+                    $demoCounter++;
+                    
+                }
+            }
+            foreach($demoLabels as $demoLabel){
+                // Move all demo labels to the end
+                moveArrayKeyToLast($csv_headers, array_search($demoLabel, $csv_headers) ); 
+            }
+
+            // Move specific items to the end
             moveArrayKeyToLast($csv_headers, array_search('Screen', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Score', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Sub Score 1', $csv_headers) ); 
@@ -461,7 +455,7 @@ function mha_export_screen_data(){
             moveArrayKeyToLast($csv_headers, array_search('uid', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('post_id', $csv_headers) ); 
                         
-            // Move items first
+            // Move specific items to the top
             unset($csv_headers[ array_search('Created', $csv_headers) ]);
             $csv_headers = array_values($csv_headers);
             unset($csv_headers[ array_search('Remote IP address', $csv_headers) ]);
