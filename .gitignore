@@ -173,5 +173,6 @@ wp-content/mysql.sql
 /wp-content/plugins/mha_imports/vendor
 !/wp-content/plugins/gravityforms
 !/wp-content/themes/mha_s2s
+/wp-content/themes/mha_s2s/templates/page-devtest.php
 bak
 codes
