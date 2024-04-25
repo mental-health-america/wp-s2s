@@ -247,50 +247,52 @@ $term = null;
 									'terms'    => $tag
 								),
 							),
-							'meta_query' => array( 
-								'relation' => 'OR',
-								array(
-									'key' => 'espanol',
-									'value' => '1',
-									'compare' => '!='
-								),
-								array(
-									'key' => 'espanol',
-									'value' => '1',
-									'compare' => 'NOT EXISTS'
-								)
-							),
 							'fields' => 'ids'
 						);
 						$loop = new WP_Query($args);
 						$cta_count = 0;
+						$test_cta = [];
 						if($loop->have_posts()):
 						while($loop->have_posts()) : $loop->the_post(); 
 							
 							$primary_condition_yoast = get_post_meta(get_the_ID(),'_yoast_wpseo_primary_condition', true);
-							if(get_field('invisible') || get_field('survey') || $primary_condition_yoast != $tag || $cta_count > 0){
+							if(
+								get_field('invisible') || 
+								get_field('survey') || 
+								$primary_condition_yoast != $tag || 
+								$cta_count > 0 || 
+								get_field('espanol')
+							){
 								continue;
-							}
-							?>   
+							}							
+							$test_cta[] = get_the_ID();
+							$cta_count++;
+							
+						endwhile;
+						endif;
+
+						// Display randomized matching test CTA
+						if(!empty($test_cta)):
+							shuffle($test_cta);
+							?>
 								<div class="bubble round-tl orange normal">
 								<div class="inner">
 									<?php
 										$an_a = ' '; 
-										$title = get_the_title();
+										$title = get_the_title($test_cta[0]);
 										if($title[0] == 'A'){
 											$an_a = 'n ';
 										}
 									?>
 									<h3>Take a<?php echo "$an_a $title"; ?></h3> 
-									<div class="excerpt"><?php the_excerpt(); ?></div>
-									<div class="text-center pb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo "$an_a $title"; ?></a></div>
+									<div class="excerpt"><p><?php echo get_the_excerpt($test_cta[0]); ?></p></div>
+									<div class="text-center pb-3"><a href="<?php echo get_the_permalink($test_cta[0]); ?>" class="button white round text-orange">Take a<?php echo "$an_a $title"; ?></a></div>
 								
 								</div>
 								</div>
-							<?php 
-							$cta_count++;
-						endwhile;
+							<?php
 						endif;
+
 						wp_reset_query();
 					?>
 				</div>
