@@ -26,6 +26,9 @@ get_header();
 		case 'question_answer':
 			get_template_part( 'templates/diy-tools/question', 'answers' ); 
 			break;
+        case 'worksheet':
+            get_template_part( 'templates/diy-tools/worksheet' ); 
+            break;
 	}
 ?>
 
