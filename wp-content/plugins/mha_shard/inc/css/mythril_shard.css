@@ -1,0 +1,11 @@
+.acf-table > thead > tr > th[data-key=field_616897e294373],
+.acf-table > thead > tr > th[data-key=field_6168948faf710] {
+    width: 40% !important;
+}
+
+.acf-table > thead > tr > th[data-key=field_616897ce94372],
+.acf-table > thead > tr > th[data-key=field_6402770e7ff72],
+.acf-table > thead > tr > th[data-key=field_6168947aaf70f],
+.acf-table > thead > tr > th[data-key=field_663a46deb9b7c] {
+    width: 20% !important;
+}
