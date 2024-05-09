@@ -163,6 +163,9 @@ function mhausercleanupper() {
 
     $user_data = $data['user_data'];
     $response['user_data'] = $data['user_data'];
+    $response['review'] = isset($data['review']) ? $data['review'] : false;
+    
+    $deleted_suffix = $response['review'] ? '' : ' removed';
 
     // User ID was submitted
     $user = false;
@@ -185,74 +188,167 @@ function mhausercleanupper() {
         //For wp_delete_user() function
         require_once(ABSPATH.'wp-admin/includes/user.php' );
 
-        if( in_array( "administrator", $this_user_roles) ) {
+        if( in_array( "administrator2", $this_user_roles) ) {
             $response['error'] = '<hr />This user is admin and cannot be deleted via this method.';
         } else {
-            $delete_user = wp_delete_user( $user_id, null );
-            if( $delete_user ){
 
-                $response['message'] = '<hr />User ID #'.$user_id.' successfully removed.<br />';
+            $delete_user = false;
+            if(!$response['review']){
+                $delete_user = wp_delete_user( $user_id, null );
+            }
+
+            if( $delete_user || isset($response['review']) && $response['review'] ){
+
+                if($response['review']){
+                    $response['message'] = '<hr />User ID #'.$user_id.' data:<br />';
+                } else {
+                    $response['message'] = '<hr />User ID #'.$user_id.' successfully removed.<br />';
+                }
 
                 // Get likes, flags, and hides
                 global $wpdb;
-                $results_1 = $wpdb->get_results( "SELECT id FROM article_likes WHERE uid = ".$user_id."", OBJECT );   
-                $response['message'] .= '<br /><strong>'.count($results_1).'</strong> Article Likes removed.';
-                foreach($results_1 as $eid1){
-                    $response['eid1_status'] = $wpdb->delete( 'article_likes', array( 'id' => $eid1->id ) );
+                $results_1 = $wpdb->get_results( "SELECT pid FROM article_likes WHERE uid = ".$user_id."", OBJECT );   
+                $response['message'] .= '<br /><strong>'.count($results_1).'</strong> Article Likes'.$deleted_suffix.'.';
+                if($response['review']){
+                    if(count($results_1) > 0){
+                        $response['message'] .= '<ol>';
+                        foreach($results_1 as $r){                
+                            $response['message'] .= '<li><a target="_blank" href="'.get_the_permalink($r->pid).'">Article liked #'.$r->pid.'</a></li>';                        
+                        }
+                        $response['message'] .= '</ol>';
+                    }
+                } else {
+                    foreach($results_1 as $eid1){
+                        $response['eid1_status'] = $wpdb->delete( 'article_likes', array( 'id' => $eid1->id ) );
+                    }
                 }
 
-                $results_2 = $wpdb->get_results( "SELECT id FROM screens_hidden WHERE uid = ".$user_id."", OBJECT );
-                $response['message'] .= '<br /><strong>'.count($results_2).'</strong> Screens Hidden removed.';
-                foreach($results_2 as $eid2){
-                    $wpdb->delete( 'screens_hidden', array( 'id' => $eid2->id ) );
+                $results_2 = $wpdb->get_results( "SELECT pid FROM screens_hidden WHERE uid = ".$user_id."", OBJECT );
+                $response['message'] .= '<br /><strong>'.count($results_2).'</strong> Screens Hidden'.$deleted_suffix.'.';
+                if($response['review']){
+                    if(count($results_2) > 0){
+                        $response['message'] .= '<ol>';
+                        foreach($results_2 as $r){                
+                            $response['message'] .= '<li><a target="_blank" href="'.get_the_permalink($r->pid).'">Screen hidden #'.$r->pid.'</a></li>';                        
+                        }
+                        $response['message'] .= '</ol>';
+                    }
+                } else {
+                    foreach($results_2 as $eid2){
+                        $wpdb->delete( 'screens_hidden', array( 'id' => $eid2->id ) );
+                    }
                 }
 
-                $results_3 = $wpdb->get_results( "SELECT id FROM thoughts_flags WHERE uid = ".$user_id."", OBJECT ); 
-                $response['message'] .= '<br /><strong>'.count($results_3).'</strong> Thought Flags removed.';
-                foreach($results_3 as $eid3){
-                    $wpdb->delete( 'thoughts_flags', array( 'id' => $eid3->id ) );
+                $results_3 = $wpdb->get_results( "SELECT * FROM thoughts_flags WHERE uid = ".$user_id."", OBJECT ); 
+                $response['message'] .= '<br /><strong>'.count($results_3).'</strong> Thought Flags'.$deleted_suffix.'.';
+                if($response['review']){
+                    if(count($results_3) > 0){
+                        $response['message'] .= '<ol>';
+                        foreach($results_3 as $r){
+                            $response['message'] .= '<li><a target="_blank" href="/wp-admin/post.php?post='.$r->id.'&action=edit">Flagged thought ID #'.$r->pid.' (Row #'.$r->row.')</a></li>';                        
+                        }
+                        $response['message'] .= '</ol>';
+                    }
+                } else {
+                    foreach($results_3 as $eid3){
+                        $wpdb->delete( 'thoughts_flags', array( 'id' => $eid3->id ) );
+                    }
                 }
 
-                $results_4 = $wpdb->get_results( "SELECT id FROM thoughts_hidden WHERE uid = ".$user_id."", OBJECT );  
-                $response['message'] .= '<br /><strong>'.count($results_4).'</strong> Thoughts Hidden removed.';
-                foreach($results_4 as $eid4){
-                    $wpdb->delete( 'thoughts_hidden', array( 'id' => $eid4->id ) );
+                $results_4 = $wpdb->get_results( "SELECT pid FROM thoughts_hidden WHERE uid = ".$user_id."", OBJECT );  
+                $response['message'] .= '<br /><strong>'.count($results_4).'</strong> Thoughts Hidden'.$deleted_suffix.'.';
+                if($response['review']){
+                    if(count($results_4) > 0){
+                        $response['message'] .= '<ol>';
+                        foreach($results_4 as $r){                
+                            $response['message'] .= '<li><a target="_blank" href="'.get_the_permalink($r->pid).'">Thought hidden #'.$r->pid.'</a></li>';                        
+                        }
+                        $response['message'] .= '</ol>';
+                    }
+                } else {
+                    foreach($results_4 as $eid4){
+                        $wpdb->delete( 'thoughts_hidden', array( 'id' => $eid4->id ) );
+                    }
                 }
 
-                $results_5 = $wpdb->get_results( "SELECT id FROM thoughts_likes WHERE uid = ".$user_id."", OBJECT );   
-                $response['message'] .= '<br /><strong>'.count($results_5).'</strong> Thought Likes removed.'; 
-                foreach($results_5 as $eid5){
-                    $wpdb->delete( 'thoughts_likes', array( 'id' => $eid5->id ) );
+                $results_5 = $wpdb->get_results( "SELECT * FROM thoughts_likes WHERE uid = ".$user_id."", OBJECT );   
+                $response['message'] .= '<br /><strong>'.count($results_5).'</strong> Thought Likes'.$deleted_suffix.'.'; 
+                if($response['review']){
+                    if(count($results_5) > 0){
+                        $response['message'] .= '<ol>';
+                        foreach($results_5 as $r){                
+                            $response['message'] .= '<li><a target="_blank" href="/wp-admin/post.php?post='.$r->pid.'&action=edit">Thought liked #'.$r->pid.' (Row #'.$r->row.')</a></li>';                        
+                        }
+                        $response['message'] .= '</ol>';
+                    }
+                } else {
+                    foreach($results_5 as $eid5){
+                        $wpdb->delete( 'thoughts_likes', array( 'id' => $eid5->id ) );
+                    }
                 }
 
-                $results_6 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}gf_entry WHERE created_by = ".$user_id."", OBJECT ); 
-                $response['message'] .= '<br /><strong>'.count($results_6).'</strong> Screening Tests removed.';
-                foreach($results_6 as $eid6){
-                    GFAPI::delete_entry( $eid6->id );
+                $results_6 = $wpdb->get_results( "SELECT id, form_id FROM {$wpdb->prefix}gf_entry WHERE created_by = ".$user_id."", OBJECT ); 
+                $response['message'] .= '<br /><strong>'.count($results_6).'</strong> Screening Tests'.$deleted_suffix.'.';                
+                if($response['review']){
+                    if(count($results_6) > 0){
+                        $response['message'] .= '<ol>';
+                        foreach($results_6 as $r){                
+                            $response['message'] .= '<li><a target="_blank" href="/wp-admin/admin.php?page=gf_entries&view=entry&id='.$r->form_id.'&lid='.$r->id.'">Test ID #'.$r->id.'</a></li>';                        
+                        }
+                        $response['message'] .= '</ol>';
+                    }
+                } else {
+                    foreach($results_6 as $eid6){
+                        GFAPI::delete_entry( $eid6->id );
+                    }
                 }
 
-                $results_7 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}posts WHERE post_author = ".$user_id." AND post_type = 'diy_responses'", OBJECT ); 
-                $response['message'] .= '<br /><strong>'.count($results_7).'</strong> DIY Responses removed.';
-                foreach($results_7 as $eid7){
-                    wp_delete_post($eid7->id, true);   
+                $results_7 = $wpdb->get_results( "SELECT ID FROM {$wpdb->prefix}posts WHERE post_author = ".$user_id." AND post_type = 'diy_responses'", OBJECT ); 
+                $response['message'] .= '<br /><strong>'.count($results_7).'</strong> DIY Responses'.$deleted_suffix.'.';
+                if($response['review']){
+                    if(count($results_7) > 0){
+                        $response['message'] .= '<ol>';
+                        foreach($results_7 as $r){                
+                            $response['message'] .= '<li><a target="_blank" href="'.get_the_permalink($r->ID).'">DIY Response ID #'.$r->ID.'</a></li>';                        
+                        }
+                        $response['message'] .= '</ol>';
+                    }
+                } else {
+                    foreach($results_7 as $eid7){
+                        wp_delete_post($eid7->id, true);   
+                    }
                 }
             
                 $results_8 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}posts WHERE post_author = ".$user_id." AND post_type = 'thought'", OBJECT ); 
-                $response['message'] .= '<br /><strong>'.count($results_8).'</strong> Thoughts removed.';
-                foreach($results_8 as $eid8){
-                    wp_delete_post($eid8->id, true);  
+                $response['message'] .= '<br /><strong>'.count($results_8).'</strong> Thoughts'.$deleted_suffix.'.';
+                if($response['review']){
+                    if(count($results_8) > 0){
+                        $response['message'] .= '<ol>';
+                        foreach($results_8 as $r){                
+                            $response['message'] .= '<li><a target="_blank" href="'.get_the_permalink($r->id).'">Thought ID #'.$r->id.'</a></li>';                        
+                        }
+                        $response['message'] .= '</ol>';
+                    }
+                } else {
+                    foreach($results_8 as $eid8){
+                        wp_delete_post($eid8->id, true);  
+                    }
                 }
-                
+
                 $results_9 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}relevanssi_log WHERE user_id = ".$user_id."", OBJECT ); 
-                $response['message'] .= '<br /><strong>'.count($results_9).'</strong> Relevanssi log entries removed.';
-                foreach($results_9 as $eid9){
-                    $wpdb->delete( "{$wpdb->prefix}relevanssi_log", array( 'user_id' => $eid9->id ) );
+                $response['message'] .= '<br /><strong>'.count($results_9).'</strong> Relevanssi log entries'.$deleted_suffix.'.';
+                if(!$response['review']){
+                    foreach($results_9 as $eid9){
+                        $wpdb->delete( "{$wpdb->prefix}relevanssi_log", array( 'user_id' => $eid9->id ) );
+                    }
                 }
 
                 $results_10 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}fa_user_logins WHERE user_id = ".$user_id."", OBJECT ); 
-                $response['message'] .= '<br /><strong>'.count($results_10).'</strong> User Login History logs removed.';
-                foreach($results_10 as $eid10){
-                    $wpdb->delete( "{$wpdb->prefix}fa_user_logins", array( 'user_id' => $eid10->id ) );
+                $response['message'] .= '<br /><strong>'.count($results_10).'</strong> User Login History logs'.$deleted_suffix.'.';
+                if(!$response['review']){
+                    foreach($results_10 as $eid10){
+                        $wpdb->delete( "{$wpdb->prefix}fa_user_logins", array( 'user_id' => $eid10->id ) );
+                    }
                 }
 
             } else {

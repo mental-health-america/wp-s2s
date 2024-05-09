@@ -74,8 +74,6 @@ jQuery(function ($) {
      */
     function mhaCleanupLooper( res ){
         
-        console.log(res);
-
         if(res.error){
 
             // Error
@@ -250,9 +248,52 @@ jQuery(function ($) {
     });
 
     /**
+     * Review cleanup
+     */
+    $(document).on('click', '#mha-start-userclean-up-review', function(event){
+
+        // Disable default form submit
+        event.preventDefault();
+
+        // Vars
+        var args = $('#mha-usercleanup').serialize();
+        args += '&review=true';
+            
+        // Disable flag button
+        $('#mha-start-userclean-up-review').prop('disabled', true).text('Processing...');
+        $('#mha-usercleanup-error').html('').addClass('hidden');
+
+        $.ajax({
+            type: "POST",
+            url: do_mhacleanups.ajaxurl,
+            data: { 
+                action: 'mhausercleanupper',
+                data: args
+            },
+            success: function( results ) {
+                var res = JSON.parse(results); 
+                if(results){
+                    if(!res.error){
+                        $('#usercleanup-status').removeClass('notice-error').addClass('notice-success').html(res.message).removeClass('hidden');  
+                        $('#mha-usercleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
+
+                        $('#mha-start-userclean-up').removeClass('hidden');                       
+                    } else {
+                        // Spit out JSON for later 
+                        $('#usercleanup-status').removeClass('notice-success').addClass('notice-error').html('<p>'+res.error+'</p>').removeClass('hidden');  
+                    }
+                }
+            },
+            error: function(xhr, ajaxOptions, thrownError){                
+                console.error(xhr,thrownError);
+            }
+        });	
+    });	
+
+    /**
      * Start cleanup
      */
-     $(document).on('click', '#mha-usercleanup-data-begin', function(event){
+    $(document).on('click', '#mha-usercleanup-data-begin', function(event){
 
         // Disable default form submit
         event.preventDefault();
@@ -273,7 +314,6 @@ jQuery(function ($) {
             },
             success: function( results ) {
                 var res = JSON.parse(results); 
-                console.log(res);
                 if(results){
                     if(!res.error){
                         $('#usercleanup-status').removeClass('notice-error').addClass('notice-success').html(res.message).removeClass('hidden');  

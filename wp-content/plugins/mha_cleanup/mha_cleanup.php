@@ -122,7 +122,9 @@ function mhacleanuppage(){
                         <td colspan="2">    
                             <p>
                                 <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhausercleanupsnonce'); ?>" />
-                                <button id="mha-start-userclean-up" class="button button-primary button-large">Remove User Data</button>
+                                <button id="mha-start-userclean-up-review" class="button button-primary button-large">Review User Data</button>
+
+                                <button id="mha-start-userclean-up" class="button button-primary button-large hidden">Remove User Data</button>
                                 <button id="mha-usercleanup-data-begin" type="submit" class="button button-secondary button-large hidden">Are you Sure?</button>
                             </p>
                             <div id="usercleanup-status" class="hidden"></div>      
