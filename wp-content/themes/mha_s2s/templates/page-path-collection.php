@@ -34,7 +34,9 @@ $term = null;
 			<div class="wrap normal mb-5">
 				<div class="bubble short dark-blue round-br">
 				<div class="inner">
-					<h3>Popular Articles</h3>
+					<h3>
+						<?php echo $espanol ? 'Artículos populares' : 'Popular Articles'; ?>
+					</h3>
 					<?php echo $popular; ?>
 				</div>
 				</div>
@@ -189,7 +191,7 @@ $term = null;
 				
 			<div class="two-cols top cols-50">
 
-				<?php if(!$espanol): ?>
+				<?php //if(!$espanol): ?>
 					<div class="left-col ">
 					<div class="bubble round-br red-full normal">
 						<div class="inner">		
@@ -204,7 +206,16 @@ $term = null;
 										$term_name = get_term($tag, $tax)->name;
 									}
 								?>
-								<a class="plain white" href="<?php echo get_term_link($tag, $tax); ?>">See All Articles Related to <?php echo $term_name; ?> &raquo;</a>
+								<a class="plain white" href="<?php echo get_term_link($tag, $tax); ?>">
+									<?php
+										if($espanol){
+											echo 'Ve más recursos en ';
+										} else {
+											echo 'See All Articles Related to ';
+										}
+										echo $term_name.' &raquo;';
+									?>									
+								</a>
 							</h3>
 							<?php 
 								else: 									
@@ -231,7 +242,7 @@ $term = null;
 						</div>
 					</div>    
 					</div>
-				<?php endif; ?>
+				<?php //endif; ?>
 
 				<div class="right-col">
 					<?php 
@@ -255,21 +266,23 @@ $term = null;
 						if($loop->have_posts()):
 						while($loop->have_posts()) : $loop->the_post(); 
 							
-							$primary_condition_yoast = get_post_meta(get_the_ID(),'_yoast_wpseo_primary_condition', true);
+							$testid = get_the_ID();
+							$primary_condition_yoast = get_post_meta($testid,'_yoast_wpseo_primary_condition', true);
 							if(
-								get_field('invisible') || 
-								get_field('survey') || 
+								get_field('invisible', $testid) || 
+								get_field('survey', $testid) || 
 								$primary_condition_yoast != $tag || 
-								$cta_count > 0 || 
-								get_field('espanol')
+								$cta_count > 0 ||
+								!$espanol && get_field('espanol', $testid)
 							){
 								continue;
-							}							
-							$test_cta[] = get_the_ID();
+							}			
+							$test_cta[] = $testid;
 							$cta_count++;
 							
 						endwhile;
 						endif;
+						wp_reset_query();
 
 						// Display randomized matching test CTA
 						if(!empty($test_cta)):
@@ -283,17 +296,19 @@ $term = null;
 										if($title[0] == 'A'){
 											$an_a = 'n ';
 										}
+										$test_espanol = get_field('espanol',$test_cta[0]);
+										$test_title = $test_espanol ? "Toma un $title": "$an_a $title";
 									?>
-									<h3>Take a<?php echo "$an_a $title"; ?></h3> 
+									<h3><?php echo $test_title; ?></h3> 
 									<div class="excerpt"><p><?php echo get_the_excerpt($test_cta[0]); ?></p></div>
-									<div class="text-center pb-3"><a href="<?php echo get_the_permalink($test_cta[0]); ?>" class="button white round text-orange">Take a<?php echo "$an_a $title"; ?></a></div>
+									<div class="text-center pb-3"><a href="<?php echo get_the_permalink($test_cta[0]); ?>" class="button white round text-orange"><?php echo $test_title; ?></a></div>
 								
 								</div>
 								</div>
 							<?php
 						endif;
-
 						wp_reset_query();
+
 					?>
 				</div>
 			</div>

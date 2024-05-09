@@ -3,7 +3,7 @@
 /**
  * Display related articles to the taxonomy term
  */
-function get_condition_articles($tax = null, $tag = null, $search_query = null){
+function get_condition_articles($tax = null, $tag = null, $search_query = null, $is_espanol = false){
 
     remove_filter( 'posts_request', 'relevanssi_prevent_default_request' );
     remove_filter( 'the_posts', 'relevanssi_query', 99 );
@@ -53,7 +53,7 @@ function get_condition_articles($tax = null, $tag = null, $search_query = null){
     while($loop->have_posts()) : $loop->the_post();	
 
         // Skips
-        if(get_field('invisible') || get_field('survey') || get_field('espanol')){
+        if(get_field('invisible') || get_field('survey') || !$is_espanol && get_field('espanol')){
             continue;
         }
 

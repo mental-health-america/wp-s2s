@@ -349,11 +349,13 @@
             <div class="inner">    
                 <?php 
                     while($loop->have_posts()) : $loop->the_post();
-                    if($counter == 0): ?>
-                        <h4>Toma una prueba de salud mental</h4>
+                    if($counter == 0): 
+                        $test_title = trim( preg_replace("/\([^)]+\)/","", get_the_title( get_the_ID() )) );
+                    ?>
+                        <h4>Toma un <?php echo $test_title; ?></h4>
+                        <div class="excerpt thin"><?php the_excerpt(); ?></div>
+                        <div class="text-center pb-3 mb-0"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Toma un <?php echo $test_title; ?></a></div>
                     <?php endif; ?>
-                    <div class="excerpt thin"><?php the_excerpt(); ?></div>
-                    <div class="text-center pb-3 mb-3"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Toma una <?php echo trim( preg_replace("/\([^)]+\)/","", get_the_title( get_the_ID() )) ); ?></a></div>
                 <?php 
                     $counter++;
                     endwhile; 
