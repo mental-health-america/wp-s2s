@@ -133,7 +133,8 @@ function mha_export_screen_data(){
             $all_form_demo_fields = [];    
             foreach($all_form_ids as $form_id){
                 foreach($gform['fields'] as $df){  
-                    if($df->adminLabel != ''){
+
+                    if($df['adminLabel'] != ''){
                         $field_label = $df['adminLabel'];
                     } else {
                         $field_label = isset($df['label']) ? $df['label'] : '';
@@ -145,10 +146,10 @@ function mha_export_screen_data(){
                         strpos($df['cssClass'], 'question') === false && 
                         strpos($df['cssClass'], 'question-optional') === false &&
                         $df['type'] != 'html' && 
-                        $field_label != 'Token' &&
-                        $field_label != 'Source URL' &&
-                        $field_label != 'Duplicate' &&
-                        $field_label != 'uid hashed' &&
+                        $df['label'] != 'Token' &&
+                        $df['label'] != 'Source URL' &&
+                        $df['label'] != 'Duplicate' &&
+                        $df['label'] != 'uid hashed' &&
                         $field_label != ''
                     ){
                         // Add to demo field array
@@ -173,7 +174,13 @@ function mha_export_screen_data(){
 
         foreach($gform['fields'] as $gf){  
             $field_type = $gf['type'];
-            $field_label = $gf['label'];
+
+            //$field_label = $gf['label'];
+            if($gf['adminLabel'] != ''){
+                $field_label = $gf['adminLabel'];
+            } else {
+                $field_label = isset($gf['label']) ? $gf['label'] : '';
+            }
 
             // Normal Export Skips
             if(

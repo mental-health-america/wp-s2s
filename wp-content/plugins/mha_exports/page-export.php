@@ -46,13 +46,13 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label for="export_screen_start_date">Start Date</label></th>
                     <td>
-                        <input type="text" name="export_screen_start_date" id="export_screen_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')); ?>-01" />
+                        <input type="date" name="export_screen_start_date" id="export_screen_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')); ?>-01" />
                     </td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="export_screen_end_date">End Date</label></th>
                     <td>
-                        <input type="text" name="export_screen_end_date" id="export_screen_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                        <input type="date" name="export_screen_end_date" id="export_screen_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
                     </td>
                 </tr>
                 <tr>
@@ -131,13 +131,13 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label for="diytool_export_start_date">Start Date</label></th>
                     <td>
-                        <input type="text" name="diytool_export_start_date" id="diytool_export_start_date" value="<?php //echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                        <input type="date" name="diytool_export_start_date" id="diytool_export_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
                     </td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="diytool_export_end_date">End Date</label></th>
                     <td>
-                        <input type="text" name="diytool_export_end_date" id="diytool_export_end_date" value="<?php //echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                        <input type="date" name="diytool_export_end_date" id="diytool_export_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
                     </td>
                 </tr>
                 <tr>
@@ -203,13 +203,13 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label for="abtesting_export_start_date">Start Date</label></th>
                     <td>
-                        <input type="text" name="abtesting_export_start_date" id="abtesting_export_start_date" value="<?php //echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                        <input type="date" name="abtesting_export_start_date" id="abtesting_export_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
                     </td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="abtesting_export_end_date">End Date</label></th>
                     <td>
-                        <input type="text" name="abtesting_export_end_date" id="abtesting_export_end_date" value="<?php //echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                        <input type="date" name="abtesting_export_end_date" id="abtesting_export_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
                     </td>
                 </tr>
                 <tr>
@@ -246,13 +246,13 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label for="export_feedback_start_date">Start Date</label></th>
                     <td>
-                        <input type="text" name="export_feedback_start_date" id="export_feedback_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')); ?>-01" />
+                        <input type="date" name="export_feedback_start_date" id="export_feedback_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')); ?>-01" />
                     </td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="export_feedback_end_date">End Date</label></th>
                     <td>
-                        <input type="text" name="export_feedback_end_date" id="export_feedback_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                        <input type="date" name="export_feedback_end_date" id="export_feedback_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
                     </td>
                 </tr>
                 <tr>
@@ -310,13 +310,13 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label for="export_start_date">Start Date</label></th>
                     <td>
-                        <input type="text" name="export_start_date" id="export_start_date" value="<?php //echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                        <input type="date" name="export_start_date" id="export_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
                     </td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="export_end_date">End Date</label></th>
                     <td>
-                        <input type="text" name="export_end_date" id="export_end_date" value="<?php //echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                        <input type="date" name="export_end_date" id="export_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
                     </td>
                 </tr>
                 <tr>
@@ -446,7 +446,7 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label id="nonaggregate_start_date" >After</label> </th>
                     <td>
-                        <input type="text" name="start_date" id="nonaggregate_start_date" value="" placeholder="<?php echo date('Y-m'); ?>-01" />
+                        <input type="text" name="start_date" id="nonaggregate_start_date" value="" placeholder="<?php echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
                     </td>
                 </tr>
                 <tr>
