@@ -18,6 +18,8 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
         $operator = $step['operator'];
         $conditions = $step['conditions'];
         $conditions_total = is_countable($conditions) ? count($conditions) : 0; 
+        $exclusions_total = 0; 
+        $exclusions_met = 0;
         $links = $step['links'];      
         $i = 0;
 
@@ -32,12 +34,19 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     $con['key'] = 'User Result';
                 }
 
+                /*
                 if(isset($con['exclude']) && $con['exclude'] == 1){
                     if($links){
                         foreach($links as $link){
                             $demo_data['pre_exclude'][] = $link->ID;
                         }
                     }
+                }
+                */
+
+                // Updated Exclusion Counting
+                if(isset($con['exclude']) && $con['exclude'] == 1){
+                    $exclusions_total++;
                 }
 
                 // Is
@@ -56,6 +65,9 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     }            
                     if( isset($answered_demos[$con['key']]) && $is_counter == count($is_array) && $is_counter == count($answered_demos[$con['key']])){
                         $i++;
+                        if(isset($con['exclude']) && $con['exclude'] == 1){
+                            $exclusions_met++;
+                        }
                     }
                 }
 
@@ -75,6 +87,9 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     }         
                     if($is_counter == 0){
                         $i++;
+                        if(isset($con['exclude']) && $con['exclude'] == 1){
+                            $exclusions_met++;
+                        }
                     }
                 }
                 
@@ -84,6 +99,9 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                         foreach($answered_demos[$con['key']] as $ad){
                             if (strpos(strtolower($ad), strtolower($con['value'])) !== false) {
                                 $i++;
+                                if(isset($con['exclude']) && $con['exclude'] == 1){
+                                    $exclusions_met++;
+                                }
                             }
                         } 
                     }
@@ -95,6 +113,9 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                         foreach($answered_demos[$con['key']] as $ad){
                             if (strpos(strtolower($ad), strtolower($con['value'])) === false) {
                                 $i++;
+                                if(isset($con['exclude']) && $con['exclude'] == 1){
+                                    $exclusions_met++;
+                                }
                             }
                         } 
                     }
@@ -116,6 +137,9 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     }
                     if($any_counter > 0){
                         $i++;
+                        if(isset($con['exclude']) && $con['exclude'] == 1){
+                            $exclusions_met++;
+                        }
                     }
                 }
 
@@ -135,6 +159,9 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     }
                     if($any_counter == 0){
                         $i++;
+                        if(isset($con['exclude']) && $con['exclude'] == 1){
+                            $exclusions_met++;
+                        }
                     }
                 }
 
@@ -155,11 +182,17 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                     if($con['condition'] == 'greater'){  
                         if($number_ans > $number_con){
                             $i++;
+                            if(isset($con['exclude']) && $con['exclude'] == 1){
+                                $exclusions_met++;
+                            }
                         } 
                     }
                     if($con['condition'] == 'less'){  
                         if($number_ans < $number_con){
                             $i++;
+                            if(isset($con['exclude']) && $con['exclude'] == 1){
+                                $exclusions_met++;
+                            }
                         } 
                     }
 
@@ -168,23 +201,47 @@ function get_mha_demo_steps( $screen_id = null, $answered_demos ){
                 // Null & Not Null
                 else if($con['condition'] == 'is_null' || $con['condition'] == 'not_null'){  
                     if($con['condition'] == 'is_null'){
-                        if(isset($answered_demos[$con['key']]) && count($answered_demos[$con['key']]) == 0){
+                        if( !isset($answered_demos[$con['key']]) ){
                             $i++;
+                            if(isset($con['exclude']) && $con['exclude'] == 1){
+                                $exclusions_met++;
+                            }
                         }
                     }
                     if($con['condition'] == 'not_null'){
                         if( isset($answered_demos[$con['key']]) && count($answered_demos[$con['key']]) > 0 ){
                             $i++;
+                            if(isset($con['exclude']) && $con['exclude'] == 1){
+                                $exclusions_met++;
+                            }
                         }
                     }
                 }
 
             endforeach;
 
-            //echo "#$counter) [$admin_note] i: $i / $operator . conditions: $conditions_total<br />";
 
             // Print the Results
-            if($operator == 'or' && $i > 0 || $operator == 'and' && $i == $conditions_total){
+            $final_condition_total = $conditions_total - $exclusions_total;
+            
+            // Debug
+            /*
+            echo '<ul>';
+                echo '<li>#'.$counter.')';
+                    echo '<ul>';
+                    echo "<li>Admin Note: $admin_note</li>";
+                    echo "<li>Conditions Met: $i</li>";
+                    echo "<li>Exclusions Met: $exclusions_met</li>";
+                    echo "<li>Operator: $operator</li>";
+                    echo "<li>Total Conditions: $conditions_total</li>";
+                    echo "<li>Total Exclusions: $exclusions_total</li>";
+                    echo "<li>Condition Threshold: $final_condition_total</li>";
+                    echo '</ul>';
+                echo '</li>';
+            echo '</ul>';
+            */
+
+            if($operator == 'or' && $i > 0 && $exclusions_met == 0 || $operator == 'and' && $i == $final_condition_total){
                 foreach($links as $link){
                     if(get_post_type( $link->ID ) == 'cta'){
                         $demo_data['ctas'][] = $link->ID;
