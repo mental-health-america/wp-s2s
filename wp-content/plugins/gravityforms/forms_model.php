@@ -644,7 +644,7 @@ class GFFormsModel {
 	 * @return array The column IDs
 	 */
 	public static function get_form_db_columns() {
-		return array( 'id', 'title', 'date_created', 'is_active', 'is_trash' );
+		return array( 'id', 'title', 'date_created', 'date_updated', 'is_active', 'is_trash' );
 	}
 
 	/**
@@ -1606,6 +1606,7 @@ class GFFormsModel {
 				 * @since 2.3.3.9
 				 */
 				do_action( "gform_post_update_entry_property", $lead_id, $property_name, $property_value, $previous_value );
+				gf_feed_processor()->save()->dispatch();
 			}
 		}
 
@@ -3434,20 +3435,48 @@ class GFFormsModel {
 				}
 				break;
 
-			case 'fileupload' :
+			case 'fileupload':
+				$tmp_path = GFFormsModel::get_upload_path( $form['id'] ) . '/tmp/';
+				$tmp_url  = GFFormsModel::get_upload_url( $form['id'] ) . '/tmp/';
+				$value    = array(); // Initialize as empty array to store file info
+				// Check if it's a multiple file upload field
 				if ( $field->multipleFiles ) {
-					if ( ! empty( $value ) ) {
-						$value = json_encode( $value );
+					$temp_files = rgars( GFFormsModel::$uploaded_files, $form['id'] . '/' . $input_name );
+
+					if ( ! empty( $temp_files ) && is_array( $temp_files ) ) {
+						foreach ( $temp_files as $temp_file ) {
+							if ( rgar( $temp_file, 'temp_filename' ) ) {
+								$value[] = array(
+									'tmp_path'      => $tmp_path . $temp_file['temp_filename'],
+									'tmp_url'       => $tmp_url . $temp_file['temp_filename'],
+									'tmp_name'      => $temp_file['temp_filename'],
+									'uploaded_name' => rgar( $temp_file, 'uploaded_filename' ),
+								);
+							}
+						}
 					}
 				} else {
+					// Handle single file upload scenario
 					$file_info = self::get_temp_filename( $form['id'], $input_name );
-					if ( ! empty( $file_info ) ) {
-						$file_path = self::get_file_upload_path( $form['id'], $file_info['uploaded_filename'] );
-						$value     = $file_path['url'];
+					if ( ! empty( $file_info ) && isset( $file_info['temp_filename'] ) ) {
+						$value[] = array(
+							'tmp_path'      => $tmp_path . $file_info['temp_filename'],
+							'tmp_url'       => $tmp_url . $file_info['temp_filename'],
+							'tmp_name'      => $file_info['temp_filename'],
+							'uploaded_name' => rgar( $file_info, 'uploaded_filename' ),
+						);
 					}
 				}
 
+				if ( ! empty( $value ) ) {
+					$value = json_encode( $value ); // Encode the array of temp URLs as JSON string
+				} else {
+					// If no files were uploaded, set the value to an empty string for backwards compatibility
+					$value = '';
+				}
+
 				break;
+
 
 			default:
 
@@ -5437,7 +5466,7 @@ class GFFormsModel {
 				}
 			} else {
 				// Deleting details for this field
-				if ( is_array( $field->get_entry_inputs() ) ) {
+				if ( is_a( $field, 'GF_Field' ) && is_array( $field->get_entry_inputs() ) ) {
 					$_input_id = ( false === strpos( $input_id, '.' ) ) ? sprintf( '%d.%%', $input_id ) : $input_id;
 					$sql = $wpdb->prepare( "DELETE FROM $entry_meta_table_name WHERE entry_id=%d AND meta_key LIKE %s ", $entry_id, $_input_id );
 				} else {
@@ -5716,6 +5745,8 @@ class GFFormsModel {
 			}
 		}
 
+		$file_name = sanitize_file_name( $file_name );
+
 		//Add the original filename to our target path.
 		//Result is "uploads/filename.extension"
 		$extension = pathinfo( $file_name, PATHINFO_EXTENSION );
@@ -5724,7 +5755,6 @@ class GFFormsModel {
 		}
 
 		$file_name = wp_basename( $file_name, $extension );
-		$file_name = sanitize_file_name( $file_name );
 
 		$counter     = 1;
 		$target_path = $target_root . $file_name . $extension;
@@ -6738,15 +6768,15 @@ class GFFormsModel {
 			return null;
 		}
 
-		if ( is_numeric( $field_id ) ) {
-			// Removing floating part of field (i.e 1.3 -> 1) to return field by input id.
+		if ( is_numeric( $field_id ) || preg_match( '/^\d+\.\w+$/', $field_id ) ) {
+			// Removing the input-specific segment from the field ID (i.e 1.3 or 1.something -> 1).
 			$field_id = intval( $field_id );
 		}
 
 		global $_fields;
 		$key = $form['id'] . '_' . $field_id;
 		$return = null;
-		if (isset( $_fields[ $key ] ) ) {
+		if ( isset( $_fields[ $key ] ) ) {
 			return $_fields[ $key ];
 		}
 
@@ -6795,8 +6825,12 @@ class GFFormsModel {
 		return null;
 	}
 
+	/**
+	 * @deprecated 2.8 HTML5 setting was removed, and HTML5 is now always enabled.
+	 * @return true
+	 */
 	public static function is_html5_enabled() {
-		return get_option( 'rg_gforms_enable_html5', false );
+		return true;
 	}
 
 	/**
@@ -7080,6 +7114,52 @@ class GFFormsModel {
 		}
 
 		return $wpdb->get_col( $sql );
+	}
+
+	/**
+	 * Get forms and return any form column(s).
+	 *
+	 * @see GFFormsModel::get_form_ids()
+	 * @since 2.7.5
+	 *
+	 * @param bool   $active      True if active forms are returned. False to get inactive forms. Defaults to true.
+	 * @param bool   $trash       True if trashed forms are returned. False to exclude trash. Defaults to false.
+	 * @param string $sort_column The column to sort the results on.
+	 * @param string $sort_dir    The sort direction, ASC or DESC.
+	 * @param array  $columns     The columns to return. Defaults to ['id']. Other options are 'title', 'date_created', 'is_active', 'is_trash'. 'date_updated' may be supported, depending on the Gravity Forms version.
+	 *
+	 * @return array Forms indexed from 0 by SQL result row number. Each row is an associative array (column => value).
+	 */
+	public static function get_forms_columns( $active = true, $trash = false, $sort_column = 'id', $sort_dir = 'ASC', $columns = array( 'id' ) ) {
+		global $wpdb;
+
+		// Only allow valid columns.
+		$columns = array_intersect( $columns, GFFormsModel::get_form_db_columns() );
+
+		$sql   = 'SELECT ' . implode( ', ', $columns ) . ' FROM ' . GFFormsModel::get_form_table_name();
+		$where = array();
+
+		if ( null !== $active ) {
+			$where[] = $wpdb->prepare( 'is_active=%d', $active );
+		}
+
+		if ( null !== $trash ) {
+			$where[] = $wpdb->prepare( 'is_trash=%d', $trash );
+		}
+
+		if ( ! empty( $where ) ) {
+			$sql .= ' WHERE ' . join( ' AND ', $where );
+		}
+
+		if ( ! in_array( strtolower( $sort_column ), GFFormsModel::get_form_db_columns() ) ) {
+			$sort_column = 'id';
+		}
+
+		if ( ! empty( $sort_column ) ) {
+			$sql .= " ORDER BY $sort_column " . ( $sort_dir == 'ASC' ? 'ASC' : 'DESC' );
+		}
+
+		return $wpdb->get_results( $sql, ARRAY_A );
 	}
 
 	public static function get_entry_meta( $form_ids ) {
@@ -7681,8 +7761,13 @@ class GFFormsModel {
 		if ( isset( $form['labelPlacement'] ) ) {
 			$form['labelPlacement'] = GFCommon::whitelist( $form['labelPlacement'], array( 'top_label', 'left_label', 'right_label' ) );
 		}
+
 		if ( isset( $form['descriptionPlacement'] ) ) {
 			$form['descriptionPlacement'] = GFCommon::whitelist( $form['descriptionPlacement'], array( 'below', 'above' ) );
+		}
+
+		if ( isset( $form['validationPlacement'] ) ) {
+			$form['validationPlacement'] = GFCommon::whitelist( $form['validationPlacement'], array( 'below', 'above' ) );
 		}
 
 		if ( isset( $form['subLabelPlacement'] ) ) {

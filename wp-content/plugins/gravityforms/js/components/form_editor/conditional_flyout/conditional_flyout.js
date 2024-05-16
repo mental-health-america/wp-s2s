@@ -150,7 +150,7 @@ function getCorrectDefaultFieldId( field ) {
 		return null;
 	}
 
-	if ( field.type === 'checkbox' || field.type === 'radio' || ! field.inputs || ! field.inputs.length ) {
+	if ( field.type === 'checkbox' || field.type === 'radio' || field.inputType === 'checkbox' || field.inputType === 'radio' || ! field.inputs || ! field.inputs.length ) {
 		return field.id;
 	}
 
@@ -324,12 +324,13 @@ function generateGFConditionalLogic( fieldId, objectType ) {
  * @return {boolean}
  */
 function isValidFlyoutClick( e ) {
-	return (
+	var isValidFlyoutClick = (
 		'jsConditonalToggle' in e.target.dataset ||
 		'jsAddRule' in e.target.dataset ||
 		'jsDeleteRule' in e.target.dataset ||
 		e.target.classList.contains( 'gform-field__toggle-input' )
 	);
+	return gform.applyFilters( 'gform_conditional_logic_is_valid_flyout_click', isValidFlyoutClick, e );
 }
 
 /**
@@ -758,6 +759,26 @@ GFConditionalLogic.prototype.renderRules = function() {
 }
 
 /**
+ * Update the visibility of the conditional logic icon in compact view.
+ */
+GFConditionalLogic.prototype.updateCompactView = function() {
+	if( this.objectType == 'next_button' ) {
+		return;
+	}
+
+	const icon = document.querySelector( '#gfield_' + this.fieldId + '-conditional-logic-icon' );
+	if ( ! icon ) {
+		return;
+	}
+
+	if ( this.state.enabled ) {
+		icon.style.display = 'block';
+	} else {
+		icon.style.display = 'none';
+	}
+}
+
+/**
  * Gather an object populated with the DOM elements we'll be interacting with.
  *
  * @return {object}
@@ -1010,6 +1031,7 @@ GFConditionalLogic.prototype.updateState = function( stateKey, stateValue ) {
 		this.renderSidebar();
 		this.renderMainControls( true );
 		this.renderRules();
+		this.updateCompactView();
 	}
 };
 
