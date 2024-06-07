@@ -231,6 +231,12 @@ input[type="button"] {
                 color: $white;
             }
         }
+        &:disabled,
+        &.disabled,
+        &[disabled]{
+            &,
+            &:hover { background-color: $white; }
+        }
     }
 
     &.cerulean {
@@ -246,6 +252,12 @@ input[type="button"] {
         &:hover {
             background-color: $orange;
         }
+        &:disabled,
+        &.disabled,
+        &[disabled]{
+            &,
+            &:hover { background-color: $cerulean; }
+        }
     }
 
     &.navy {
@@ -260,6 +272,12 @@ input[type="button"] {
         &:focus,
         &:hover {
             background-color: $orange;
+        }
+        &:disabled,
+        &.disabled,
+        &[disabled]{
+            &,
+            &:hover { background-color: $blue; }
         }
     }
 
@@ -277,6 +295,12 @@ input[type="button"] {
             color: $white;
             background-color: $darkBlue;
         }
+        &:disabled,
+        &.disabled,
+        &[disabled]{
+            &,
+            &:hover { background-color: $burntOrange; }
+        }
     }
 
     &.red {
@@ -292,6 +316,34 @@ input[type="button"] {
         &:focus,
         &:hover {
             background-color: $blueDark;
+        }
+        &:disabled,
+        &.disabled,
+        &[disabled]{
+            &,
+            &:hover { background-color: $red !important; }
+        }
+    }
+
+    &.wine {
+        background: $wine;
+        color: $white;
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
+        .site-content &.button:hover,
+        &.button:hover,
+        &.active,
+        &:focus,
+        &:hover {
+            background-color: $blueDark;
+        }
+        &:disabled,
+        &.disabled,
+        &[disabled]{
+            &,
+            &:hover { background-color: $wine !important; }
         }
     }
 
@@ -415,6 +467,9 @@ input[type="button"] {
     &.thick {
         padding: 25px 35px; 
     }
+    &.extra-wide {
+        min-width: 200px;
+    }
     
     // Alternative Buttons
     &.hover-bar {
@@ -524,6 +579,10 @@ input[type="button"] {
                 transform: rotate(90deg);
             }
         }
+    }
+
+    &.round {
+        @include radius(50px);
     }
 
     // Color overrides
@@ -784,6 +843,11 @@ h1 {
         font-size: inherit;
         margin: 0;
         line-height: inherit;
+    }
+    &.small {
+        font-size: 2em;
+        line-height: 1.15em;
+        @include montserrat(700);
     }
 }
 

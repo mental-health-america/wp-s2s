@@ -10,6 +10,9 @@
         @media only screen and (max-width: 679px){
             padding: 30px;
         }
+        .inner {
+            padding: 0;
+        }
     }
 
     // Default Additional Styles
@@ -267,6 +270,27 @@
         }
     }
 
+    // Wine
+    .site-content &.wine,
+    &.wine {
+        background: $pink;
+        color: $wine;
+        border: 1px solid #f9c4c3;
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: $red;
+        }
+        a {
+            color: $red;
+            font-weight: normal;
+            &:visited {
+                color: $red;
+            }
+        }
+    }
+
     // Red
     &.red {
         background: $pink;
@@ -297,6 +321,8 @@
             }
 
         }
+
+        .text-coral { color: $coral; }
     }
 
     // Red

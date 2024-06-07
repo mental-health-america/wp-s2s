@@ -1212,3 +1212,29 @@ button.icon.like-button {
         hyphens: auto;
     }
 }
+
+
+// Tooltips
+.mha-tooltip {
+    display: inline-block;
+    background: $darkBlue;
+    color: $white;
+    @include radius(50%);
+    padding: 0;
+    border: 0;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 12px;
+    text-indent: 1px;
+    text-align: center;
+    @include transitions(background-color 150ms ease);
+    &:hover {
+        color: $white;
+        background-color: $blue;
+    }
+    &:focus {
+        color: $white;
+        background-color: $wine;
+    }
+}

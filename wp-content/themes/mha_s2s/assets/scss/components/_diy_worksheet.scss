@@ -1,0 +1,116 @@
+.diy-questions.diy-worksheet {
+    max-width: 980px;
+    margin: 0 auto;
+
+    ol {
+        margin: 0;
+        padding: 50px 0;
+        color: $wine;
+        li {
+            display: block;
+            margin: 0;
+            padding: 0 0 40px 0;
+            list-style: none;
+            .inner {
+                max-width: 800px; 
+                margin: 0 auto;
+                padding: 0;
+            }
+
+            &.worksheet-item {
+                .inner {
+                    max-width: 740px; 
+                    padding: 0 50px;
+                }
+            }
+
+            a {
+                font-weight: 400;
+                color: $wine;
+                &:visited {
+                    color: $wine;
+                }
+            }
+        }
+    }
+
+    .bubble {
+        
+        textarea {
+            margin: 0;
+            border: 0;
+            width: 100%;
+            height: 160px;
+            padding: 20px;
+            font-size: 16px;
+            color: $wine;
+            border: 1px solid #ffc9c9;
+            background: $white;
+            @extend .round-tiny-tl;
+        }
+
+        &.red {
+            color: $wine;
+        }
+
+    }
+
+}
+
+.disclaimer {
+    padding-top: 30px;
+    font-size: .8em;
+    line-height: 1.6em;
+    text-align: center;
+}
+
+.breathing-container {
+    width: 100%;
+    position: relative;
+}
+.breathing-inner {
+    margin: 80px 0;
+}
+.breathing-circle {
+    color: transparent;
+    margin: 50px auto;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(227, 240, 250, 1);
+    transform: scale(1);
+    box-shadow: 0 0 0 30px rgba(53, 121, 163, 1), 0 0 0 50px rgba(36, 84, 145, 1);
+
+    &.animate {
+        animation: breatheAnimation 6s linear infinite;
+    }
+}
+
+@keyframes breatheAnimation {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 30px rgba(53, 121, 163, 1), 0 0 0 50px rgba(36, 84, 145, 1);
+    }
+    50% {
+        transform: scale(1.2);
+        box-shadow: 0 0 0 10px rgba(53, 121, 163, 1), 0 0 0 20px rgba(36, 84, 145, .4);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 30px rgba(53, 121, 163, 1), 0 0 0 50px rgba(36, 84, 145, 1);
+    }
+}
+
+
+
+.fade-out {                    
+    animation: fadeOut 600ms 1;
+}
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}

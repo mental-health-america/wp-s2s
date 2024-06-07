@@ -1,4 +1,5 @@
 
+.screen-page_wrapper,
 .single-screen #content .gform_wrapper {
     display: block !important;
     min-height: 100vh;
@@ -544,6 +545,10 @@ ol.screen-progress-bar {
         padding-top: 40px;
         position: relative;
         color: $darkTeal;
+        @media only screen and (max-width: 580px){
+            font-size: .7em;
+            line-height: 1.3em;
+        }
         &:before {
             content: "";
             display: block;
@@ -624,7 +629,114 @@ ol.screen-progress-bar {
 
 }
 
+ol.full-progress-bar {    
+    display: flex;
+    position: relative;
+    width: 100%;
+    margin: 0 auto 40px auto;
+    padding: 0;
+    text-align: center;
+    @include montserrat(500);
+    
+    li {
+        flex: 1;
+        flex-shrink: 0;
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+        text-align: center;
+        font-weight: 400;
+        font-size: .85em;
+        line-height: 1.3em;
+        padding-top: 40px;
+        position: relative;
+        color: $darkTeal;
+        @media only screen and (max-width: 580px){
+            font-size: .7em;
+            line-height: 1.3em;
+        }
+        &:before {
+            content: "";
+            display: block;
+            position: absolute;
+            z-index: 5;
+            top: 0;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            width: 30px;
+            height: 30px;
+            border: 4px solid $darkTeal;
+            background: $grayLight;
+            @include radius(50%);
+        }
 
+        &.active {
+            font-weight: 700;
+            &:before {
+                background-color: $teal;
+            }
+        }
+
+        &.filled {
+            font-weight: 700;
+            &:before {
+                background-color: $tealDark;
+                border-color: $tealDark;
+                background-image: url('../images/check-white.png');
+                background-size: 16px auto;
+                background-position: 3px 5px;
+                background-repeat: no-repeat;
+            }
+        }
+
+        &:last-child,
+        &:first-child {
+            &:after {
+                content: "";
+                display: block;
+                position: absolute;
+                z-index: 1;
+                top: 0;
+                left: 0;
+                margin: 0 auto;
+                width: 50%;
+                height: 30px;
+                background: $white;
+            }
+        }
+        &:last-of-type {
+            &:after {
+                left: auto;
+                right: 0;
+            }
+        }
+    }
+    
+    // Line
+    &:before {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 15px;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        width: calc( 100% - 20px );
+        height: 4px;
+        background: $darkTeal;
+    }
+
+}
+
+form.hide-previous {
+    .gform_previous_button {
+        display: none !important;
+    }
+}
+.partial_entry_warning {
+    display: none !important;
+}
 
 #screen-result-buttons {
     .button[aria-expanded="true"] {

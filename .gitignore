@@ -171,6 +171,7 @@ wp-content/mysql.sql
 /wp-content/plugins/mha_sso/keys.php
 /wp-content/plugins/mha_sso/vendor
 /wp-content/plugins/mha_imports/vendor
+/wp-content/plugins/gravityforms
 !/wp-content/plugins/gravityforms
 !/wp-content/themes/mha_s2s
 /wp-content/themes/mha_s2s/templates/page-devtest.php

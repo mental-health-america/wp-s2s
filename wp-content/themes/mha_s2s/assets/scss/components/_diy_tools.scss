@@ -29,11 +29,13 @@
         @include transitions(all 150ms ease);
         &:disabled,
         &[disabled] {
-            opacity: .35;
-            &.bar {
-                &:hover:after,
-                &:after {
-                    width: 35%;
+            &:not(.disabled){
+                opacity: .35;
+                &.bar {
+                    &:hover:after,
+                    &:after {
+                        width: 35%;
+                    }
                 }
             }
         }        
