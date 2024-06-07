@@ -305,6 +305,15 @@ function thoughtFlag(){
 			$db_insert = $wpdb->insert($table, $response);
 			$result['flagged'] = 1;
 
+			// Delete cache for this activity on flags to force a rebuild
+			$directory = plugin_dir_path( __FILE__ ).'tmp/'; 
+			$files = glob($directory . $ref_pid . '*');
+			foreach($files as $file) {
+				if(is_file($file)) {
+					unlink($file);
+				}
+			}
+
 		}
 
     } else {
@@ -345,6 +354,47 @@ function likeChecker($pid, $row){
 		if($db_like){
 			return true;
 		} 
+	}
+	
+	return false;
+}
+
+function getAllUserThoughtLikes( $cargs ){
+
+	$defaults = array(
+		'pids' => array(),
+		'row' => 0
+	);
+    $args = wp_parse_args( $cargs, $defaults ); 
+
+	$ipiden = get_ipiden();	
+	$uid = get_current_user_id();
+	$row = $args['row'];
+	$pids = implode(',', $args['pids']);
+	$user_likes = [];
+
+	if(is_array($args['pids']) && !empty($args['pids'])){
+
+		// Handle anonymous or logged in differently
+		if($uid == 0){			
+			$user_where = "uid = 4 AND ipiden = '$ipiden'";
+		} else {
+			$user_where = "uid = $uid";
+		}	
+
+		// Get results
+		global $wpdb;
+		$results = $wpdb->get_results("SELECT pid FROM thoughts_likes WHERE $user_where AND 'row' = $row AND pid IN ($pids) AND unliked = 0", ARRAY_A );	
+		
+		foreach ($results as $result) {
+			$pid = $result['pid'];		
+			$user_likes[$pid] = array(
+				'pid' => $pid,
+				'row' => $row
+			);
+		}
+		return $user_likes;
+
 	}
 	
 	return false;
@@ -459,7 +509,8 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 				'key'		=> 'activity',
 				'value'		=> $activity_id
 			)
-		)
+		),
+		'fields' => 'ids'		
 	);
 	
 	// Add to our meta query for subsequent questions
@@ -513,10 +564,12 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 	$max_pages = $loop->max_num_pages;
 		
 	if($loop->have_posts()):
+		$thought_list = [];
+		$thought_list_ids = [];
 		while($loop->have_posts()) : $loop->the_post();
 
-			$pid = get_the_ID();
-			$thoughts = get_field('responses');	
+			$thought_id = get_the_ID();
+			$thoughts = get_field('responses', $thought_id);	
 
 			// Skip user seeded thoughts (only show the original), and skip thoughts that have been hidden
 			if(
@@ -526,7 +579,6 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 				!isset($thoughts[$index]) || 
 				$index > 0 && isset($thoughts[1]) && $thoughts[1]['path'] && $thoughts[1]['path'] != $path
 			){
-			//if($index === 0 && $thoughts[0]['user_pre_seeded_thought'] || $thoughts[$index]['hide'] == 1 || !isset($thoughts[$index]) || $index > 0 && $thoughts[1]['path'] != $path){
 				continue;
 			}
 
@@ -545,10 +597,34 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 				continue;
 			}
 
-			thoughtRow($pid, $thought_text, $index);	
-			$thought_counter++;
+			$thought_list[$thought_id] = array(
+				'pid' => $thought_id,
+				'thought_text' => $thought_text
+			);
+			$thought_list_ids[] = $thought_id;
 				
 		endwhile; 
+
+		if(!empty($thought_list)){
+
+			// $like_count = getThoughtLikes($pid, $index);
+
+			$likes_args = array(
+				'pids' => $thought_list_ids,
+				'row' => $index
+			);
+			$all_thought_likes = getAllThoughtLikes( $likes_args );
+
+			$user_likes_args = array(
+				'pids' => $thought_list_ids,
+				'row' => $index
+			);
+			$all_user_thought_likes = getAllUserThoughtLikes( $user_likes_args );
+			
+			foreach($thought_list as $t){
+				thoughtRow( $t['pid'], $t['thought_text'], $index, $all_thought_likes, $all_user_thought_likes );	
+			}
+		}
 			
 		// Load More
 		$paged_next = $paged + 1;
@@ -593,14 +669,14 @@ add_action("wp_ajax_getThoughtsSubmitted", "getThoughtsSubmitted");
 /**
  * Template for display other responses
  */
-function thoughtRow($pid = null, $text = null, $index = null) {
+function thoughtRow($pid = null, $text = null, $index = null, $thought_likes = array(), $user_thought_likes = array() ) {
 	
 	if($pid == null || $text == null ){
 		return false;
 	}
 
 	// Get like count
-	$like_count = getThoughtLikes($pid, $index);
+	$like_count = isset($thought_likes[$pid]) ? $thought_likes[$pid]['likes'] : 0;
 			
 	// Start the output
 	echo '<li class="round-small-bl bubble thin submitted-by-user wow fadeIn" data-count="'.$like_count.'" data-index="'.$index.'" id="thought-'.$pid.'">';
@@ -617,7 +693,7 @@ function thoughtRow($pid = null, $text = null, $index = null) {
 		// Actions
 		echo '<div class="thought-actions">';
 			// Relate
-			$like_class = (likeChecker($pid, $index)) ? ' liked' : '';
+			$like_class = (isset($user_thought_likes[$pid])) ? ' liked' : '';
 
 			/*
 			echo '<div style="display: none;" class="admin-debug-checker">';
@@ -676,6 +752,44 @@ function getThoughtLikes($pid, $row = 0){
 	return false;
 }
 
+/**
+ * Get all user's thought's total likes for this activity
+ */
+function getAllThoughtLikes( $cargs ){
+
+	$defaults = array(
+		'pids' => array(),
+		'row' => 0
+	);
+    $args = wp_parse_args( $cargs, $defaults ); 
+	$row = $args['row'];
+	$pids = implode(',', $args['pids']);
+	$likes = [];
+
+	if(is_array($args['pids']) && !empty($args['pids'])){
+
+		// Get results
+		global $wpdb;
+		$results = $wpdb->get_results( "SELECT pid, COUNT(*) as like_count FROM thoughts_likes WHERE pid IN ($pids) AND 'row' = $row AND unliked = 0 GROUP BY pid ORDER BY like_count DESC", ARRAY_A );
+
+		foreach ($results as $result) {
+			$pid = $result['pid'];
+			$like_count = $result['like_count'] ? $result['like_count'] : 0;	 
+			
+			if (!$like_count) {
+				$like_count = 0;
+			}
+		
+			$likes[$pid] = array(
+				'pid' => $pid,
+				'row' => $row,
+				'likes' => $like_count
+			);
+		}
+		return $likes;
+	} 
+	return false;
+}
 
 /** 
  * Thought flagging
