@@ -105,7 +105,7 @@ function mhacleanuperLooper( $data = null ) {
 
 
     // Extras to pass along
-    $data['deleted_entries'] = $data['deleted_entries'];
+    $data['deleted_entries'] = isset($data['deleted_entries']) ? $data['deleted_entries'] : 0;
 
     // Return our responses
     echo json_encode($data);
