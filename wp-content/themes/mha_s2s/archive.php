@@ -182,10 +182,10 @@ wp_reset_query();
 							<div class="inner">
 							<?php while($loop->have_posts()) : $loop->the_post(); ?>   
 								<?php
-									$an_a = ' '; 
+									$an_a = 'Take a';
 									$title = get_the_title();
 									if($title[0] == 'A'){
-										$an_a = 'n ';
+										$an_a .= 'n ';
 									}
 								?>
 								<?php the_title('<h3>Take a'.$an_a,'</h3>'); ?>   

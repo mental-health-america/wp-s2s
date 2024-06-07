@@ -291,10 +291,10 @@ $term = null;
 								<div class="bubble round-tl orange normal">
 								<div class="inner">
 									<?php
-										$an_a = ' '; 
+										$an_a = 'Take a';
 										$title = get_the_title($test_cta[0]);
 										if($title[0] == 'A'){
-											$an_a = 'n ';
+											$an_a .= 'n ';
 										}
 										$test_espanol = get_field('espanol',$test_cta[0]);
 										$test_title = $test_espanol ? "Toma un $title": "$an_a $title";
