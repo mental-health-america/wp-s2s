@@ -193,6 +193,7 @@
         font-size: .75em;
         line-height: normal;
         background: none !important;
+        text-transform: none !important;
     }
     a[href^="/"]:after {
         content: " (https://screening.mhanational.org"attr(href) ") ";
@@ -361,6 +362,12 @@
     }
 
     /* Bubbles in general */
+    .bubble {
+        padding: 20px !important;
+        margin: 0 !important;
+        border-radius: 20px !important;
+        border-color: #000000 !important;
+    }
     .bubble .inner {
         padding: 20px !important;
     }
@@ -405,4 +412,26 @@
     .additional-result-scores {
         text-align: center;
     }
+}
+
+ul li {
+    margin: 0 0 20px 0 !important;
+    padding: 0 !important;
+}
+ol li {
+    margin: 0 0 20px 0 !important;
+    padding: 0 !important;
+}
+
+/* DIY Tools */
+.diy-questions.diy-worksheet {
+    margin: 0 !important;
+}
+
+.type-article .wrap .container-fluid .row {
+    display: block !important;
+}
+.type-article .wrap .container-fluid .row .article-right {
+    padding-left: 0 !important;
+    padding-top: 40px !important;
 }
