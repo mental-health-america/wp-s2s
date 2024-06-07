@@ -27,6 +27,8 @@ function mha_ab_redirects( $params = array() ){
     $current_url = $args['current_url'];
     $current_path = parse_url($current_url, PHP_URL_PATH);
 
+    $return_redirect_url = [];
+
     $current_referrer = $args['current_referrer'];
     $current_referrer_path = $current_referrer ? parse_url($current_referrer, PHP_URL_PATH) : null;
     $current_referrer_params = [];
@@ -485,15 +487,42 @@ function mha_ab_redirects( $params = array() ){
                                 $db_insert['Note'] = 'Already on this URL, redirect skipped.<br />';      
                             }
 
+                            // Custom admin debug log
+                            if(
+                                current_user_can('editor') || 
+                                current_user_can('administrator')
+                            ){ 
+                                $log_file = plugin_dir_path( __FILE__ ).'log/log.json'; 
+                                $log_file_data = [];
+
+                                $log_file_data['args'] = $args;
+                                $log_file_data['debug_log'] = $debug_log;
+                                $log_file_data['db_insert'] = $db_insert;
+                                $log_file_data['active'] = $active;
+                                $log_file_data['variant_result'] = $variant_result;
+
+                                $fp = fopen($log_file, 'w');
+                                fwrite($fp, json_encode($log_file_data));
+                                fclose($fp);
+                            }
+
                             if($active && $args['redirect_url'] && $args['redirect_url'] != $current_url && !$debug){
                                 // Final redirect
                                 global $wpdb;  
                                 $db_result = $wpdb->insert( 'ab_redirects', $db_insert );
-                                if(!$args['skip']){
-                                    nocache_headers();
-                                    wp_redirect( $args['redirect_url'] );
-                                    exit;
+
+                                if($args['return_redirect']){
+                                    // For screen tests, return just the URL for the GF redirect
+                                    $return_redirect_url[] = $args['redirect_url']; 
+                                } else {                   
+                                    // For other redirects, just go to that page             
+                                    if(!$args['skip']){
+                                        nocache_headers();
+                                        wp_redirect( $args['redirect_url'] );
+                                        exit;
+                                    }
                                 }
+
                             }    
     
                         }
@@ -514,17 +543,47 @@ function mha_ab_redirects( $params = array() ){
     endwhile;    
     endif;
 
-
     if($args['return_redirect']){
+        
+        // Custom admin debug log
+        if(
+            current_user_can('editor') || 
+            current_user_can('administrator')
+        ){ 
+            $log_file = plugin_dir_path( __FILE__ ).'log/log2.json'; 
+            $log_file_data = [];
+            $log_file_data['args'] = $args;
+            $log_file_data['active'] = $active;
+            $log_file_data['variant_result'] = isset($variant_result) ? $variant_result : '';
+            $log_file_data['return_redirect_url'] = $return_redirect_url;
 
-        if($args['redirect_url']){
-            return $args['redirect_url'];
+            $fp = fopen($log_file, 'w');
+            fwrite($fp, json_encode($log_file_data));
+            fclose($fp);
+        }
+
+        // Result redirect
+        if($args['redirect_url'] && count($return_redirect_url)){
+
+            $db_insert_results = array(
+                'ipiden' => get_ipiden(),
+                'redirect_name' => $name,
+                'redirect' => '',
+                'variant_name' => isset($variant_result) && isset($variants) ? $variants[$variant_result['key']]['name'] : '',
+                'source' => $current_url,
+                'log' => json_encode($debug_log, JSON_UNESCAPED_SLASHES)
+            );
+            $db_result = $wpdb->insert( 'ab_redirects', $db_insert_results );            
+            return $return_redirect_url[0];
+            
+            //return $args['redirect_url'];
         } else {
             return false;
         }
 
     } else {
 
+        // Debug display
         if(
             $has_debug && current_user_can('editor') || 
             $has_debug && current_user_can('administrator')

@@ -6,7 +6,8 @@ jQuery(function ($) {
 
     function mha_article_footer_ab_test(){
         
-        if($('.single-article .layout-action-random').length){
+        //if($('.single-article .layout-action-random').length){
+        if($('.layout-action-random').length){
             let total_actions = $('.layout-action-random').length - 1,
                 url = new URL(window.location.href),
                 layout = url.searchParams.get("layout");
