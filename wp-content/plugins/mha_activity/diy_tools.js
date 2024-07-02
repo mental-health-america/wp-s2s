@@ -234,200 +234,203 @@
 
 			$('.diy-questions').each(function(e){
 				
-				// Disable buttons from submitting the form accidentally
-				$('.toggle-crowdthoughts').on("click",function(e){
-					e.preventDefault();
-				});
+				if($(this).hasClass('glide')){
 
-				/**
-				 * Carousel for DIY Questions/Answer Tools
-				 */
-				let $diyParent = $(this).parents('.diy-tool-container'),
-					diyRaw = $(this).parents('.diy-tool-container').attr('id'),
-					questionStart = $diyParent.find('.diy-questions').attr('data-start'),
-					questionPeek = $diyParent.find('.diy-questions').attr('data-peek'),
-					questionAllowSkip = $diyParent.find('.diy-questions').attr('data-skip'),
-					questionsTotal = $diyParent.find('.diy-questions .glide__slide').length;
-
-				$diyParent.find('.question-direct[data-question=q'+questionStart+']').parent('li').addClass('active');
-				
-				// Setup Glide
-				var glideOptions = {
-					type: 'slider',
-					startAt: questionStart,
-					focusAt: 'center',
-					perView: 1,
-					gap: 40,
-					rewind: false,
-					autoHeight: true,
-				};
-				if(questionPeek == 1){
-					glideOptions.peek = {
-						before: 150,
-						after: 150
-					}
-					glideOptions.breakpoints = {
-						880: {
-							gap: 20,
-							peek: {
-								before: 80,
-								after: 80
-							}
-						},
-						580: {
-							gap: 10,
-							peek: {
-								before: 30,
-								after: 30
-							}
-						}
-					}
-				} else {
-					glideOptions.breakpoints = {
-						880: {
-							gap: 20
-						}
-					}
-				}
-				if(questionAllowSkip == 0 || questionsTotal < 2){
-					glideOptions.swipeThreshold = false;
-					glideOptions.dragThreshold = false
-				}
-
-				// Total slides
-				const questionTotal = $diyParent.find('.glide__slide').length;
-
-				// Activate Glide
-				if($diyParent.find('.diy-questions-container').attr('data-embed-single') != 'true'){
-					const question = new Glide('#'+diyRaw+' .glide', glideOptions ).mount({
-						GlideAutoHeight: GlideAutoHeight
-					});
-
-					question.on(['run', 'move.after'], () => {
-
-						// Disable/enable Next
-						if( question.index + 1 >= questionTotal ){
-							$diyParent.find('.question-next').prop('disabled',true);
-							$diyParent.find('.peek.diy-carousel-nav.fade-right').prop('disabled',true);
-						} else {
-							$diyParent.find('.question-next').prop('disabled',false);
-							$diyParent.find('.peek.diy-carousel-nav.fade-right').prop('disabled',false);
-						}
-						
-						// Disable/enable previous
-						if( question.index == 0 ){
-							$diyParent.find('.question-prev').prop('disabled',true);
-							$diyParent.find('.peek.diy-carousel-nav.fade-left').prop('disabled',true);
-						} else {
-							$diyParent.find('.question-prev').prop('disabled',false);
-							$diyParent.find('.peek.diy-carousel-nav.fade-left').prop('disabled',false);
-						}
-
-						// Update crowdsource index
-						$diyParent.find('.crowdthoughtsContent').attr('data-question', question.index);
-						$diyParent.find('.diy-direct-slide[data-index="'+question.index+'"]').click();
-
-						// Update Tabindexes on change
-						$diyParent.find('[tabindex]').attr('tabindex', '-1');
-						$('.glide__slide--active [tabindex]').attr('tabindex', '0');
-
-						// Last Slide Mods
-
-						// Scroll to the proper question it was opened on
-						setTimeout(() => {
-							$diyParent.find('.crowdsource-responses .glide__arrows .diy-direct-slide[data-index="'+question.index+'"]').click();					
-						}, 50); // Slight delay to help make sure everything is loaded before clicking
-					});
-
-					// Update active navigation
-					question.on('move', function(e, f) {
-						$diyParent.find('.question-breadcrumb li').removeClass('active');
-						$diyParent.find('.question-direct[data-question=q'+question.index+']').parent('li').addClass('active');
-					});
-
-					// Update active navigation
-					question.on('run.after', function(e) {
-						// Scroll to the proper question it was opened on
-						if( $diyParent.find('.toggle-crowdthoughts').attr('aria-expanded') == 'true' ){
-							$diyParent.find('.crowdsource-responses .glide__arrows .diy-direct-slide[data-index="'+question.index+'"]').click();
-						}
-					});
-					
-					// Carousel navigation
-					var elements = document.getElementsByClassName("diy-carousel-nav");
-					var questionNavigation = function(e) {
-
-						// Avoid submitting the form
+					// Disable buttons from submitting the form accidentally
+					$('.toggle-crowdthoughts').on("click",function(e){
 						e.preventDefault();
+					});
 
-						// Get the direction
-						let dir = this.getAttribute("data-glide-dir");
+					/**
+					 * Carousel for DIY Questions/Answer Tools
+					 */
+					let $diyParent = $(this).parents('.diy-tool-container'),
+						diyRaw = $(this).parents('.diy-tool-container').attr('id'),
+						questionStart = $diyParent.find('.diy-questions').attr('data-start'),
+						questionPeek = $diyParent.find('.diy-questions').attr('data-peek'),
+						questionAllowSkip = $diyParent.find('.diy-questions').attr('data-skip'),
+						questionsTotal = $diyParent.find('.diy-questions .glide__slide').length;
 
-						// Prevent skips
-						if( $diyParent.find('.diy-questions-container').attr('data-skippable') == 0){
-							// Previous
-							if(dir == '<' && $('.glide__slide--active').prev().hasClass('valid') === false ){
-								return;
-							}
-
-							// Next
-							if(dir == '>' && $('.glide__slide--active').hasClass('valid') === false ){
-								return;
+					$diyParent.find('.question-direct[data-question=q'+questionStart+']').parent('li').addClass('active');
+					
+					// Setup Glide
+					var glideOptions = {
+						type: 'slider',
+						startAt: questionStart,
+						focusAt: 'center',
+						perView: 1,
+						gap: 40,
+						rewind: false,
+						autoHeight: true,
+					};
+					if(questionPeek == 1){
+						glideOptions.peek = {
+							before: 150,
+							after: 150
+						}
+						glideOptions.breakpoints = {
+							880: {
+								gap: 20,
+								peek: {
+									before: 80,
+									after: 80
+								}
+							},
+							580: {
+								gap: 10,
+								peek: {
+									before: 30,
+									after: 30
+								}
 							}
 						}
-
-						// Process skips
-						question.go(dir);
-
-					};
-					for (var i = 0; i < elements.length; i++) {
-						elements[i].addEventListener('click', questionNavigation, false);
+					} else {
+						glideOptions.breakpoints = {
+							880: {
+								gap: 20
+							}
+						}
+					}
+					if(questionAllowSkip == 0 || questionsTotal < 2){
+						glideOptions.swipeThreshold = false;
+						glideOptions.dragThreshold = false
 					}
 
+					// Total slides
+					const questionTotal = $diyParent.find('.glide__slide').length;
 
-					$diyParent.find('.diy-questions[data-skip=0] textarea').each(function(e){
-						let $parent = $(this).parents('li'),
-							$nextButton = $parent.find('.action-button');
-						// Enable in case of refresh
-						if($(this).val() != ''){
-							$nextButton.prop('disabled', false);
-							$parent.addClass('valid');
-						}
+					// Activate Glide
+					if($diyParent.find('.diy-questions-container').attr('data-embed-single') != 'true'){
+						const question = new Glide('#'+diyRaw+' .glide', glideOptions ).mount({
+							GlideAutoHeight: GlideAutoHeight
+						});
+
+						question.on(['run', 'move.after'], () => {
+
+							// Disable/enable Next
+							if( question.index + 1 >= questionTotal ){
+								$diyParent.find('.question-next').prop('disabled',true);
+								$diyParent.find('.peek.diy-carousel-nav.fade-right').prop('disabled',true);
+							} else {
+								$diyParent.find('.question-next').prop('disabled',false);
+								$diyParent.find('.peek.diy-carousel-nav.fade-right').prop('disabled',false);
+							}
+							
+							// Disable/enable previous
+							if( question.index == 0 ){
+								$diyParent.find('.question-prev').prop('disabled',true);
+								$diyParent.find('.peek.diy-carousel-nav.fade-left').prop('disabled',true);
+							} else {
+								$diyParent.find('.question-prev').prop('disabled',false);
+								$diyParent.find('.peek.diy-carousel-nav.fade-left').prop('disabled',false);
+							}
+
+							// Update crowdsource index
+							$diyParent.find('.crowdthoughtsContent').attr('data-question', question.index);
+							$diyParent.find('.diy-direct-slide[data-index="'+question.index+'"]').click();
+
+							// Update Tabindexes on change
+							$diyParent.find('[tabindex]').attr('tabindex', '-1');
+							$('.glide__slide--active [tabindex]').attr('tabindex', '0');
+
+							// Last Slide Mods
+
+							// Scroll to the proper question it was opened on
+							setTimeout(() => {
+								$diyParent.find('.crowdsource-responses .glide__arrows .diy-direct-slide[data-index="'+question.index+'"]').click();					
+							}, 50); // Slight delay to help make sure everything is loaded before clicking
+						});
+
+						// Update active navigation
+						question.on('move', function(e, f) {
+							$diyParent.find('.question-breadcrumb li').removeClass('active');
+							$diyParent.find('.question-direct[data-question=q'+question.index+']').parent('li').addClass('active');
+						});
+
+						// Update active navigation
+						question.on('run.after', function(e) {
+							// Scroll to the proper question it was opened on
+							if( $diyParent.find('.toggle-crowdthoughts').attr('aria-expanded') == 'true' ){
+								$diyParent.find('.crowdsource-responses .glide__arrows .diy-direct-slide[data-index="'+question.index+'"]').click();
+							}
+						});
 						
-						// Simple validation*
-						$(this).on("input", function() {
+						// Carousel navigation
+						var elements = document.getElementsByClassName("diy-carousel-nav");
+						var questionNavigation = function(e) {
+
+							// Avoid submitting the form
+							e.preventDefault();
+
+							// Get the direction
+							let dir = this.getAttribute("data-glide-dir");
+
+							// Prevent skips
+							if( $diyParent.find('.diy-questions-container').attr('data-skippable') == 0){
+								// Previous
+								if(dir == '<' && $('.glide__slide--active').prev().hasClass('valid') === false ){
+									return;
+								}
+
+								// Next
+								if(dir == '>' && $('.glide__slide--active').hasClass('valid') === false ){
+									return;
+								}
+							}
+
+							// Process skips
+							question.go(dir);
+
+						};
+						for (var i = 0; i < elements.length; i++) {
+							elements[i].addEventListener('click', questionNavigation, false);
+						}
+
+
+						$diyParent.find('.diy-questions[data-skip=0] textarea').each(function(e){
+							let $parent = $(this).parents('li'),
+								$nextButton = $parent.find('.action-button');
+							// Enable in case of refresh
 							if($(this).val() != ''){
 								$nextButton.prop('disabled', false);
 								$parent.addClass('valid');
-							} else {
-								$nextButton.prop('disabled', true);
-								$parent.removeClass('valid');
 							}
+							
+							// Simple validation*
+							$(this).on("input", function() {
+								if($(this).val() != ''){
+									$nextButton.prop('disabled', false);
+									$parent.addClass('valid');
+								} else {
+									$nextButton.prop('disabled', true);
+									$parent.removeClass('valid');
+								}
+							});
 						});
-					});
-					
-					$(".diy-questions[data-skip=0] input[type='radio'], .diy-questions[data-skip=0] input[type='checkbox']").each(function(e){
-						let $parent = $(this).parents('li'),
-							inputName = $(this).attr('name'),
-							$nextButton = $parent.find('.action-button');
+						
+						$(".diy-questions[data-skip=0] input[type='radio'], .diy-questions[data-skip=0] input[type='checkbox']").each(function(e){
+							let $parent = $(this).parents('li'),
+								inputName = $(this).attr('name'),
+								$nextButton = $parent.find('.action-button');
 
-						// Enable in case of refresh
-						if($(this).is(":checked")){
-							$nextButton.prop('disabled', false);
-							$parent.addClass('valid');
-						}
-
-						// Simple validation*
-						$('.diy-questions[data-skip=0] input[name="'+inputName+'"]').on("change", function(event) {
+							// Enable in case of refresh
 							if($(this).is(":checked")){
 								$nextButton.prop('disabled', false);
 								$parent.addClass('valid');
-							} else {
-								$nextButton.prop('disabled', true);
-								$parent.removeClass('valid');
 							}
+
+							// Simple validation*
+							$('.diy-questions[data-skip=0] input[name="'+inputName+'"]').on("change", function(event) {
+								if($(this).is(":checked")){
+									$nextButton.prop('disabled', false);
+									$parent.addClass('valid');
+								} else {
+									$nextButton.prop('disabled', true);
+									$parent.removeClass('valid');
+								}
+							});
 						});
-					});
+					}
 				}
 
 			});
@@ -777,7 +780,35 @@
 				theCount.removeClass('d-block').addClass('d-none');
 			}
 		});
-			
+		
+
+		/**
+		 * Breathing question
+		 */
+		$(document).on('click', '.start-breathing', function(e){
+			e.preventDefault();
+			let $button = $(this);
+				bid = $button.attr('data-breathe'),
+				sec = $button.attr('data-timer');
+
+			$('.breathing-container[data-breathe="'+bid+'"]').find('.breathing-circle').addClass('animate');
+			$button.prop('disabled',true).addClass('disabled');
+			$button.find('.text').text('Breathe... '+sec);
+
+			let timer = setInterval(function() { 
+				$button.find('.text').text('Breathe... '+--sec);
+				if (sec == 0) {
+
+					$button.removeClass('red').addClass('wine').find('.text').text('Thank you. Please continue.'); // Replace button with helpful text
+					$('.breathing-container[data-breathe="'+bid+'"] .breathing-inner').addClass('fade-out').slideUp('slow'); // Hide the breathing exercise animation
+					$('.worksheet-item[aria-hidden="true"]').attr('aria-hidden', 'false').slideDown('slow'); // Hide the breathing exercise animation						
+					$button.parents('li.worksheet-item').next('li.worksheet-item').find('textarea').focus(); // Focus on next question
+
+					clearInterval(timer);
+				} 
+			}, 1000);
+
+		});
 
 	});
 

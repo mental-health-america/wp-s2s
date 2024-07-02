@@ -408,10 +408,6 @@ add_shortcode('mha_cta', 'mha_display_cta_shortcode');
  * DIY Tool Display
  */
 
-/** 
- * DIY Tool Display
- */
-
 function mha_diy_shortcode_display( $atts ){
 	$embededed_page = get_the_ID();
     ob_start();
@@ -439,6 +435,15 @@ function mha_diy_shortcode_display( $atts ){
 							'start_page' => $embededed_page
 						);
 						get_template_part( 'templates/diy-tools/question', 'answers', $template_options ); 
+						break;
+
+					case 'worksheet':
+						$template_options = array(
+							'embed' => 1,
+							'embed_type' => $type,
+							'start_page' => $embededed_page
+						);
+						get_template_part( 'templates/diy-tools/worksheet', '', $template_options ); 
 						break;
 				}
 			endwhile;
@@ -560,3 +565,100 @@ function mha_redcap_survey_link( $args ){
 
 } 
 add_shortcode('mha_redcap_survey_link', 'mha_redcap_survey_link'); 
+
+
+
+/**
+ * Shortcode - MHA Tooltip
+ * Display a helpful tooltip.
+ */
+function mha_tooltip($atts, $content_raw = null) {
+	
+    $atts = shortcode_atts(
+        array(
+            'display' => '?',
+        ),
+        $atts,
+        'mha_tooltip'
+    );
+
+    $unique = uniqid('mhat_');
+    
+	$content = wp_kses( $content_raw, array( 
+		'a' => array(
+			'class' => array(),
+			'href'  => array(),
+			'rel'   => array(),
+			'title' => array(),
+		),
+		'abbr' => array(
+			'title' => array(),
+		),
+		'b' => array(),
+		'blockquote' => array(
+			'cite'  => array(),
+		),
+		'cite' => array(
+			'title' => array(),
+		),
+		'code' => array(),
+		'dd' => array(),
+		'div' => array(
+			'class' => array(),
+			'title' => array(),
+			'style' => array(),
+		),
+		'em' => array(),
+		'h2' => array(),
+		'h3' => array(),
+		'h4' => array(),
+		'h5' => array(),
+		'h6' => array(),
+		'i' => array(),
+		'img' => array(
+			'alt'    => array(),
+			'class'  => array(),
+			'height' => array(),
+			'src'    => array(),
+			'width'  => array(),
+		),
+		'li' => array(
+			'class' => array(),
+		),
+		'ol' => array(
+			'class' => array(),
+		),
+		'p' => array(
+			'class' => array(),
+		),
+		'q' => array(
+			'cite' => array(),
+			'title' => array(),
+		),
+		'span' => array(
+			'class' => array(),
+			'title' => array(),
+			'style' => array(),
+		),
+		'strong' => array(),
+		'ul' => array(
+			'class' => array(),
+		),
+	) );
+
+    // Generate the HTML for the tooltip
+    $output = '<button type="button" class="btn mha-tooltip" data-toggle="tooltip-click" data-html="true" data-id="'.$unique.'" title="'.esc_html($content).'">' . esc_html($atts['display']) . '</button>';
+
+    return $output;
+	
+} 
+add_shortcode('mha_tooltip', 'mha_tooltip'); 
+
+// Do shortcodes in textarea fields
+function text_area_shortcode($value, $post_id, $field) {
+	if (is_admin()) {
+		return $value;
+	}
+	return do_shortcode($value);
+}
+add_filter('acf/load_value/type=textarea', 'text_area_shortcode', 10, 3);
