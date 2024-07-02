@@ -203,116 +203,63 @@
         // Screens
         if( count( array_intersect($article_type, array('condition')) ) > 0 && !count(array_intersect( array('sidebar_only_related'), $layout)) ):
 
-            // Show Specific Related Test
-            $args = array(
+            // New Screening CTA            
+            $screen_args = array(
                 "post_type"         => 'screen',
                 "order"	            => 'DESC',
                 "post_status"       => 'publish',
-                "posts_per_page"    => 1
+                "posts_per_page"    => -1
             );
-            $has_query = false;
-
-            if( $primary_condition && count(array_intersect($article_type, $resources)) == 0){
-                // Conditions
-                $args['tax_query'] = array(
-                    array(
-                        'taxonomy'          => $primary_condition->taxonomy,
-                        'include_children'  => false,
-                        'field'             => 'term_id',
-                        'terms'             => $primary_condition->term_id
-                    ),
-                );
-                $has_query = true;
-            }
-            
-            else if( count($article_tags) == 1 ){
-                // Tags
-                $args['tax_query'] = array(
-                    array(
-                        'taxonomy'          => 'post_tag',
-                        'include_children'  => false,
-                        'field'             => 'term_id',
-                        'terms'             => $article_tags,
-                        'operator'          => 'IN'
-                    ),
-                );
-                $has_query = true;
-            }
+            $screen_loop = new WP_Query($screen_args);
+            $screen_ctas = [];
+            if($screen_loop->have_posts()):
+            while($screen_loop->have_posts()) : $screen_loop->the_post();
                 
-            $args['meta_query'] = array( 
-                'relation' => 'AND',
-                array(
-                    'relation' => 'OR',
-                    array(
-                        'key' => 'espanol',
-                        'value' => '1',
-                        'compare' => '!='
-                    ),
-                    array(
-                        'key' => 'espanol',
-                        'value' => '1',
-                        'compare' => 'NOT EXISTS'
-                    )
-                ),                
-                array(
-                    'relation' => 'OR',
-                    array(
-                        'key' => 'invisible',
-                        'value' => '1',
-                        'compare' => '!='
-                    ),
-                    array(
-                        'key' => 'invisible',
-                        'value' => '1',
-                        'compare' => 'NOT EXISTS'
-                    )
-                ),                
-                array(
-                    'relation' => 'OR',
-                    array(
-                        'key' => 'survey',
-                        'value' => '1',
-                        'compare' => '!='
-                    ),
-                    array(
-                        'key' => 'survey',
-                        'value' => '1',
-                        'compare' => 'NOT EXISTS'
-                    )
-                )
-            );
-            if($primary_condition){
-                $args['meta_query'][] = array(
-                    array(
-                        'key' => '_yoast_wpseo_primary_'.$primary_condition->taxonomy,
-                        'value' => $primary_condition->term_id
-                    )
-                );
-            }
+                if(
+                    !get_field('survey') &&
+                    !get_field('invisible') &&
+                    !get_field('espanol')
+                ):
 
-            if($has_query && $primary_condition):
-                $loop = new WP_Query($args);
-                if($loop->have_posts()):
+                    $screen_id = get_the_ID();
+                    $screen_primary_condition = yoast_get_primary_term_id( 'condition', $screen_id );
+                    
+                    if( $screen_primary_condition && isset($primary_condition->term_id) && $primary_condition->term_id == $screen_primary_condition ):
+                        $screen_ctas[] = array(
+                            'id' => $screen_id,
+                            'title' => get_the_title(),
+                            'link' => get_the_permalink(),
+                            'excerpt' => get_the_excerpt(),
+                            'primary_condition' => $primary_condition->term_id,
+                            'yoast' => yoast_get_primary_term_id( 'condition', $screen_id )
+                        );
+                        continue;
+                    endif;
+                    
+                endif;
+
+            endwhile;
+            endif;
+
+
+            if(count($screen_ctas)):
                 ?>
                     <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4">
                     <div class="inner">
-                    <?php while($loop->have_posts()) : $loop->the_post(); ?> 
                         <?php
                             $an_a = ' '; 
-                            $title = get_the_title();
+                            $title = $screen_ctas[0]['title'];
                             if($title[0] == 'A'){
                                 $an_a = 'n ';
                             }
                         ?>                         
-                        <?php the_title('<h4>Take a'.$an_a,'</h4>'); ?>   
-                        <div class="excerpt thin"><?php the_excerpt(); ?></div>
-                        <div class="text-center pb-0"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
-                    <?php endwhile; ?>
+                        <h4>Take a<?php echo $an_a.' '.$screen_ctas[0]['title']; ?></h4>
+                        <div class="excerpt thin"><p><?php echo $screen_ctas[0]['excerpt']; ?></p></div>
+                        <div class="text-center pb-0"><a href="<?php echo $screen_ctas[0]['link']; ?>" class="button white round text-orange">Take a<?php echo $an_a.' '.$screen_ctas[0]['title']; ?></a></div>
                     </div>
                     </div>
                 <?php
                 $has_screen_cta++;
-                endif;
             endif;
             wp_reset_query();
 
@@ -337,85 +284,10 @@
             //$has_screen_cta++;
         endif;
 
-        // Show Random Related Test
-        /*
-        } else {
-            if(count(array_intersect($article_type, $resources)) == 0){
-                $args = array(
-                    "post_type"      => 'screen',
-                    "orderby"        => 'rand',
-                    "order"	         => 'DESC',
-                    "post_status"    => 'publish',
-                    "posts_per_page" => 1,
-                    'tax_query'      => array(
-                        array(
-                            'taxonomy'          => 'condition',
-                            'include_children'  => false,
-                            'field'             => 'term_id',
-                            'terms'             => $article_conditions
-                        ),
-                    ),
-                    'meta_query' => array( 
-                        'relation' => 'OR',
-                        array(
-                            'key' => 'espanol',
-                            'value' => '1',
-                            'compare' => '!='
-                        ),
-                        array(
-                            'key' => 'espanol',
-                            'value' => '1',
-                            'compare' => 'NOT EXISTS'
-                        )
-                    )
-                );
-                $loop = new WP_Query($args);
-                if($loop->have_posts()):
-                ?>
-                    <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4 hide-mobile">
-                    <div class="inner">
-                    <?php while($loop->have_posts()) : $loop->the_post(); ?>    
-                        <?php
-                            $an_a = ' '; 
-                            $title = get_the_title();
-                            if($title[0] == 'A'){
-                                $an_a = 'n ';
-                            }
-                        ?>                            
-                        <?php the_title('<h4>Take a'.$an_a,'</h4>'); ?>   
-                        <div class="excerpt"><?php the_excerpt(); ?></div>
-                        <div class="text-center pb-0"><a href="<?php echo get_the_permalink(); ?>" class="button white round text-orange">Take a<?php echo $an_a; ?> <?php the_title(); ?></a></div>
-                    <?php endwhile; ?>
-                    </div>
-                    </div>
-                <?php
-                $has_screen_cta++;
-                endif;
-                wp_reset_query();
 
-            } else {
-            ?>
-
-            <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4 hide-mobile">
-            <div class="inner">                
-                <h4><?php echo _e('Take a Mental Health Test', 'mhas2s'); ?></h4>
-                <div class="excerpt font-weight-normal">
-                    <?php echo strip_tags(get_field('hero_introduction', 36), '<p>'); ?>
-                </div>
-                <div class="text-center pb-3"><a href="/screening-tools/" class="button white round text-orange"><?php echo _e('Take a Mental Health Test', 'mhas2s'); ?></a></div>
-            </div>
-            </div>
-            <?php
-            $has_screen_cta++;
-        }
-        */
-    ?>
-
-    <?php
         /**
          * Related Articles
          */
-
         if( count(array_intersect( array('sidebar_only_test'), $layout)) ) {
             $has_screen_cta = 1;
         }
