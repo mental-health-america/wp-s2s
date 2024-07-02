@@ -88,11 +88,12 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20240402_v1' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20240702' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
-	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20220817', 'print' );
+	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20240702', 'print' );
+	//wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, time(), 'print' );
     
 	// Scripts
 	wp_enqueue_script( 'mha_s2s-skip-link-focus-fix', get_template_directory_uri() . '/assets/js/skip-link-focus-fix.js', array(), '1.0', true );
@@ -118,7 +119,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20231116_2', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20240702', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
@@ -334,6 +335,24 @@ function mha_screening_uid_hash( $form ) {
 */
 
 
+/**
+ * Pre-fill start time of fields
+ */
+add_filter( 'gform_pre_render', 'mha_prefill_time_field' );
+function mha_prefill_time_field( $form ) {
+
+	// $current_page = GFFormDisplay::get_current_page( $form['id'] );
+	// Only fills the first one
+	foreach ( $form['fields'] as &$field ) {
+		if( $field->defaultValue == '{datetime}' && $field->pageNumber == 1 ){
+			$dateTime = new DateTime('now', new DateTimeZone('America/New_York'));
+			$field->defaultValue = $dateTime->format('Y-m-d h:i:sa');
+		}
+	}
+	
+    return $form;
+}
+
 
 /**
  * Add iframe mode to screening results page
@@ -469,35 +488,78 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 
 	$current_page = GFFormDisplay::get_current_page( $form['id'] );
 	$page_count = GFFormDisplay::get_max_page_number( $form ) + 1;
+	
+	// Helpers
+	$form_fields = isset($form['fields']) ? $form['fields'] : false;
+	$form_classes = isset($form['cssClass']) ? $form['cssClass'] : '';
+
+	// Get max pages
+	$form_pages = [];
+	/*
+	foreach($form_fields as $ff){
+		if(isset($ff['cssClass']) && str_contains($ff['cssClass'], 'page-label')){
+			$form_pages[$ff['pageNumber']] = $ff['label'];
+		}
+	}
+	*/
+	
+	foreach($form['pagination']['pages'] as $k => $v){
+		$form_pages[ ($k + 1) ] = $v;
+	}
+
     $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
 	
 	$last_progress_label = get_field('survey') ? 'Submit<br /> Survey' : 'Your<br />Results';
 
 	if( in_array('show_progress', $layout) && !in_array('hide_progress', $layout) || !in_array('hide_progress', $layout) ){
 
-		$progress_bar = '';
+		if(isset($form['cssClass']) && str_contains($form['cssClass'], 'full-pager')){
+			// Custom progress bar (all pages)
+			
+			$progress_bar = '<ol class="full-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">';
+			foreach($form_pages as $k => $v){
+				$pager_class = '';
+				if($current_page == $k){
+					$pager_class = 'active';
+				} elseif($current_page > $k) {
+					$pager_class = 'filled';
+				} else {
+					$pager_class = 'empty';
+				}
+				$progress_bar .= '<li class="step-'.$k.' '.$pager_class.'"><span>'.$v.'</span></li>';
+			}
+			$progress_bar .= '<li class="step-'.(count($form_pages) + 1).'"><span>'.$last_progress_label.'</span></li>';
+			$progress_bar .= '</ol>';
 
-		if( in_array('side_progress', $layout) ){
-			$progress_bar .= '<div class="progress-container sticky">';
-		}
 
-		if(get_field('espanol')){
-			$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
-				<li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
-				<li class="step-2"><span>Preguntas<br />Opcionales</span></li>
-				<li class="step-3"><span>Sus<br />Resultados</span></li>
-			</ol>';
 		} else {
-			$demo_label = in_array('alt_demo_label', $layout) ? 'Optional<br />Questions' : 'Demographic<br />Information';
-			$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
-				<li class="step-1"><span>Test<br />Questions</span></li>
-				<li class="step-2"><span>'.$demo_label.'</span></li>
-				<li class="step-3"><span>'.$last_progress_label.'</span></li>
-			</ol>';
-		}
 
-		if( in_array('side_progress', $layout) ){
-			$progress_bar .= '</div>';
+			// Test progress bar
+			$progress_bar = '';
+	
+			if( in_array('side_progress', $layout) ){
+				$progress_bar .= '<div class="progress-container sticky">';
+			}
+	
+			if(get_field('espanol')){
+				$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+					<li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
+					<li class="step-2"><span>Preguntas<br />Opcionales</span></li>
+					<li class="step-3"><span>Sus<br />Resultados</span></li>
+				</ol>';
+			} else {
+				$demo_label = in_array('alt_demo_label', $layout) ? 'Optional<br />Questions' : 'Demographic<br />Information';
+				$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+					<li class="step-1"><span>Test<br />Questions</span></li>
+					<li class="step-2"><span>'.$demo_label.'</span></li>
+					<li class="step-3"><span>'.$last_progress_label.'</span></li>
+				</ol>';
+			}
+	
+			if( in_array('side_progress', $layout) ){
+				$progress_bar .= '</div>';
+			}
+
 		}
 
 	} else {

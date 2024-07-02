@@ -3,6 +3,34 @@
     AOS.init({
 		once: true
 	});
+	
+	function getCurrentDateTime() {
+		const now = new Date();
+	
+		// Create a formatter for the New York timezone
+		const options = {
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hour12: true,
+			timeZone: 'America/New_York'
+		};
+	
+		const formatter = new Intl.DateTimeFormat('en-US', options);
+		const parts = formatter.formatToParts(now);
+	
+		const dateMap = {};
+		parts.forEach(({ type, value }) => {
+			dateMap[type] = value;
+		});
+	
+		const formattedDateTime = `${dateMap.year}-${dateMap.month}-${dateMap.day} ${dateMap.hour}:${dateMap.minute}:${dateMap.second}${dateMap.dayPeriod.toLowerCase()}`;
+		return formattedDateTime;
+	}
+	
 
 	/**
 	 * Document Ready Functions
@@ -287,6 +315,19 @@
 			options: 'click hover'
 		});
 
+		// Clicky tooltips
+		var $tooltipButton = $('button[data-toggle="tooltip-click"]');
+		$tooltipButton.tooltip({
+			trigger: 'manual'
+		});
+		$tooltipButton.on('click', function() {
+			if ($(this).attr('aria-describedby')) {
+				$(this).tooltip('hide');
+			} else {
+				$(this).tooltip('show');
+			}
+		});
+
 		// Sticky Sidebars		
 		//$("aside.article-right .sticky").stick_in_parent();
 		if($('aside.article-right .sticky').length){
@@ -445,7 +486,15 @@
 
 		// Bootstrap tooltips
 		$('[data-toggle="tooltip"]').tooltip()
-	
+
+		// Date Time prefill on forms
+		$(document).on('gform_page_loaded', function(event, form_id, current_page){
+			$('#gform_page_'+form_id+'_'+current_page+' input.gform_hidden').each(function(e){
+				if($(this).val() == '{datetime}'){
+					$(this).val( getCurrentDateTime() );
+				}
+			});
+		});
 
 	});
 
