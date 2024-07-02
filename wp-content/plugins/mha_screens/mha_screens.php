@@ -9,7 +9,7 @@
  */
 
 // General Vars
-define( 'MHASCREENS_VERSION', '1.2.1' );
+define( 'MHASCREENS_VERSION', '1.2.3' );
 
 // Enqueing Scripts
 add_action('init', 'mhaScreenScripts');
@@ -645,15 +645,15 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
         $results['admin_user_result'] = 0;
 
         // Height details
-        $height_choice = isset($general_score_data[119]) ? $general_score_data[119] : null; // Height Choice
-        $height_ft = isset($general_score_data[124]) ? $general_score_data[124] : null; // Feet
-        $height_in = isset($general_score_data[125]) ? $general_score_data[125] : null; // Inches
-        $height_cm = isset($general_score_data[126]) ? $general_score_data[126] : null; // Centimeters
+        $height_choice = isset($general_score_data[129]) ? $general_score_data[129] : null; // Height Choice
+        $height_ft = isset($general_score_data[130]) ? $general_score_data[130] : null; // Feet
+        $height_in = isset($general_score_data[131]) ? $general_score_data[131] : null; // Inches
+        $height_cm = isset($general_score_data[132]) ? $general_score_data[132] : null; // Centimeters
         $height_final = null;
 
         // Weight Details
-        $weight_type = isset($general_score_data[130]) ? $general_score_data[130] : null; // lbs or kg
-        $entered_weight = isset($general_score_data[67]) ? $general_score_data[67] : null; // lbs
+        $weight_type = isset($general_score_data[122]) ? $general_score_data[122] : null; // lbs or kg
+        $entered_weight = isset($general_score_data[124]) ? $general_score_data[124] : null; // Weight
         $weight = null;
         if($weight_type == 'lbs'){
             $weight = $entered_weight;
@@ -687,40 +687,40 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
         // Test Scoring
         if (($bmi !== NULL && $bmi < 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 1; // At Risk for Anorexia Nervosa
+            $results['admin_user_result'] = 'At Risk for Anorexia Nervosa'; // 1. At Risk for Anorexia Nervosa
         } elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 2; // At Risk for Bulimia Nervosa
+            $results['admin_user_result'] = 'At Risk for Bulimia Nervosa'; // 2. At Risk for Bulimia Nervosa
         } elseif (($general_score_data[53] > 1) && (($general_score_data[70] + $general_score_data[71] + $general_score_data[72] + $general_score_data[73] + $general_score_data[74]) >= 3) && ($general_score_data[75] >= 4) && (($general_score_data[53] >= 12) && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 3)) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 3; // At Risk for Binge Eating Disorder
+            $results['admin_user_result'] = 'At Risk for Binge Eating Disorder'; // 3. At Risk for Binge Eating Disorder
         } elseif (($bmi !== NULL && $bmi >= 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 4; // At Risk for Atypical Anorexia Nervosa
+            $results['admin_user_result'] = 'At Risk for Atypical Anorexia Nervosa'; // 4. At Risk for Atypical Anorexia Nervosa
         } elseif (($bmi == NULL && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 5; // At Risk for Anorexia Nervosa (no BMI info)
+            $results['admin_user_result'] = 'At Risk for Anorexia Nervosa (no BMI info)'; // 5. At Risk for Anorexia Nervosa (no BMI info)
         } elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 3 && $general_score_data[53] < 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 3 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 6; // At Risk for Subclinical Bulimia Nervosa
+            $results['admin_user_result'] = 'At Risk for Subclinical Bulimia Nervosa'; // 6. At Risk for Subclinical Bulimia Nervosa
         } elseif (($general_score_data[53] > 1) && (($general_score_data[70] + $general_score_data[71] + $general_score_data[72] + $general_score_data[73] + $general_score_data[74]) >= 3) && ($general_score_data[75] >= 4) && (($general_score_data[53] >= 3 && $general_score_data[53] < 12) && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 3)) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 7; // At Risk for Subclinical Binge Eating Disorder
+            $results['admin_user_result'] = 'At Risk for Subclinical Binge Eating Disorder'; // 7. At Risk for Subclinical Binge Eating Disorder
         } elseif (($general_score_data[53] == 0) && (($general_score_data[55] + $general_score_data[57]) >= 12)) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 8; // At Risk for Purging Disorder
+            $results['admin_user_result'] = 'At Risk for Purging Disorder'; // 8. At Risk for Purging Disorder
         } elseif (($general_score_data[53] >= 3) || (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 3)) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 9; // At Risk for Unspecified Feeding or Eating Disorder (UFED)
+            $results['admin_user_result'] = 'At Risk for Unspecified Feeding or Eating Disorder (UFED)'; // 9. At Risk for Unspecified Feeding or Eating Disorder (UFED)
         } elseif ($total_score >= 47 || $general_score_data[50] >= 66.7 || $general_score_data[47] >= 75) {
             $custom_result_row = 1; // At Risk for Eating Disorder
-            $results['admin_user_result'] = 10; // At Risk for Eating Disorder
+            $results['admin_user_result'] = 'At Risk for Eating Disorder'; // 10. At Risk for Eating Disorder
         } elseif ($general_score_data[61] == 1 || $general_score_data[62] == 1 || $general_score_data[63] == 1) {
             $custom_result_row = 2; // At Risk for Avoidant/Restrictive Food Intake Disorder (ARFID)
-            $results['admin_user_result'] = 11; // Avoidant/Restrictive Food Intake Disorder (ARFID)
+            $results['admin_user_result'] = 'Avoidant/Restrictive Food Intake Disorder (ARFID)'; // 11. Avoidant/Restrictive Food Intake Disorder (ARFID)
         } else {
             $custom_result_row = 3; // Low Risk
-            $results['admin_user_result'] = 12; // Low Risk
+            $results['admin_user_result'] = 'Low Risk'; // Low Risk
         }         
 		$results['custom_result_row'] = $custom_result_row;         
 
@@ -892,5 +892,5 @@ function mha_screening_pre_submission_handler( $form ) {
 include_once 'result_content.php';
 include_once 'result_scoring.php';
 include_once 'demographic_steps.php';
-include_once 'related_articles.php';
 include_once 'featured_next_steps.php';
+include_once 'related_articles.php';

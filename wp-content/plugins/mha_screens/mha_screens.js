@@ -31,6 +31,11 @@ jQuery(function ($) {
 				// Disable submit
 				$('.submit',form).prop('disabled', true).addClass('loading');
 
+				window.dataLayer.push({
+					'event': 'screening_email_sent',
+					'screen_name': $('#screen-name').text()
+				});
+				
 				$.ajax({
 					type: "POST",
 					url: do_mhaScreenEmail.ajaxurl,
