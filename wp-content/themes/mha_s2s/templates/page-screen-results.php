@@ -770,6 +770,8 @@ else:
                     $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas); 
                 }
 
+
+
                 /**
                  * Veteran CTA Override
                  */
@@ -782,7 +784,23 @@ else:
                         isset($user_screen_result['answered_demos']['Do you live in the United States or another country?']) && 
                         !in_array('I live in another country', $user_screen_result['answered_demos']['Do you live in the United States or another country?'])
                     ){
+
+                        // Single override
                         $unique_result_cta = array('126533');
+
+                        // Randomaize override
+                        $veteran_ads = array('126533','190592','190593','190603','190604'); // Production
+                        shuffle($veteran_ads);
+                        $unique_result_cta_minus_veterans = array_diff($unique_result_cta, $veteran_ads); // Get non-matching veteran CTAs
+                        $unique_result_with_veteran = array_intersect($unique_result_cta, $veteran_ads); // Get matching veteran CTAs
+                        if ( count($unique_result_with_veteran) > 0 ) {
+                            array_unshift($unique_result_cta_minus_veterans, $veteran_ads[0]);
+                            $unique_result_cta = $unique_result_cta_minus_veterans;
+                        }
+                        if( count($unique_result_cta) > $max_ctas ){       
+                            $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas); 
+                        }
+
                     }
                 }
 
