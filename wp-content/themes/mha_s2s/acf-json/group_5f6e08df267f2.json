@@ -363,13 +363,76 @@
                 "class": "",
                 "id": ""
             },
+            "relevanssi_exclude": 0,
             "acfe_repeater_stylised_button": 0,
-            "collapsed": "",
+            "layout": "row",
+            "pagination": 0,
             "min": 0,
             "max": 0,
-            "layout": "table",
+            "collapsed": "",
             "button_label": "Add Step",
+            "rows_per_page": 20,
             "sub_fields": [
+                {
+                    "key": "field_61689414af70b",
+                    "label": "Link(s)",
+                    "name": "links",
+                    "aria-label": "",
+                    "type": "post_object",
+                    "instructions": "",
+                    "required": 1,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "20",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "post_type": [
+                        "article",
+                        "cta",
+                        "page",
+                        "reading_path",
+                        "screen",
+                        "diy"
+                    ],
+                    "taxonomy": "",
+                    "return_format": "object",
+                    "multiple": 1,
+                    "save_custom": 0,
+                    "save_post_status": "publish",
+                    "acfe_bidirectional": {
+                        "acfe_bidirectional_enabled": "0"
+                    },
+                    "allow_null": 0,
+                    "ui": 1,
+                    "save_post_type": "",
+                    "bidirectional_target": [],
+                    "parent_repeater": "field_6168937baf709"
+                },
+                {
+                    "key": "field_61689432af70c",
+                    "label": "Admin Note",
+                    "name": "admin_note",
+                    "aria-label": "",
+                    "type": "textarea",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "10",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "acfe_textarea_code": 0,
+                    "maxlength": "",
+                    "rows": 1,
+                    "placeholder": "",
+                    "new_lines": "",
+                    "parent_repeater": "field_6168937baf709"
+                },
                 {
                     "key": "field_6168938faf70a",
                     "label": "Operator",
@@ -492,78 +555,42 @@
                                 "class": "",
                                 "id": ""
                             },
+                            "relevanssi_exclude": 0,
                             "default_value": "",
-                            "placeholder": "",
-                            "maxlength": "",
-                            "rows": 1,
                             "acfe_textarea_code": 1,
+                            "maxlength": "",
+                            "rows": 2,
+                            "placeholder": "",
                             "new_lines": "",
+                            "parent_repeater": "field_61689463af70d"
+                        },
+                        {
+                            "key": "field_663a46deb9b7c",
+                            "label": "Exclude",
+                            "name": "exclude",
+                            "aria-label": "",
+                            "type": "true_false",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "relevanssi_exclude": 0,
+                            "message": "",
+                            "default_value": 0,
+                            "ui_on_text": "",
+                            "ui_off_text": "",
+                            "ui": 1,
                             "parent_repeater": "field_61689463af70d"
                         }
                     ],
                     "rows_per_page": 20,
                     "parent_repeater": "field_6168937baf709"
-                },
-                {
-                    "key": "field_61689414af70b",
-                    "label": "Link(s)",
-                    "name": "links",
-                    "aria-label": "",
-                    "type": "post_object",
-                    "instructions": "",
-                    "required": 1,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "20",
-                        "class": "",
-                        "id": ""
-                    },
-                    "relevanssi_exclude": 0,
-                    "post_type": [
-                        "article",
-                        "cta",
-                        "page",
-                        "reading_path",
-                        "screen",
-                        "diy"
-                    ],
-                    "taxonomy": "",
-                    "return_format": "object",
-                    "multiple": 1,
-                    "save_custom": 0,
-                    "save_post_status": "publish",
-                    "acfe_bidirectional": {
-                        "acfe_bidirectional_enabled": "0"
-                    },
-                    "allow_null": 0,
-                    "ui": 1,
-                    "save_post_type": "",
-                    "bidirectional_target": [],
-                    "parent_repeater": "field_6168937baf709"
-                },
-                {
-                    "key": "field_61689432af70c",
-                    "label": "Admin Note",
-                    "name": "admin_note",
-                    "aria-label": "",
-                    "type": "text",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "10",
-                        "class": "",
-                        "id": ""
-                    },
-                    "default_value": "",
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "maxlength": "",
-                    "parent_repeater": "field_6168937baf709"
                 }
-            ],
-            "rows_per_page": 20
+            ]
         },
         {
             "key": "field_62068b78e082c",
@@ -1199,5 +1226,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1698416479
+    "modified": 1715261305
 }

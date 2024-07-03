@@ -16,8 +16,10 @@
                 "class": "",
                 "id": ""
             },
+            "relevanssi_exclude": 0,
             "choices": {
-                "question_answer": "Questions & Answers"
+                "question_answer": "Questions & Answers",
+                "worksheet": "Worksheet"
             },
             "default_value": false,
             "return_format": "value",
@@ -75,26 +77,6 @@
             "ui": 1
         },
         {
-            "key": "field_6346c9fe2b597",
-            "label": "Allow Question Skipping?",
-            "name": "allow_question_skipping",
-            "aria-label": "",
-            "type": "true_false",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "message": "",
-            "default_value": 0,
-            "ui_on_text": "",
-            "ui_off_text": "",
-            "ui": 1
-        },
-        {
             "key": "field_6346cb464063f",
             "label": "Show Next Previews",
             "name": "show_next_previews",
@@ -108,75 +90,6 @@
                 "class": "",
                 "id": ""
             },
-            "message": "",
-            "default_value": 0,
-            "ui_on_text": "",
-            "ui_off_text": "",
-            "ui": 1
-        },
-        {
-            "key": "field_6346ca427f87c",
-            "label": "Allow Crowdsource Viewing?",
-            "name": "allow_crowdsource_viewing",
-            "aria-label": "",
-            "type": "true_false",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "message": "",
-            "default_value": 0,
-            "ui_on_text": "",
-            "ui_off_text": "",
-            "ui": 1
-        },
-        {
-            "key": "field_6373a02998547",
-            "label": "Show Crowdsource by Default",
-            "name": "crowdsource_default_visible",
-            "aria-label": "",
-            "type": "true_false",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": [
-                [
-                    {
-                        "field": "field_6346ca427f87c",
-                        "operator": "==",
-                        "value": "1"
-                    }
-                ]
-            ],
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "message": "",
-            "default_value": 0,
-            "ui_on_text": "",
-            "ui_off_text": "",
-            "ui": 1
-        },
-        {
-            "key": "field_63c9b5ad76db4",
-            "label": "Allow User Opt-Out of Crowdsource",
-            "name": "allow_user_opt_out_of_crowdsource",
-            "aria-label": "",
-            "type": "true_false",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
             "message": "",
             "default_value": 0,
             "ui_on_text": "",
@@ -213,60 +126,161 @@
             "append": ""
         },
         {
-            "key": "field_6346ca88749d7",
-            "label": "Crowdsource Heading",
-            "name": "crowdsource_heading",
+            "key": "field_6446d70aebca2",
+            "label": "Try Again Label",
+            "name": "try_again_label",
             "aria-label": "",
             "type": "text",
             "instructions": "",
             "required": 0,
-            "conditional_logic": [
-                [
-                    {
-                        "field": "field_6346ca427f87c",
-                        "operator": "==",
-                        "value": "1"
-                    }
-                ]
-            ],
+            "conditional_logic": 0,
             "wrapper": {
                 "width": "",
                 "class": "",
                 "id": ""
             },
-            "default_value": "What others answered:",
+            "relevanssi_exclude": 0,
+            "default_value": "Try this activity again",
             "maxlength": "",
-            "placeholder": "",
+            "placeholder": "Try this activity again",
             "prepend": "",
             "append": ""
         },
         {
-            "key": "field_6346d1942f91e",
-            "label": "Crowdsource Button Label",
-            "name": "crowdsource_button_label",
+            "key": "field_663a38feb51d2",
+            "label": "Worksheet Options",
+            "name": "",
             "aria-label": "",
-            "type": "text",
+            "type": "tab",
             "instructions": "",
             "required": 0,
-            "conditional_logic": [
-                [
-                    {
-                        "field": "field_6346ca427f87c",
-                        "operator": "==",
-                        "value": "1"
-                    }
-                ]
-            ],
+            "conditional_logic": 0,
             "wrapper": {
                 "width": "",
                 "class": "",
                 "id": ""
             },
+            "relevanssi_exclude": 0,
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_663e27405b7d2",
+            "label": "Introduction",
+            "name": "introduction",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
             "default_value": "",
-            "maxlength": "",
-            "placeholder": "",
-            "prepend": "",
-            "append": ""
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_663e278e152bd",
+            "label": "Worksheet Download",
+            "name": "download",
+            "aria-label": "",
+            "type": "link",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "return_format": "array"
+        },
+        {
+            "key": "field_663a39e8b51d4",
+            "label": "Single Question Mode",
+            "name": "single_question_mode",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "message": "",
+            "default_value": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
+        },
+        {
+            "key": "field_66394c7236c1b",
+            "label": "Disclaimer",
+            "name": "disclaimer",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_66394a18ebd6e",
+            "label": "Content",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_6346c9fe2b597",
+            "label": "Allow Question Skipping?",
+            "name": "allow_question_skipping",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
         },
         {
             "key": "field_6346c8fd2b590",
@@ -317,7 +331,7 @@
                     "label": "Question",
                     "name": "question",
                     "aria-label": "",
-                    "type": "text",
+                    "type": "textarea",
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
@@ -326,11 +340,13 @@
                         "class": "",
                         "id": ""
                     },
+                    "relevanssi_exclude": 0,
                     "default_value": "",
+                    "acfe_textarea_code": 0,
                     "maxlength": "",
+                    "rows": "",
                     "placeholder": "",
-                    "prepend": "",
-                    "append": "",
+                    "new_lines": "",
                     "parent_repeater": "field_6346c8fd2b590"
                 },
                 {
@@ -370,14 +386,14 @@
                         "id": ""
                     },
                     "relevanssi_exclude": 0,
-                    "wpml_cf_preferences": "",
                     "choices": {
                         "text": "Text",
                         "radio": "Radio",
-                        "checkbox": "Checkbox"
+                        "checkbox": "Checkbox",
+                        "breathe": "Breathe"
                     },
                     "default_value": false,
-                    "return_format": "",
+                    "return_format": "value",
                     "multiple": 0,
                     "allow_null": 0,
                     "ui": 0,
@@ -503,6 +519,36 @@
                     "prepend": "",
                     "append": "",
                     "parent_repeater": "field_6346c8fd2b590"
+                },
+                {
+                    "key": "field_664cccc1ad74c",
+                    "label": "Timer",
+                    "name": "timer",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_63ffc8e68a53e",
+                                "operator": "==",
+                                "value": "breathe"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "maxlength": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_6346c8fd2b590"
                 }
             ]
         },
@@ -528,27 +574,6 @@
             "delay": 0
         },
         {
-            "key": "field_6446d70aebca2",
-            "label": "Try Again Label",
-            "name": "try_again_label",
-            "aria-label": "",
-            "type": "text",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
-            "default_value": "Try this activity again",
-            "maxlength": "",
-            "placeholder": "Try this activity again",
-            "prepend": "",
-            "append": ""
-        },
-        {
             "key": "field_64b066a08d1a3",
             "label": "Crowdsource",
             "name": "",
@@ -556,6 +581,52 @@
             "type": "tab",
             "instructions": "",
             "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_6346c8a5f74e9",
+                        "operator": "==",
+                        "value": "question_answer"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_6346ca427f87c",
+            "label": "Allow Crowdsource Viewing?",
+            "name": "allow_crowdsource_viewing",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
+        },
+        {
+            "key": "field_63c9b5ad76db4",
+            "label": "Allow User Opt-Out of Crowdsource",
+            "name": "allow_user_opt_out_of_crowdsource",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
             "conditional_logic": 0,
             "wrapper": {
                 "width": "",
@@ -563,9 +634,95 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
-            "wpml_cf_preferences": 0,
-            "placement": "top",
-            "endpoint": 0
+            "message": "",
+            "default_value": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
+        },
+        {
+            "key": "field_6373a02998547",
+            "label": "Show Crowdsource by Default",
+            "name": "crowdsource_default_visible",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_6346ca427f87c",
+                        "operator": "==",
+                        "value": "1"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
+        },
+        {
+            "key": "field_6346ca88749d7",
+            "label": "Crowdsource Heading",
+            "name": "crowdsource_heading",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_6346ca427f87c",
+                        "operator": "==",
+                        "value": "1"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "What others answered:",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_6346d1942f91e",
+            "label": "Crowdsource Button Label",
+            "name": "crowdsource_button_label",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_6346ca427f87c",
+                        "operator": "==",
+                        "value": "1"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
         },
         {
             "key": "field_64f9e0fb94a5f",
@@ -787,5 +944,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1698416429
+    "modified": 1716910462
 }
