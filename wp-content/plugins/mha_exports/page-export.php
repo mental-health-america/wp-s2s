@@ -492,7 +492,7 @@ function mha_aggregate_data_export(){
 	
 	// Make serialized data readable
 	parse_str($_POST['data'], $data);  
-    $isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
+    //$isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
     $paged = intval($data['paged']);
 	
     // General Vars
@@ -557,7 +557,7 @@ function mha_aggregate_data_export(){
     }
 
     $loop = new WP_Query($args);
-    $max_pages = $loop->max_num_pages;
+    $max_pages = $loop->max_num_pages ? $loop->max_num_pages : 1;
     
     $result['paged'] = $paged;
     $result['max'] = $max_pages;
@@ -683,7 +683,7 @@ function mha_aggregate_data_export(){
             $temp_time->setTimezone($timezone);
             $csv_data[$i]['Day of most recent login'] = $temp_time->format("Y-m-d H:i:s");
             
-            $total_time = '';
+            $total_time = 0;
             foreach($duration as $d){
                 $total_time = $total_time + (strtotime($d->time_last_seen) - strtotime($d->time_login));
             }
@@ -725,7 +725,7 @@ function mha_aggregate_data_export(){
     try {
 
         // Create CSV
-        if($data['filename']){
+        if(isset($data['filename'])){
             $filename = $data['filename'];
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
         } else {
@@ -833,7 +833,7 @@ function mha_nonaggregate_data_export(){
 	
 	// Make serialized data readable
 	parse_str($_POST['data'], $data);  
-    $isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
+    //$isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
     $paged = intval($data['paged']);
 	
     // General Vars
@@ -990,7 +990,7 @@ function mha_nonaggregate_data_export(){
             $temp_time->setTimezone($timezone);
             $response_data['Last Login'] = $temp_time->format("Y-m-d H:i:s");
             
-            $total_time = '';
+            $total_time = 0;
             foreach($duration as $d){
                 $total_time = $total_time + (strtotime($d->time_last_seen) - strtotime($d->time_login));
             }
@@ -1138,15 +1138,15 @@ function mha_nonaggregate_data_export(){
             $pid = $like->pid;
             $row = $like->row;
             $liked_response = get_field('responses', $pid);
-            $thought_text = $liked_response[$row]['response'];
+            $thought_text = isset($liked_response[$row]) ? $liked_response[$row]['response'] : '';
 
             // Other thought override
             if(trim($thought_text) == ''){
-                if(is_numeric($liked_response[$row]['admin_pre_seeded_thought'])){
+                if( isset($liked_response[$row]['admin_pre_seeded_thought']) && is_numeric($liked_response[$row]['admin_pre_seeded_thought'])){
                     $activity_id = get_field('activity', $pid);
                     $admin_thoughts = get_field('pre_generated_responses', $activity_id);
                     $thought_text = $admin_thoughts[$liked_response[$row]['admin_pre_seeded_thought']]['response'];
-                } else if(is_numeric($liked_response[$row]['user_pre_seeded_thought'])){
+                } else if(isset($liked_response[$row]['user_pre_seeded_thought']) && is_numeric($liked_response[$row]['user_pre_seeded_thought'])){
                     $user_thought = get_field('responses', $liked_response[$row]['user_pre_seeded_thought']);
                     $thought_text = $user_thought[$row]['response'];
                 }
@@ -1174,7 +1174,7 @@ function mha_nonaggregate_data_export(){
             $pid = $flag->pid;
             $row = $flag->row;
             $flagged_response = get_field('responses', $pid);
-            $thought_text = $flagged_response[$row]['response'];
+            $thought_text = isset($flagged_response[$row]['response']) ? $flagged_response[$row]['response'] : '';
 
             // Final flags
             $flag_time = strtotime($flag->date);
@@ -1207,7 +1207,7 @@ function mha_nonaggregate_data_export(){
             ->outputEncoding('utf-8-bom')
         ;
         */
-        if($data['filename']){
+        if(isset($data['filename'])){
             // Update existing file
             $filename = $data['filename'];
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
@@ -1257,7 +1257,7 @@ function mha_user_data_export(){
 	
 	// Make serialized data readable
 	parse_str($_POST['data'], $data);  
-    $isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
+    //$isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
     $paged = intval($data['paged']);
 
     // General Vars
@@ -1326,7 +1326,7 @@ function mha_user_data_export(){
     try {
 
         // Create CSV
-        if($data['filename']){
+        if(isset($data['filename'])){
             // Update existing file
             $filename = $data['filename'];
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');

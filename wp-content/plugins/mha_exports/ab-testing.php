@@ -66,24 +66,24 @@ function mha_export_ab_testing_data(){
 
     $i = 0;
     $csv_data = [];
-    $per_page = 100;
-
-    if($args['page'] == 0){
-        $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM ab_redirects");
-        $args['total_rows'] = $total_rows;
-        $args['max'] = ceil($total_rows / $per_page);
-    }
+    $per_page = 5000;
 
     $offset = $args['page'] * $per_page;
 
     if( $args['abtesting_export_start_date'] && !$args['abtesting_export_end_date'] ){
-        $where = 'WHERE date >= '.$args['abtesting_export_start_date'];
+        $where = 'WHERE date >= \''.$args['abtesting_export_start_date'].'\'';
     } else if( !$args['abtesting_export_start_date'] && $args['abtesting_export_end_date'] ){
-        $where = 'WHERE date <= '.$args['abtesting_export_start_date'];
+        $where = 'WHERE date <= \''.$args['abtesting_export_start_date'].'\'';
     } else if( $args['abtesting_export_start_date'] && $args['abtesting_export_end_date'] ){
-        $where = 'WHERE date BETWEEN '.$args['abtesting_export_start_date'].' AND '.$args['abtesting_export_end_date'];
+        $where = 'WHERE date BETWEEN \''.$args['abtesting_export_start_date'].'\' AND \''.$args['abtesting_export_end_date'].'\'';
     } else {
         $where = '';
+    }
+
+    if($args['page'] == 0){
+        $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM ab_redirects $where");
+        $args['total_rows'] = $total_rows;
+        $args['max'] = ceil($total_rows / $per_page);
     }
 
     $args['query'] = "SELECT * FROM ab_redirects $where LIMIT $offset,$per_page";
@@ -135,9 +135,11 @@ function mha_export_ab_testing_data(){
             $csv_headers = [];
 
             // Create header array
-            foreach($csv_data[array_key_first($csv_data)] as $k => $v){
-                $csv_headers[] = $k;                           
-            }
+            if(isset($csv_data[array_key_first($csv_data)])):
+                foreach($csv_data[array_key_first($csv_data)] as $k => $v){
+                    $csv_headers[] = $k;                           
+                }
+            endif;
 
             // Set order for later
             $args['csv_headers'] = array_values($csv_headers);
