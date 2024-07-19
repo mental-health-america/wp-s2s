@@ -548,7 +548,7 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 					<li class="step-3"><span>Sus<br />Resultados</span></li>
 				</ol>';
 			} else {
-				$demo_label = in_array('alt_demo_label', $layout) ? 'Optional<br />Questions' : 'Demographic<br />Information';
+				$demo_label = in_array('alt_demo_label', $layout) ? 'Optional<br />Questions' : 'Optional<br />Questions';
 				$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
 					<li class="step-1"><span>Test<br />Questions</span></li>
 					<li class="step-2"><span>'.$demo_label.'</span></li>
