@@ -36,8 +36,22 @@
 <div class="wrap <?php echo $wrap_width; ?> no-margin-mobile diy-tool-container" id="diy-tool-<?php echo $unique_activity_id; ?>">	
     <form class="diy-questions-container <?php echo $embedded_class; ?>" action="#" method="POST" data-skippable="<?php echo $allow_question_skipping; ?>" data-aos="fade-left"<?php echo $single_form_atts; ?>>	
 
-        <div class="diy-questions diy-worksheet" data-start="<?php echo $activity_start_row; ?>" role="slider">
-            <ol class="bubble red round-tl">
+        <div class="diy-questions diy-worksheet" data-start="<?php echo $activity_start_row; ?>">
+
+            <?php                
+                // Download button
+                $link = get_field('download', $activity_id);
+                if( $link ): 
+                    $link_url = $link['url'];
+                    $link_title = $link['title'];
+                    $link_target = $link['target'] ? $link['target'] : '_self';
+                ?>
+                    <p class="text-center mt-5"><a class="button red round download-worksheet" href="<?php echo esc_url( $link_url ); ?>" target="<?php echo esc_attr( $link_target ); ?>"><?php echo esc_html( $link_title ); ?></a></p>
+            <?php endif; ?> 
+            
+            <div class="bubble red round-tl">
+            <div class="inner">
+            <ol>
                 
                 <?php if(!$embedded): ?>
                 <li class="page-intro">
@@ -69,7 +83,7 @@
                                     <?php if(get_sub_field('question')): ?><div class="label text-red mb-3"><?php the_sub_field('question'); ?></div><?php endif; ?>
                                     <?php if(get_sub_field('description')): ?><p class="text-wine mb-3"><?php the_sub_field('description'); ?></p><?php endif; ?>
 
-                                    <p>
+                                    <div class="mb-4">
                                         <?php
                                             $question_type = get_sub_field('question_type');
 
@@ -93,6 +107,7 @@
                                                     $breathe_check = true;                                            
                                                     $textarea_value = '';
                                                     $timer = get_sub_field('timer') ? get_sub_field('timer') : 10;
+                                                    $start_label = get_sub_field('next_button');
                                                     if(get_query_var('diy_continue') && isset($_POST["answer_$row_index"])){ 
                                                         $textarea_value = sanitize_text_field( $_POST["answer_$row_index"] ); 
                                                     }
@@ -100,7 +115,7 @@
                                                         echo '<div class="breathing-inner">';
                                                             echo '<div class="breathing-circle"><span></span></div>';
                                                         echo '</div>';
-                                                        echo '<button role="timer" class="start-breathing button red round-tl extra-wide" tabindex="'.$tabindex.'" data-timer='.$timer.' data-breathe="bid_'.$unique_activity_id.'_'.$row_index.'"><span class="text">Start</span></button>';
+                                                        echo '<button role="timer" class="start-breathing button red round-tl extra-wide" tabindex="'.$tabindex.'" data-timer='.$timer.' data-breathe="bid_'.$unique_activity_id.'_'.$row_index.'"><span class="text">'.$start_label.'</span></button>';
                                                     echo '</div>';
                                                     break;
                                                     
@@ -119,26 +134,28 @@
                                                     break;
                                             }
                                         ?>
-                                    </p>
+                                    </div>
                                     
-                                    <div class="container-fluid">
-                                    <div class="row">
-                                        
-                                        <?php
-                                            // Submit button
-                                            $button_atts = 'class="round-tiny-tl red action-button next-question submit" data-question="q'.$row_index.'"';   
-                                            $button_label = get_sub_field('next_button');
-                                            if( $button_label || $single_question_mode ):
-                                        ?>
-                                        <div class="col-12 text-center p-0">
-                                            <button <?php echo $button_atts; ?> tabindex="<?php echo $tabindex; ?>">
-                                                <?php echo $button_label; ?>
-                                            </button>
-                                        </div>
-                                        <?php endif; ?>
+                                    <?php if($question_type != 'breathe'): ?>
+                                        <div class="container-fluid">
+                                        <div class="row">
+                                            
+                                            <?php
+                                                // Submit button
+                                                $button_atts = 'class="round-tiny-tl red action-button next-question submit" data-question="q'.$row_index.'"';   
+                                                $button_label = get_sub_field('next_button');
+                                                if( $button_label || $single_question_mode ):
+                                            ?>
+                                            <div class="col-12 text-center p-0">
+                                                <button <?php echo $button_atts; ?> tabindex="<?php echo $tabindex; ?>">
+                                                    <?php echo $button_label; ?>
+                                                </button>
+                                            </div>
+                                            <?php endif; ?>
 
-                                    </div>
-                                    </div>
+                                        </div>
+                                        </div>
+                                    <?php endif; ?>
 
                                 </div>
                 </div>
@@ -154,17 +171,9 @@
                 </div>
                 </li>
             </ol>
-
-            <?php                
-                // Download button
-                $link = get_field('download', $activity_id);
-                if( $link ): 
-                    $link_url = $link['url'];
-                    $link_title = $link['title'];
-                    $link_target = $link['target'] ? $link['target'] : '_self';
-                ?>
-                    <p class="text-center mt-5"><a class="button red round download-worksheet" href="<?php echo esc_url( $link_url ); ?>" target="<?php echo esc_attr( $link_target ); ?>"><?php echo esc_html( $link_title ); ?></a></p>
-            <?php endif; ?> 
+            </div>
+            </div>
+            
         </div>
 
         <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('diySubmission'); ?>" />

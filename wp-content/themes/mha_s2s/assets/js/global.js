@@ -320,6 +320,12 @@
 		$tooltipButton.tooltip({
 			trigger: 'manual'
 		});
+		$(document).on('click', function(e){
+			if(!$tooltipButton.is(e.target) && $('.tooltip.show').length) {
+				$tooltipButton.tooltip('hide');
+			}
+		});
+		
 		$tooltipButton.on('click', function() {
 			if ($(this).attr('aria-describedby')) {
 				$(this).tooltip('hide');
@@ -485,7 +491,7 @@
 		});
 
 		// Bootstrap tooltips
-		$('[data-toggle="tooltip"]').tooltip()
+		$('[data-toggle="tooltip"]').tooltip();
 
 		// Date Time prefill on forms
 		$(document).on('gform_page_loaded', function(event, form_id, current_page){

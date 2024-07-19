@@ -4,12 +4,11 @@
 
     ol {
         margin: 0;
-        padding: 50px 0;
         color: $wine;
         li {
             display: block;
             margin: 0;
-            padding: 0 0 40px 0;
+            padding: 0;
             list-style: none;
             .inner {
                 max-width: 800px; 
@@ -21,6 +20,9 @@
                 .inner {
                     max-width: 740px; 
                     padding: 0 50px;
+                    @media only screen and (max-width: 767px){
+                        padding: 0;
+                    }
                 }
             }
 
