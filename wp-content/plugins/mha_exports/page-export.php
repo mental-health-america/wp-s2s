@@ -966,6 +966,263 @@ function mha_nonaggregate_data_export(){
             $response_data['Participant Email'] = '';
         }
 
+        $responses = get_field('responses', $post_id);
+        if($responses):
+
+        /**
+         * Thoughts
+         */
+        $times = [];
+        $last_key = is_array($responses) ? array_key_last( $responses ) : 0;              
+        $started_thought = get_field('started', $post_id);              
+        $times[] = (strtotime($responses[$last_key]['submitted']) - strtotime($started_thought) );
+        
+        
+        /**
+         * Questions
+         */
+        $initial_thought_admin = '';
+        $initial_thought_user = '';
+        $other_post_id = '';
+        if(is_numeric($responses[0]['admin_pre_seeded_thought'])){
+            $initial_thought = get_field('pre_generated_responses', $activity_id);
+            $initial_thought_admin = $initial_thought[$responses[0]['admin_pre_seeded_thought']]['response'];
+            $other_post_id = $responses[0]['admin_pre_seeded_thought'];
+        } else if(is_numeric($responses[0]['user_pre_seeded_thought'])){
+            $initial_thought = get_field('responses', $responses[0]['user_pre_seeded_thought']);
+            $initial_thought_user = $initial_thought[0]['response'];
+            $other_post_id = $responses[0]['user_pre_seeded_thought'];
+        }
+
+        /**
+         * Initial Thought
+         */
+        $response_data['Initial Thought'] = char_fix($responses[0]['response']);
+        $response_data['Initial Thought - Admin'] = char_fix($initial_thought_admin);
+        $response_data['Initial Thought - User'] = char_fix($initial_thought_user);
+        
+        $temp_time = new DateTime($responses[0]['submitted']);
+        $temp_time->setTimezone($timezone);
+        $response_data['Initial Thought - Time'] = $temp_time->format("Y-m-d H:i:s");
+
+        /**
+         * Follow Up Thoughts
+         */
+
+        foreach($responses as $resp){
+
+            // Skip Initial Thought
+            if($resp['question'] > 0){
+
+                $response_data['Path '.($resp['path'] + 1).' - Question '.($resp['question'])] = $resp['response'];
+                
+                $temp_time = new DateTime($resp['submitted']);
+                $temp_time->setTimezone($timezone);
+                $response_data['Path '.($resp['path'] + 1).' - Question '.($resp['question']).' - Time'] = $temp_time->format("Y-m-d H:i:s");
+
+            } else {
+
+            }
+
+        }
+        endif;
+
+        // Wrap it up!
+        $csv_data[] = $response_data;
+        
+    endwhile;
+    wp_reset_query();
+    
+    /**
+     * Write Data
+     */
+    try {
+
+        // Create CSV
+        /*
+        $encoder = (new CharsetConverter())
+            ->inputEncoding('utf-8')
+            ->outputEncoding('utf-8-bom')
+        ;
+        */
+        if(isset($data['filename'])){
+            // Update existing file
+            $filename = $data['filename'];
+            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
+        } else {
+            // Create file
+            $filename = 'nonaggregate-export-'.date('U').'.csv';
+            $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
+        }
+        //$writer->addFormatter($encoder);
+        
+        $result['filename'] = $filename;
+        if($paged >= $max_pages){
+            // Final page
+            $result['download'] = plugin_dir_url(__FILE__).'tmp/'.$filename;
+        }
+        
+        // Headers only on page 1
+        if($paged == 1){
+            $csv_headers = [];
+            foreach($csv_data[0] as $k => $v){
+                $csv_headers[] = $k;
+            }
+            $writer->insertOne($csv_headers);
+        }    
+        $writer->insertAll(new ArrayIterator($csv_data));
+
+
+    } catch (CannotInsertRecord $e) {
+
+        $result['error'] = $e->getRecords();
+
+    }
+
+    echo json_encode($result);
+    exit();
+}
+function mha_nonaggregate_data_export_original(){
+        
+	// General variables
+    $result = array();
+    $timezone = new DateTimeZone('America/New_York');
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);  
+    //$isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
+    $paged = intval($data['paged']);
+	
+    // General Vars
+    global $wpdb;
+    $csv_header = [];
+    $csv_data = [];
+    $user_list = [];
+    $result = [];
+    $i = 0;    
+
+    
+    // Get unique users and identifiers    
+    $args = array(
+        "post_type" => 'thought',
+        "order" => 'DESC',
+        "orderby" => 'date',
+        "post_status" => array('publish', 'draft'),
+        "posts_per_page" => 50,
+        'paged' => $paged
+    );
+
+    // Start/End Date Query
+    $start_date = '';
+    $end_date = '';
+    if($data['start_date'] != ''){
+        $start_date = date('F jS, Y', strtotime($data['start_date']));
+        $result['start_date'] = $start_date;
+    }
+    if($data['end_date'] != ''){
+        $end_date = date('F jS, Y', strtotime($data['end_date']));
+        $result['end_date'] = $end_date;
+    }
+    if($start_date != '' || $end_date != ''){
+        $args['date_query'] = array(
+            array(
+                'inclusive' => true
+            ),
+        );
+        if($start_date != ''){
+            $args['date_query'][]['after'] = $start_date;
+        }
+        if($end_date != ''){
+            $args['date_query'][]['before'] = $end_date;
+        }
+    }
+
+    
+    // Manual User Check
+    $manual_users = sanitize_text_field($data['manual_users']);
+    $result['manual_users'] = $manual_users;
+    if($manual_users != ''){
+        $manual_users = explode(',', $manual_users);
+        $args['author__in'] = $manual_users;
+    }
+
+    $loop = new WP_Query($args);
+
+    if(!$loop->have_posts() || empty($loop)){
+        $result['error'] = 'No data available for this query.';
+        echo json_encode($result);
+        exit();        
+    }
+
+    $max_pages = $loop->max_num_pages;
+
+    $result['loop'] = $loop;
+    $result['paged'] = $paged;
+    $result['max'] = $max_pages;
+    $result['percent'] = round( ( ($paged / $max_pages) * 100 ), 2 );
+    if($paged >= $max_pages){
+        $result['next_page'] = '' ;
+    } else {
+        $result['next_page'] = $paged + 1;
+    }
+
+    while($loop->have_posts()) : $loop->the_post();
+
+        $author_id = get_post_field( 'post_author', get_the_ID() );
+        $ipiden = get_field('ipiden');
+        $post_id = get_the_ID();
+        $activity_id = get_field('activity', $post_id);
+        
+        // Set Up Headers    
+        $response_data = [];
+        $response_data['pid'] = get_the_ID();
+        $response_data['Participant Identifier'] = '';
+        $response_data['Participant Email'] = '';
+        $response_data['Total Logins'] = '';
+        $response_data['Last Login'] = '';
+        $response_data['Total Time Spent On Site'] = '';
+        $response_data['Total Time Spent On This Thought'] = '';
+        $response_data['Abandoned Thought'] = get_field('abandoned', $post_id);
+        $response_data['Initial Thought'] = '';
+        $response_data['Initial Thought - Admin'] = '';
+        $response_data['Initial Thought - User'] = '';
+        $response_data['Initial Thought - Time'] = '';
+        $response_data['Initial Thought - Relates'] = '';
+        $response_data['Initial Thought - Flags'] = '';
+        
+        
+        // Get Question Headers
+        $activity_args = array(
+            "post_type" => 'thought_activity',
+            "post_status" => 'publish',
+            "posts_per_page" => -1
+        );
+        $activity_loop = new WP_Query($activity_args);
+        while($activity_loop->have_posts()) : $activity_loop->the_post();
+            $paths = get_field('paths');
+            foreach($paths as $path_key => $path_val){
+                foreach($path_val['questions'] as $k => $v){   
+                    //if($k > 0){             
+                        $response_data['Path '.($path_key + 1).' - Question '.($k + 1)] = '';                    
+                        $response_data['Path '.($path_key + 1).' - Question '.($k + 1).' - Time'] = '';    
+                        $response_data['Path '.($path_key + 1).' - Question '.($k + 1).' - Relates'] = '';                    
+                        $response_data['Path '.($path_key + 1).' - Question '.($k + 1).' - Flags'] = '';                    
+                    //}
+                }
+            }
+        endwhile;
+        wp_reset_query();
+
+        /**
+         * Participant Identifier
+         */ 
+        $response_data['Participant Identifier'] = $ipiden.'_'.$author_id;
+        if($author_id != 4){
+            $response_data['Participant Email'] = get_the_author_meta( 'email', $author_id );
+        } else {
+            $response_data['Participant Email'] = '';
+        }
+
         /**
          * Thoughts
          */

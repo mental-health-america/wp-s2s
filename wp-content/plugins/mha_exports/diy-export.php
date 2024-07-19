@@ -191,6 +191,16 @@ function mha_export_diy_tool_data(){
         $csv_data[$i]['Admin Notes'] = get_field('admin_notes');
         $csv_data[$i]['Post Date'] = get_the_date('Y-m-d H:i:s');
 
+        $hash_email = '';
+        if($author_id != 4){
+            $user_info = get_userdata($author_id);
+            $hash_email = md5($user_info->user_email);
+        }
+
+        $csv_data[$i]['User Email (Hashed)'] = $hash_email;
+        $csv_data[$i]['uid'] = $author_id != 4 ? $author_id : '';
+        $csv_data[$i]['Post Link'] = html_entity_decode(get_edit_post_link($response_id));
+
         $i++;
     endwhile;        
     endif;
