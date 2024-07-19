@@ -12,7 +12,7 @@ get_header();
 			<?php else : ?>
 				<h1 class="page-title"><?php _e( 'No items found', 'mha_s2s' ); ?></h1>
 			<?php endif; ?>
-				<div class="page-intro">
+				<div class="page-intro" style="max-width: 100%; width: 100%;">
 					<p class="text-center bold large text-blue"><?php echo get_search_query(); ?></p>
 				</div>
 			</div>
