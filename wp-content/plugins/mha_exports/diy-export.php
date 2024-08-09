@@ -199,7 +199,7 @@ function mha_export_diy_tool_data(){
 
         $csv_data[$i]['User Email (Hashed)'] = $hash_email;
         $csv_data[$i]['uid'] = $author_id != 4 ? $author_id : '';
-        $csv_data[$i]['Post Link'] = html_entity_decode(get_edit_post_link($response_id));
+        $csv_data[$i]['Post Link'] = html_entity_decode(get_the_permalink($response_id));
 
         $i++;
     endwhile;        

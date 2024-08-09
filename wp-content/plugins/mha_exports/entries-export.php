@@ -358,7 +358,7 @@ function mha_export_screen_data(){
         // Custom field assignments
         $csv_data[$i]['Created'] = $row_date->format("Y-m-d H:i:s");     
         $csv_data[$i]['Remote IP address'] = $entry['ip'];    
-        $csv_data[$i]['User Email (Hashed)'] = isset($temp_array['uid']) && $temp_array['uid'] != '' ? md5($temp_array['uid']) : '';
+        //$csv_data[$i]['User Email (Hashed)'] = isset($temp_array['uid']) && $temp_array['uid'] != '' ? md5($temp_array['uid']) : '';
         $csv_data[$i]['uid'] = $entry['created_by'];
         $csv_data[$i]['post_id'] = $entry['id']; 
 
@@ -460,7 +460,7 @@ function mha_export_screen_data(){
             moveArrayKeyToLast($csv_headers, array_search('Result', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('Referer', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('IP Identifier', $csv_headers) ); 
-            moveArrayKeyToLast($csv_headers, array_search('User Email (Hashed)', $csv_headers) ); 
+            //moveArrayKeyToLast($csv_headers, array_search('User Email (Hashed)', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('uid', $csv_headers) ); 
             moveArrayKeyToLast($csv_headers, array_search('post_id', $csv_headers) ); 
                         
