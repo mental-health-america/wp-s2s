@@ -16,7 +16,7 @@ function mha_ab_redirects( $params = array() ){
     );    
     $args = wp_parse_args( $params, $defaults ); 
 
-    if($args['current_pid'] == 27){
+    if($args['current_pid'] == 27 || is_search()){
         $args['skip'] = true;
     }
 
