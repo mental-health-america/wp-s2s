@@ -88,7 +88,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20240702' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20240809' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -119,7 +119,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20240702', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20240809', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
@@ -709,7 +709,7 @@ function wpse331647_alter_query($query) {
     if ($query->is_search && !is_admin() ) {
 
 		// Show only specific post types
-        $query->set('post_type',array('page','article','screen','thought_activity'));
+        $query->set('post_type',array('page','article','screen','thought_activity', 'diy'));
 		
 		// Exclude specific pages
 		$exclude_ids = get_field('exclude_from_search', 'options');
@@ -1164,14 +1164,19 @@ add_filter( 'relevanssi_excerpt_gap', function( $gap, $count_words, $excerpt_len
 add_filter( 'relevanssi_post_content', 'rlv_pre_code', 10 );
 add_filter( 'relevanssi_excerpt_content', 'rlv_pre_code', 10 );
 function rlv_pre_code( $content ) {
-	if($content){
+	if( isset($content) && $content != null && $content != '' ){
 		$content = preg_replace( '#<(.*) class=".*?references".*?</\1>#mis', '', $content );
 		$content = preg_replace( '#<(.*) class=".*?noindex".*?</\1>#mis', '', $content );
-		$content = preg_replace( '#<(.*) id=".*?references".*?</\1>#mis', '', $content);
+		$content = preg_replace( '#<(.*) class=".*?layout-action".*?</\1>#mis', '', $content );
+		$content = preg_replace( '#<(.*) id=".*?references".*?</\1>#mis', '', $content );
 		$content = preg_replace( '#<pre.*?</pre>#mis', '', $content );
 		$content = preg_replace( '#<code.*?</code>#mis', '', $content );
 	}
 	return $content;
+}
+add_filter( 'relevanssi_disable_shortcodes_excerpt', 'rlv_add_shortcode' );
+function rlv_add_shortcode( $shortcodes ) {
+	return array_merge( $shortcodes, array(  'gravityform', 'mha_diy', 'mha_popular_articles' ) );
 }
 
 add_filter( 'relevanssi_excerpt', 'rlv_modify_excerpt', 10, 2 );
