@@ -13,6 +13,11 @@
     $embedded = isset($args['embedded']) ? $args['embedded'] : 0;
     $tool_type = get_field('tool_type', $activity_id);
 
+    $link = get_field('download', $activity_id);
+    $link_url = isset($link['url']) ? $link['url'] : '';
+    $link_title = isset($link['title']) ? $link['title'] : '';
+    $link_target = isset($link['target']) ? $link['target'] : '_self';
+    
     // Tool Styles
     switch($tool_type){
         case 'worksheet':
@@ -35,81 +40,29 @@
 ?>
 
 <?php if($embedded): ?>
-    <?php if($tool_type == 'worksheet'): ?>
-        <div class="diy-questions diy-worksheet">
-    <?php endif; ?>
     <div class="embedded-confirmation-container bubble <?php echo $bubble_color; ?> round-bl mb-4">
     <div class="inner">
 <?php endif; ?>
 
-<?php if($tool_type != 'worksheet'): ?>
-    <article id="post-<?php echo $pid; ?>" class="<?php echo esc_attr( implode( ' ', $article_classes ) ); ?>">
-        <div class="page-heading plain<?php echo $embedded ? ' mb-0' : ''; ?>">	
-        <div class="wrap<?php echo $embedded ? '' : ' normal'; ?>">		
-
-            <?php if(!$embedded): ?>
-                <h2 class="entry-title"><?php echo get_the_title($activity_id); ?></h2>
-            <?php endif; ?>
-            
-            <div class="page-intro mx-auto">
-                <?php 
-                    $activity = get_post($activity_id);
-                    if(get_field('completed_tool_message', $activity_id)){
-                        if($tool_type == 'worksheet'){
-                            echo apply_filters('the_content', $activity->post_content);
-                        } else {
-                            echo get_field('completed_tool_message', $activity_id);
-                        }
-                    } else {
-                        $activity = get_post($activity_id);
-                        echo apply_filters('the_content', $activity->post_content);
-                    }
-
-                    if($embedded){
-                        echo '<hr class="mb-4" />';
-                    }
-                ?>            
-            </div>
-        </div>
-        </div>
-    </article>
-
-    <?php 
-
-        if($embedded){
-            echo '<h3 class="'.$title_color.' mb-3 text-center">';
-        } else {
-            echo '<p class="bold '.$text_color.' text-center">';
-        }
-    ?>            
-
-    Submitted on <?php echo get_the_date('F j, Y', $pid); ?><br />
-
-    <?php 
-        if($embedded){
-            echo '</h3>';
-        } else {
-            echo '</p>';
-        }
-    ?>
-<?php endif; ?>
+<?php //if($tool_type == 'worksheet'): ?>
+<div class="diy-questions diy-worksheet">
+<?php //endif; ?>
 
 <div class="wrap<?php echo $embedded ? '' : ' medium'; ?>">	
     <div class="question bubble <?php echo $bubble_color; ?> round-bl <?php if(!$embedded) { echo 'mb-4'; } ?>">
     <div class="inner">
 
-        <?php if($tool_type == 'worksheet'): ?>
+        <?php //if($tool_type == 'worksheet'): ?>
             
             <p class="bold">Submitted on <?php echo get_the_date('F j, Y', $pid); ?></p>
             <h1 class="entry-title small <?php echo $label_color; ?>"><?php echo get_the_title($activity_id); ?></h1>
 
-
-            <div class="page-intro mx-auto">
+            <article class="page-intro mx-auto">
                 <?php 
                     $activity = get_post($activity_id);
                     if(get_field('completed_tool_message', $activity_id)){
                         if($tool_type == 'worksheet'){
-                            echo apply_filters('the_content', $activity->post_content);
+                            // echo apply_filters('the_content', $activity->post_content);
                         } else {
                             echo get_field('completed_tool_message', $activity_id);
                         }
@@ -119,18 +72,30 @@
                     }
 
                     if($embedded){
-                        echo '<hr class="mb-4 '.$title_color.'" />';
+                        //echo '<hr class="mb-4 '.$title_color.'" />';
                     }
                 ?>            
-            </div>
-        <?php endif; ?>
+            </article>
+            
+        <?php //endif; ?>
 
         <?php
+            $tooltip_pattern = [
+                '/\[mha_tooltip\b[^\]]*\].*?\[\/mha_tooltip\]/s',
+                '/<button\b[^>]*>.*?<\/button>/s'
+            ];
+
             if( have_rows('response', $pid) ):
             while( have_rows('response', $pid) ) : the_row();
                 $key = get_sub_field('id');
                 ?>
-                    <div class="label bold <?php echo $label_color; ?>"><?php echo $questions[$key]['question']; ?></div>
+                    <div class="label bold <?php echo $label_color; ?>">
+                        
+                        <?php 
+                            $question = $questions[$key]['question']; 
+                            echo preg_replace($tooltip_pattern, '', $question);
+                        ?>
+                    </div>
                     <p class="mb-1 <?php echo $text_color; ?>"><?php echo $questions[$key]['description']; ?></p>
                     <div class="px-4 mb-4 <?php echo $answer_style; ?>">
                         <?php if($tool_type == 'worksheet'){ echo '<div class="inner">'; } ?>
@@ -152,36 +117,53 @@
             if( $tool_type != 'worksheet' ):
             if( !get_field('viewed_result', $pid) || get_the_author_meta('ID') == get_current_user_id() ):
         ?>
-        <p>
             <hr />
-            <label for="private_thought_<?php echo $pid; ?>">
-                <input type="checkbox" 
-                    value="1" 
-                    class="toggle_private_thought"
-                    name="private_thought_<?php echo $pid; ?>"
-                    id="private_thought_<?php echo $pid; ?>" 
-                    data-id="<?php echo $pid; ?>" 
-                    <?php if(get_field('crowdsource_hidden', $pid)){ echo 'checked'; }; ?> 
-                />
-                Hide this from public submissions (all submissions are anonymous)
-            </label>
+            <p>
+                <a class="button blue round-tl thin wide" target="_blank" href="<?php echo get_the_permalink($activity_id); ?>">
+                    <?php echo get_field('try_again_label', $activity_id) ? get_field('try_again_label', $activity_id) : 'Try this activity again'; ?>
+                </a>
+            </p>
+            <p>
+                <label for="private_thought_<?php echo $pid; ?>">
+                    <input type="checkbox" 
+                        value="1" 
+                        class="toggle_private_thought"
+                        name="private_thought_<?php echo $pid; ?>"
+                        id="private_thought_<?php echo $pid; ?>" 
+                        data-id="<?php echo $pid; ?>" 
+                        <?php if(get_field('crowdsource_hidden', $pid)){ echo 'checked'; }; ?> 
+                    />
+                    Hide this from public submissions (all submissions are anonymous)
+                </label>
+            </p>
             <div data-thought="<?php echo $pid; ?>" class="toggle_private_thought_message bubble white thinner d-none round-tl"><div class="inner"></div></div>
-        </p>
         <?php 
             endif; 
             endif; 
         ?>
         
-        <?php if( $tool_type = 'worksheet' ): ?> 
-            <div class="worksheet-footer mt-5">
+        <?php if( $tool_type == 'worksheet' ): ?> 
+            <article class="worksheet-footer mt-5">
                 <?php echo get_field('completed_tool_message', $activity_id); ?>
 
                 <div class="small text-center mt-5">
                     
-                    <p class="mb-4"><input type="button" class="button <?php echo $button_color; ?> round-tl thin wide" value="Print" onClick="window.print()"></p>
-                    
+                    <?php if(!$embedded): ?>
+                        <p class="mb-4"><input type="button" class="button <?php echo $button_color; ?> round-tl thin wide" value="Print" onClick="window.print()"></p>
+                    <?php endif; ?>
+
                     <?php if($embedded): ?>
-                        <p class="mb-4"><a href="<?php echo get_the_permalink($pid); ?>" class="button <?php echo $button_color; ?> round-tl thin wide">View completed form</a></p>
+                        <p class="mb-4"><a href="<?php echo get_the_permalink($pid); ?>" class="button <?php echo $button_color; ?> round-tl thin wide">View / print completed form</a></p>
+                        <p class="mb-4">
+                            <a class="button <?php echo $button_color; ?> round-tl thin wide" target="_blank" href="<?php echo get_the_permalink($activity_id); ?>">
+                                <?php echo get_field('try_again_label', $activity_id) ? get_field('try_again_label', $activity_id) : 'Try this activity again'; ?>
+                            </a>
+                        </p>
+                        <p class="mb-4">
+                            <a class="button <?php echo $button_color; ?> round-tl thin wide" href="<?php echo esc_url( $link_url ); ?>" target="<?php echo esc_attr( $link_target ); ?>">
+                                <?php echo _e('Download printable worksheet', 'mhas2s'); ?>
+                            </a>
+                        </p>
                     <?php endif; ?>
 
                     <div class="disclaimer mt-5">
@@ -189,17 +171,20 @@
                     </div>
 
                 </div>
-            </div>
+            </article>
         <?php endif; ?>
 
     </div>
     </div>
 </div>
 
+<?php //if($tool_type == 'worksheet'): ?>
+</div>
+<?php //endif; ?>
+
 <div class="wrap <?php echo $embedded ? '' : ' medium'; ?> no-margin-mobile">
 <div class="container-fluid">
     <div class="row">
-
 
         <div class="col-12 col-md-6 order-md-last order-first text-md-right mb-md-0 mb-4 text-center">
             <?php if(!$embedded): ?>
@@ -227,16 +212,10 @@
                 endif; 
 
                 // Download button
-                if(!$embedded):
-                $link = get_field('download', $activity_id);
-                if( $link ): 
-                    $link_url = $link['url'];
-                    $link_title = $link['title'];
-                    $link_target = $link['target'] ? $link['target'] : '_self';
+                if(!$embedded && $link ): 
                 ?>
                     <a class="button red round" href="<?php echo esc_url( $link_url ); ?>" target="<?php echo esc_attr( $link_target ); ?>"><?php echo esc_html( $link_title ); ?></a>
                 <?php 
-                endif;
                 endif; 
             ?>       
         </div>
@@ -248,9 +227,6 @@
 <?php if($embedded): ?>
     </div>
     </div>
-    <?php if($tool_type == 'worksheet'): ?>
-        </div>
-    <?php endif; ?>
     <?php get_template_part( 'templates/diy-tools/cta', 'login', array( 'id' => $args['id'], 'embedded' => $args['embedded'] ) ); ?> 
 <?php endif; ?>
 

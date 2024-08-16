@@ -414,6 +414,7 @@ function mha_diy_shortcode_display( $atts ){
 
     $id = isset($atts['id']) ? intval($atts['id']) : null;
     $type = isset($atts['type']) ? sanitize_text_field($atts['type']) : 'full';
+    $collapse = isset($atts['collapse']) ? sanitize_text_field($atts['collapse']) : '';
 			
     if($id){
 		$args = array(
@@ -443,6 +444,7 @@ function mha_diy_shortcode_display( $atts ){
 							'embed_type' => $type,
 							'start_page' => $embededed_page
 						);
+						if($collapse){ $template_options['collapse'] = $collapse; }
 						get_template_part( 'templates/diy-tools/worksheet', '', $template_options ); 
 						break;
 				}

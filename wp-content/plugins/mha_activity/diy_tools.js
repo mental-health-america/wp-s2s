@@ -557,6 +557,10 @@
 
 													$completedDiyContainer.html(res.html);
 
+													$('html,body').animate({
+														scrollTop: $completedDiyContainer.offset().top
+													});
+
 													// Iframe for a server post log to track completions 
 													let iframeUrl = new URL(futureRedirect);
 													iframeUrl.searchParams.append('completed_embed', 1);

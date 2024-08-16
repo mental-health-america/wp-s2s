@@ -628,3 +628,10 @@ button.peek {
         }
     }
 }
+
+.diyQuestionContinueButton {
+    display: none !important;
+    &.collapsed {
+        display: inline-block !important;
+    }
+}

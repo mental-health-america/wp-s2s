@@ -1252,3 +1252,39 @@ function get_tag_filters( $args ){
 	endforeach;
 
 }
+
+
+/**
+ * preg_replace helper
+ * Usage: removeTextBetween($input, 'Start String', 'End String');
+ */
+function removeTextBetween($string, $start, $end) {
+    $escapedStart = preg_quote($start, '/');
+    $escapedEnd = preg_quote($end, '/');    
+    $pattern = '/' . $escapedStart . '.*?' . $escapedEnd . '/';    
+    $result = preg_replace($pattern, '', $string);    
+    return trim($result);
+}
+
+/**
+ * Merge duplicate array keys
+ */
+function mergeDuplicates($inputArray) {
+    $result = [];
+
+    foreach ($inputArray as $item) {
+        $id = $item['id'];
+        $answer = $item['answer'];
+
+        // If the id already exists in the result array, append the answer
+        if (isset($result[$id])) {
+            $result[$id]['answer'] .= ", " . $answer;
+        } else {
+            // Otherwise, copy the entire item to the result array
+            $result[$id] = $item;
+        }
+    }
+
+    // Resetting array keys
+    return array_values($result);
+}

@@ -3,6 +3,15 @@
     $unique_id_suffix = wp_unique_id();
     $unique_activity_id = $activity_id.'_'.$unique_id_suffix;
     $single_question_mode = get_field('single_question_mode');
+
+    if(isset($args['collapse'])){
+        $collapse_form = $args['collapse'];
+        $collapse_form_embed_only = $args['collapse'];
+    } else {
+        $collapse_form = get_field('collapse_form');
+        $collapse_form_embed_only = get_field('collapse_form_only_on_embeds');
+    }
+
     $allow_question_skipping = get_field('allow_question_skipping') ? get_field('allow_question_skipping') : 0;
     $questions = get_field('questions');
 
@@ -158,11 +167,37 @@
                                     <?php endif; ?>
 
                                 </div>
-                </div>
+                                </div>
                                 
                             </li>
+
+
+                            <?php 
+                                // Hide questions when "Collapse Form" is enabled
+                                if(
+                                    $collapse_form && !$collapse_form_embed_only && $row_index == 0 ||
+                                    $collapse_form && $collapse_form_embed_only && $embedded && $row_index == 0
+                                ): 
+                            ?>
+                                <li class="text-center" class="collapse-button-container">
+                                    <p>
+                                        <button class="button red round-br diyQuestionContinueButton collapsed" type="button" data-toggle="collapse" data-target="#diyQuestionsContinue_<?php echo $activity_id; ?>" aria-expanded="false" aria-controls="diyQuestionsContinue_<?php echo $activity_id; ?>">
+                                            Continue this activity
+                                        </button>
+                                    </p>
+                                </li>
+                                <div class="collapse" id="diyQuestionsContinue_<?php echo $activity_id; ?>">
+                            <?php endif; ?>
+                            
                         <?php                    
                         endwhile;
+                        
+                        if(
+                            $collapse_form && !$collapse_form_embed_only ||
+                            $collapse_form && $collapse_form_embed_only && $embedded
+                        ){
+                            echo '</div>'; // Close collapse
+                        }
                     wp_reset_query();
                 ?>
                 <li class="disclaimer">
