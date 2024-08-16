@@ -751,7 +751,8 @@ else:
                  * 2023-12-05 Elevance always first override if present
                  * */
                 //$elevance_ads = array('116318','116319','116320','116321','116322', '142207','157517','157528','157529','157530'); // Staging/Dev
-                $elevance_ads = array('142207','157517','157528','157529','157530'); // Production
+                //$elevance_ads = array('142207','157517','157528','157529','157530'); // Production (All August)
+                $elevance_ads = array('157530'); // Production (Winner - August 2024)
                 shuffle($elevance_ads);
                 
                 // If elevance ads, put the first at the beginning of the CTAs
@@ -789,7 +790,8 @@ else:
                         $unique_result_cta = array('126533');
 
                         // Randomaize override
-                        $veteran_ads = array('126533','190592','190593','190603','190604'); // Production
+                        //$veteran_ads = array('126533','190592','190593','190603','190604'); // Production (All)
+                        $veteran_ads = array('190604'); // Production (Winner - August 2024)
                         shuffle($veteran_ads);
                         $unique_result_cta_minus_veterans = array_diff($unique_result_cta, $veteran_ads); // Get non-matching veteran CTAs
                         $unique_result_with_veteran = array_intersect($unique_result_cta, $veteran_ads); // Get matching veteran CTAs
