@@ -9,7 +9,7 @@
  */
 
 // General Vars
-define( 'MHASCREENS_VERSION', '1.2.3' );
+define( 'MHASCREENS_VERSION', '1.3' );
 
 // Enqueing Scripts
 add_action('init', 'mhaScreenScripts');
@@ -38,6 +38,7 @@ function getUserScreenResults( $user_screen_id ) {
     $user_screen_results['general_score_data'] = []; 
     $user_screen_results['graph_data'] = []; 
     $your_answers = [];
+    $your_answers_temp = [];
     
     // Get entry object
     $search_entries = GFAPI::get_entry( $user_screen_id );
@@ -140,7 +141,14 @@ function getUserScreenResults( $user_screen_id ) {
                             $extra_label_content = null;
                             if(is_numeric($extra_label_id[1])){   
                                 $extra_label_field = GFFormsModel::get_field( $data['form_id'], $extra_label_id[1] );  
-                                $your_answers[$row] = '<div class="row pb-2"><div class="col-12 text-gray">'.$extra_label_field->content.'</div></div>';
+                                //$your_answers[$row] = '<div class="row pb-2"><div class="col-12 text-gray">'.$extra_label_field->content.'</div></div>';
+
+                                $your_answers_temp[$field->id]['id'] = $field->id;
+                                $your_answers_temp[$field->id]['type'] = 'extra';
+                                $your_answers_temp[$field->id]['css'] = 'extra-row row pb-2';
+                                $your_answers_temp[$field->id]['question'] = $extra_label_value;
+                                $your_answers_temp[$field->id]['answer'] = $extra_label_field->content;
+
                                 $row++;
                                 break;
                             }
@@ -149,9 +157,35 @@ function getUserScreenResults( $user_screen_id ) {
 
                     $has_indent = strpos($field->cssClass, 'indent') !== false ? ' pl-5' : ' pl-0';
 
-                    $your_answers[$row] = '<div class="row pb-4'.$has_indent.'"><div class="col-sm-7 col-12 text-gray">'.$label.'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$value_label.''.$value_extra.'</div></div>';
+                    //$your_answers[$row] = '<div class="row pb-4'.$has_indent.'"><div class="col-sm-7 col-12 text-gray">'.$label.'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$value_label.''.$value_extra.'</div></div>';
+                    $your_answers_temp[$field->id]['id'] = $field->id;
+                    $your_answers_temp[$field->id]['type'] = 'question';
+                    $your_answers_temp[$field->id]['css'] = 'question-row row pb-4'.$has_indent;
+                    $your_answers_temp[$field->id]['question'] = $label;
+                    if(isset($your_answers_temp[$field->id]['answer'])){
+                        $your_answers_temp[$field->id]['answer'] .= ', '.$value_label.''.$value_extra;
+                    } else {
+                        if(strpos($field->cssClass, 'question-optional') !== false){
+                            $your_answers_temp[$field->id]['answer'] = $v;
+                        } else {
+                            $your_answers_temp[$field->id]['answer'] = $value_label.''.$value_extra;
+                        }
+                    }
+                    
                 }
             }
+
+
+            // Your Answers HTML
+            $user_screen_results['your_answers_temp'] = $your_answers_temp;
+            foreach($your_answers_temp as $ya){     
+                if($ya['type'] == 'extra'){
+                    $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-12 text-gray">'.$ya['answer'].'</div></div>';
+                } else {
+                    $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-sm-7 col-12 text-gray">'.$ya['question'].'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$ya['answer'].'</div></div>';
+                }
+            }
+            $user_screen_results['your_answers'] = implode('',$your_answers);
 
             // Warning message counter  
             if (isset($field->cssClass) && strpos($field->cssClass, 'alert') !== false) {    
@@ -198,6 +232,7 @@ function getUserScreenResults( $user_screen_id ) {
 
         // Your Answers cleanup
         $user_screen_results['your_answers'] = implode('',$your_answers);
+        $user_screen_results['your_answers_temp'] = $your_answers_temp;
         
         // Custom Logic Override
         $user_screen_results['custom_results_logic'] = get_field('custom_results_logic', $user_screen_results['screen_id']);
@@ -752,6 +787,81 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 
 	endif;
 
+    // Addiction 2
+	if($custom_results_logic == 'addiction_2'):
+
+		$results = [];
+        $custom_result_row = null;
+        $total_score = 0;
+
+        // Test type
+        $test_type = isset($general_score_data[127]) ? $general_score_data[127] : null; // Alcohol, Another drug or multiple drugs, Another behavior (gambling, self-harm, etc.)
+        
+        // Score Calculation
+        $questions = [];
+        if( $test_type == 'Alcohol' ){              
+            $questions = [130,132,134,136,138,140,142,144,146,148,150]; // Alcohol questions
+        }
+        else if( $test_type == 'Another drug or multiple drugs' ){              
+            $questions = [5,98,47,48,49,99,100,101,102,103,104]; // Drug questions
+        }
+        else if($test_type == 'Another behavior (gambling, self-harm, etc.)') {            
+            $questions = [131,133,135,137,139,141,143,145,147,149,151]; // Other questions
+        }
+        foreach($questions as $qid){
+            if( isset($general_score_data[$qid]) && $general_score_data[$qid] != '' ){
+                $total_score = $total_score + $general_score_data[$qid];
+            }
+        }
+        
+        if( $test_type == 'Alcohol' ){                                  
+            if($total_score <= 1){
+                $custom_result_row = 1;
+            }
+            if($total_score > 1 && $total_score <= 3){
+                $custom_result_row = 2;
+            }
+            if($total_score > 3 && $total_score <= 5){
+                $custom_result_row = 3;
+            }
+            if($total_score > 5){
+                $custom_result_row = 4;
+            }            
+        } else if($test_type == 'Another drug or multiple drugs') {          
+            if($total_score <= 1){
+                $custom_result_row = 5;
+            }
+            if($total_score > 1 && $total_score <= 3){
+                $custom_result_row = 6;
+            }
+            if($total_score > 3 && $total_score <= 5){
+                $custom_result_row = 7;
+            }
+            if($total_score > 5){
+                $custom_result_row = 8;
+            }
+        } else if($test_type == 'Another behavior (gambling, self-harm, etc.)') {          
+            if($total_score <= 1){
+                $custom_result_row = 9;
+            }
+            if($total_score > 1 && $total_score <= 3){
+                $custom_result_row = 10;
+            }
+            if($total_score > 3 && $total_score <= 5){
+                $custom_result_row = 11;
+            }
+            if($total_score > 5){
+                $custom_result_row = 12;
+            }
+        }
+
+        $results['test_type'] = $test_type;
+        $results['total_score'] = $total_score;
+		$results['custom_result_row'] = $custom_result_row;         
+
+
+    endif;
+
 	return $results;
 
 }
@@ -894,3 +1004,4 @@ include_once 'result_scoring.php';
 include_once 'demographic_steps.php';
 include_once 'featured_next_steps.php';
 include_once 'related_articles.php';
+include_once 'admin_screen_tester.php';

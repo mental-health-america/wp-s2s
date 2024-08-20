@@ -84,7 +84,6 @@ jQuery(function ($) {
 		}		
 		$(this).val( val ); // Replace input value
 
-		console.log(old_val, min_num, max_num);
 		if(val < min_num || val > max_num){
 			let error_id = $(this).parents('.rounded-number').attr('id'),
 				error_valid_id = error_id.replace('field_','');
@@ -93,7 +92,6 @@ jQuery(function ($) {
 				$(this).parents('.rounded-number').append(error);
 			}
 		} else {
-			console.log('remove');
 			$(this).parents('.rounded-number').find('.validation_message').remove();
 		}
 	});
@@ -135,6 +133,131 @@ jQuery(function ($) {
 			});
 		} 
 
-	});
+	});   
+
+	function isNumeric(value) {
+        return !isNaN(parseFloat(value)) && isFinite(value);
+    }
+
+    function mhaUpdateQuestionVisibility($currentQuestion) {
+        var $previousQuestion = $currentQuestion.prevAll('.question').first();
+        var $radios = $previousQuestion.find('input[type="radio"]');
+
+        if ($previousQuestion.length) {
+            $radios.each(function() {
+                var $radio = $(this);
+                $radio.prop('checked', true);
+
+                // Trigger a change event to re-evaluate the visibility
+                $radio.trigger('change');
+
+                if ($currentQuestion.attr('data-conditional-logic') === 'visible') {
+                    return false; // Exit the loop if the field is now visible
+                }
+            });
+        }
+    }
+
+    $('#admin-screen-tester input[type="radio"]').on('change', function() {
+        var selectedMin = parseInt($(this).data('min'));
+        var cumulativeValue = 0;
+        var allGroupsValid = true;
+        var questionRadios = [];
+
+        $('.gfield.question').each(function() {
+            var $questionDiv = $(this);
+            var radios = $questionDiv.find('input[type="radio"]');
+            var selectedRadio = null;
+            var minRadioValue = Infinity;
+            var nonNumericRadio = null;
+
+            radios.each(function() {
+                var $thisRadio = $(this);
+                var radioValue = $thisRadio.val();
+
+                if (isNumeric(radioValue)) {
+                    var numericValue = parseFloat(radioValue);
+                    if (numericValue < minRadioValue) {
+                        minRadioValue = numericValue;
+                        selectedRadio = $thisRadio;
+                    }
+                } else {
+                    if (!nonNumericRadio) {
+                        nonNumericRadio = $thisRadio;
+                    }
+                }
+            });
+
+            if (selectedRadio) {
+                selectedRadio.prop('checked', true);
+                cumulativeValue += minRadioValue;
+                questionRadios.push({ radios: radios, selectedRadio: selectedRadio });
+            } else if (nonNumericRadio) {
+                nonNumericRadio.prop('checked', true);
+                questionRadios.push({ radios: radios, selectedRadio: nonNumericRadio });
+            } else {
+                allGroupsValid = false;
+                return false;
+            }
+
+            // Handle conditional logic
+            if ($questionDiv.attr('data-conditional-logic') === 'hidden') {
+                mhaUpdateQuestionVisibility($questionDiv);
+            }
+			
+        });
+
+        if (cumulativeValue < selectedMin && allGroupsValid) {
+            $.each(questionRadios, function(index, group) {
+                var maxRadio = null;
+                var maxRadioValue = -Infinity;
+
+                group.radios.each(function() {
+                    var $thisRadio = $(this);
+                    var radioValue = $thisRadio.val();
+
+                    if (isNumeric(radioValue)) {
+                        var numericValue = parseFloat(radioValue);
+                        if (numericValue > maxRadioValue && cumulativeValue - parseFloat(group.selectedRadio.val()) + numericValue <= selectedMin) {
+                            maxRadioValue = numericValue;
+                            maxRadio = $thisRadio;
+                        }
+                    }
+                });
+
+                if (maxRadio) {
+                    cumulativeValue = cumulativeValue - parseFloat(group.selectedRadio.val()) + maxRadioValue;
+                    group.selectedRadio.prop('checked', false);
+                    maxRadio.prop('checked', true);
+                }
+            });
+        }
+
+        if (cumulativeValue < selectedMin || !allGroupsValid) {
+            $('.gfield.question input[type="radio"]').prop('checked', false);
+            console.log('Unable to match the total value to the selected minimum.');
+        } else {
+            console.log('All questions have been matched within the selected minimum.');
+        }
+
+        // Handle .question-optional fields
+        $('.question-optional').each(function() {
+            var $optionalDiv = $(this);
+            var firstRadio = $optionalDiv.find('input[type="radio"]').first();
+            var firstText = $optionalDiv.find('input[type="text"]').first();
+            var firstCheckbox = $optionalDiv.find('input[type="checkbox"]').first();
+
+            if (firstRadio.length) {
+                firstRadio.prop('checked', true);
+            } else if (firstCheckbox.length) {
+                firstCheckbox.prop('checked', true);
+            } else if (firstText.length) {
+                firstText.val('test');
+            }
+        });
+		
+    });
+
+	
 
 });

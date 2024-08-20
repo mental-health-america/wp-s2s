@@ -30,6 +30,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
     $user_screen_results['featured_next_steps_data'] = null;
     $with_related_articles = $related_articles;
     $your_answers = [];
+    $your_answers_temp = [];
 
     // Get entry object
     $search_entries = GFAPI::get_entry( $user_screen_id );
@@ -137,16 +138,38 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
                             $extra_label_content = null;
                             if(is_numeric($extra_label_id[1])){   
                                 $extra_label_field = GFFormsModel::get_field( $data['form_id'], $extra_label_id[1] );  
-                                $your_answers[$row] = '<div class="row pb-2"><div class="col-12 text-gray">'.$extra_label_field->content.'</div></div>';
-                                $row++;
-                                break;
+                                //$your_answers[$row] = '<div class="row pb-2"><div class="col-12 text-gray">'.$extra_label_field->content.'</div></div>';
+
+                                if(!str_contains( $extra_label_field->cssClass, 'screen-only' )){
+                                    $your_answers_temp[$row]['id'] = $field->id;
+                                    $your_answers_temp[$row]['type'] = 'extra';
+                                    $your_answers_temp[$row]['css'] = 'extra-row row pb-2';
+                                    $your_answers_temp[$row]['question'] = $extra_label_value;
+                                    $your_answers_temp[$row]['answer'] = $extra_label_field->content;
+                                    $row++;
+                                    break;
+                                }
                             }
                         }
                     }
 
                     $has_indent = strpos($field->cssClass, 'indent') !== false ? ' pl-5' : ' pl-0';
 
-                    $your_answers[$row] = '<div class="row pb-4'.$has_indent.'"><div class="col-sm-7 col-12 text-gray">'.$label.'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$value_label.''.$value_extra.'</div></div>';
+                    //$your_answers[$row] = '<div class="row pb-4'.$has_indent.'"><div class="col-sm-7 col-12 text-gray">'.$label.'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$value_label.''.$value_extra.'</div></div>';
+                    if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {    
+                        $your_answers_temp[$row]['id'] = $field->id;
+                        $your_answers_temp[$row]['type'] = 'question';
+                        $your_answers_temp[$row]['css'] = 'question-row row pb-4'.$has_indent;
+                        $your_answers_temp[$row]['question'] = $label;
+                        //$your_answers_temp[$row]['field'] = $field;
+
+                        if(strpos($field->cssClass, 'question-optional') !== false){
+                            $your_answers_temp[$row]['answer'] = $v;
+                        } else {
+                            $your_answers_temp[$row]['answer'] = $value_label.''.$value_extra;
+                        }
+                    }
+
                 }
             }
 
@@ -176,7 +199,18 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
             
         }   
 
-        // Your Answers cleanup
+        // Your Answers HTML
+        $merged_answers = mergeDuplicates($your_answers_temp);
+        $user_screen_results['your_answers_temp'] = $merged_answers;
+        foreach($merged_answers as $ya){     
+            $temp_answer = isset($ya['answer']) ? removeTextBetween($ya['answer'], ' (e.g.', ')') : '';
+            if($ya['type'] == 'extra'){
+                $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-12 text-gray">'.$temp_answer.'</div></div>';
+            } else {
+                $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-sm-7 col-12 text-gray">'.$ya['question'].'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$temp_answer.'</div></div>';
+            }
+        }
+
         $user_screen_results['your_answers'] = implode('',$your_answers);
         
         // Custom Logic Override
