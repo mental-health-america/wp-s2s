@@ -657,10 +657,15 @@ function mha_results_related_articles( $args ){
     if($args['style'] == 'featured'){  
 
         $link_groups = [];
+        $used_links = [];
         $used_counter = 1;
         shuffle($temp_excluded);
         foreach($temp_excluded as $lnk){
+            if($used_counter > $args['total']){
+                break;
+            }
             $link_groups['related_links'][$used_counter] = $lnk;
+            $used_links[] = $lnk;
             $used_counter++;
         }
         $results = array(
@@ -668,7 +673,9 @@ function mha_results_related_articles( $args ){
             'hide_group_titles' => 1,
             'link_groups' => $link_groups,
             'additional_result_text' => [],
-            'used_links' => $temp_excluded,
+            'used_links' => $used_links,
+            //'used_counter' => $used_counter,
+            //'args_total' => $args['total'],
         );
         return json_encode( $results, false, JSON_UNESCAPED_SLASHES );      
 
