@@ -216,24 +216,24 @@
 			$("ul#"+id+" li input:checkbox").limit(1);
 		});
 		*/
-		$('.limit-2 .ginput_container_checkbox ul').each(function(e){
+		$('.limit-2 .ginput_container_checkbox .gfield_checkbox').each(function(e){
 			var id = $(this).attr('id');
-			$("ul#"+id+" li input:checkbox").limit(2);
+			$(".gfield_checkbox#"+id+" .gchoice input:checkbox").limit(2);
 		});
-		$('.limit-3 .ginput_container_checkbox ul').each(function(e){
+		$('.limit-3 .ginput_container_checkbox .gfield_checkbox').each(function(e){
 			var id = $(this).attr('id');
-			$("ul#"+id+" li input:checkbox").limit(3);
+			$(".gfield_checkbox#"+id+" .gchoice input:checkbox").limit(3);
 		});
-		$('.limit-4 .ginput_container_checkbox ul').each(function(e){
+		$('.limit-4 .ginput_container_checkbox .gfield_checkbox').each(function(e){
 			var id = $(this).attr('id');
-			$("ul#"+id+" li input:checkbox").limit(4);
+			$(".gfield_checkbox#"+id+" .gchoice input:checkbox").limit(4);
 		});
-		$('.limit-5 .ginput_container_checkbox ul').each(function(e){
+		$('.limit-5 .ginput_container_checkbox .gfield_checkbox').each(function(e){
 			var id = $(this).attr('id');
-			$("ul#"+id+" li input:checkbox").limit(5);
+			$(".gfield_checkbox#"+id+" .gchoice input:checkbox").limit(5);
 		});
 
-		// Checkbox single limiter (radio style hotfix)
+		// Checkbox single limiter
 		$('.limit-1 .ginput_container_checkbox input:checkbox').on('change', function(evt) {
 			$(this).parents('.gfield_checkbox').find('input:checkbox').prop('checked', false);
 			$(this).prop('checked', true);
