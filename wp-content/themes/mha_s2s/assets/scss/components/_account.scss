@@ -84,6 +84,14 @@
     position: relative;
     z-index: 10;
     max-width: 40%;
+
+    .site-content & {
+        @media only screen and (max-width: 480px){
+            float: none;
+            width: 100%;
+            max-width: 100%;
+        }
+    }
 }
 
 .chart-container {
@@ -96,6 +104,10 @@
     position: relative;
     .heading {
         padding-right: 220px;
+        @media only screen and (max-width: 767px){
+            padding-top: 70px !important;
+            padding-right: 0;
+        }
     }
     #test-selection-dropdown {
         position: absolute;

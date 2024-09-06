@@ -66,6 +66,10 @@ get_header();
                 wp_login_form($args); 
             ?>
 
+            <div class="existing-account small">
+                <a class="plain" href="<?php echo wp_lostpassword_url(); ?>">Forgot Password?</a>
+            </div>
+
         </div>
 
     </div>
