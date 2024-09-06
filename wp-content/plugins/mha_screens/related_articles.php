@@ -92,7 +92,14 @@ function mha_results_related_articles( $args ){
     }
     
     $age_check = null;
-    foreach($user_demo_ages as $uda){
+    $user_demo_ages_cleaned = [];
+    foreach($user_demo_ages as $ud){
+        if($ud > 0){
+            $user_demo_ages_cleaned[] = $ud;
+        }
+    }
+
+    foreach($user_demo_ages_cleaned as $uda){
         if($uda >= 18){
             $age_check = 'over';
         } else if($uda < 18){
@@ -146,11 +153,18 @@ function mha_results_related_articles( $args ){
                 //$step_link = add_query_arg( 'iframe','true', $step_link );
                 $step_link_target = ' target="_blank"';
             }
+
+            $new_list_item = '<a class="'.$list_link_class.' rec-result-manual"'.$step_link_target.' href="'.$step_link.'">'.get_the_title($step).'</a>';
+            if (current_user_can('edit_posts') && !in_array('ras_r', $args['layout'])) {
+                $new_list_item .= '<br /><span class="small text-red">ID: #'.$step.'</span> <span class="small text-red">(Result Based Manual Condition)</span>';
+            }
+            $new_list_item .= '</a>';
+
             if(!in_array($step, $args['excluded_ids'])){
                 $list_items[] = array(
                     'id' => $step,
-                    'type' => 'manual',
-                    'html' => '<a class="'.$list_link_class.' rec-result-manual"'.$step_link_target.' href="'.$step_link.'">'.get_the_title($step).'</a>'
+                    'type' => 'result_manual',
+                    'html' => $new_list_item
                 );
                 $temp_excluded[] = $step;
             }
@@ -264,14 +278,26 @@ function mha_results_related_articles( $args ){
     /**
      * Result Based Next Steps
      */
-    if(isset($next_step_terms)){
-        $next_step_terms = array_unique($next_step_terms);
-        $taxonomy_query = [];
+    $taxonomy_query = [];
+    if(isset($user_screen_result['next_step_terms'])){
+        $next_step_terms = array_unique($user_screen_result['next_step_terms']);
         foreach($next_step_terms as $step){
-            $step = get_term($next);
-            if($step->taxonomy == 'condition' || $step->taxonomy == 'age_group' || $step->taxonomy == 'post_tag'){
-                $taxonomy_query[$step->taxonomy][] = $step->term_id;
+
+            $step_con = get_term($step, 'condition');
+            if($step_con){
+                $taxonomy_query[$step_con->taxonomy][] = $step_con->term_id;
             }
+
+            $step_age_group = get_term($step, 'age_group');
+            if($step_age_group){
+                $taxonomy_query[$step_age_group->taxonomy][] = $step_age_group->term_id;
+            }
+
+            $step_post_tag = get_term($step, 'post_tag');
+            if($step_post_tag){
+                $taxonomy_query[$step_post_tag->taxonomy][] = $step_post_tag->term_id;
+            }
+
         }
     }
 
@@ -449,10 +475,22 @@ function mha_results_related_articles( $args ){
         if($article_tags):
             foreach($article_tags as $nt){                    
                 
+                // Article has that tag
                 $hasTag = false;
                 if($terms_tags){
                     foreach($terms_tags as $tt){
                         if($nt->term_id == $tt->term_id){
+                            $hasTag = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Result based tags check
+                if( is_array($user_screen_result['next_step_terms']) ){
+                    foreach( $user_screen_result['next_step_terms'] as $nst ){
+                        $nst_term = get_term( $nst, 'post_tag' );
+                        if($nst_term && $nt->term_id == $nst_term->term_id){
                             $hasTag = true;
                             break;
                         }
@@ -580,7 +618,8 @@ function mha_results_related_articles( $args ){
         $related_articles);
     }
     
-    $related_articles_display = array_slice($related_articles, 0, $args['total'] - count($list_items));
+    //$related_articles_display = array_slice($related_articles, 0, $args['total'] - count($list_items));
+    $related_articles_display = array_slice($related_articles, 0, $args['total']);
     $ti = 1;
 
     foreach($related_articles_display as $rad){
