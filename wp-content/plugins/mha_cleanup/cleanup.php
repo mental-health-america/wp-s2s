@@ -45,7 +45,7 @@ function mhacleanuperLooper( $data = null ) {
     $data['start_date'] = $startDate;
     $endDate = $data['end_date'];
     $data['end_date'] = $endDate;
-    $timeCheck = strtotime('now - 2 month');
+    $timeCheck = strtotime('last day of 2 months ago');
 
     // Date check so we don't delete entries that are too new
     if(strtotime($endDate) > $timeCheck){
@@ -364,4 +364,120 @@ function mhausercleanupper() {
     echo json_encode($response);
     exit();
 
+}
+
+
+/**
+ * A/B Testing Data Cleanup
+ */
+
+add_action( 'wp_ajax_abtestingcleanupLooper', 'abtestingcleanupLooper' );
+function abtestingcleanupLooper( $data = null ) {
+
+    if(!current_user_can( 'manage_options' )){
+        exit();
+    }
+
+    global $wpdb;
+
+    // Define the table name (with WordPress table prefix)
+    $table_name = 'ab_redirects';
+
+    // Initial data
+    if($data){
+        $data = $data;
+    } else {
+        parse_str($_POST['data'], $data);  
+    }
+    
+    $page_size = 1000;
+    if(isset($data['next_page'])){
+        $page = $data['next_page'];
+    } else {
+        $page = 1;
+    }
+    $data['page'] = $page;
+    $start_date = $data['start_date'];
+    $data['start_date'] = $start_date;
+    $end_date = $data['end_date'];
+    $data['end_date'] = $end_date;
+
+    if(!isset($data['deleted_entries'])){
+        $data['deleted_entries'] = 0;
+    }
+
+    $total_deleted = 0;
+
+    try {
+        // Get the total number of rows to delete
+        if(!isset($data['total'])){
+            $sql_total = $wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_name WHERE `date` BETWEEN '%s' AND '%s'",
+                $start_date,
+                $end_date
+            );
+            $total_rows = $wpdb->get_var($sql_total);
+            $data['total'] = $total_rows;
+        }
+
+        // Calculate the maximum number of pages
+        if(!isset($data['max_pages'])){
+            $data['max_pages'] = (int) ceil($total_rows / $page_size);
+        }
+
+        // If there are no rows to delete, return early
+        if ($total_rows == 0) {
+            $data['next_page'] = null; // No more pages if no rows to delete
+            echo json_encode($data);
+            exit();
+        }
+
+        // Calculate the offset based on the page number
+        $offset = ($data['page'] - 1) * $page_size;
+        $data['percent'] = round( ( ($data['page'] / $data['max_pages']) * 100 ), 2 );
+
+        // Select up to $page_size rows for the current page
+        $sql_select = $wpdb->prepare(
+            "SELECT id FROM $table_name WHERE `date` BETWEEN %s AND %s LIMIT %d OFFSET %d",
+            $start_date,
+            $end_date,
+            $page_size,
+            $offset
+        );
+
+        // Get the IDs of rows to delete
+        $rows_to_delete = $wpdb->get_col($sql_select);
+
+        // If there are rows to delete, delete them
+        if (!empty($rows_to_delete)) {
+            // Convert the array of IDs into a comma-separated string for the SQL DELETE query
+            $ids_to_delete = implode(',', array_map('intval', $rows_to_delete));
+
+            // Prepare the SQL query to delete the selected rows
+            $sql_delete = "DELETE FROM $table_name WHERE id IN ($ids_to_delete)";
+            $data['ids_to_delete'] = $ids_to_delete;
+
+            // Execute the delete query
+            $deleted = $wpdb->query($sql_delete);
+
+            if ($deleted === false) {
+                throw new Exception('An error occurred while deleting rows.');
+            }
+            $total_deleted = count($rows_to_delete);
+
+            // Determine if there are more pages to process
+            if ($data['page'] < $data['max_pages']) {
+                $data['next_page'] = $data['page'] + 1;
+            }
+        } else {
+            $data['next_page'] = null; // No more pages if no rows to delete
+        }
+    } catch (Exception $e) {
+        $data['error'] = $e->getMessage();
+    }
+
+    $data['deleted_entries'] = $total_deleted;
+    // Return the response as JSON
+    echo json_encode($data);
+    exit();
 }

@@ -1,17 +1,17 @@
-#cleanup-progress {
+.cleanup-progress {
     width: 401px;
     height: 41px;
     position: relative;
     border: 1px solid #007BA7;
 }
 
-#cleanup-progress .bar-wrapper {
+.cleanup-progress .bar-wrapper {
     position: relative;
     height: 38px;
     width: 398px;
     margin: 1px 0 0 1px;
 }
-#cleanup-progress .bar {
+.cleanup-progress .bar {
     position: absolute;
     z-index: 2;
     left: 0;
@@ -21,9 +21,9 @@
     height: 100%;
     background: #007BA7;
 }
-#cleanup-status {
+.cleanup-status {
     padding-top: 15px;
 }
-#cleanup-deleted-container {
+.cleanup-deleted-container {
     padding-top: 15px;
 }

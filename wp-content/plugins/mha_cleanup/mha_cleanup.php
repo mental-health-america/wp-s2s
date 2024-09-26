@@ -78,19 +78,69 @@ function mhacleanuppage(){
                         <td colspan="2">    
                             <p>
                                 <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhacleanupsnonce'); ?>" />
-                                <button id="mha-start-clean-up" class="button button-primary button-large">Clean Up Data</button>
-                                <button id="mha-cleanup-data-begin" type="submit" class="button button-secondary button-large hidden">Are you Sure?</button>
+                                <button id="mha-start-clean-up" class="mha-start-clean-up button button-primary button-large">Clean Up Data</button>
+                                <button id="mha-cleanup-data-begin" type="submit" class="mha-cleanup-data-begin button button-secondary button-large hidden">Are you Sure?</button>
                             </p>
                             
-                            <div id="cleanup-progress" style="display: none; margin-top: 20px;">
+                            <div id="cleanup-progress" class="cleanup-progress" style="display: none; margin-top: 20px;">
                                 <div class="bar-wrapper"><div class="bar"></div></div>            
                                 <strong class="label"><span class="label-number">0</span>%</strong>
                             </div>
 
-                            <p id="cleanup-deleted-container" style="display: none;">
-                                <span id="cleanup-deleted">0</span> Entries Removed
+                            <p id="cleanup-deleted-container" class="cleanup-deleted-container" style="display: none;">
+                                <span id="cleanup-deleted" class="cleanup-deleted">0</span> Entries Removed
                             </p>
-                            <p id="cleanup-status"></p>      
+                            <p id="cleanup-status" class="cleanup-status"></p>      
+                            <br /><br />
+                        </td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+            </div>
+        </form>
+
+
+        <form id="mha-abtesting-cleanup" action="#" method="POST">
+            <div class="acf-columns-2">
+            <div class="acf-column-1">
+            
+                <div id="mha-abtesting-error" class="error fade hidden"></div>
+
+                <h2>A/B Testing Redirect Data Cleanup</h2>
+                <p>Delete A/B testing redirect logs from the server.</p>
+                
+                <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row"><label for="start_date">Start Date</label></th>
+                        <td>
+                            <input type="text" name="start_date" id="start_date" value="<?php //echo date('Y-m', strtotime('now - 6 months')); ?>2023-01-01" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="end_date">End Date</label></th>
+                        <td>
+                            <input type="text" name="end_date" id="end_date" value="<?php echo date('Y-m-t', strtotime('last day of 2 months ago')); ?>" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">    
+                            <p>
+                                <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhaabtestingcleanupsnonce'); ?>" />
+                                <button id="mha-abtesting-start-clean-up" class="mha-start-clean-up button button-primary button-large">Clean Up A/B Logs</button>
+                                <button id="mha-abtesting-data-begin" type="submit" class="mha-data-begin button button-secondary button-large hidden">Are you Sure?</button>
+                            </p>
+                            
+                            <div id="mha-abtesting-progress" class="cleanup-progress" style="display: none; margin-top: 20px;">
+                                <div class="bar-wrapper"><div class="bar"></div></div>            
+                                <strong class="label"><span class="label-number">0</span>%</strong>
+                            </div>
+
+                            <p id="mha-abtesting-deleted-container" class="cleanup-deleted-container" style="display: none;">
+                                <span id="mha-abtesting-deleted" class="cleanup-deleted">0</span> Log Rows Removed
+                            </p>
+                            <p id="mha-abtesting-status" class="cleanup-status"></p>      
                             <br /><br />
                         </td>
                     </tr>

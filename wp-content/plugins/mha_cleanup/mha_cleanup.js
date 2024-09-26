@@ -68,7 +68,6 @@ jQuery(function ($) {
 
     });
 
-
     /**
      * Provider Looper
      */
@@ -138,6 +137,125 @@ jQuery(function ($) {
         }
     }
 
+    /**
+     * A/B Confirmation button click
+     */
+    $(document).on('click', '#mha-abtesting-start-clean-up', function(event){
+        event.preventDefault();
+        $('#mha-abtesting-start-clean-up').addClass('hidden');
+        $('#mha-abtesting-data-begin').removeClass('hidden');
+    });
+
+    /**
+     * A/B Start cleanup
+     */
+    $(document).on('click', '#mha-abtesting-data-begin', function(event){
+
+        // Disable default form submit
+        event.preventDefault();
+
+        // Vars
+        var args = $('#mha-abtesting-cleanup').serialize();
+            
+        // Disable flag button
+        $('#mha-abtesting-data-begin').prop('disabled', true).text('Processing...');
+        $('#mha-abtesting-error').html('').addClass('hidden');
+        $('#mha-abtesting-deleted-container').slideDown();
+
+        $.ajax({
+            type: "POST",
+            url: do_mhacleanups.ajaxurl,
+            data: { 
+                action: 'abtestingcleanupLooper',
+                data: args
+            },
+            success: function( results ) {
+                var res = JSON.parse(results); 
+                if(results){
+                    if(res.error){
+                        $('#mha-abtesting-error').html(res.error).removeClass('hidden');  
+                        $('#mha-abtesting-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
+                        $('#mha-abtesting-start-clean-up').removeClass('hidden');
+                    } else {
+                        var cleanup_total = parseInt($('#mha-abtesting-deleted').text());
+                        $('#mha-abtesting-deleted').html( cleanup_total + res.deleted_entries ); 
+                        $('#mha-abtesting-progress').slideDown();
+                        $('#mha-abtesting-progress .bar').css('width', res.percent+'%');
+                        $('#mha-abtesting-progress .label-number').html( res.percent );   
+
+                        mhaAbCleanupLooper(res);    
+                    }
+                }
+            },
+            error: function(xhr, ajaxOptions, thrownError){                
+                console.error(xhr,thrownError);
+            }
+        });	
+
+    });
+
+
+    /**
+     * A/B Testing Log Cleanup Looper
+     */
+    function mhaAbCleanupLooper( res ){
+        
+        if(res.error){
+
+            // Error
+            console.error(res);
+            $('#mha-abtesting-error').html(res.error).removeClass('hidden');  
+            $('#mha-abtesting-status').append('<br />Error...'+res.error);
+            $('#mha-abtesting-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
+            $('#mha-abtesting-start-clean-up').removeClass('hidden');      
+
+        } else {
+            
+            if(res.next_page != null){
+
+                // Continue Normal Paging
+                var args_2 = 'next_page=' + res.next_page;
+                args_2 += '&start_date=' + res.start_date;
+                args_2 += '&end_date=' + res.end_date;
+                args_2 += '&deleted_entries=' + res.deleted_entries;
+
+                $.ajax({
+                    type: "POST",
+                    url: do_mhacleanups.ajaxurl,
+                    data: { 
+                        action: 'abtestingcleanupLooper',
+                        data: args_2
+                    },
+                    success: function( results ) {  
+                        var res2 = JSON.parse(results);	
+
+                        var cleanup_total = parseInt($('#mha-abtesting-deleted').text());
+                        $('#mha-abtesting-deleted').html( cleanup_total + res.deleted_entries ); 
+                        $('#mha-abtesting-progress .bar').css('width', res2.percent+'%');
+                        $('#mha-abtesting-progress .label-number').html( res2.percent );     
+
+                        mhaAbCleanupLooper( res2 );
+                    },
+                    error: function(xhr, ajaxOptions, thrownError){                        
+                        console.error(xhr,thrownError);        
+                    }
+                });	
+
+            } else {
+
+                // All done, wrap it up
+                $('#mha-abtesting-progress .bar').css('width', '100%');
+                $('#mha-abtesting-progress .bar').css('background-color', '#f89941');
+                $('#mha-abtesting-progress .label-number').html( '100' );     
+                $('#mha-abtesting-status').append('<br /><strong>Done!</strong>');
+                $('#mha-abtesting-json-storage').html('');
+                $('#mha-abtesting-cleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
+                $('#mha-abtesting-start-clean-up').removeClass('hidden');
+                
+            }
+
+        }
+    }
 
     function mhaCleanGroups( res ){
         
