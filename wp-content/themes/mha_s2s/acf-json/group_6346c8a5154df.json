@@ -54,7 +54,8 @@
                 "id": ""
             },
             "placement": "top",
-            "endpoint": 0
+            "endpoint": 0,
+            "selected": 0
         },
         {
             "key": "field_63472be82cf8e",
@@ -154,7 +155,15 @@
             "type": "tab",
             "instructions": "",
             "required": 0,
-            "conditional_logic": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_6346c8a5f74e9",
+                        "operator": "==",
+                        "value": "worksheet"
+                    }
+                ]
+            ],
             "wrapper": {
                 "width": "",
                 "class": "",
@@ -162,7 +171,8 @@
             },
             "relevanssi_exclude": 0,
             "placement": "top",
-            "endpoint": 0
+            "endpoint": 0,
+            "selected": 0
         },
         {
             "key": "field_663e27405b7d2",
@@ -260,7 +270,8 @@
             },
             "relevanssi_exclude": 0,
             "placement": "top",
-            "endpoint": 0
+            "endpoint": 0,
+            "selected": 0
         },
         {
             "key": "field_6346c9fe2b597",
@@ -296,8 +307,9 @@
                 "class": "",
                 "id": ""
             },
+            "relevanssi_exclude": 0,
             "acfe_repeater_stylised_button": 0,
-            "layout": "table",
+            "layout": "row",
             "pagination": 0,
             "min": 0,
             "max": 0,
@@ -313,12 +325,21 @@
                     "type": "text",
                     "instructions": "",
                     "required": 0,
-                    "conditional_logic": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_63ffc8e68a53e",
+                                "operator": "==",
+                                "value": "html"
+                            }
+                        ]
+                    ],
                     "wrapper": {
                         "width": "",
                         "class": "",
                         "id": ""
                     },
+                    "relevanssi_exclude": 0,
                     "default_value": "",
                     "maxlength": "",
                     "placeholder": "",
@@ -334,7 +355,15 @@
                     "type": "textarea",
                     "instructions": "",
                     "required": 0,
-                    "conditional_logic": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_63ffc8e68a53e",
+                                "operator": "!=",
+                                "value": "html"
+                            }
+                        ]
+                    ],
                     "wrapper": {
                         "width": "",
                         "class": "",
@@ -390,7 +419,8 @@
                         "text": "Text",
                         "radio": "Radio",
                         "checkbox": "Checkbox",
-                        "breathe": "Breathe"
+                        "breathe": "Breathe",
+                        "html": "HTML"
                     },
                     "default_value": false,
                     "return_format": "value",
@@ -472,6 +502,7 @@
                     "collapsed": "",
                     "button_label": "Add Option",
                     "rows_per_page": 20,
+                    "parent_repeater": "field_6346c8fd2b590",
                     "sub_fields": [
                         {
                             "key": "field_63ffc9448a541",
@@ -496,8 +527,7 @@
                             "append": "",
                             "parent_repeater": "field_63ffc9258a53f"
                         }
-                    ],
-                    "parent_repeater": "field_6346c8fd2b590"
+                    ]
                 },
                 {
                     "key": "field_6346c9872b595",
@@ -507,12 +537,21 @@
                     "type": "text",
                     "instructions": "",
                     "required": 0,
-                    "conditional_logic": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_63ffc8e68a53e",
+                                "operator": "!=",
+                                "value": "html"
+                            }
+                        ]
+                    ],
                     "wrapper": {
                         "width": "",
                         "class": "",
                         "id": ""
                     },
+                    "relevanssi_exclude": 0,
                     "default_value": "",
                     "maxlength": "",
                     "placeholder": "",
@@ -545,6 +584,60 @@
                     "relevanssi_exclude": 0,
                     "default_value": "",
                     "maxlength": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_6346c8fd2b590"
+                },
+                {
+                    "key": "field_66e3439ac7660",
+                    "label": "Mark as Recommended",
+                    "name": "recommended",
+                    "aria-label": "",
+                    "type": "true_false",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "message": "",
+                    "default_value": 0,
+                    "allow_in_bindings": 0,
+                    "ui_on_text": "",
+                    "ui_off_text": "",
+                    "ui": 1,
+                    "parent_repeater": "field_6346c8fd2b590"
+                },
+                {
+                    "key": "field_66e343aec7661",
+                    "label": "Recommended Tooltip",
+                    "name": "recommended_tooltip",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_66e3439ac7660",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 0,
                     "placeholder": "",
                     "prepend": "",
                     "append": "",
@@ -597,7 +690,8 @@
             },
             "relevanssi_exclude": 0,
             "placement": "top",
-            "endpoint": 0
+            "endpoint": 0,
+            "selected": 0
         },
         {
             "key": "field_6346ca427f87c",
@@ -944,5 +1038,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1716910462
+    "modified": 1726174922
 }
