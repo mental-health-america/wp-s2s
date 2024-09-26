@@ -428,7 +428,7 @@
                     "default_value": "",
                     "acfe_textarea_code": 0,
                     "maxlength": "",
-                    "rows": 1,
+                    "rows": 4,
                     "placeholder": "",
                     "new_lines": "",
                     "parent_repeater": "field_6168937baf709"
@@ -565,7 +565,7 @@
                             "parent_repeater": "field_61689463af70d"
                         },
                         {
-                            "key": "field_663a46deb9b7c",
+                            "key": "field_663cda6e82dff",
                             "label": "Exclude",
                             "name": "exclude",
                             "aria-label": "",
@@ -938,7 +938,7 @@
             "delay": 0
         },
         {
-            "key": "field_64022791f23b8",
+            "key": "field_64133bcfa48b0",
             "label": "Global Hide Articles",
             "name": "global_hide_articles",
             "aria-label": "",
@@ -967,7 +967,7 @@
             "bidirectional_target": []
         },
         {
-            "key": "field_64074bc2f4510",
+            "key": "field_64133beda48b1",
             "label": "Global Hide Articles - Test Results",
             "name": "screen_results_hide_articles",
             "aria-label": "",
@@ -986,17 +986,17 @@
             "return_format": "id",
             "multiple": 1,
             "save_custom": 0,
-            "save_post_status": "publish",
             "acfe_bidirectional": {
                 "acfe_bidirectional_enabled": "0"
             },
             "allow_null": 0,
             "ui": 1,
             "save_post_type": "",
+            "save_post_status": "",
             "bidirectional_target": []
         },
         {
-            "key": "field_64074ba0f450f",
+            "key": "field_64133befa48b2",
             "label": "Global Hide Articles - Sidebar",
             "name": "article_sidebar_hide_articles",
             "aria-label": "",
@@ -1015,190 +1015,14 @@
             "return_format": "id",
             "multiple": 1,
             "save_custom": 0,
-            "save_post_status": "publish",
             "acfe_bidirectional": {
                 "acfe_bidirectional_enabled": "0"
             },
             "allow_null": 0,
             "ui": 1,
             "save_post_type": "",
+            "save_post_status": "",
             "bidirectional_target": []
-        },
-        {
-            "key": "field_64f9e0b4e315b",
-            "label": "Crowdsource",
-            "name": "",
-            "aria-label": "",
-            "type": "tab",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
-            "placement": "top",
-            "endpoint": 0
-        },
-        {
-            "key": "field_64f9e194157ef",
-            "label": "DIY Tools Crowdsource Scoring Defaults",
-            "name": "",
-            "aria-label": "",
-            "type": "message",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
-            "message": "",
-            "new_lines": "wpautop",
-            "esc_html": 0
-        },
-        {
-            "key": "field_64f9e0b3e315a",
-            "label": "Crowdsource Scoring - Date Range",
-            "name": "crowdsource_scoring_date_range",
-            "aria-label": "",
-            "type": "text",
-            "instructions": "Get crowdsource results from now until the entered date. Uses strtotime() formatting: https:\/\/www.php.net\/manual\/en\/function.strtotime.php",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
-            "default_value": "30 days ago",
-            "maxlength": "",
-            "placeholder": "",
-            "prepend": "",
-            "append": ""
-        },
-        {
-            "key": "field_64f9e0b2e3157",
-            "label": "Crowdsource Scoring - Recency Bias",
-            "name": "crowdsource_scoring_recency_bias",
-            "aria-label": "",
-            "type": "repeater",
-            "instructions": "Provide additional scoring bonuses for recency (e.g. 60 days ago > +1, 30 days ago > +2)",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
-            "acfe_repeater_stylised_button": 0,
-            "layout": "table",
-            "pagination": 0,
-            "min": 0,
-            "max": 0,
-            "collapsed": "",
-            "button_label": "Add Row",
-            "rows_per_page": 20,
-            "sub_fields": [
-                {
-                    "key": "field_64f9e0b2e3158",
-                    "label": "Date Range",
-                    "name": "date_range",
-                    "aria-label": "",
-                    "type": "text",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "relevanssi_exclude": 0,
-                    "default_value": "30 days ago",
-                    "maxlength": "",
-                    "placeholder": "",
-                    "prepend": "",
-                    "append": "",
-                    "parent_repeater": "field_64f9e0b2e3157"
-                },
-                {
-                    "key": "field_64f9e0b2e3159",
-                    "label": "Score",
-                    "name": "score",
-                    "aria-label": "",
-                    "type": "number",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "relevanssi_exclude": 0,
-                    "default_value": 1,
-                    "min": "",
-                    "max": "",
-                    "placeholder": "",
-                    "step": "",
-                    "prepend": "",
-                    "append": "",
-                    "parent_repeater": "field_64f9e0b2e3157"
-                }
-            ]
-        },
-        {
-            "key": "field_64f9e0b1e3156",
-            "label": "Crowdsource Scoring - Relate Bonus",
-            "name": "crowdsource_scoring_relate_bonus",
-            "aria-label": "",
-            "type": "number",
-            "instructions": "Add a multiplier for total \"I Relate\" clicks (e.g. 5 \"I Relates * 5)",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
-            "default_value": 1,
-            "min": "",
-            "max": "",
-            "placeholder": "",
-            "step": "",
-            "prepend": "",
-            "append": ""
-        },
-        {
-            "key": "field_64f9e0b0e3155",
-            "label": "Crowdsource Scoring - Complete Answers Bonus",
-            "name": "crowdsource_scoring_complete_answers_bonus",
-            "aria-label": "",
-            "type": "number",
-            "instructions": "Additional score bonus for answering all questions",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
-            "default_value": 1,
-            "min": "",
-            "max": "",
-            "placeholder": "",
-            "step": "",
-            "prepend": "",
-            "append": ""
         }
     ],
     "location": [
@@ -1226,5 +1050,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1715261305
+    "modified": 1715264210
 }

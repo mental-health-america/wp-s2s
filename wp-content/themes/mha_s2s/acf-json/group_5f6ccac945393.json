@@ -722,7 +722,7 @@
             "maxlength": ""
         },
         {
-            "key": "field_647a547b5240a",
+            "key": "field_647e55bb1fffd",
             "label": "Hide Result Score",
             "name": "hide_result_score",
             "aria-label": "",
@@ -1065,9 +1065,9 @@
                     },
                     "relevanssi_exclude": 0,
                     "default_value": "",
-                    "acfe_textarea_code": 1,
+                    "acfe_textarea_code": 0,
                     "maxlength": "",
-                    "rows": 1,
+                    "rows": 4,
                     "placeholder": "",
                     "new_lines": "",
                     "parent_repeater": "field_616897889436e"
@@ -1115,14 +1115,12 @@
                         "class": "",
                         "id": ""
                     },
-                    "relevanssi_exclude": 0,
                     "acfe_repeater_stylised_button": 0,
-                    "layout": "table",
+                    "collapsed": "",
                     "min": 0,
                     "max": 0,
-                    "collapsed": "",
+                    "layout": "table",
                     "button_label": "Add Row",
-                    "rows_per_page": 20,
                     "sub_fields": [
                         {
                             "key": "field_616897be94371",
@@ -1206,7 +1204,7 @@
                             "parent_repeater": "field_616897b694370"
                         },
                         {
-                            "key": "field_6402770e7ff72",
+                            "key": "field_64133c7a47420",
                             "label": "Exclude",
                             "name": "exclude",
                             "aria-label": "",
@@ -1228,6 +1226,7 @@
                             "parent_repeater": "field_616897b694370"
                         }
                     ],
+                    "rows_per_page": 20,
                     "parent_repeater": "field_616897889436e"
                 }
             ]
@@ -1346,7 +1345,7 @@
             }
         ]
     ],
-    "menu_order": 1,
+    "menu_order": 0,
     "position": "normal",
     "style": "default",
     "label_placement": "left",
@@ -1362,5 +1361,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1715095006
+    "modified": 1715264268
 }
