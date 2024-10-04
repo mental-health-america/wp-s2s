@@ -43,7 +43,7 @@
 	
 <?php if( $questions ): ?>
 <div class="wrap <?php echo $wrap_width; ?> no-margin-mobile diy-tool-container" id="diy-tool-<?php echo $unique_activity_id; ?>">	
-    <form class="diy-questions-container <?php echo $embedded_class; ?>" action="#" method="POST" data-skippable="<?php echo $allow_question_skipping; ?>" data-aos="fade-left"<?php echo $single_form_atts; ?>>	
+    <form class="diy-questions-container <?php echo $embedded_class; ?>" action="#" method="POST" data-type="worksheet" data-skippable="<?php echo $allow_question_skipping; ?>" data-aos="fade-left"<?php echo $single_form_atts; ?>>	
 
         <div class="diy-questions diy-worksheet" data-start="<?php echo $activity_start_row; ?>">
 
@@ -116,7 +116,7 @@
                                                     $breathe_check = true;                                            
                                                     $textarea_value = '';
                                                     $timer = get_sub_field('timer') ? get_sub_field('timer') : 10;
-                                                    $start_label = get_sub_field('next_button');
+                                                    $start_label = get_sub_field('breathe_button_label');
                                                     if(get_query_var('diy_continue') && isset($_POST["answer_$row_index"])){ 
                                                         $textarea_value = sanitize_text_field( $_POST["answer_$row_index"] ); 
                                                     }
@@ -126,6 +126,9 @@
                                                         echo '</div>';
                                                         echo '<button role="timer" class="start-breathing button red round-tl extra-wide" tabindex="'.$tabindex.'" data-timer='.$timer.' data-breathe="bid_'.$unique_activity_id.'_'.$row_index.'"><span class="text">'.$start_label.'</span></button>';
                                                     echo '</div>';
+                                                    break;
+
+                                                case 'html':
                                                     break;
                                                     
                                                 case 'text':
@@ -145,26 +148,28 @@
                                         ?>
                                     </div>
                                     
-                                    <?php if($question_type != 'breathe'): ?>
-                                        <div class="container-fluid">
-                                        <div class="row">
+                                    <div class="container-fluid submit-container" data-last-question="<?php echo $question_type; ?>" <?php if($question_type == 'breathe'): ?> style="display: none;" aria-hidden="true"<?php endif; ?>>
+                                    <div class="row">
+                                        
+                                        <?php
+                                            // Submit button
+                                            $button_atts = 'class="round-tiny-tl red action-button next-question submit" data-question="q'.$row_index.'"';   
+                                            $button_label = get_sub_field('next_button');
+                                            if( $button_label || $embed_type == 'single' ):
                                             
-                                            <?php
-                                                // Submit button
-                                                $button_atts = 'class="round-tiny-tl red action-button next-question submit" data-question="q'.$row_index.'"';   
-                                                $button_label = get_sub_field('next_button');
-                                                if( $button_label || $single_question_mode ):
+                                                if(!$button_label && $embed_type == 'single'){
+                                                    $button_label = "Continue";                                                    
+                                                }
                                             ?>
                                             <div class="col-12 text-center p-0">
                                                 <button <?php echo $button_atts; ?> tabindex="<?php echo $tabindex; ?>">
                                                     <?php echo $button_label; ?>
                                                 </button>
                                             </div>
-                                            <?php endif; ?>
+                                        <?php endif; ?>
 
-                                        </div>
-                                        </div>
-                                    <?php endif; ?>
+                                    </div>
+                                    </div>
 
                                 </div>
                                 </div>
@@ -189,7 +194,9 @@
                                 <div class="collapse" id="diyQuestionsContinue_<?php echo $activity_id; ?>">
                             <?php endif; ?>
                             
-                        <?php                    
+                        <?php      
+                        
+                        if($embed_type == 'single'){ break; }              
                         endwhile;
                         
                         if(

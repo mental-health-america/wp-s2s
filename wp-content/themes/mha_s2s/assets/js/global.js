@@ -314,6 +314,9 @@
 			selector: '[data-toggle=tooltip]',
 			options: 'click hover'
 		});
+		$('[data-recommended-tooltip="true"]').tooltip({
+			options: 'focus hover'
+		});
 
 		// Clicky tooltips
 		var $tooltipButton = $('button[data-toggle="tooltip-click"]');

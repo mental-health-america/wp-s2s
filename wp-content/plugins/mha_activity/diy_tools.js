@@ -2,6 +2,162 @@
 	
 	$(document).ready(function() {
 
+		function mhaDiyNextQuestion( event, thisEl ){
+			event.preventDefault();
+
+			// Vars for later
+			let $thisButton = thisEl,
+				$diyParent = $thisButton.parents('.diy-tool-container'),
+				q_id = $thisButton.attr('data-question'),
+				$diy_container = $diyParent.find('.diy-questions-container'),
+				response_id = $diy_container.attr('diy-questions-container'),
+				q_answer = $diyParent.find('.textarea[data-question='+q_id+']').val(),
+				embed_single = $diy_container.attr('data-embed-single'),
+				embed_action = $diy_container.attr('data-action'),
+				diy_type = $diy_container.attr('data-type');
+
+			// Focus on next question when clicking the "next" button
+			$diyParent.find('.glide__slide.glide__slide--active').next('li').find('.textarea').focus();
+
+			if( q_answer != '' || diy_type == 'worksheet' ){
+
+				$thisButton.prop('disabled', true);
+
+				// Disable submit
+				$diyParent.find('.action-button.next-question[data-question='+q_id+']').prop('disabled', true);	
+
+				// Prep the data
+				var args = $diy_container.serialize();
+
+				if($diy_container.hasClass('embedded-diy')){
+					args += '&embedded=1';
+				}
+
+				// Submit complete form check
+				if( $thisButton.hasClass('submit')) {
+					args += '&submit=1';
+				}
+				
+				$.ajax({
+					type: "POST",
+					url: do_mhaDiyTools.ajaxurl,
+					data: { 
+						action: 'mhaDiySubmit',
+						data: args
+					},
+					success: function( results ) {
+							
+						if(embed_single){
+
+							// Single embed redirect override
+							var embed_action_url = new URL(embed_action);
+							embed_action_url.searchParams.append('diy_continue', 1);
+							$diyParent.find('.diy-questions-container').append('<div class="loading-next-diy"></div>');
+							$diy_container.attr('action', embed_action_url.href).submit();
+							return;
+
+						} else {
+
+							// Normal submits
+							$diyParent.find('.action-button.next-question[data-question='+q_id+']').prop('disabled', false);		
+							var res = JSON.parse(results);
+							
+							var current_post = $diyParent.find('input[name="diytool_current_id"]').val();
+							if(current_post == ''){
+								$diyParent.find('input[name="diytool_current_id"]').val(res.post_id);
+							}
+
+							if(res.error){
+
+								$diyParent.find('.next-question.submit').tooltip({
+									title: res.error,
+								});
+								$diyParent.find('.next-question.submit').tooltip('show');
+
+							} else {
+								
+								if(res.redirect){
+
+									let total_questions = $diyParent.find('.diy-questions .textarea').length,
+										total_answers = 0;
+										
+									$diyParent.find('.diy-questions .textarea').each(function(){
+										if($(this).val()){
+											total_answers++;
+										}
+									});
+
+									// GA Event - diy_submit
+									window.dataLayer.push({
+										'event': 'diy_submit',
+										'diy_title': $('h1.entry-title').text(),
+										'submitted_url': $('input[name="current_url"]').val(),
+										'diy_total_answers': total_answers,
+										'diy_total_questions': total_questions
+									});
+
+									// Redirect to TY page
+									//window.location.href = res.redirect;
+									var futureRedirect = res.redirect;
+
+									// Embed TY on page or redirect
+									if(res.args.embedded == 1){
+
+										// Display confirmation without reloading for embedded forms
+										var resultArgs = 'id='+res.post_id+'&embedded=1';
+										$('.tooltip').remove();
+										$.ajax({
+											type: "POST",
+											url: do_mhaDiyTools.ajaxurl,
+											data: { 
+												action: 'mhaDiyGetConfirmation',
+												data: resultArgs
+											},
+											success: function( results ) {
+												
+												var res = JSON.parse(results),
+													$completedDiyContainer = $diyParent.parents('.diy-tool-shortcode');
+
+												$completedDiyContainer.html(res.html);
+
+												$('html,body').animate({
+													scrollTop: $completedDiyContainer.offset().top
+												});
+
+												// Iframe for a server post log to track completions 
+												let iframeUrl = new URL(futureRedirect);
+												iframeUrl.searchParams.append('completed_embed', 1);
+												$('<iframe id="completedDiyFrame" frameborder="0" width="0" height="0" class="invisible" scrolling="no" />').prop('src', iframeUrl).appendTo( $completedDiyContainer );
+												
+											},
+											error: function(xhr, ajaxOptions, thrownError){
+												console.error(xhr,thrownError);
+											}
+										});	
+
+									} else {
+
+										// Normal redirection 
+										window.location.href = res.redirect;
+
+									}
+									
+								}
+
+							}
+
+						}
+
+					},
+					error: function(xhr, ajaxOptions, thrownError){
+						console.error(xhr,thrownError);
+					}
+				});		
+
+			}
+			
+		}
+
 		function getBreadPositions( diyParentRaw = null ) {
 
 			var $diyParent = $('#'+diyParentRaw),
@@ -301,6 +457,7 @@
 
 					// Activate Glide
 					if($diyParent.find('.diy-questions-container').attr('data-embed-single') != 'true'){
+
 						const question = new Glide('#'+diyRaw+' .glide', glideOptions ).mount({
 							GlideAutoHeight: GlideAutoHeight
 						});
@@ -387,7 +544,7 @@
 						}
 
 
-						$diyParent.find('.diy-questions[data-skip=0] textarea').each(function(e){
+						$diyParent.find('.diy-questions[data-skip=0] .textarea').each(function(e){
 							let $parent = $(this).parents('li'),
 								$nextButton = $parent.find('.action-button');
 							// Enable in case of refresh
@@ -430,7 +587,25 @@
 								}
 							});
 						});
+						
+						// Enter key navigation
+						$(document).on("keydown", ".diy-questions .question .textarea", function(e) { 
+							
+							if (e.key === 'Enter' || e.keyCode === 13) {
+								e.preventDefault(); 
+								e.stopPropagation(); 
+								if($(e.currentTarget).val() != ''){
+									// Focus on next slide
+									$(this).parents('.diy-tool-container').find('.glide__slide.glide__slide--active').next('li').find('.textarea').focus();
+
+									// Go to slide
+									question.go('>');
+								}
+							}
+
+						});
 					}
+
 				}
 
 			});
@@ -438,163 +613,9 @@
 			/**
 			 * Form Submissions
 			 */
-			$('.diy-questions-container .action-button.next-question').on('click', function(event){
-				event.preventDefault();
 
-				// Vars for later
-				let $thisButton = $(this),
-					$diyParent = $(this).parents('.diy-tool-container'),
-					q_id = $(this).attr('data-question'),
-					$diy_container = $diyParent.find('.diy-questions-container'),
-					response_id = $diy_container.attr('diy-questions-container'),
-					q_answer = $diyParent.find('textarea[data-question='+q_id+']').val(),
-					embed_single = $diy_container.attr('data-embed-single'),
-					embed_action = $diy_container.attr('data-action');
-
-				// Focus on next question when clicking the "next" button
-				$diyParent.find('.glide__slide.glide__slide--active').next('li').find('textarea').focus();
-
-				if(q_answer != ''){
-
-					$thisButton.prop('disabled', true);
-
-					// Disable submit
-					$diyParent.find('.action-button.next-question[data-question='+q_id+']').prop('disabled', true);	
-
-					// Prep the data
-					var args = $diy_container.serialize();
-
-					if($diy_container.hasClass('embedded-diy')){
-						args += '&embedded=1';
-					}
-
-					// Submit complete form check
-					if( $(this).hasClass('submit')) {
-						args += '&submit=1';
-					}
-					
-					$.ajax({
-						type: "POST",
-						url: do_mhaDiyTools.ajaxurl,
-						data: { 
-							action: 'mhaDiySubmit',
-							data: args
-						},
-						success: function( results ) {
-								
-							if(embed_single){
-
-								// Single embed redirect override
-								var embed_action_url = new URL(embed_action);
-								embed_action_url.searchParams.append('diy_continue', 1);
-								$diyParent.find('.diy-questions-container').append('<div class="loading-next-diy"></div>');
-								$diy_container.attr('action', embed_action_url.href).submit();
-								return;
-
-							} else {
-
-								// Normal submits
-								$diyParent.find('.action-button.next-question[data-question='+q_id+']').prop('disabled', false);		
-								var res = JSON.parse(results);
-								
-								//console.log(res);
-
-								var current_post = $diyParent.find('input[name="diytool_current_id"]').val();
-								if(current_post == ''){
-									$diyParent.find('input[name="diytool_current_id"]').val(res.post_id);
-								}
-
-								if(res.error){
-
-									$diyParent.find('.next-question.submit').tooltip({
-										title: res.error,
-									});
-									$diyParent.find('.next-question.submit').tooltip('show');
-
-								} else {
-									
-									if(res.redirect){
-
-										let total_questions = $diyParent.find('.diy-questions textarea').length,
-											total_answers = 0;
-											
-										$diyParent.find('.diy-questions textarea').each(function(){
-											if($(this).val()){
-												total_answers++;
-											}
-										});
-
-										// GA Event - diy_submit
-										window.dataLayer.push({
-											'event': 'diy_submit',
-											'diy_title': $('h1.entry-title').text(),
-											'submitted_url': $('input[name="current_url"]').val(),
-											'diy_total_answers': total_answers,
-											'diy_total_questions': total_questions
-										});
-
-										// Redirect to TY page
-										//window.location.href = res.redirect;
-										var futureRedirect = res.redirect;
-
-										// Embed TY on page or redirect
-										if(res.args.embedded == 1){
-
-											// Display confirmation without reloading for embedded forms
-											var resultArgs = 'id='+res.post_id+'&embedded=1';
-											$('.tooltip').remove();
-											$.ajax({
-												type: "POST",
-												url: do_mhaDiyTools.ajaxurl,
-												data: { 
-													action: 'mhaDiyGetConfirmation',
-													data: resultArgs
-												},
-												success: function( results ) {
-													
-													var res = JSON.parse(results),
-														$completedDiyContainer = $diyParent.parents('.diy-tool-shortcode');
-
-													$completedDiyContainer.html(res.html);
-
-													$('html,body').animate({
-														scrollTop: $completedDiyContainer.offset().top
-													});
-
-													// Iframe for a server post log to track completions 
-													let iframeUrl = new URL(futureRedirect);
-													iframeUrl.searchParams.append('completed_embed', 1);
-													$('<iframe id="completedDiyFrame" frameborder="0" width="0" height="0" class="invisible" scrolling="no" />').prop('src', iframeUrl).appendTo( $completedDiyContainer );
-													
-												},
-												error: function(xhr, ajaxOptions, thrownError){
-													console.error(xhr,thrownError);
-												}
-											});	
-
-										} else {
-
-											// Normal redirection 
-											window.location.href = res.redirect;
-
-										}
-										
-									}
-
-								}
-
-							}
-
-						},
-						error: function(xhr, ajaxOptions, thrownError){
-							console.error(xhr,thrownError);
-						}
-					});		
-
-				} else {
-					//
-				}
-
+			$('.diy-questions-container .action-button.next-question').on('click', function(event){ 
+				mhaDiyNextQuestion(event, $(this) );
 			});
 
 			// Crowdsource Display on Activity Page
@@ -750,15 +771,17 @@
 
 		$('.diy-carousel-nav.fade-right').on('click', function(e){
 			let $diyParent = $(this).parents('.diy-tool-container');
-			$diyParent.find('.glide__slide.glide__slide--active').next('li').find('textarea').focus();
+			$diyParent.find('.glide__slide.glide__slide--active').next('li').find('.textarea').focus();
 		});
 		
 		$('.diy-carousel-nav.fade-left').on('click', function(e){
 			let $diyParent = $(this).parents('.diy-tool-container');
-			$diyParent.find('.glide__slide.glide__slide--active').prev('li').find('textarea').focus();
+			$diyParent.find('.glide__slide.glide__slide--active').prev('li').find('.textarea').focus();
 		});
 
-		$('.diy-questions .question textarea').keyup(function() {    
+		$(document).on("keyup", ".diy-questions .question .textarea", function(e) { 
+			
+			/* Character Counter */
 			let characterCount = $(this).val().length,
 				thisName = $(this).attr('name'),
 				current = $('.character-counter[data-answer="'+thisName+'"] .current'),
@@ -767,7 +790,6 @@
 			
 			current.text(characterCount);
 					
-			/*This isn't entirely necessary, just playin around*/
 			if (characterCount < 900) {
 				current.css('color', '#144B5E');
 			}
@@ -783,6 +805,7 @@
 			} else {
 				theCount.removeClass('d-block').addClass('d-none');
 			}
+
 		});
 		
 
@@ -806,7 +829,10 @@
 					$button.removeClass('red').addClass('wine').find('.text').text('Thank you. Please continue.'); // Replace button with helpful text
 					$('.breathing-container[data-breathe="'+bid+'"] .breathing-inner').addClass('fade-out').slideUp('slow'); // Hide the breathing exercise animation
 					$('.worksheet-item[aria-hidden="true"]').attr('aria-hidden', 'false').slideDown('slow'); // Hide the breathing exercise animation						
-					$button.parents('li.worksheet-item').next('li.worksheet-item').find('textarea').focus(); // Focus on next question
+					$button.parents('li.worksheet-item').next('li.worksheet-item').find('.textarea').focus(); // Focus on next question
+
+					// Show submit button if available
+					$('.submit-container[data-last-question="breathe"]').attr('aria-hidden', 'false').slideDown('slow');
 
 					clearInterval(timer);
 				} 

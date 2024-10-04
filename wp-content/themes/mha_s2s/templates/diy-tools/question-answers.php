@@ -61,7 +61,14 @@
 	
 <?php if( $questions ): ?>
 <div class="wrap <?php echo $wrap_width; ?> no-margin-mobile diy-tool-container" id="diy-tool-<?php echo $unique_activity_id; ?>">	
-    <form class="diy-questions-container <?php echo $embedded_class; ?>" action="#" method="POST" data-skippable="<?php echo $allow_question_skipping; ?>" data-aos="fade-left"<?php echo $single_form_atts; ?>>	
+    <form 
+        action="#" 
+        method="POST" 
+        autocomplete="off"
+        class="diy-questions-container <?php echo $embedded_class; ?>" 
+        data-skippable="<?php echo $allow_question_skipping; ?>" 
+        data-aos="fade-left"
+    <?php echo $single_form_atts; ?>>	
 
         <?php if($show_next_previews): ?>
             <?php if($allow_question_skipping): ?>
@@ -98,6 +105,8 @@
                                 <p>
                                     <?php
                                         $question_type = get_sub_field('question_type');
+                                        $recommended = get_sub_field('recommended');
+                                        $recommended_tooltip = get_sub_field('recommended_tooltip');
                                         switch($question_type){
                                             case 'checkbox':
                                             case 'radio':
@@ -110,8 +119,14 @@
                                                         <input name="answer_<?php echo $row_index; echo $brackets; ?>" id="<?php echo $field_id; ?>" type="<?php echo $question_type; ?>" value="<?php echo $q['option_text']; ?>" tabindex="<?php echo $tabindex; ?>" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?> />
                                                         <span class="label-text pt-1 pl-2"><?php echo $q['option_text']; ?></span>
                                                     </label>
+                                                    <?php if($recommended): ?>
+                                                        <span class="recommended"><?php echo $recommended_tooltip; ?></span>
+                                                    <?php endif; ?>
                                                 <?php
                                                 endforeach;
+                                                break;
+
+                                            case 'html':
                                                 break;
 
                                             case 'text':
@@ -121,10 +136,27 @@
                                                     $textarea_value = sanitize_text_field( $_POST["answer_$row_index"] ); 
                                                 }
                                                 ?>
-                                                    <textarea maxlength="1000" name="answer_<?php echo $row_index; ?>" placeholder="<?php echo get_sub_field('placeholder'); ?>" tabindex="<?php echo $tabindex; ?>" data-question="<?php echo $row_index; ?>"<?php echo $required_field; ?>><?php echo $textarea_value; ?></textarea>
+                                                    <input 
+                                                        class="textarea" 
+                                                        maxlength="1000" 
+
+                                                <?php if($recommended){ echo ' data-recommended-tooltip="true"'; } ?>
+                                                        title="<?php echo $recommended_tooltip; ?>"
+                                                        name="answer_<?php echo $row_index; ?>" 
+                                                        placeholder="<?php echo get_sub_field('placeholder'); ?>" 
+                                                        tabindex="<?php echo $tabindex; ?>" data-question="<?php echo $row_index; ?>"
+                                                        <?php echo $required_field; ?> value="<?php echo $textarea_value; ?>" 
+                                                    />
                                                     <span class="character-counter text-right bold d-none" data-answer="answer_<?php echo $row_index; ?>">
                                                         <span class="current">0</span> <span class="maximum">/ 1000</span>
                                                     </span>
+                                                    <?php if($recommended): ?>
+                                                        <div class="recommended-tooltip bubble round-tl thinnest dark-blue">
+                                                        <div class="inner">
+                                                            <?php echo $recommended_tooltip; ?>
+                                                        </div>
+                                                        </div>
+                                                    <?php endif; ?>
                                                 <?php
                                                 break;
                                         }
@@ -167,8 +199,11 @@
                                             $button_atts .= ' disabled';
                                         }
                                     ?>
+                                    
                                     <div class="col-12 col-md-5 text-right text-md-end p-0"<?php echo $container_atts; ?>>
-                                        <button <?php echo $button_atts; ?> tabindex="<?php echo $tabindex; ?>">
+                                        <button <?php echo $button_atts; ?> tabindex="<?php echo $tabindex; ?>"
+                                            <?php if($recommended){ echo ' data-recommended-tooltip="true"'; }?>
+                                            title="<?php echo $recommended_tooltip; ?>">
                                             <?php
                                                 echo ($embed_type == 'single') ? 'Continue' : get_sub_field('next_button');
                                             ?>&nbsp;&raquo;
@@ -190,7 +225,15 @@
 
                             <?php if($allow_crowdsource_viewing): ?>
                             <div class="col-12 d-md-none d-block text-left pb-4 pl-0">
-                                <button class="bar toggle-crowdthoughts" data-toggle="collapse" href="#crowdthoughts<?php echo $unique_activity_id; ?>" role="button" aria-expanded="<?php echo $crowdsource_expanded; ?>" aria-controls="crowdthoughts<?php echo $unique_activity_id; ?>" tabindex="<?php echo $tabindex; ?>">
+                                <button 
+                                    class="bar toggle-crowdthoughts"
+
+                                    data-toggle="collapse" 
+                                    href="#crowdthoughts<?php echo $unique_activity_id; ?>" 
+                                    role="button" 
+                                    aria-expanded="<?php echo $crowdsource_expanded; ?>" 
+                                    aria-controls="crowdthoughts<?php echo $unique_activity_id; ?>" 
+                                    tabindex="<?php echo $tabindex; ?>">
                                     <?php echo $crowdsource_button_label; ?>&nbsp;&raquo;
                                 </button>
                             </div>
