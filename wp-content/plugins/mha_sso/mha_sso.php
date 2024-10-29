@@ -27,9 +27,11 @@ function mha_sso_google( $redirect_query = null ){
     $client_id = GOOGLE_CLIENT_ID;
     $client_secret = GOOGLE_CLIENT_SECRET;
     $redirect_uri = get_site_url(null, '/sso', 'https');
+    /*
     if($redirect_query){
         $redirect_uri = add_query_arg( 'redirect_to', $redirect_query, $redirect_uri ); 
     }
+    */
     
     // Creating new google client instance
     $client = new Google_Client();
@@ -39,11 +41,32 @@ function mha_sso_google( $redirect_query = null ){
     $client->addScope("email");
     $client->addScope("profile");
     $client->setPrompt("select_account");
+    
+        
+    // Additional State Variables
+    $state_vars = [];
+    if($redirect_query){
+        $state_vars['redirect_to'] = $redirect_query;
+    }
+    $state = json_encode($state_vars);
+    $client->setState($state);
 
     $google_sso_code = get_query_var('code');
 
+    // Determine redirect
+    $redirect_url = '/my-account/'; // Default
+    $url_state = get_query_var('state');
+    if($url_state){
+        $state = json_decode(stripslashes($url_state));
+        if(isset($state->redirect_to)){
+            $redirect_url = $state->redirect_to; // Passed from URL
+        }
+    }
+
     if($google_sso_code):
+        
         $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
+
         if(!isset($token["error"])){
             $client->setAccessToken($token['access_token']);
             $google_oauth = new Google_Service_Oauth2($client);
@@ -82,7 +105,8 @@ function mha_sso_google( $redirect_query = null ){
                 // Log the user in and redirect to the homepage
                 echo '<p>Log in was successful, redirecting you to the <a href="'.get_home_url().'">homepage</a> now.</p>';
                 wp_set_auth_cookie( $user_id, false, is_ssl() );
-                wp_redirect( '/my-account/' );
+                
+                wp_redirect( $redirect_url );
                 exit();
 
             }
@@ -100,3 +124,14 @@ function mha_sso_google( $redirect_query = null ){
     <?php endif;
 
 }
+
+/**
+ * Hide SSO field from front end for non-admins
+ */
+function mhaSso_hide_field( $field ) {
+    if ( ! current_user_can( 'administrator' ) ) {
+        return false;
+    }    
+    return $field;
+}
+add_filter( 'acf/prepare_field/key=field_64e4dbe781a59', 'mhaSso_hide_field' );
