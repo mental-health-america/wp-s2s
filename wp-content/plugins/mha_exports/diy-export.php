@@ -16,6 +16,13 @@ function mhaDiyToolsExportScripts() {
     }
 }
 
+// Remove tooltip from question function
+function removeMhaTooltip($input) {
+    $pattern = '/\[mha_tooltip.*?\[\/mha_tooltip\]/s';
+    $output = preg_replace($pattern, '', $input);    
+    return $output;
+}
+
 add_action( 'wp_ajax_mha_export_diy_tool_data', 'mha_export_diy_tool_data' );
 function mha_export_diy_tool_data(){
 
@@ -155,22 +162,32 @@ function mha_export_diy_tool_data(){
             'start_page_url'                    => get_field('start_page_url'),
             'ref_code'                          => get_field('ref_code'),
             'post_status'                       => get_post_status(),
-            'post_id'                           => $response_id
+            'post_id'                           => $response_id,
+            'tool_type'                         => get_field('tool_type')
         ];
 
         // Put each question in first in case of blanks
         foreach($activity_questions as $k => $v){
-            $csv_data[$i][$v['question_label'].' - Response'] = '';
-            $csv_data[$i][$v['question_label'].' - Date']     = '';
-            $csv_data[$i][$v['question_label'].' - Updated']  = '';
-            $csv_data[$i][$v['question_label'].' - Likes']    = '';
-            $csv_data[$i][$v['question_label'].' - Flags']  = '';
+            if($v['question_type'] == 'html' || $v['question_type'] == 'breathe'){
+                continue;
+            }
+            $label_key = $v['question_label'] != '' ? $v['question_label'] : removeMhaTooltip(strip_tags($v['question']));
+            $csv_data[$i][$label_key.' - Response'] = '';
+            $csv_data[$i][$label_key.' - Date']     = '';
+            $csv_data[$i][$label_key.' - Updated']  = '';
+            //if($v['tool_type'] == 'question_answer'){
+                $csv_data[$i][$label_key.' - Likes']    = '';
+                $csv_data[$i][$label_key.' - Flags']  = '';
+            //}
         }
 
         // Update question columns with actual responses
         $response_total_likes = 0;
         $response_total_flags = 0;
-        foreach($activity_response as $ar){       
+        foreach($activity_response as $ar){     
+            if($ar['question_type'] == 'html' || $ar['question_type'] == 'breathe'){
+                continue;
+            }  
             $total_likes = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_likes WHERE pid = '.$response_id.' AND \'row\' = '.$ar['id'].' AND unliked = 0');
             $total_flags = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_flags WHERE pid = '.$response_id.' AND \'row\' = '.$ar['id'].' AND status = 0');
 
@@ -178,18 +195,24 @@ function mha_export_diy_tool_data(){
             $row_date = new DateTime($ar_date_convert);
             $row_date->setTimezone($timezone);
             
-            $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Response'] = $ar['answer'];
-            $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Date']     = $row_date->format("Y-m-d H:i:s");
-            $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Updated']  = $ar['updated'];
-            $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Likes']    = $total_likes ? $total_likes : "0";
-            $csv_data[$i][$activity_questions[ $ar['id'] ]['question_label'].' - Flags']    = $total_flags ? $total_flags : "0";
+            $question_key = $activity_questions[ $ar['id'] ]['question_label'] != '' ? $activity_questions[ $ar['id'] ]['question_label'] : removeMhaTooltip(strip_tags($activity_questions[ $ar['id'] ]['question']));
+            $csv_data[$i][$question_key.' - Response'] = $ar['answer'];
+            $csv_data[$i][$question_key.' - Date']     = $row_date->format("Y-m-d H:i:s");
+            $csv_data[$i][$question_key.' - Updated']  = $ar['updated'];
+            //if($ar['tool_type'] == 'question_answer'){
+                $csv_data[$i][$question_key.' - Likes']    = $total_likes ? $total_likes : "0";
+                $csv_data[$i][$question_key.' - Flags']    = $total_flags ? $total_flags : "0";
+            //}
             $response_total_likes = $response_total_likes + $total_likes;
             $response_total_flags = $response_total_flags + $total_flags;
         }
-        $csv_data[$i]['Total Likes'] = $response_total_likes;
-        $csv_data[$i]['Total Flags'] = $response_total_flags;
-        $csv_data[$i]['Admin Notes'] = get_field('admin_notes');
-        $csv_data[$i]['Post Date'] = get_the_date('Y-m-d H:i:s');
+
+        //if($ar['tool_type'] == 'question_answer'){
+            $csv_data[$i]['Total Likes'] = $response_total_likes;
+            $csv_data[$i]['Total Flags'] = $response_total_flags;
+            $csv_data[$i]['Admin Notes'] = get_field('admin_notes');
+            $csv_data[$i]['Post Date'] = get_the_date('Y-m-d H:i:s');
+        //}  
 
         $hash_email = '';
         if($author_id != 4){

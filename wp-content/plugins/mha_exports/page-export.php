@@ -143,26 +143,43 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label for="diytool_export_ref">Tool</label><br /></th>
                     <td>
-                        <?php 
+                        <p><label><input type="checkbox" name="tool_id_select_toggle" id="tool_id_select_toggle" data-toggle="form_id" class="form-toggler" value="1">Select All/None</label></p>
 
+                        <?php 
                         $args = array(
                             "post_type" => 'diy',
                             "post_status" => 'publish',
-                            "posts_per_page" => 50,
+                            "posts_per_page" => 500,
                             'orderby' => array( 
                                 'meta_key' => 'ASC',
                                 'title' => 'DESC' 
                             )
                         );                        
+                        $diy_tool_items = [];
+                        $diy_tool_types = [];
                         $loop = new WP_Query($args);
                         if($loop->have_posts()):
                             while($loop->have_posts()) : $loop->the_post();  
-                                echo '<p><label><input type="checkbox" name="form_id" class="form-checkboxes" value="'.get_the_ID().'"> '.get_the_title().'</label></p>'; 
+                                $diy_tool_items[] = [
+                                    'type' => get_field('tool_type'),
+                                    'title' => get_the_title(),
+                                    'id' => get_the_ID()
+                                ];
+                                $diy_tool_types[] = get_field('tool_type'); 
                             endwhile;
-                        endif;                                   
+                        endif;                                  
+                        $unique_diy_types = array_unique($diy_tool_types);
+                        
+                        foreach($unique_diy_types as $type){
+                            echo '<h3 style="text-transform: capitalize; margin-bottom: 10px; margin-top: 30px;">'.str_replace('_',' ', $type).'</h3>';
+                            foreach($diy_tool_items as $item){
+                                if($item['type'] == $type){
+                                    echo '<p><label><input type="checkbox" name="form_id" class="form-checkboxes" value="'.$item['id'].'"> '.$item['title'].'</label></p>'; 
+                                }
+                            }
+                        }
+
                         ?>
-                        <hr />
-                        <p><label><input type="checkbox" name="tool_id_select_toggle" id="tool_id_select_toggle" data-toggle="form_id" class="form-toggler" value="1">Select All/None</label></p>
                     </td>
                 </tr>
                 <tr>

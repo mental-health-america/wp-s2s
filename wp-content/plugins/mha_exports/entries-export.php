@@ -416,7 +416,7 @@ function mha_export_screen_data(){
             // Create header array
             //foreach($args['fields'] as $k => $v){
             foreach($csv_data[array_key_first($csv_data)] as $k => $v){
-                $csv_headers[] = $k;                    
+                $csv_headers[] = strip_tags($k);
                 //$csv_headers[] = $v['label'];                
             }
 
