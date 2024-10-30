@@ -14,7 +14,8 @@
   */
 function mha_approved_partners() {
 	$partners = array(
-		'own'
+		'own',
+		'easterseals'
 	);
 	return $partners;
 }
@@ -130,16 +131,20 @@ function mha_s2s_scripts() {
 				$partner_css = get_template_directory_uri() . '/assets/css/partner/own.css';
 				$partner_js = get_template_directory_uri() . '/assets/js/partner/own.js';
 				break;
+			case 'easterseals':
+				$partner_css = get_template_directory_uri() . '/assets/css/partner/easterseals.css';
+				$partner_js = get_template_directory_uri() . '/assets/js/partner/easterseals.js';
+				break;
 			default:
 				$partner_css = null;
 				$partner_js = null;
 				break;
 		}
 		if($partner_css){
-			wp_enqueue_style( 'mha_s2s-partner-style', $partner_css, array(), '1.0.10182021' );
+			wp_enqueue_style( 'mha_s2s-partner-style', $partner_css, array(), '1.0.20241024' );
 		}
 		if($partner_js){
-			wp_enqueue_script( 'mha_s2s-partner-js', $partner_js, array(), '1.0.10182021', false );
+			wp_enqueue_script( 'mha_s2s-partner-js', $partner_js, array(), '1.0.20241024', false );
 		}
 	}
 	
@@ -446,6 +451,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'code'; // Used for Google SSO
     $qvars[] = 'fb_id'; // Used for Facebook SSO
     $qvars[] = 'sso'; // Used for successful SSO logins
+    $qvars[] = 'state'; // Used for SSO logins; passed from Google to contain additional data
 
 	// Resource filters
 	$qvars[] = 'treatment';
