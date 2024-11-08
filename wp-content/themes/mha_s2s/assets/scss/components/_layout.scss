@@ -130,6 +130,15 @@
         }
     }
 
+    &.wider {
+        margin: 0 auto; 
+        width: 1320px; 
+        @media only screen and (max-width: 1280px){
+            margin: 0 20px;
+            width: auto;
+        }
+    }
+
 }
 
 

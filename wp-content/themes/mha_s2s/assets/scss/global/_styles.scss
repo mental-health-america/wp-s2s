@@ -884,6 +884,13 @@ h2 {
         line-height: 1.15em;
         @include montserrat(700);
         color: $blueDark;
+    }
+
+    &.section-title-cb {
+        font-size: 3em;
+        line-height: 1.15em;
+        margin: 0 0 .5em 0;
+        color: $cerulean;
 
     }
 

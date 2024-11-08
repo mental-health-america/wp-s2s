@@ -3,6 +3,7 @@
         p {
             position: relative;
         }
+        .textarea,
         textarea {
             padding: 10px 0;
             border: 0;
@@ -447,6 +448,12 @@ button.peek {
 .diy-tool-shortcode {
     width: calc(100% + 20px);
     margin: 0 0 50px -10px;
+
+    .shortcode-mb-0 & {
+        margin: 0;
+        .bubble { margin-bottom: 0 !important; }
+        li:last-child { margin-bottom: 0 !important; }
+    }
 
     /*
     .bubble {

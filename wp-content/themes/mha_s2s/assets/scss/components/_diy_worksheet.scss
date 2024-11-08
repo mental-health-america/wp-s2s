@@ -38,17 +38,23 @@
 
     .bubble {
         
+        .textarea,
         textarea {
             margin: 0;
             border: 0;
             width: 100%;
-            height: 160px;
+            height: 95px;
             padding: 20px;
             font-size: 16px;
             color: $wine;
             border: 1px solid #ffc9c9;
             background: $white;
             @extend .round-tiny-tl;
+
+            @media only screen and (max-width: 767px){
+                height: 130px;
+            }
+
         }
 
         &.red {
@@ -59,6 +65,9 @@
 
 }
 
+.download-worksheet {
+    margin: 0 10px;
+}
 .disclaimer {
     padding-top: 30px;
     font-size: .8em;
