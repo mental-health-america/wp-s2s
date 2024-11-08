@@ -171,7 +171,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				<?php endif; ?>	
 				<?php
 					echo ' <span>&nbsp;</span> ';
-					do_action('wpml_add_language_selector');
+					//echo do_shortcode( '[language-switcher]' );
 				?>
 			</span>
 
