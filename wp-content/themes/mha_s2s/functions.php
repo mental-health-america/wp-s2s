@@ -141,10 +141,10 @@ function mha_s2s_scripts() {
 				break;
 		}
 		if($partner_css){
-			wp_enqueue_style( 'mha_s2s-partner-style', $partner_css, array(), '1.0.20241024' );
+			wp_enqueue_style( 'mha_s2s-partner-style', $partner_css, array(), '1.0.20241031' );
 		}
 		if($partner_js){
-			wp_enqueue_script( 'mha_s2s-partner-js', $partner_js, array(), '1.0.20241024', false );
+			wp_enqueue_script( 'mha_s2s-partner-js', $partner_js, array(), '1.0.20241031', false );
 		}
 	}
 	
@@ -533,8 +533,8 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 	if( in_array('show_progress', $layout) && !in_array('hide_progress', $layout) || !in_array('hide_progress', $layout) ){
 
 		if(isset($form['cssClass']) && str_contains($form['cssClass'], 'full-pager')){
-			// Custom progress bar (all pages)
-			
+
+			// Custom progress bar (all pages)			
 			$progress_bar = '<ol class="full-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">';
 			foreach($form_pages as $k => $v){
 				$pager_class = '';
@@ -547,8 +547,12 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 				}
 				$progress_bar .= '<li class="step-'.$k.' '.$pager_class.'"><span>'.$v.'</span></li>';
 			}
-			$progress_bar .= '<li class="step-'.(count($form_pages) + 1).'"><span>'.$last_progress_label.'</span></li>';
+			// $progress_bar .= '<li class="step-'.(count($form_pages) + 1).'"><span>'.$last_progress_label.'</span></li>';
 			$progress_bar .= '</ol>';
+
+			if($confirmation_message != ''){
+				$progress_bar .= '<div class="form-confirmation-container">'.$confirmation_message.'</div>';
+			}
 
 
 		} else {
@@ -1223,6 +1227,7 @@ function mha_autosubmit_submit_onclick( $button, $form ) {
  * Remove the anchor jump after submit
  */
 add_filter( 'gform_confirmation_anchor', '__return_false' );
+add_filter( 'gform_confirmation_anchor_56', '__return_true' );
 
 /**
  * Disable spam check on auto-submit forms
