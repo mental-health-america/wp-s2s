@@ -14,81 +14,111 @@ article.screen {
 }
 
 article {
-    // Default Hidden Elements
-    .gform_heading,
-    .hidden_label .gfield_label {
-        display: none;
-    }
 
-    // Labels 
-    .gfield_description,
-    .gfield_label {
-        font-weight: 400;
-        color: $gray;
-        font-size: inherit;
-        max-width: 720px;
-    }
-    .gfield_description {
-        margin-bottom: .5em;
-    }
+    .gform_wrapper.gravity-theme {
 
-    // Headings
-    .gform_fields li.section-title {
-        margin-bottom: 0;
-    }
+        // Default Hidden Elements
+        .gform_heading,
+        .hidden_label .gfield_label {
+            display: none;
+        }
 
-    // General Fields
-    .gform_fields  {
-        margin: 0;
-        padding: 0;
-        .gfield {
-            list-style: none;
-            list-style-type: none;
-            margin: 0 0 35px 0;
+        // Labels 
+        .gfield_description,
+        .gfield_label {
+            font-weight: 400;
+            color: $gray;
+            font-size: inherit;
+            max-width: 720px;
+        }
+        .gfield_description {
+            margin-bottom: .5em;
+        }
+
+        // Headings
+        .gform_fields li.section-title {
+            margin-bottom: 0;
+        }
+
+        // General Fields
+        .gform_fields  {
+            display: block;
+            margin: 0;
             padding: 0;
-            &.question.indent {
+            .gfield {
+                list-style: none;
+                list-style-type: none;
+                margin: 0 0 35px 0;
+                padding: 0;
+                &.question.indent {
+                    margin-left: 40px;
+                    @media only screen and (max-width: 767px){
+                        margin-left: 20px;
+                    }
+                }
+
+                &.half-width {
+                    display: inline-block;
+                    width: auto;
+                    margin-right: 25px;
+                }
+
+            }
+            li {
+                color: unset;
+            }
+        }
+        .gfield {
+            &.indent {
                 margin-left: 40px;
                 @media only screen and (max-width: 767px){
                     margin-left: 20px;
                 }
             }
+        }
 
-            &.half-width {
-                display: inline-block;
-                width: auto;
-                margin-right: 25px;
+        .gfield_html_formatted {
+            max-width: 720px;
+        }
+        
+        .gchoice { list-style: none; }
+
+        // Text fields
+        .ginput_container_number {
+            margin: 0 5px 15px 5px;
+            input {
+                display: block;
+                text-align: left;
+                background: $grayLight2;
+                color: $darkTeal;
+                padding: 15px 20px;
+                text-transform: uppercase;
+                font-size: .85em;
+                line-height: 1.3em;
+                border: 1px solid $silver;
+                @include montserrat(600);
+                @include radius(40px);
+                -webkit-appearance: none;
+                -moz-appearance: textfield;
+                width: calc(100% - 30px);
+                max-width: 20em;
+                @include transitions(border-color 150ms ease, background-color 150ms ease);
+                &:focus {
+                    border-color: $blueDark;
+                    background-color: $white;
+                }
             }
-
         }
-        li {
-            color: unset;
-        }
-    }
-    .gfield {
-        &.indent {
-            margin-left: 40px;
-            @media only screen and (max-width: 767px){
-                margin-left: 20px;
-            }
-        }
-    }
 
-    .gfield_html_formatted {
-        max-width: 720px;
-    }
-    
-    .gchoice { list-style: none; }
-
-    // Text fields
-    .ginput_container_number {
-        margin: 0 5px 15px 5px;
-        input {
+        textarea {
+            width: 100%;
+            height: auto;
             display: block;
             text-align: left;
             background: $grayLight2;
             color: $darkTeal;
             padding: 15px 20px;
-            text-transform: uppercase;
+            text-transform: none;
             font-size: .85em;
             line-height: 1.3em;
             border: 1px solid $silver;
@@ -96,427 +126,404 @@ article {
             @include radius(40px);
             -webkit-appearance: none;
             -moz-appearance: textfield;
-            width: calc(100% - 30px);
-            max-width: 20em;
-            @include transitions(border-color 150ms ease, background-color 150ms ease);
-            &:focus {
-                border-color: $blueDark;
-                background-color: $white;
-            }
         }
-    }
 
-    textarea {
-        width: 100%;
-        display: block;
-        text-align: left;
-        background: $grayLight2;
-        color: $darkTeal;
-        padding: 15px 20px;
-        text-transform: none;
-        font-size: .85em;
-        line-height: 1.3em;
-        border: 1px solid $silver;
-        @include montserrat(600);
-        @include radius(40px);
-        -webkit-appearance: none;
-        -moz-appearance: textfield;
-    }
-
-    .instruction {
-        display: none;
-    }
+        .instruction {
+            display: none;
+        }
 
 
-    // Radio and Checkboxes
-    .gfield:not(.traditional){
-        .gfield_checkbox,
-        .gfield_radio {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-wrap: wrap;
-            //justify-content: space-evenly;
-            flex-direction: row;
-            align-items: stretch;
-            @media only screen and (max-width: 767px){
-                //flex-wrap: wrap;
-            }
+        // Radio and Checkboxes
+        .gfield:not(.traditional){
+            .gfield_checkbox,
+            .gfield_radio {
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-wrap: wrap;
+                //justify-content: space-evenly;
+                flex-direction: row;
+                align-items: stretch;
+                @media only screen and (max-width: 767px){
+                    //flex-wrap: wrap;
+                }
 
-            &:focus,
-            &:hover {
+                &:focus,
+                &:hover {
+                    .gchoice {
+                        label {
+                            background-color: $silver;
+                        }
+                    }
+                }
+
                 .gchoice {
+                    position: relative;
+                    //flex: 1 1 calc(25% - 10px);
+                    //flex: 1 1 auto;
+                    //max-width: 50%;                
+                    margin: 0 5px 5px 5px;
+                    padding: 0;
+                    opacity: 1;
+                    @include transitions(opacity 200ms ease);
+                    &:hover {
+                        opacity: 1;
+                        label { background-color: $mint; }
+                    }
+                    @media only screen and (max-width: 767px){
+                        //flex: 0 1 calc(50% - 10px);
+                    }
+                    @media only screen and (max-width: 480px){
+                        //flex: 1 1 calc(100% - 30px); 
+                        //margin: 0 15px 2px 15px; 
+                    }
+                }
+
+                label {
+                    display: block;
+                    text-align: center;
+                    background: $grayLight2;
+                    color: $darkTeal;
+                    padding: 15px 20px 12px;
+                    height: calc(100% - 5px);
+                    text-transform: uppercase;
+                    font-size: .85em;
+                    line-height: 1.2em;
+                    border: 1px solid $silver;
+                    @include montserrat(600);
+                    @include radius(40px);
+                    @include transitions(color 100ms ease, background-color 100ms ease);
+                    margin: inherit;
+                    max-width: 100%;
+                    @include transitions(border-color 150ms ease, background-color 150ms ease);
+                    &:focus {
+                        border-color: $blueDark;
+                        background-color: $white;
+                    }
+                }  
+                
+                input[type="checkbox"],
+                input[type="radio"] {
+                    position: absolute;
+                    left: -999em;
+                }
+                input[type="checkbox"]:focus+label,
+                input[type="radio"]:focus+label {
+                    background-color: $silver;
+                }
+                input[type="checkbox"]:checked+label,
+                input[type="radio"]:checked+label {
+                    background: $green;
+                    color: $white;
+                    border: 1px solid $green;
+                }
+
+            }
+            
+            &.gfield_error {
+                .gfield_checkbox,
+                .gfield_radio {
                     label {
-                        background-color: $silver;
+                        border-color: $red;
                     }
                 }
             }
+            
+        }
 
-            .gchoice {
-                position: relative;
-                //flex: 1 1 calc(25% - 10px);
-                //flex: 1 1 auto;
-                //max-width: 50%;                
-                margin: 0 5px 5px 5px;
-                padding: 0;
-                opacity: 1;
-                @include transitions(opacity 200ms ease);
-                &:hover {
-                    opacity: 1;
-                    label { background-color: $mint; }
-                }
-                @media only screen and (max-width: 767px){
-                    //flex: 0 1 calc(50% - 10px);
-                }
-                @media only screen and (max-width: 480px){
-                    //flex: 1 1 calc(100% - 30px); 
-                    //margin: 0 15px 2px 15px; 
+        // Checkbox Overrides
+        .gfield:not(.traditional){
+            .gfield_checkbox {
+                justify-content: normal;
+                flex-direction: row;
+                align-items: stretch;
+                .gchoice {
+                    flex: 0 1 auto;
+                    @media only screen and (max-width: 480px){
+                        max-width: 100%;
+                    }
+                    label {
+                        padding: 20px;
+                    }
                 }
             }
+        }
 
-            label {
+        // Wide override
+        .gfield.wide {
+            .gfield_checkbox,
+            .gfield_radio {
+                flex-wrap: wrap;
+                .gchoice {
+                    flex: 1 1 calc(50% - 10px);
+                    @media only screen and (max-width: 480px){
+                        flex: 1 1 calc(100% - 30px);
+                        margin: 0 15px 2px 15px;
+                    }
+                }
+            }
+        }
+
+        // Short Radio Override
+        .gfield.short{
+            .gfield_radio {
+                justify-content: normal;
+                flex-direction: row;
+                align-items: stretch;
+                .gchoice {
+                    flex: 0 1 auto;
+                    @media only screen and (max-width: 480px){
+                        //flex: 1 1 calc(100% - 30px);
+                    }
+                    label {
+                        padding: 15px 35px 12px 35px;
+                    }
+                }
+            }
+        }
+
+        .gfield.radio-joined {
+            margin-right: 0;
+            .gchoice {
+                margin-right: 0;
+                margin-left: 0;
+            }
+            .gfield_radio {
+                .gchoice {
+                    &:first-child {
+                        input[type="radio"] {
+                            border-radius: 40px 0 0 40px;
+                        } 
+                    }
+                    &:last-child {
+                        input[type="radio"] {
+                            border-radius: 0px 40px 40px 0;
+                        } 
+                    }
+                }
+            }
+        }
+        
+
+        .gfield.gfield--width-half {
+            flex: 1 1 calc(50% - 20px);
+            @media only screen and (max-width: 480px){
+                flex: 1 1 100%;
+            }
+        }
+
+        // Traditional Radio/Checkboxes
+        .gfield.traditional {
+            .gfield_checkbox,
+            .gfield_radio {
+                margin: 0;
+                padding: 10px 0 0 0;
                 display: block;
-                text-align: center;
+
+                .gchoice {
+                    clear: both;
+                    display: block;
+                    position: relative;
+                    margin: 0 5px 5px 5px;
+                    padding: 0;
+                }
+
+                label {
+                    display: block;
+                    padding: 12px 0;
+                    text-align: left;
+                    color: $gray;
+                    font-size: .85em;
+                    line-height: 1em;
+                    @include montserrat(400);
+                    @include radius(40px);
+
+                    &:before {
+                        content: "";
+                        display: block;
+                        position: relative;
+                        float: left;
+                        width: 30px;
+                        height: 30px;
+                        top: -8px;
+                        margin-right: 10px;
+                        border: 2px solid $green;
+                        background: none;
+                        @include radius(50%);
+                        @include transitions(border-color 100ms ease, background-color 100ms ease);
+                    }
+                    
+                    &:hover {
+                        color: $teal;
+                        &:before {
+                            background-color: $silver;
+                        }
+                    }
+
+                }    
+
+                input[type="checkbox"],
+                input[type="radio"] {
+                    position: absolute;
+                    left: -999em;
+                }
+                input[type="checkbox"]:checked+label,
+                input[type="radio"]:checked+label {
+                    &:before {
+                        background: $teal;
+                        border: 2px solid $teal;
+                    }
+                }
+
+            }
+        }
+
+        // Normal Input
+        .ginput_container_text {
+            input {
+                text-align: left;
                 background: $grayLight2;
-                color: $darkTeal;
-                padding: 15px 20px 12px;
-                height: calc(100% - 5px);
-                text-transform: uppercase;
+                color: $gray;
+                padding: 20px 20px;
+                width: 100%;
+                max-width: 50em;
+                text-transform: none;
                 font-size: .85em;
-                line-height: 1.2em;
+                line-height: 1em;
                 border: 1px solid $silver;
                 @include montserrat(600);
                 @include radius(40px);
-                @include transitions(color 100ms ease, background-color 100ms ease);
-                
-                @include transitions(border-color 150ms ease, background-color 150ms ease);
-                &:focus {
-                    border-color: $blueDark;
-                    background-color: $white;
-                }
-            }  
-            
-            input[type="checkbox"],
-            input[type="radio"] {
-                position: absolute;
-                left: -999em;
-            }
-            input[type="checkbox"]:focus+label,
-            input[type="radio"]:focus+label {
-                background-color: $silver;
-            }
-            input[type="checkbox"]:checked+label,
-            input[type="radio"]:checked+label {
-                background: $green;
-                color: $white;
-                border: 1px solid $green;
-            }
-
-        }
-        
-        &.gfield_error {
-            .gfield_checkbox,
-            .gfield_radio {
-                label {
-                    border-color: $red;
+                &.small {
+                    max-width:  320px;
                 }
             }
         }
-        
-    }
 
-    // Checkbox Overrides
-    .gfield:not(.traditional){
-        .gfield_checkbox {
-            justify-content: normal;
-            flex-direction: row;
-            align-items: stretch;
-            .gchoice {
-                flex: 0 1 auto;
-                @media only screen and (max-width: 480px){
-                    max-width: 100%;
-                }
-                label {
-                    padding: 20px;
-                }
-            }
-        }
-    }
-
-    // Wide override
-    .gfield.wide {
-        .gfield_checkbox,
-        .gfield_radio {
-            flex-wrap: wrap;
-            .gchoice {
-                flex: 1 1 calc(50% - 10px);
-                @media only screen and (max-width: 480px){
-                    flex: 1 1 calc(100% - 30px);
-                    margin: 0 15px 2px 15px;
-                }
-            }
-        }
-    }
-
-    // Short Radio Override
-    .gfield.short{
-        .gfield_radio {
-            justify-content: normal;
-            flex-direction: row;
-            align-items: stretch;
-            .gchoice {
-                flex: 0 1 auto;
-                @media only screen and (max-width: 480px){
-                    //flex: 1 1 calc(100% - 30px);
-                }
-                label {
-                    padding: 15px 35px 12px 35px;
-                }
-            }
-        }
-    }
-
-    .gfield.radio-joined {
-        margin-right: 0;
-        .gchoice {
-            margin-right: 0;
-            margin-left: 0;
-        }
-        .gfield_radio {
-            .gchoice {
-                &:first-child {
-                    input[type="radio"] {
-                        border-radius: 40px 0 0 40px;
-                    } 
-                }
-                &:last-child {
-                    input[type="radio"] {
-                        border-radius: 0px 40px 40px 0;
-                    } 
-                }
-            }
-        }
-    }
-    
-
-    .gfield.gfield--width-half {
-        flex: 1 1 calc(50% - 20px);
-        @media only screen and (max-width: 480px){
-            flex: 1 1 100%;
-        }
-    }
-
-    // Traditional Radio/Checkboxes
-    .gfield.traditional {
-        .gfield_checkbox,
-        .gfield_radio {
-            margin: 0;
-            padding: 10px 0 0 0;
-            display: block;
-
-            .gchoice {
-                clear: both;
-                display: block;
-                position: relative;
-                margin: 0 5px 5px 5px;
-                padding: 0;
-            }
-
-            label {
-                display: block;
-                padding: 12px 0;
+        // Selects
+        .ginput_container_select {
+            select {
                 text-align: left;
+                background: url('../images/arrow-down-dark.png') 90% center no-repeat $grayLight2;
+                background-size: 12px auto;
                 color: $gray;
+                padding: 20px 50px 20px 20px;
+                width: 100%;
+                max-width: 320px;
+                text-transform: uppercase;
                 font-size: .85em;
                 line-height: 1em;
-                @include montserrat(400);
+                border: 1px solid $silver;
+
+                // Remove Arrow                        
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                
+                @include montserrat(600);
                 @include radius(40px);
-
-                &:before {
-                    content: "";
-                    display: block;
-                    position: relative;
-                    float: left;
-                    width: 30px;
-                    height: 30px;
-                    top: -8px;
-                    margin-right: 10px;
-                    border: 2px solid $green;
-                    background: none;
-                    @include radius(50%);
-                    @include transitions(border-color 100ms ease, background-color 100ms ease);
-                }
-                
-                &:hover {
-                    color: $teal;
-                    &:before {
-                        background-color: $silver;
-                    }
-                }
-
-            }    
-
-            input[type="checkbox"],
-            input[type="radio"] {
-                position: absolute;
-                left: -999em;
+                @include transitions(color 100ms ease, background-color 100ms ease);
             }
-            input[type="checkbox"]:checked+label,
-            input[type="radio"]:checked+label {
-                &:before {
-                    background: $teal;
-                    border: 2px solid $teal;
-                }
-            }
-
-        }
-    }
-
-    // Normal Input
-    .ginput_container_text {
-        input {
-            text-align: left;
-            background: $grayLight2;
-            color: $gray;
-            padding: 20px 20px;
-            width: 100%;
-            max-width: 50em;
-            text-transform: none;
-            font-size: .85em;
-            line-height: 1em;
-            border: 1px solid $silver;
-            @include montserrat(600);
-            @include radius(40px);
-            &.small {
-                max-width:  320px;
+            select::-ms-expand {
+                display: none; /* Hide the default arrow in Internet Explorer 10 and Internet Explorer 11 */
             }
         }
-    }
 
-    // Selects
-    .ginput_container_select {
-        select {
-            text-align: left;
-            background: url('../images/arrow-down-dark.png') 90% center no-repeat $grayLight2;
-            background-size: 12px auto;
-            color: $gray;
-            padding: 20px 50px 20px 20px;
-            width: 100%;
-            max-width: 320px;
-            text-transform: uppercase;
-            font-size: .85em;
-            line-height: 1em;
-            border: 1px solid $silver;
-
-            // Remove Arrow                        
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            
-            @include montserrat(600);
-            @include radius(40px);
-            @include transitions(color 100ms ease, background-color 100ms ease);
-        }
-        select::-ms-expand {
-            display: none; /* Hide the default arrow in Internet Explorer 10 and Internet Explorer 11 */
-        }
-    }
-
-    // Alert Messages
-    .gfield.warning {
-        //background: $darkRed;
-        background: $purple;
-        color: $white;
-        padding: 20px 25px;
-        margin: -20px 5px 30px 5px;
-        line-height: 1.4em;
-        @include noto(400);
-        @include radius(20px);
-        a {
+        // Alert Messages
+        .gfield.warning {
+            //background: $darkRed;
+            background: $purple;
             color: $white;
+            padding: 20px 25px;
+            margin: -20px 5px 30px 5px;
+            line-height: 1.4em;
+            @include noto(400);
+            @include radius(20px);
+            a {
+                color: $white;
+            }
         }
-    }
-    
-    // Submit buttons
-    #field_submit,
-    .gform_footer,
-    .gform_page_footer {
-        text-align: right;
-        @media only screen and (max-width: 480px){
-            text-align: center;
-        }
-
-        &.gfield--width-half {
-            padding-top: 35px;
-        }
-
-        .button {
-            font-size: .85em;
-            padding-right: 80px;
-            padding-left: 40px;
-            @extend .round-small-tl;
-            background-image: url('../images/arrow-right-white.png');
-            background-size: auto 50%;
-            background-position: 80% center;
-            background-repeat: no-repeat;
-            @include transitions(background-position 150ms ease, background-color 150ms ease);
+        
+        // Submit buttons
+        #field_submit,
+        .gform_footer,
+        .gform_page_footer {
+            text-align: right;
             @media only screen and (max-width: 480px){
-                float: none;
-                margin: 0 0 30px 0;
-            }
-            &:hover {
-                background-color: $teal;
-                background-position: 85% center;
+                text-align: center;
             }
 
-            &.gform_previous_button  {
-                float: left;
-                color: $gray;
-                padding-left: 80px;
-                padding-right: 40px;
-                background: $grayLight;
-                background-image: url('../images/arrow-left-gray.png');
+            &.gfield--width-half {
+                padding-top: 35px;
+            }
+
+            .button {
+                font-size: .85em;
+                padding-right: 80px;
+                padding-left: 40px;
+                @extend .round-small-tl;
+                background-image: url('../images/arrow-right-white.png');
                 background-size: auto 50%;
-                background-position: 20% center;
+                background-position: 80% center;
                 background-repeat: no-repeat;
-                @extend .round-small-tr;
-                
+                @include transitions(background-position 150ms ease, background-color 150ms ease);
                 @media only screen and (max-width: 480px){
                     float: none;
                     margin: 0 0 30px 0;
                 }
                 &:hover {
-                    background-color: $silver;
-                    background-position: 15% center;
+                    background-color: $teal;
+                    background-position: 85% center;
                 }
+
+                &.gform_previous_button  {
+                    float: left;
+                    color: $gray;
+                    padding-left: 80px;
+                    padding-right: 40px;
+                    background: $grayLight;
+                    background-image: url('../images/arrow-left-gray.png');
+                    background-size: auto 50%;
+                    background-position: 20% center;
+                    background-repeat: no-repeat;
+                    @extend .round-small-tr;
+                    
+                    @media only screen and (max-width: 480px){
+                        float: none;
+                        margin: 0 0 30px 0;
+                    }
+                    &:hover {
+                        background-color: $silver;
+                        background-position: 15% center;
+                    }
+                }
+
+            }
+        }
+
+        // Validation
+        .gfield_description.validation_message {
+            background: $pink;
+            color: $red;
+            border: 1px solid $red;
+            padding: 15px 35px;
+            margin: 0 5px 30px 5px;
+            font-size: .9em;
+            line-height: 1.5em;
+            @include montserrat(600);
+            text-transform: normal;
+            @include radius(40px);
+            @media only screen and (max-width: 480px){
+                margin-left: 15px;
+                margin-right: 15px;
+            }
+            &:before {
+                display: block;
+                content: "Error: "; 
+                @include montserrat(700);
             }
 
-        }
-    }
 
-    // Validation
-    .gfield_description.validation_message {
-        background: $pink;
-        color: $red;
-        border: 1px solid $red;
-        padding: 15px 35px;
-        margin: 0 5px 30px 5px;
-        font-size: .9em;
-        line-height: 1.5em;
-        @include montserrat(600);
-        text-transform: normal;
-        @include radius(40px);
-        @media only screen and (max-width: 480px){
-            margin-left: 15px;
-            margin-right: 15px;
         }
-        &:before {
-            display: block;
-            content: "Error: "; 
-            @include montserrat(700);
-        }
-
-
     }
 
 }

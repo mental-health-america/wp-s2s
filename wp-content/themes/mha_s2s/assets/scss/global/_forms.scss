@@ -12,14 +12,48 @@
     left: -999em;
 }
 
-h2.gform_submission_error {
-    margin: 0;
-    padding: 0;
-    font-size: inherit;
-    line-height: inherit;
-    color: inherit;
-    font-family: inherit;
-    font-weight: inherit;
+article .gform_wrapper.gravity-theme {
+
+    .gform_validation_errors {
+        clear: both;
+        background: $pink;
+        color: $red;
+        padding: 25px 25px 25px 48px;
+        margin: 10px 0 30px 0;
+        font-size: .85em;
+        line-height: normal;
+        font-weight: 700;
+        border: 1px solid $red;
+        text-transform: none;
+        @include radius(50px);
+        box-shadow: none;
+
+        h2.gform_submission_error {
+            margin: 0;
+            padding: 0;
+            font-size: inherit;
+            line-height: inherit;
+            color: inherit;
+            font-family: inherit;
+            font-weight: inherit;
+        }
+
+    }
+    
+    // Global
+    .gform_fields {
+        margin: 0;
+    }
+    
+    label {
+        display: block;
+        font-weight: 700;
+    }
+    
+    .gfield_required {
+        display: none;
+    }
+
 }
 
 // Global
@@ -595,47 +629,49 @@ label {
     }
 }
 
-.number-stepper {
-    .step-buttons {
-        float: right;
-        width: 105px;
-    }
-    .ginput_container_number  {
-        width: 240px;
-        input {
-            width: 100px;
-            -moz-appearance: textfield;
+article .gform_wrapper.gravity-theme {
+    .number-stepper {
+        .step-buttons {
+            float: right;
+            width: 105px;
         }
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        .ginput_container_number  {
+            width: 240px;
+            input {
+                width: 100px;
+                -moz-appearance: textfield;
+            }
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
         }
-    }
-    button.step-down {
-        margin-right: 5px;
-    }
-    button.step-down,
-    button.step-up {    
-        display: block;
-        float: left;
-        width: 49px;
-        height: 49px;
-        padding: 0;
-        line-height: 49px;
-        text-align: center;
-        background: $teal;
-        color: $white;
-        text-transform: uppercase;
-        text-align: center;
-        font-size: 1.2em;
-        line-height: 1.2em;
-        border: 1px solid $teal;
-        @include montserrat(600);
-        @include transitions(color 100ms ease, background-color 100ms ease);
-        @include radius(50%);
-        &:hover {
-            background-color: $darkTeal;
+        button.step-down {
+            margin-right: 5px;
+        }
+        button.step-down,
+        button.step-up {    
+            display: block;
+            float: left;
+            width: 49px;
+            height: 49px;
+            padding: 0;
+            line-height: 49px;
+            text-align: center;
+            background: $teal;
+            color: $white;
+            text-transform: uppercase;
+            text-align: center;
+            font-size: 1.2em;
+            line-height: 1.2em;
+            border: 1px solid $teal;
+            @include montserrat(600);
+            @include transitions(color 100ms ease, background-color 100ms ease);
+            @include radius(50%);
+            &:hover {
+                background-color: $darkTeal;
+            }
         }
     }
 }
