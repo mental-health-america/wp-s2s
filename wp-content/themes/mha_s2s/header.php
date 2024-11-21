@@ -111,7 +111,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 		<div id="utility-menu" class="utility-menu relative">	
 
-			<span id="utility-donate" class="button"><a target="_blank" class="donate red round thin" href="https://give.mhanational.org/-/XADDDNBU">Donate</a></span>
+			<span id="utility-donate" class="button"><a target="_blank" class="donate red round thin" href="<?php echo get_field('mobile_donate_button','options'); ?>">Donate</a></span>
 			
 			<div id="search-header">
 				<button id="search-toggle"
