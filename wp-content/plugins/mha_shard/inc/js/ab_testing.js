@@ -4,6 +4,18 @@ jQuery(function ($) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    function loadAbTestIframe() {
+        $('.layout-action').each(function(e){
+            if($(this).is(":visible")){
+                let $iframe = $(this).find('iframe');
+                if($iframe.attr('data-src')){
+                    let dataSrc = $iframe.attr('data-src')
+                    $iframe.attr('src', dataSrc);
+                }
+            }
+        });
+    }
+
     function mha_article_footer_ab_test(){
         
         //if($('.single-article .layout-action-random').length){
@@ -55,8 +67,15 @@ jQuery(function ($) {
             }
         }
 
+        loadAbTestIframe();
+
     }
 
     mha_article_footer_ab_test();
+
+
+    $(document).on('gform_page_loaded', function(){
+        loadAbTestIframe();
+    });
 
 });
