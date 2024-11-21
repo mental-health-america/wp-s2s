@@ -18,9 +18,9 @@ function get_condition_articles($tax = null, $tag = null, $search_query = null, 
     $current_page = (get_query_var('paged')) ? get_query_var('paged') : 1;
     $posts_per_page = 40;
     
-    // Get Articles
+    // Get Articles and DIY Tools
     $args = array(
-        "post_type" => 'article',
+        "post_type" => array('article', 'diy'),
         "posts_per_page" => -1,
         "post_status" => 'publish',
         "meta_query" => array(

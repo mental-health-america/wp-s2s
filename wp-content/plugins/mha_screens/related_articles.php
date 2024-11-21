@@ -231,7 +231,7 @@ function mha_results_related_articles( $args ){
      */
 
     $loop_args = array(
-        "post_type" => 'article',
+        "post_type" => ['article','diy'],
         "order"	=> 'ASC',
         "orderby" => 'title',
         "post_status" => 'publish',
@@ -262,16 +262,6 @@ function mha_results_related_articles( $args ){
                 )
             )
         );
-    }
-
-    if($args['espanol']){
-        $loop_args['meta_query'] = array(
-            array(
-                "key" => 'espanol',
-                "value" => 1
-            )
-        );
-        //$loop_args['meta_query']['relationship'] = 'AND';
     }
 
 
@@ -340,8 +330,22 @@ function mha_results_related_articles( $args ){
         $loop_args['tax_query']['relation'] = 'AND';
     }
 
+    if($args['espanol']){
+        unset($loop_args['meta_query']);
+        unset($loop_args['tax_query']);
+
+        $loop_args['post_type'] = ['article','diy'];
+        $loop_args['posts_per_page'] = 50;
+        $loop_args['tax_query'] = array(
+            array(
+                'taxonomy' => 'post_tag',
+                'field' => 'term_id',
+                'terms' => array(49),
+            )
+        );
+    }
+
     // Automatic Related Article Query
-    //pre($loop_args);
     $loop = new WP_Query($loop_args);
     $pop_array = mha_monthly_pop_articles('read');            
     $screen_conditions = get_the_terms( $user_screen_result['screen_id'], 'condition' );
@@ -543,7 +547,19 @@ function mha_results_related_articles( $args ){
         // Article Type Scoring
         $article_type = get_field('type');            
         if($article_type && is_array($article_type)){
-            if(count(array_intersect( array('diy','connect','provider'), $article_type)) > 0){
+
+            // Español override
+            if($args['espanol']){
+                if(get_field('espanol')){
+                    $rel_score = $rel_score + 1;
+                    $related_articles[$article_id]['score_debug'] .= 'SharesEspanol ';
+                } else {
+                    unset($related_articles[$article_id]);
+                    continue;
+                }
+            }
+
+            else if(count(array_intersect( array('diy','connect','provider'), $article_type)) > 0){
                 $article_ages = get_the_terms( $article_id, 'age_group' );
 
                 $user_no_age = true;
@@ -584,6 +600,7 @@ function mha_results_related_articles( $args ){
                 endif;
 
             }
+
         }
 
         
@@ -617,7 +634,7 @@ function mha_results_related_articles( $args ){
             array_column($related_articles, 'pop'), SORT_ASC,
         $related_articles);
     }
-    
+
     //$related_articles_display = array_slice($related_articles, 0, $args['total'] - count($list_items));
     $related_articles_display = array_slice($related_articles, 0, $args['total']);
     $ti = 1;
