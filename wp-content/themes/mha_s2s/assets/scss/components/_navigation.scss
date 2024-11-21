@@ -177,13 +177,41 @@
     line-height: normal;
     width: calc(100% - 217px);
 
-    @media only screen and (max-width: 940px){
+    @media only screen and (max-width: 1080px){
+        width: calc(100% - 150px);    
+    }
+
+    @media only screen and (max-width: 990px){
         padding-right: 15px;
     }
+
     @media only screen and (max-width: 767px){
         width: calc(100% - 150px);
         margin: 0;
         padding-right: 0;
+    }
+
+    @media only screen and (max-width: 480px){
+        width: calc(100% - 105px);
+    }
+
+    #utility-donate { 
+        display: none; 
+        @media only screen and (max-width: 990px){
+            display: inline-block;
+            a {
+                margin-top: 1px;
+                padding: 10px 15px;
+            }
+        }
+        @media only screen and (max-width: 767px){
+            a {
+                margin-top: -4px;
+            }
+        }
+        a:hover {
+            background-color: $darkRed;
+        }
     }
 
     .button:not(.button-normal) {
@@ -219,21 +247,35 @@
 
 // Main menu
 #navigation {
-    display: block;
-    float: right;
+    display: flex;
+    flex-wrap: nowrap;
     text-align: right;
+    float: right;
     font-size: 1.4em;
     line-height: normal;
     @include montserrat(700);
     width: calc(100% - 217px);
 
-    @media only screen and (max-width: 940px){
+    @media only screen and (max-width: 1080px){
+        width: calc(100% - 150px);    
+    }
+    @media only screen and (max-width: 990px){
         width: auto;
+        display: block;
     }
     @media only screen and (max-width: 767px){
         width: calc(100% - 150px);
     }
 
+    // Menu Containers
+    .menu-main-menu-container {
+        flex: 1 1 auto;
+    }
+    .menu-main-menu-buttons-container {
+        flex: 1 1 380px;
+    }
+
+    // Main menu
     ul {
         display: block;
         margin: 0;
@@ -335,41 +377,35 @@
     #main-menu-buttons {
         margin: 0;
         padding: 0;
-        float: right;
         text-align: right;
-
-        .single-screen & {
-            @media only screen and (max-width: 940px){
-                display: none !important;
-            }
-        }
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: end;
         
-        @media only screen and (max-width: 940px){
-            display: block;
-            float: none;
+        @media only screen and (max-width: 990px){
             position: fixed;
             left: 0;
             bottom: 0;
             z-index: 500;
             width: 100%;
             text-align: center;
+            justify-content: center;
         }
 
-        li {
-            display: block;
-            margin: 0;
-            padding: 0;
-            list-style-type: none;
+        .single-screen & {
+            @media only screen and (max-width: 990px){
+                display: none !important;
+            }
         }
+
         a {
-            background: $orange;
             @extend .button;
             @extend .round-tr;
             font-size: .85em;
             @include transitions(background-color 150ms ease);
             padding: 15px 25px;
             
-            @media only screen and (max-width: 940px){
+            @media only screen and (max-width: 990px){
                 width: 100%;
                 padding: 20px 10px;
                 @include radius(0px);
@@ -378,6 +414,43 @@
                 background: $teal;
             }
         }
+
+        li {
+            flex: 0 1 auto;
+            margin: 0 0 0 10px;
+            padding: 0;
+            list-style-type: none;
+            @media only screen and (max-width: 990px){
+                flex: 0 1 100%;
+                margin: 0;
+                &.donate { display: none !important; }
+            }
+            &.blue a {
+                background-color: $blue;
+                &:hover {
+                    background-color: $blueDark;
+                }
+            }
+            &.teal a {
+                background-color: $teal;
+                &:hover {
+                    background-color: $tealDark;
+                }
+            }
+            &.orange a.button {
+                background-color: $orange;
+                &:hover {
+                    background-color: $orangeDark;
+                }
+            }
+            &.red a.button {
+                background-color: $red;
+                &:hover {
+                    background-color: $darkRed;
+                }
+            }
+        }
+        
     }
 
     @media only screen and (max-width: 767px){ 
