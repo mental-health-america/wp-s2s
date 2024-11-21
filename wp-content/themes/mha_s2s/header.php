@@ -111,6 +111,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 		<div id="utility-menu" class="utility-menu relative">	
 
+			<span id="utility-donate" class="button"><a target="_blank" class="donate red round thin" href="https://give.mhanational.org/-/XADDDNBU">Donate</a></span>
+			
 			<div id="search-header">
 				<button id="search-toggle"
 					aria-expanded="false"
@@ -168,9 +170,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 						</div>
 						</div>
 					</div>
-				<?php endif; ?>	
-				<?php
-					echo ' <span>&nbsp;</span> ';
+				<?php 
+					endif;
+					//echo ' <span>&nbsp;</span> ';
 					//echo do_shortcode( '[language-switcher]' );
 				?>
 			</span>
