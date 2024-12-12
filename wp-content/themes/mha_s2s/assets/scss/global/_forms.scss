@@ -689,3 +689,14 @@ article .gform_wrapper.gravity-theme {
         background-image: url('../images/compass.png');
     }
 }
+
+// Bottom progress bar
+.layout-progress_bar_below .gform_wrapper form,
+.progress-bar-below {
+    position: relative;
+    padding-bottom: 125px;
+    ol.full-progress-bar {
+        position: absolute;
+        bottom: 0;
+    }
+}

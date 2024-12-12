@@ -413,6 +413,25 @@
     }
 }
 
+.featured-cta-cols.total-1 {
+    .wrap {
+        @media only screen and (max-width: 960px){
+            margin: 0;
+        }
+    }
+    .bubble {
+        width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+        @media only screen and (max-width: 960px){
+            width: 90%;
+        }
+        @media only screen and (max-width: 767px){
+            width: auto;
+        }
+    }
+}
+
 .cta-cols.masonry {
     margin-bottom: 60px;
     left: -10px;

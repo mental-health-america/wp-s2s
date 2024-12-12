@@ -147,6 +147,7 @@
 .mce-content-body,
 .type-page .page-content,
 .type-article .page-content {
+
     a:not(.button) {
         //font-weight: 700;
         @include transitions(color 100ms ease);
@@ -154,7 +155,8 @@
             color: $orange;
         }
     }
-    h2 {
+
+    h2:not(.block-title):not(.section-title) {
         margin: 0 0 .75em 0;
         color: $gray;
         font-size: 1.45em;
@@ -169,27 +171,29 @@
         .dark-blue &,
         &.dark-blue { color: $mediumTeal; }
     }
-    h3 {
+    h3:not(.block-title):not(.section-title) {
         margin: 0 0 .75em 0;
         color: $gray;
         font-size: 1.2em;
         line-height: 1.3em;
         @include montserrat(600);
+        text-decoration: underline;
     }
-    h4 {
+    h4:not(.block-title):not(.section-title) {
         margin: 0 0 .75em 0;
         color: $gray;
         font-size: 1.2em;
         line-height: 1.3em;
         @include montserrat(400);
     }
-    h5 {
+    h5:not(.block-title):not(.section-title) {
         margin: 0 0 .5em 0;
         color: $gray;
         font-size: 1em;
         line-height: 1.3em;
         @include montserrat(700);
     }
+
 }
 
 // Resources Pages
