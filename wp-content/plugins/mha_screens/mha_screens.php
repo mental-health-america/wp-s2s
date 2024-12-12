@@ -9,7 +9,7 @@
  */
 
 // General Vars
-define( 'MHASCREENS_VERSION', '1.3' );
+define( 'MHASCREENS_VERSION', '1.4' );
 
 // Enqueing Scripts
 add_action('init', 'mhaScreenScripts');
@@ -1001,6 +1001,7 @@ function mha_screening_pre_submission_handler( $form ) {
 // Other Files
 include_once 'result_content.php';
 include_once 'result_scoring.php';
+include_once 'result_ctas.php';
 include_once 'demographic_steps.php';
 include_once 'featured_next_steps.php';
 include_once 'related_articles.php';

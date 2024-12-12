@@ -158,6 +158,7 @@ jQuery(function ($) {
         }
     }
 
+	// Normal Test Auto Filler
     $('#admin-screen-tester input[type="radio"]').on('change', function() {
         var selectedMin = parseInt($(this).data('min'));
         var cumulativeValue = 0;
@@ -258,6 +259,31 @@ jQuery(function ($) {
 		
     });
 
-	
+	// Custom logic autofiller
+
+    $('#admin-screen-tester-custom input[type="radio"]').on('change', function() {
+		let field_groups = $(this).data('values');
+		$.each(field_groups, function(index, item) {
+			$.each(item.ids, function(i, id) {
+				var inputName = "input_" + id;
+				if(item.type == 'input'){
+					$('input[name="' + inputName + '"]').val(item.value);
+				} else {
+					$('input[name="' + inputName + '"][value="'+item.value+'"').prop('checked',true);
+				}
+			});
+		});		
+	});
+
+
+	/**
+	 * Source URL capture
+	 * input_61_86 - TIPP Form
+	 */
+	const currentUrl = window.location.href;
+	if($('#input_56_86').length){
+		$('#input_56_86').val(currentUrl);
+	}	
+
 
 });

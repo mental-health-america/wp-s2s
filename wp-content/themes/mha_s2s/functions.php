@@ -89,7 +89,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20241004' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20241204' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -105,7 +105,7 @@ function mha_s2s_scripts() {
 	wp_enqueue_script( 'mha_s2s-popper', get_template_directory_uri() . '/assets/js/popper.min.js', array(), '1.12.9', true );
 	wp_enqueue_script( 'mha_s2s-bootstrap-js', get_template_directory_uri() . '/assets/bootstrap/js/bootstrap.bundle.min.js', array(), '4.3.1', true );
 	wp_enqueue_script( 'mha_s2s-jqueryui', get_template_directory_uri() . '/assets/js/jquery.ui.custom.min.js', array( 'jquery' ), '1.13.1', true );
-	wp_enqueue_script( 'mha_s2s-glide', get_template_directory_uri() . '/assets/js/glide.js', array(), time(), true );
+	wp_enqueue_script( 'mha_s2s-glide', get_template_directory_uri() . '/assets/js/glide.js', array(), 'v20241204', true );
 	wp_enqueue_script( 'mha_s2s-aos', get_template_directory_uri() . '/assets/js/aos.min.js', array(), '3.0.0v2', true );
 	wp_enqueue_script( 'mha_s2s-iframeresizer', get_template_directory_uri() . '/assets/js/iframe-resizer.min.js', array(), '4.3.2', true );
 	
@@ -120,7 +120,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20241004', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20241204', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
@@ -589,6 +589,16 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 
 		$progress_bar = '';
 
+	}
+
+	/**
+	 * Get video titles from global options to populate hidden fields for specific forms 
+	 */
+	if(isset($form['cssClass']) && str_contains($form['cssClass'], 'get-video-titles')){
+		$video_titles = get_field('video_title_references','options');
+		if($video_titles){
+			$progress_bar .= '<textarea style="display: none; visibility: hidden;" id="mha-global-video-titles">'.wp_json_encode( $video_titles ).'</textarea>';
+		}
 	}
 
     return $progress_bar;

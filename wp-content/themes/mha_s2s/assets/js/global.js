@@ -417,7 +417,7 @@
 
 		// Get the total fields in case of refresh
 		$(fieldInputs).each(function(){
-			if( $(this).prop('checked') || $(this).attr('type') == 'number' && $(this).val() > 0 || $(this).attr('type') == 'text' && $(this).val != '' ) {
+			if( $(this).prop('checked') || $(this).attr('type') == 'number' && $(this).val() > 0 || $(this).attr('type') == 'text' && $(this).val() != '' ) {
 				fieldInputsTotal++;
 			}
 		});

@@ -17,6 +17,7 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
+            "wpml_cf_preferences": 2,
             "default_value": "",
             "maxlength": "",
             "placeholder": "",
@@ -49,5 +50,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1725657363
+    "modified": 1698416599
 }
