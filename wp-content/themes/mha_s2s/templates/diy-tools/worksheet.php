@@ -124,7 +124,7 @@
                                                         echo '<div class="breathing-inner">';
                                                             echo '<div class="breathing-circle"><span></span></div>';
                                                         echo '</div>';
-                                                        echo '<button role="timer" class="start-breathing button red round-tl extra-wide" tabindex="'.$tabindex.'" data-timer='.$timer.' data-breathe="bid_'.$unique_activity_id.'_'.$row_index.'"><span class="text">'.$start_label.'</span></button>';
+                                                        echo '<button role="timer" class="start-breathing button red round-tl extra-wide" data-question="'.$row_index.'" tabindex="'.$tabindex.'" data-timer='.$timer.' data-breathe="bid_'.$unique_activity_id.'_'.$row_index.'"><span class="text">'.$start_label.'</span></button>';
                                                     echo '</div>';
                                                     break;
 
@@ -147,6 +147,14 @@
                                             }
                                         ?>
                                     </div>
+
+                                    <?php 
+                                    // Pseudo "Next" button to facilitate partial response saves
+                                    if($question_type != 'html'):
+                                        $button_atts = 'class="action-button next-question next-question-button d-none" data-question="'.$row_index.'"';  
+                                    ?>                                
+                                        <button <?php echo $button_atts; ?> tabindex="-1">Next</button>
+                                    <?php endif; ?>
                                     
                                     <div class="container-fluid submit-container" data-last-question="<?php echo $question_type; ?>" <?php if($question_type == 'breathe'): ?> style="display: none;" aria-hidden="true"<?php endif; ?>>
                                     <div class="row">
@@ -227,6 +235,7 @@
         <input type="hidden" name="opened_diy" value="" />
         <input type="hidden" name="opened_diy_question" value="" />
         <input type="hidden" name="start_page" value="<?php echo $start_page; ?>" />
+        <textarea name="temp_worksheet" class="d-none"></textarea>
     </form>
     
 <?php endif; ?>
