@@ -157,6 +157,8 @@ wp-content/mysql.sql
 *.asf
 *.wmv
 *.avi
+*.new
+*.bak
 
 # MHA specific overrides
 !/wp-content/plugins/mha_shard
