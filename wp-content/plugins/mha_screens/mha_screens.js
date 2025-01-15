@@ -260,12 +260,12 @@ jQuery(function ($) {
     });
 
 	// Custom logic autofiller
-
     $('#admin-screen-tester-custom input[type="radio"]').on('change', function() {
 		let field_groups = $(this).data('values');
 		$.each(field_groups, function(index, item) {
 			$.each(item.ids, function(i, id) {
 				var inputName = "input_" + id;
+				console.log($('input[name="' + inputName + '"]'));
 				if(item.type == 'input'){
 					$('input[name="' + inputName + '"]').val(item.value);
 				} else {
@@ -284,6 +284,23 @@ jQuery(function ($) {
 	if($('#input_56_86').length){
 		$('#input_56_86').val(currentUrl);
 	}	
+
+	/**
+	 * Callrail phone capture
+	 */
+	$('.block-cta').each(function(e){
+		let cta_title = $(this).attr('data-cta-title');
+		if( cta_title.toLowerCase().includes('elevance') ){
+			$(this).find('a[href^=sms]').each(function(e){
+				let phone = $(this).attr('href');
+				console.log(phone);				
+				setInterval(() => {
+					let phone = $(this).attr('href');
+					console.log(phone);					
+				}, 1000);
+			});
+		}
+	});
 
 
 });
