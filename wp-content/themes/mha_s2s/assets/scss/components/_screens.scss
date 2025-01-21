@@ -219,6 +219,13 @@ article {
                 }
 
             }
+
+            .ginput_container_image_choice {
+                label {
+                    margin-top: 10px;
+                    height: auto;
+                }
+            }
             
             &.gfield_error {
                 .gfield_checkbox,
