@@ -260,6 +260,7 @@ jQuery(function ($) {
     });
 
 	// Custom logic autofiller
+	/*
     $('#admin-screen-tester-custom input[type="radio"]').on('change', function() {
 		let field_groups = $(this).data('values');
 		$.each(field_groups, function(index, item) {
@@ -274,6 +275,7 @@ jQuery(function ($) {
 			});
 		});		
 	});
+	*/
 
 
 	/**
@@ -286,21 +288,133 @@ jQuery(function ($) {
 	}	
 
 	/**
-	 * Callrail phone capture
+	 * Callrail phone capture log
 	 */
 	$('.block-cta').each(function(e){
-		let cta_title = $(this).attr('data-cta-title');
+		
+		let cta_title = $(this).attr('data-cta-title'),
+			current_url = window.location.href;
+
 		if( cta_title.toLowerCase().includes('elevance') ){
+			
 			$(this).find('a[href^=sms]').each(function(e){
-				let phone = $(this).attr('href');
-				console.log(phone);				
-				setInterval(() => {
-					let phone = $(this).attr('href');
-					console.log(phone);					
-				}, 1000);
+
+				// Get current URLs for later and set initial data capture
+				let $this_link = $(this),
+					starter_href = $this_link.attr('href'),
+					cta_data = {
+						url: current_url,
+						original_link: starter_href
+					};
+				
+				// Capture CTA displayed
+				$.ajax({
+					type: "POST",
+					url: do_mhaResultLogs.ajaxurl,
+					data: { 
+						action: 'process_mha_record_callrail_cta_display',
+						data: cta_data
+					},
+					success: function( results ) {
+						
+                        let res = JSON.parse(results),
+							record_id = res.record_id;
+						
+						if(record_id){
+							
+							mhaStartCtaClickListener( record_id );
+
+							let cta_change_interval = setInterval(() => {
+
+								let changed_href = $this_link.attr('href');
+
+								if (changed_href !== starter_href) {
+			
+									clearInterval(cta_change_interval);
+
+									let updated_cta_data = {
+										record_id: record_id,
+										updated_link: changed_href
+									};
+
+									$.ajax({
+										type: "POST",
+										url: do_mhaResultLogs.ajaxurl,
+										data: { 
+											action: 'mha_update_record_callrail_cta_display',
+											data: updated_cta_data
+										},
+										success: function( updated_results ) {
+											// console.log(updated_results);
+											//let updated_res = JSON.parse(updated_results);
+											//console.log('Updated', updated_res);
+										},
+										error: function(xhr, ajaxOptions, thrownError){
+											console.error("CR Error 1");
+											//console.error('Error in update AJAX request:', xhr.status, xhr.statusText, thrownError);
+											//console.error('Response Text:', xhr.responseText);
+										}
+									});
+
+								}
+							}, 500);
+
+							// Abort after 30 seconds
+							setTimeout(() => {				
+								clearInterval(cta_change_interval);							
+							}, 30000);
+						}
+
+						
+					},
+					error: function(xhr, ajaxOptions, thrownError){
+						console.error("CR Error 2");
+					}
+				});
+
 			});
 		}
 	});
+
+	function mhaStartCtaClickListener( record_id = false ) {
+
+		if ( record_id ) {
+			
+			$(document).on('click', '.block-cta a', function(event) {
+
+				let cta_href = $(this).attr('href'),
+					cta_title = $(this).parents('.block-cta').attr('data-cta-title');
+
+				// Only update "click" when the link is a SMS number
+				if( cta_title.toLowerCase().includes('elevance') && cta_href.includes('sms:') ){
+					
+					let updated_cta_data = {
+						record_id: record_id
+					};
+
+					$.ajax({
+						type: "POST",
+						url: do_mhaResultLogs.ajaxurl,
+						data: { 
+							action: 'mha_update_click_callrail_cta_display',
+							data: updated_cta_data
+						},
+						success: function( updated_results ) {
+							//console.log('Success 3');
+						},
+						error: function(xhr, ajaxOptions, thrownError){
+							console.error("CR Error 3");
+						}
+					});
+
+				}
+				
+
+			});
+
+		}
+
+	}
 
 
 });
