@@ -71,7 +71,7 @@
 		// External links open in a new tab
 		$('#content a').each(function() {
 			var a = new RegExp('/' + window.location.host + '/');
-			if(!a.test(this.href) && !$(this).hasClass('social-share')){
+			if(!a.test(this.href) && !$(this).hasClass('social-share') && !$(this).attr('href').includes('sms') && !$(this).attr('href').includes('tel')){
 				$(this).click(function(event) {
 					event.preventDefault();
 					event.stopPropagation();
@@ -505,6 +505,19 @@
 			});
 		});
 
+		// Iframe logging
+		const inIframe = window.self !== window.top;
+		if(inIframe){
+			const pageReferrer = document.referrer,
+				pageTitle = document.title,
+				pageUrl = document.location.href;
+			window.dataLayer.push({
+				'event': 'iframe_loaded',
+				'iFramePageReferrer': pageReferrer,
+				'iFramePageTitle': pageTitle,
+				'iFramePageUrl': pageUrl
+			});
+		}
 	});
 
 	$(window).on('load', function () {
