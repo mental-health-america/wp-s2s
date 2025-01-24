@@ -126,6 +126,13 @@ article {
             @include radius(40px);
             -webkit-appearance: none;
             -moz-appearance: textfield;
+
+            &.small {
+                height: 70px;
+            }
+            &.medium {
+                height: 130px;
+            }
         }
 
         .instruction {
