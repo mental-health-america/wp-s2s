@@ -1003,7 +1003,6 @@ function mha_screening_pre_submission_handler( $form ) {
 // Other Files
 include_once 'result_content.php';
 include_once 'result_scoring.php';
-//include_once 'result_ctas.php';
 include_once 'result_logging.php';
 include_once 'demographic_steps.php';
 include_once 'featured_next_steps.php';
