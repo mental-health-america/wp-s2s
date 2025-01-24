@@ -12,7 +12,7 @@ $entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_val
 if ( is_wp_error( $entry_id ) || !$entry_id ):
 
     // Entry doesn't exist, display an error
-    echo '<div class="wrap narrow mb-5"><div id="message" class="error text-center"><p>This screen result does not exists.</p></div></div>';
+    echo '<div class="wrap narrow mb-5"><div id="message" class="error text-center"><p>This screen result does not exist.</p></div></div>';
 
 else:
 
