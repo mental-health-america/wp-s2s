@@ -1,7 +1,7 @@
 <?php
 
 // Plugins
-require_once __DIR__ . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 use League\Csv\CharsetConverter;
 use League\Csv\Writer;
 use League\Csv\Reader;
@@ -10,8 +10,7 @@ use League\Csv\Reader;
 add_action('init', 'mhaDiyToolsExportScripts');
 function mhaDiyToolsExportScripts() {
     if(current_user_can('edit_posts')){
-        //wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__FILE__) . 'diy_export.js', array('jquery'), 'v1.2', true );
-        wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__FILE__) . 'diy_export.js', array('jquery'), time(), true );
+        wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__DIR__) . 'js/diy_export.js', array('jquery'), time(), true );
         wp_localize_script('process_diyToolsExport', 'do_mhaDiyToolsExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
     }
 }

@@ -20,9 +20,9 @@ function char_fix( $input ){
 add_action('init', 'mhaThoughtScripts');
 function mhaThoughtScripts() {
     if(current_user_can('edit_posts')){
-        wp_enqueue_script( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.js', array('jquery'), time(), true );
+        wp_enqueue_script( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'js/mha_export.js', array('jquery'), time(), true );
         wp_enqueue_style( 'process_mhaacfeui', '/wp-content/plugins/acf-extended/assets/css/acfe-ui.min.css', array(), time() );
-        wp_enqueue_style( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.css', array(), time() );
+        wp_enqueue_style( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'css/mha_export.css', array(), time() );
         wp_localize_script('process_mhaThoughts', 'do_mhaThoughts', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
     }
 }
@@ -356,6 +356,49 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="ctaCodes-exports-download" style="display: none;"></ul>      
+                        <br /><br />
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </form>
+    <br />
+
+
+    <form id="mha-callrail-cta-export" action="#" method="POST">
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
+        
+            <div id="callrail-cta-export-error"></div>
+            <h2>Callrail Ad Export</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label for="callrailcta_export_start_date">Start Date</label></th>
+                    <td>
+                        <input type="date" name="callrailcta_export_start_date" id="callrailcta_export_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="callrailcta_export_end_date">End Date</label></th>
+                    <td>
+                        <input type="date" name="callrailcta_export_end_date" id="callrailcta_export_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <p>
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhacallrailcta'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_callrailcta_link"  value="Download Callrail Ad Log">
+                        </p>
+                        
+                        <div id="callrailcta-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <ul id="callrailcta-exports-download" style="display: none;"></ul>      
                         <br /><br />
                     </td>
                 </tr>
