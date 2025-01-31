@@ -17,7 +17,9 @@
 				diy_type = $diy_container.attr('data-type');
 
 			// Focus on next question when clicking the "next" button
-			$diyParent.find('.glide__slide.glide__slide--active').next('li').find('.textarea').focus();
+			setTimeout(() => {
+				$diyParent.find('.glide__slide.glide__slide--active').find('.textarea').focus();	
+			}, 500);
 
 			if( q_answer != '' || diy_type == 'worksheet' ){
 
@@ -37,6 +39,13 @@
 				if( $thisButton.hasClass('submit')) {
 					args += '&submit=1';
 				}
+
+				// Recommended slide jump
+				$(document).on('click', '.question-jump', function(e){
+					let slideId = $(this).attr('data-glide-dir'),
+						$diyParent = $(this).parents('.diy-tool-container');
+					$diyParent.find('.question-direct[data-question="'+slideId+'"]').click();
+				});
 				
 				$.ajax({
 					type: "POST",
@@ -76,8 +85,41 @@
 
 							} else {
 								
-								if(res.redirect){
+								// Recommended friction
+								let submitRecommendedBlock = $diyParent.find('.next-question.submit').attr('data-has-recommended');
+								if(submitRecommendedBlock == 'true'){
 
+									// Display recommendation text
+									let recommended_text = '',
+										recommended_count = 0,
+										recommended_header_text = $diyParent.find('.diy-questions-container').attr('data-recommended-header'),
+										recommended_footer_text = $diyParent.find('.diy-questions-container').attr('data-recommended-footer');
+
+									recommended_text += recommended_header_text+'<br />';
+
+									$diyParent.find('.question[data-recommended="true"]').each(function(){
+										let questionRecText = $(this).attr('data-recommended-text'),
+											questionData = $(this).attr('data-question'),
+											questionRecButton = '<button class="question-jump button tiny" data-glide-dir="'+questionData+'">&laquo; Revisit this question</button>';
+										recommended_text += ''+questionRecText+' '+questionRecButton+'<br />';
+										recommended_count++;
+									});
+
+									recommended_text += recommended_footer_text;
+
+									if(recommended_count > 0){
+										$diyParent.find('.next-question.submit').attr('data-has-recommended', 'false'); // Allow next submit click
+										// Display recommended text
+										$diyParent.prepend('<div class="wrap normal pb-2 recommended-display" style="max-width: 918px;"><div class="recommended-tooltip bubble round-tl narrow dark-blue"><div class="inner">'+recommended_text+'</div></div></div>');
+										$('html,body').animate({
+											scrollTop: $diyParent.offset().top - 75
+										});
+										return;
+									}
+								}
+
+								if(res.redirect){
+									
 									let total_questions = $diyParent.find('.diy-questions .textarea').length,
 										total_answers = 0;
 										
@@ -591,6 +633,15 @@
 						// Enter key navigation
 						$(document).on("keydown", ".diy-questions .question .textarea", function(e) { 
 							
+							let val = $(this).val(),
+								rec = $(this).parents('.question').attr('data-recommended');
+							if(val != '' && rec == 'true'){
+								$(this).parents('.question').attr('data-recommended', 'false');
+							}
+							if(val == '' && rec == 'false'){
+								$(this).parents('.question').attr('data-recommended', 'true');
+							}
+
 							if (e.key === 'Enter' || e.keyCode === 13) {
 								e.preventDefault(); 
 								e.stopPropagation(); 
@@ -614,9 +665,45 @@
 			 * Form Submissions
 			 */
 
+			// Question & Answers Next Button Clicks
 			$('.diy-questions-container .action-button.next-question').on('click', function(event){ 
 				mhaDiyNextQuestion(event, $(this) );
 			});
+
+			// Worksheet textarea focus or button click
+			let userAnswers = {};
+
+			// Textarea changes
+			$('.diy-questions-container .diy-worksheet .worksheet-item textarea').on('focusout', function(event){ 
+				$textarea = $(this);
+				checkWorksheetAnswers(event, $textarea, userAnswers);
+			});
+
+			// Breathe button click
+			$('.diy-questions-container .diy-worksheet .start-breathing').on('click', function(event){ 
+				let $textarea = $(this);
+				checkWorksheetAnswers(event, $textarea, userAnswers);
+			});
+
+			function checkWorksheetAnswers( event, $textarea, userAnswers ){
+				let qid = $textarea.attr('data-question'),
+					$tempAnswers = $textarea.parents('.diy-questions-container').find('textarea[name="temp_worksheet"]');
+					$worksheetButton = $textarea.parents('.question').find('.action-button[data-question="'+qid+'"]');
+
+				$('.diy-questions-container .diy-worksheet .worksheet-item textarea').each(function(e){
+					let questionAnswer = $.trim($(this).val()),
+						thisQid = $(this).attr('data-question');
+					if( questionAnswer !== ''){
+						userAnswers['question_'+thisQid] = questionAnswer;
+					}
+				});
+
+				let userAnswersJson = JSON.stringify( userAnswers );
+				if( Object.keys(userAnswers).length > 0 && $tempAnswers.val() != userAnswersJson ){
+					$tempAnswers.val( userAnswersJson );
+					mhaDiyNextQuestion(event, $worksheetButton );
+				}
+			}
 
 			// Crowdsource Display on Activity Page
 			$('.crowdthoughts').on('show.bs.collapse', function () {

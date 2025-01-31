@@ -126,6 +126,13 @@ article {
             @include radius(40px);
             -webkit-appearance: none;
             -moz-appearance: textfield;
+
+            &.small {
+                height: 70px;
+            }
+            &.medium {
+                height: 130px;
+            }
         }
 
         .instruction {
@@ -218,6 +225,13 @@ article {
                     border: 1px solid $green;
                 }
 
+            }
+
+            .ginput_container_image_choice {
+                label {
+                    margin-top: 10px;
+                    height: auto;
+                }
             }
             
             &.gfield_error {
