@@ -104,7 +104,7 @@ function create_partner_role() {
         // Custom post type "partner" capabilities
         'edit_partners' => true, // Allow editing their own Partner posts
         'delete_partners' => true, // Allow deleting their own Partner posts
-        'read_partners' => true, // Allow reading Partner posts
+        'read_partners' => false, // Allow reading Partner posts
     ];
 
     foreach ($capabilities as $cap => $grant) {
