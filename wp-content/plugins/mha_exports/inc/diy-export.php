@@ -184,7 +184,7 @@ function mha_export_diy_tool_data(){
         $response_total_likes = 0;
         $response_total_flags = 0;
         foreach($activity_response as $ar){     
-            if($ar['question_type'] == 'html' || $ar['question_type'] == 'breathe'){
+            if(isset($ar['question_type']) && $ar['question_type'] == 'html' || isset($ar['question_type']) && $ar['question_type'] == 'breathe'){
                 continue;
             }  
             $total_likes = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_likes WHERE pid = '.$response_id.' AND \'row\' = '.$ar['id'].' AND unliked = 0');

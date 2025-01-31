@@ -131,7 +131,7 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label for="diytool_export_start_date">Start Date</label></th>
                     <td>
-                        <input type="date" name="diytool_export_start_date" id="diytool_export_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                        <input type="date" name="diytool_export_start_date" id="diytool_export_start_date" value="<?php echo date('Y-m', strtotime('now - 3 month')).'-01'; ?>" />
                     </td>
                 </tr>
                 <tr>
@@ -154,7 +154,7 @@ function mhathoughtexport(){
                                 'meta_key' => 'ASC',
                                 'title' => 'DESC' 
                             )
-                        );                        
+                        );
                         $diy_tool_items = [];
                         $diy_tool_types = [];
                         $loop = new WP_Query($args);
@@ -174,7 +174,7 @@ function mhathoughtexport(){
                             echo '<h3 style="text-transform: capitalize; margin-bottom: 10px; margin-top: 30px;">'.str_replace('_',' ', $type).'</h3>';
                             foreach($diy_tool_items as $item){
                                 if($item['type'] == $type){
-                                    echo '<p><label><input type="checkbox" name="form_id" class="form-checkboxes" value="'.$item['id'].'"> '.$item['title'].'</label></p>'; 
+                                    echo '<p><label><input type="checkbox" name="form_ids" class="form-checkboxes" value="'.$item['id'].'"> '.$item['title'].'</label></p>'; 
                                 }
                             }
                         }

@@ -57,13 +57,6 @@
         $('#mha-all-screen-exports input[name="all_forms_ids"]').val( all_checked_form_ids.join(','));
     }
 
-    function allFormIdUpdateDiy(){
-        var all_checked_form_ids = $("#mha-diy-tool-export input[name='tool_id']:checked").map(function(){
-            return $(this).val();
-        }).toArray();
-        $('#mha-diy-tool-export input[name="all_forms_ids"]').val( all_checked_form_ids.join(','));
-    }
-
     $(document).on('click', '#submit-aggregate-data-export', function(event){
 
         // Disable default form submit
@@ -267,11 +260,6 @@
     allFormIdUpdate();
     $(document).on('keyup click', '#mha-all-screen-exports input[name="form_ids"]', function(){
         allFormIdUpdate();
-    });
-
-    allFormIdUpdateDiy();
-    $(document).on('keyup click', '#mha-diy-tool-export input[name="tool_id"]', function(){
-        allFormIdUpdateDiy();
     });
 
     /**
@@ -628,7 +616,6 @@
             $('input[name="'+toggler+'"]').prop('checked', false);
         }
         allFormIdUpdate();
-        allFormIdUpdateDiy();
     });
 
 

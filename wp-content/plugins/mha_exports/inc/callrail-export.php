@@ -67,7 +67,7 @@ function mha_export_callrailcta(){
 
     $i = 0;
     $csv_data = [];
-    $per_page = 10;
+    $per_page = 5000;
     $offset = $args['page'] * $per_page;
 
     if( $args['callrailcta_export_start_date'] && !$args['callrailcta_export_end_date'] ){

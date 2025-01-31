@@ -143,4 +143,29 @@
         diyToolExportDataStart();    
     });
     
+    allFormIdUpdateDiy();
+    $(document).on('keyup click', '#mha-diy-tool-export input[name="form_id"]', function(){
+        allFormIdUpdateDiy();
+    });
+
+    function allFormIdUpdateDiy(){
+        var all_checked_form_ids = $("#mha-diy-tool-export input[name='form_id']:checked").map(function(){
+            return $(this).val();
+        }).toArray();
+        $('#mha-diy-tool-export input[name="all_forms_ids"]').val( all_checked_form_ids.join(','));
+    }
+
+    // Select All/None Toggler
+    $('.form-toggler').on('change', function(e){
+        let toggler = $(this).attr('data-toggle'),
+            checked = $(this).prop('checked');
+
+        if( checked ){
+            $('input[name="'+toggler+'"]').prop('checked', true);
+        } else {
+            $('input[name="'+toggler+'"]').prop('checked', false);
+        }
+        allFormIdUpdateDiy();
+    });
+    
 })( jQuery );
