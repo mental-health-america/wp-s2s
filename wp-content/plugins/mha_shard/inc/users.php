@@ -72,3 +72,99 @@ function my_custom_fonts() {
     </style>';
 
 }
+
+/**
+ * Create Partner role
+ */
+function create_partner_role() {
+    // Remove the role first if it already exists (optional, for updating capabilities)
+    if (get_role('partner')) {
+        remove_role('partner');
+    }
+
+    // Create the "Partner" role with no capabilities initially
+    add_role('partner', 'Partner', []);
+
+    // Get the "Partner" role object
+    $partner_role = get_role('partner');
+
+    // Add capabilities for "Partner" role
+    $capabilities = [
+        'read' => true, // Allow user to read content
+        'edit_posts' => true, // Allow user to edit their own posts
+        'edit_others_posts' => false,
+        'delete_posts' => true, // Allow user to delete their own posts
+        'upload_files' => false, // Allow user to upload files
+
+        // Custom post type "cta" capabilities
+        'edit_ctas' => true, // Allow editing their own CTA posts
+        'delete_ctas' => true, // Allow deleting their own CTA posts
+        'read_ctas' => false, // Allow reading CTA posts
+
+        // Custom post type "partner" capabilities
+        'edit_partners' => true, // Allow editing their own Partner posts
+        'delete_partners' => true, // Allow deleting their own Partner posts
+        'read_partners' => true, // Allow reading Partner posts
+    ];
+
+    foreach ($capabilities as $cap => $grant) {
+        $partner_role->add_cap($cap, $grant);
+    }
+
+    // Grant only the capabilities to create and manage their own posts for both post types
+    $partner_role->add_cap('read_others_ctas', false);
+    $partner_role->add_cap('edit_others_ctas', false);
+    $partner_role->add_cap('delete_others_ctas', false);
+    $partner_role->add_cap('read_others_partners', false);
+    $partner_role->add_cap('edit_others_partners', false);
+    $partner_role->add_cap('delete_others_partners', false);
+    $partner_role->add_cap('can_partner', true);
+}
+add_action('init', 'create_partner_role');
+
+// Add support for capabilities in custom post types (if not already configured)
+function add_custom_post_type_capabilities() {
+    $post_types = ['cta', 'partner'];
+
+    foreach ($post_types as $post_type) {
+        $post_type_object = get_post_type_object($post_type);
+        if ($post_type_object) {
+            $post_type_object->capability_type = $post_type;
+            $post_type_object->map_meta_cap = true;
+        }
+    }
+}
+add_action('init', 'add_custom_post_type_capabilities');
+
+function hide_other_post_types_for_partner() {
+    if (current_user_can('partner')) {
+        remove_menu_page('edit.php');
+        remove_menu_page('admin.php?page=acf-options-mha-redirects');
+        remove_menu_page('admin.php?page=acf-options-mha-global-options');
+        $hidden_post_types = ['post', 'page', 'article', 'reading_path', 'thought', 'thought_activity', 'screen', 'diy', 'diy_responses' ];
+        foreach ($hidden_post_types as $post_type) {
+            $menu_slug = 'edit.php?post_type=' . $post_type;
+            remove_menu_page($menu_slug);
+        }
+    }
+}
+add_action('admin_menu', 'hide_other_post_types_for_partner', 99);
+
+
+// Hide ACF option pages from Partners
+function hide_acf_admin_for_partner($show_admin) {
+    if (current_user_can('can_partner')) {
+        return false;
+    }
+    return $show_admin;
+}
+add_filter('acf/settings/show_admin', 'hide_acf_admin_for_partner');
+
+function restrict_cta_posts_to_own_for_partner($query) {
+    if (is_admin() && $query->is_main_query() && $query->get('post_type') === 'cta') {
+        if (current_user_can('partner')) {
+            $query->set('author', get_current_user_id());
+        }
+    }
+}
+add_action('pre_get_posts', 'restrict_cta_posts_to_own_for_partner');
