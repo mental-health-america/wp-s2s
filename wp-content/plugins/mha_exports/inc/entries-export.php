@@ -348,7 +348,7 @@ function mha_export_screen_data(){
                     $vlabel = 'Screen';
                     break;
                 default:
-                    $vlabel = $v['label'];
+                    $vlabel = strip_tags($v['label']);
                     break;
             }
             
@@ -486,7 +486,8 @@ function mha_export_screen_data(){
         $csv_data_ordered = [];
         $header_flip = array_flip($args['csv_headers']);
         foreach($csv_data as $cd){
-            $csv_data_ordered[] = sortArrayByArray($cd, $header_flip);
+            //$csv_data_ordered[] = sortArrayByArray($cd, $header_flip);
+            $csv_data_ordered[] = array_merge(array_flip($args['csv_headers']), $cd);
         }
         
         if($args['debug'] == 1){
