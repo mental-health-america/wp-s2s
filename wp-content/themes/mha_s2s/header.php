@@ -172,8 +172,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 					</div>
 				<?php 
 					endif;
-					//echo ' <span>&nbsp;</span> ';
-					//echo do_shortcode( '[language-switcher]' );
+				?>
+				<?php 
+				/*
+				// Language Toggle
+				<span class="header-language">
+					<?php
+						echo ' <span>&nbsp;</span> ';
+						echo do_shortcode( '[language-switcher]' );
+					?>
+				</span>
+				*/ 
 				?>
 			</span>
 
