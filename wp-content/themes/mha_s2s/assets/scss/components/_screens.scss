@@ -31,6 +31,11 @@ article {
             font-size: inherit;
             max-width: 720px;
         }
+        .text-white {
+            .gfield_label {
+                color: $white;
+            }
+        }
         .gfield_description {
             margin-bottom: .5em;
         }
@@ -391,9 +396,37 @@ article {
                 }
 
             }
+
+
+            &.white {
+
+                .gfield_checkbox,
+                .gfield_radio {            
+                    label {
+                        color: $white;
+
+                        &:before {
+                            border: 2px solid $white;
+                            width: 28px;
+                            height: 28px;
+                        }
+                        &:hover {
+                            &:before {
+                                background: $mint;
+                            }
+                        }
+                    }
+                    input[type="checkbox"]:checked + label:before {
+                        border: 2px solid $mint;
+                        background: $tealDark;
+                    }
+                }
+            }
+
         }
 
         // Normal Input
+        .ginput_container_phone,
         .ginput_container_text {
             input {
                 text-align: left;
@@ -412,6 +445,10 @@ article {
                     max-width:  320px;
                 }
             }
+        }
+        .ginput_container_phone {
+            font-size: 1em;
+            line-height: 1em;
         }
 
         // Selects
@@ -521,7 +558,7 @@ article {
             color: $red;
             border: 1px solid $red;
             padding: 15px 35px;
-            margin: 0 5px 30px 5px;
+            margin: 5px 5px 30px 5px;
             font-size: .9em;
             line-height: 1.5em;
             @include montserrat(600);
@@ -539,10 +576,60 @@ article {
 
 
         }
+
+        // Custom loading
+        form[data-active-form="true"].show-spinner{
+            
+            #field_submit,
+            .gform_footer,
+            .gform_page_footer {
+                position: relative;
+                .button {
+                    background-image: none;
+                }
+                .gform-loader {  width: 20px;
+                    height: 20px;
+                    animation: rotate 2s linear infinite;
+                    border: 3px dotted white;
+                    border-radius: 50%;
+                    display: block;
+                    position: absolute;
+                    right: 10px;
+                    top: 0;
+                    bottom: 0;
+                    margin: auto 0;
+                }
+            }
+
+        }
+    }
+
+    // Color overrides
+    .bubble.teal {
+
+        #field_submit,
+        .gform_footer,
+        .gform_page_footer {
+            .button {
+                &:hover {
+                    background-color: $darkTeal;
+                    background-position: 85% center;
+                }
+            }
+        }
+
     }
 
 }
 
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
 
 // Progress Bar
 ol.screen-progress-bar {    
@@ -750,6 +837,13 @@ ol.full-progress-bar {
         background: $darkTeal;
     }
 
+}
+
+.gfield_validation_message {
+    margin-top: 5px;
+}
+.hide-top-errors_wrapper {
+    .gform_validation_errors { display: none !important; }
 }
 
 form.hide-previous {

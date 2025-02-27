@@ -71,12 +71,21 @@
 		// External links open in a new tab
 		$('#content a').each(function() {
 			var a = new RegExp('/' + window.location.host + '/');
-			if(!a.test(this.href) && !$(this).hasClass('social-share') && !$(this).attr('href').includes('sms') && !$(this).attr('href').includes('tel')){
-				$(this).click(function(event) {
-					event.preventDefault();
-					event.stopPropagation();
-					window.open(this.href, '_blank');
-				});
+			if(
+				!a.test(this.href) && 
+				!$(this).hasClass('social-share')
+			){
+				if(
+					$(this).attr('href') && 
+					!$(this).attr('href').includes('sms') && 
+					!$(this).attr('href').includes('tel')
+				){
+					$(this).click(function(event) {
+						event.preventDefault();
+						event.stopPropagation();
+						window.open(this.href, '_blank');
+					});
+				}
 			}
 		});
 
