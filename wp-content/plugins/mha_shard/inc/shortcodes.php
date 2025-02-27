@@ -297,9 +297,11 @@ function mha_show_tests() {
 			continue;
 		}
 
-		$screen_link_args = array(
-			'ref' => $referrer
-		);
+		$screen_link_args = array();
+		
+		if($referrer){
+			$screen_link_args['ref'] = $referrer;
+		}
 		if($iframe_mode == 'true'){
 			$screen_link_args['iframe'] = 'true';
 		}
