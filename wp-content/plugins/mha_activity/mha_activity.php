@@ -498,68 +498,50 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 	$thought_query_fail = 0;
 
 	$args = array(
-		"post_type" 	 => 'thought',
-		"post_status" 	 => array('publish', 'draft'),
-		"order"			 => 'DESC',
-		"orderby" 		 => 'date',
-		"posts_per_page" => 250,
-		"paged" 		 => $paged,
-		"meta_query"	 => array(
+		"post_type"      => 'thought',
+		"post_status"    => array('publish', 'draft'),
+		"order"          => 'DESC',
+		"orderby"        => 'date',
+		"posts_per_page" => 50,
+		"paged"          => $paged,
+		"fields"         => 'ids',
+		"meta_query"     => array(
 			array(
-				'key'		=> 'activity',
-				'value'		=> $activity_id
+				'key'     => 'activity',
+				'value'   => $activity_id,
+				'compare' => '='
 			)
 		),
-		'fields' => 'ids'		
+		"suppress_filters" => true
 	);
 	
-	// Add to our meta query for subsequent questions
-	if($path != '' && $path > 0){
-		$args['meta_query'] = array( 'relation' => 'AND' );
-		$args['meta_query'] = array(
-			'key'		=> 'responses_1_path', 
-			'value'  	=> intval($path)
-		);
-	}
-
-		
-	// Admin Seeded Thought Overrides
-	if(is_numeric($admin_seed)){
-		// Add the admin connection 
+	// Ensure meta_query is not overwritten but appended
+	if (!empty($path) && $path > 0) {
 		$args['meta_query'][] = array(
-			'key'		=> 'responses_0_admin_pre_seeded_thought',
-			'value'  	=> intval($admin_seed)
+			'key'     => 'responses_1_path',
+			'value'   => intval($path),
+			'compare' => '='
 		);
 	}
 	
-	// User Seeeded Thought Overrides
-	$loop_extra = '';
-	$loop_extra_thought = '';
-	if(is_numeric($user_seed)){
-		// Add the original thought to our list
-		$args_extra = array(
-			"p" 			=> $user_seed,
-			"post_type" 	=> 'thought'
+	// Admin Seeded Thought Overrides
+	if (is_numeric($admin_seed)) {
+		$args['meta_query'][] = array(
+			'key'     => 'responses_0_admin_pre_seeded_thought',
+			'value'   => intval($admin_seed),
+			'compare' => '='
 		);
-		//$loop_extra = new WP_Query($args_extra);
 	}
-	/*
-	if($loop_extra != '' && $loop_extra->have_posts()):		
-		while($loop_extra->have_posts()) : $loop_extra->the_post();
-										
-			// Vars
-			$pid = get_the_ID();				
-			$thoughts = get_field( 'responses', $pid );	
-			
-			if(isset($thoughts[$index]['response']) && $thoughts[$index]['response'] != '' && $thoughts[$index]['hide'] != 1){					
-				thoughtRow($pid, $thoughts, $index);
-				$counter++;
-			}
-
-		endwhile;
-	endif;
-	*/
-
+	
+	// User Seeded Thought Overrides
+	if (is_numeric($user_seed)) {
+		$args_extra = array(
+			"p"         => $user_seed,
+			"post_type" => 'thought'
+		);
+	}
+	
+	// Execute the Query
 	$loop = new WP_Query($args);
 	$max_pages = $loop->max_num_pages;
 		
