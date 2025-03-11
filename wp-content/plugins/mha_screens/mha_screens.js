@@ -236,7 +236,7 @@ jQuery(function ($) {
 
         if (cumulativeValue < selectedMin || !allGroupsValid) {
             $('.gfield.question input[type="radio"]').prop('checked', false);
-            console.log('Unable to match the total value to the selected minimum.');
+            console.error('Unable to match the total value to the selected minimum.');
         } else {
             console.log('All questions have been matched within the selected minimum.');
         }
@@ -259,14 +259,35 @@ jQuery(function ($) {
 		
     });
 
-	// Custom logic autofiller
-	/*
-    $('#admin-screen-tester-custom input[type="radio"]').on('change', function() {
-		let field_groups = $(this).data('values');
+	/**
+	 * Custom Logic Autofiller	  
+	 */
+
+	// Cookie Reader Helper
+	function getCookie(name) {
+		var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+		if (match) return match[2];
+		return null;
+	}
+
+	$(document).ready(function() {
+		// Check for cookie and select that radio
+		let adminAutoFillSelection = getCookie('mha_admin_auto_fill');
+		if(adminAutoFillSelection && $('#'+adminAutoFillSelection).length){
+			$('#'+adminAutoFillSelection).prop('checked',true).click().change();
+		}
+	});
+
+	// Set cookies to persist selection on multiple pages
+	$(document).on('click', '#admin-screen-tester input[type="radio"], #admin-screen-tester-custom input[type="radio"]', function(event) {
+		let field_groups = $(this).data('values'),
+			expirationDate = new Date();
+        expirationDate.setTime(expirationDate.getTime() + (60 * 60 * 1000));
+        document.cookie = 'mha_admin_auto_fill=' + $(this).attr('id') + '; expires=' + expirationDate.toUTCString() + '; path=/; SameSite=Strict';
+
 		$.each(field_groups, function(index, item) {
 			$.each(item.ids, function(i, id) {
 				var inputName = "input_" + id;
-				console.log($('input[name="' + inputName + '"]'));
 				if(item.type == 'input'){
 					$('input[name="' + inputName + '"]').val(item.value);
 				} else {
@@ -275,8 +296,6 @@ jQuery(function ($) {
 			});
 		});		
 	});
-	*/
-
 
 	/**
 	 * Source URL capture
