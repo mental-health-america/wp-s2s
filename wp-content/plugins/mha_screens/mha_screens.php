@@ -9,8 +9,8 @@
  */
 
 // General Vars
-//define( 'MHASCREENS_VERSION', time() ); // 1.4
-define( 'MHASCREENS_VERSION', '1.5' ); // 1.4
+define( 'MHASCREENS_VERSION', time() );
+//define( 'MHASCREENS_VERSION', '1.5' );
 
 // Enqueing Scripts
 add_action('init', 'mhaScreenScripts');
