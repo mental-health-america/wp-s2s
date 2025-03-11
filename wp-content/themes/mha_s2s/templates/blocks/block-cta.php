@@ -14,7 +14,7 @@
     $content = get_field('content', $id);
 
     // Partner CTA Overrides
-    if(get_post_type($id) == 'partner'){
+    if(get_post_type($id) == 'partners'){
         $style = 'bubble';
         $color = 'cerulean';
         $rounded = 'round-tl';
