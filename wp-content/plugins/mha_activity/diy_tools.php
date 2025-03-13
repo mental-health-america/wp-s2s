@@ -411,50 +411,49 @@ function getDiyCrowdsource(){
         }
         
         $crowd_args = array(
-            "post_type"      => 'diy_responses',
-            "order"         => 'DESC',
-            "orderby"       => 'date',
-            "post_status"   => 'publish',
-            "posts_per_page"=> $per_page,
-            "paged"         => $args['page'],
-            "post__not_in"  => $top_flags ?? [],
-            'date_query'    => array(
+            "post_type"     	=> 'diy_responses',
+            "order"             => 'DESC',
+            "orderby"           => 'date',
+            "post_status"       => 'publish',
+            "posts_per_page"    => $per_page,
+            "paged"             => $args['page'],
+            "post__not_in"      => $top_flags,
+            'date_query' => array(
                 array(
                     'after'     => $date_old,
                     'inclusive' => true
                 ),
             ),
-            "meta_query"    => array(
+            "meta_query"		=> array(
                 'relation' => 'AND',
                 array(
                     'key'       => 'activity_id',
-                    'value'     => $args['activity_id'],
-                    'compare'   => '='
-                ),
+                    'value'     => '"'.$args['activity_id'].'"',
+                    'compare'   => 'LIKE'
+                ),                
                 array(
                     'relation' => 'OR',
                     array(
-                        'key'     => 'crowdsource_hidden',
-                        'value'   => '1',
+                        'key' => 'crowdsource_hidden',
+                        'value' => '1',
                         'compare' => '!='
                     ),
                     array(
-                        'key'     => 'crowdsource_hidden',
+                        'key' => 'crowdsource_hidden',
+                        'value' => '1',
                         'compare' => 'NOT EXISTS'
-                    )
+                        )
                 )
             ),
-            "fields" => 'ids',
-            "suppress_filters" => true
+            "fields" => 'ids'
         );
         
-        // Prevent overwriting post__not_in
-        if (!empty($args['current'])) {
-            $crowd_args["post__not_in"] = array_merge($crowd_args["post__not_in"], array($args['current']));
+        if($args['current']){
+            $crowd_args["post__not_in"] = array( $args['current'] );
         }
-        
+
         // Get the answers for this question
-        $crowd_loop = new WP_Query($crowd_args);
+        $crowd_loop = new WP_Query($crowd_args); 
         $args['total_pages'] = $crowd_loop->max_num_pages; 
         
         $result['toplikes_counter'] = $toplikes_counter;
