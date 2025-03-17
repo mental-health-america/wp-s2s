@@ -33,12 +33,14 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
     $your_answers_temp = [];
 
     // Get entry object
-    $search_entries = GFAPI::get_entry( $user_screen_id );
+    $data = GFAPI::get_entry( $user_screen_id );
 
-    if($search_entries){
+    // Potential additional entry object
+    $token = null;
+    $additional_entry_id = null;
 
-        // Got a good response, proceed!
-        $data = $search_entries;
+    // Got a good response, proceed!
+    if($data){
         
         // Text
         $label = '';
@@ -75,12 +77,10 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
                 $user_screen_results['featured_next_steps_data'] = $v != '' ? $v : null;
             }
 
-            // Get screen token
-            /*                  
+            // Get screen token          
             if (isset($field->label) && strpos($field->label, 'Token') !== false) {     
-                $test_id = $v;
+                $token = $v;
             }
-            */
 
             //Screening Questions
             if (isset($field->cssClass) && strpos($field->cssClass, 'question') !== false) {  
@@ -191,13 +191,39 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
             }
 
             // All answered questions
-            if(trim($search_entries[$k] ?? '') != '' && isset($field->label)){
-                $user_screen_results['answered_demos'][$field->label][] = $search_entries[$k];
+            if(trim($data[$k] ?? '') != '' && isset($field->label)){
+                $user_screen_results['answered_demos'][$field->label][] = $data[$k];
             }
             
             $row++;
             
         }   
+
+        // Get additional entries in case of chained forms
+        if($token){
+            global $wpdb;
+            $token_ref = $token.'_ref';
+            $additional_entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$token_ref' ORDER BY id DESC LIMIT 1"); 
+            $additional_data = GFAPI::get_entry( $additional_entry_id );
+
+            $user_screen_results['additional_data'] = $additional_data; // Debug
+            $user_screen_results['additional_entry_id'] = $additional_entry_id; // Debug
+
+            if($additional_data):
+                foreach($additional_data as $k => $v):
+                    try {
+                        $field = GFFormsModel::get_field( $additional_data['form_id'], $k );
+                        if(trim($additional_data[$k] ?? '') != '' && isset($field->label)){
+                            if(!isset($user_screen_results['answered_demos'][$field->label])){
+                                $user_screen_results['answered_demos'][$field->label][] = $additional_data[$k];
+                            }
+                        }  
+                    } catch (\Throwable $th) {
+                        //throw $th;
+                    }
+                endforeach;
+            endif;
+        }
 
         // Your Answers HTML
         $merged_answers = mergeDuplicates($your_answers_temp);

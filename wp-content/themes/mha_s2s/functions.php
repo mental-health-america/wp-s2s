@@ -452,6 +452,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'fb_id'; // Used for Facebook SSO
     $qvars[] = 'sso'; // Used for successful SSO logins
     $qvars[] = 'state'; // Used for SSO logins; passed from Google to contain additional data
+    $qvars[] = 'form'; // Used for optional questions page to get the previous form ID
 
 	// Resource filters
 	$qvars[] = 'treatment';
