@@ -741,7 +741,8 @@ function display_featured_next_steps( $args ){
         'heading' => '',
         'hide_group_titles' => 0,
         'link_groups' => array(),
-        'additional_result_text' => []
+        'additional_result_text' => [],
+        'show_title' => true
     );   
     $args = wp_parse_args( $args, $defaults );
 
@@ -760,7 +761,9 @@ function display_featured_next_steps( $args ){
         $max_links = $total_result_groups > 1 ? 2 : 4;
 
         $return_html .= '<div class="featured-next-steps-test-container mt-5 mb-5">';
-        $return_html .= '<h2 class="section-title dark-blue bold mb-3">'.$args['heading'].'</h2>';
+        if($args['show_title']):
+            $return_html .= '<h2 class="section-title dark-blue bold mb-3">'.$args['heading'].'</h2>';
+        endif;
         $count = 1;
         foreach($link_groups as $k => $v){
             $i = 1;
