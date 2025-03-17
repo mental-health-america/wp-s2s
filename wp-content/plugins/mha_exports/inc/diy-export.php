@@ -94,7 +94,7 @@ function mha_export_diy_tool_data(){
     // Begin query
     $diy_res_args = array(
         "post_type" => 'diy_responses',
-        "post_status" => array('draft','publish'),
+        "post_status" => array('draft','publish','private'),
         "posts_per_page" => 100,
         "order" => 'ASC',
         "orderby" => 'date',

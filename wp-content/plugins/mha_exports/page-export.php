@@ -148,11 +148,10 @@ function mhathoughtexport(){
                         <?php 
                         $args = array(
                             "post_type" => 'diy',
-                            "post_status" => 'publish',
+                            "post_status" => array('draft','publish','private'),
                             "posts_per_page" => 500,
                             'orderby' => array( 
-                                'meta_key' => 'ASC',
-                                'title' => 'DESC' 
+                                'title' => 'ASC' 
                             )
                         );
                         $diy_tool_items = [];
@@ -163,7 +162,8 @@ function mhathoughtexport(){
                                 $diy_tool_items[] = [
                                     'type' => get_field('tool_type'),
                                     'title' => get_the_title(),
-                                    'id' => get_the_ID()
+                                    'id' => get_the_ID(),
+                                    'status' => get_post_status()
                                 ];
                                 $diy_tool_types[] = get_field('tool_type'); 
                             endwhile;
@@ -174,7 +174,8 @@ function mhathoughtexport(){
                             echo '<h3 style="text-transform: capitalize; margin-bottom: 10px; margin-top: 30px;">'.str_replace('_',' ', $type).'</h3>';
                             foreach($diy_tool_items as $item){
                                 if($item['type'] == $type){
-                                    echo '<p><label><input type="checkbox" name="form_ids" class="form-checkboxes" value="'.$item['id'].'"> '.$item['title'].'</label></p>'; 
+                                    $post_state = $item['status'] != 'publish' ? '<strong class="post-state"> &ndash; '.strtoupper($item['status']).'</strong>' : '';
+                                    echo '<p><label><input type="checkbox" name="form_ids" class="form-checkboxes" value="'.$item['id'].'"> '.$item['title'].''.$post_state.'</label></p>'; 
                                 }
                             }
                         }
