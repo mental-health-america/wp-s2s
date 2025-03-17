@@ -103,7 +103,8 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 			"gender" => $gender, // Optional
 			"transgender" => $transgender, // Optional
 			"sendwelcomesms" => "1", // Optional, defaults to "1"
-			"offhours" => $offhours // Optional, defaults to "false"
+			"offhours" => $offhours, // Optional, defaults to "false"
+			"userscore" => $user_screen_result['total_score'] // Optional
 		];
 
         GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $payload => ' . print_r($digital_pathways_payload, true) );
