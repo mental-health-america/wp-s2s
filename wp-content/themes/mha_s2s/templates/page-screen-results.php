@@ -233,7 +233,7 @@ else:
      * Partner CTA Override
      */
     $partner_cta_args = array(
-        'post_type' => 'partner', 
+        'post_type' => 'partners', 
         'post_status' => 'publish',
         'posts_per_page' => 100,
     );
@@ -256,6 +256,19 @@ else:
         $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas);
     }
     wp_reset_query();
+
+    // Update CTAs on screening result
+    if($update_cta_flag){
+        $update_featured_data = mha_update_featured_data(
+            array(
+                'entry_id'              => $entry_id,
+                'user_screen_result'    => $user_screen_result,
+                'updates' => [ 
+                    'ctas' => $unique_result_cta 
+                ]
+            )
+        );
+    }
     ?>
 	
 	<script>
@@ -478,31 +491,68 @@ else:
                 ) );  
 
             }   
-            
-            /**
-             * Featured Next Steps Test Setup
-             */
-            $displayed_featured_links = false;
-            if($user_screen_result['featured_next_steps_data'] && !in_array('related_v1', $layout)):
-
-                // Display the featured links
-                $featured_next_steps_data = json_decode($user_screen_result['featured_next_steps_data']);
-                echo display_featured_next_steps( $featured_next_steps_data );
-                
-                // Update excluded links
-                $used_links = $featured_next_steps_data->used_links;
-                if($used_links && count($used_links)){
-                    foreach($used_links as $ul){
-                        $excluded_ids[] = $ul;
-                    }
-                    // Flag that we've already shown featured links
-                    $displayed_featured_links = true;
-                }
-
-            endif;                
         ?>
     </article>
     </div>
+
+
+    <?php 
+    /**
+     * Partner CTA Display
+     */
+    if( !empty($partner_ctas) ):
+    
+        if( have_rows('featured_next_steps_test', $user_screen_result['screen_id']) ):
+        while( have_rows('featured_next_steps_test', $user_screen_result['screen_id']) ) : the_row();  
+            echo '<div class="wrap narrow mt-5">';  
+            echo '<h2 class="section-title dark-blue bold mb-0">'.get_sub_field('next_steps_heading').'</h2>';
+            echo '</div>';
+        endwhile;
+        endif;
+        ?>
+        <div class="wrap normal">
+            <div id="cta-col" class="cta-cols total-<?php echo count($unique_result_cta); ?>">
+                <?php     
+                    global $post;
+                    foreach($unique_result_cta as $cta){
+                        $post = get_post($cta); 
+                        get_template_part( 'templates/blocks/block', 'cta' );
+                    } 
+                    wp_reset_postdata();                
+                ?>
+            </div>
+        </div>
+        <?php 
+    endif;
+    ?>
+        
+
+    <?php
+    /**
+     * Featured Next Steps Test Setup
+     */
+    $displayed_featured_links = false;
+    if($user_screen_result['featured_next_steps_data'] && !in_array('related_v1', $layout)):
+        echo '<div class="wrap narrow">';
+        // Display the featured links
+        $featured_next_steps_data = json_decode($user_screen_result['featured_next_steps_data']);
+        if(!empty($partner_ctas)){
+            $featured_next_steps_data->show_title = false;
+        }
+        echo display_featured_next_steps( $featured_next_steps_data );
+        
+        // Update excluded links
+        $used_links = $featured_next_steps_data->used_links;
+        if($used_links && count($used_links)){
+            foreach($used_links as $ul){
+                $excluded_ids[] = $ul;
+            }
+            // Flag that we've already shown featured links
+            $displayed_featured_links = true;
+        }
+        echo '</div>';
+    endif;                
+    ?>
 
     <div class="wrap normal pt-0 pb-3 d-print-none">
 
@@ -518,17 +568,20 @@ else:
                 echo '</div>';
             endif;
         ?>
-
         <?php
             /**
              * A/B Variant
              * Layout: actions_hide_ns_r
              */    
             if(
-                !in_array('actions_hide_ns_r', $layout) && !in_array('actions_hide_nsh', $layout) && !$displayed_featured_links && !$featured_next_steps_data ):
+                !in_array('actions_hide_ns_r', $layout) && 
+                !in_array('actions_hide_nsh', $layout) && 
+                !$displayed_featured_links && 
+                !$featured_next_steps_data &&
+                empty($partner_ctas)
+            ):
         ?>
             <?php if(!in_array('results_header_v1', $layout)): ?><div class="wrap narrow"><?php endif; ?>
-
                 <h2 class="section-title dark-blue bold mb-3 mt-5">
                     <?php if($espanol): ?>
                         Siguientes Pasos
@@ -536,7 +589,6 @@ else:
                         Next Steps
                     <?php endif; ?>
                 </h2>
-
             <?php if(!in_array('results_header_v1', $layout)): ?></div><?php endif; ?>
         <?php endif; ?>
         
@@ -774,7 +826,10 @@ else:
                             <?php
                                 if($related_article_args['style'] == 'featured'){
 
-                                    $related_articles_decoded = json_decode($related_articles);   
+                                    $related_articles_decoded = json_decode($related_articles);  
+                                    if(!empty($partner_ctas)){
+                                        $related_articles->show_title = false;
+                                    } 
                                     echo display_featured_next_steps( $related_articles_decoded );
                                     $used_links = $related_articles_decoded->used_links;
                                     foreach($used_links as $ul){
@@ -840,7 +895,10 @@ else:
              * A/B Variant
              * Layout: actions_hide_ns
              */
-            if(!in_array('actions_hide_ns', $layout)):
+            if(
+                !in_array('actions_hide_ns', $layout) &&
+                empty($partner_ctas)
+            ):
         ?>
         <div id="cta-col" class="cta-cols total-<?php echo count($unique_result_cta); ?>">
             <?php     
@@ -849,23 +907,9 @@ else:
                     $post = get_post($cta); 
                     get_template_part( 'templates/blocks/block', 'cta' );
                 } 
-                wp_reset_postdata();
-                
+                wp_reset_postdata();                
             ?>
         </div>
-        <?php
-            if($update_cta_flag){
-                $update_featured_data = mha_update_featured_data(
-                    array(
-                        'entry_id'              => $entry_id,
-                        'user_screen_result'    => $user_screen_result,
-                        'updates' => [ 
-                            'ctas' => $unique_result_cta 
-                        ]
-                    )
-                );
-            }
-        ?>
         <?php endif; // Hide 'actions_hide_ns' ?>
 
         <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
