@@ -117,6 +117,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				<button id="search-toggle"
 					aria-expanded="false"
 					aria-controls="search-form"
+					role="button"
 					data-href="<?php echo get_search_link(); ?>">
 					<strong class="screen-reader-text">Search</strong>
 					<span class="icon"></span>
@@ -132,6 +133,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				<?php else: ?>						
 					<button id="sign-in-toggle"
 						class="button"
+						role="button"
 						aria-haspopup="true"
 						aria-expanded="false"
 						aria-controls="sign-in-container">			
