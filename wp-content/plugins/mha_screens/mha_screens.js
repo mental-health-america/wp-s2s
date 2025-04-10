@@ -282,7 +282,7 @@ jQuery(function ($) {
 	$(document).on('click', '#admin-screen-tester input[type="radio"], #admin-screen-tester-custom input[type="radio"]', function(event) {
 		let field_groups = $(this).data('values'),
 			expirationDate = new Date();
-        expirationDate.setTime(expirationDate.getTime() + (60 * 60 * 1000));
+		expirationDate.setTime(expirationDate.getTime() + (60 * 1000));
         document.cookie = 'mha_admin_auto_fill=' + $(this).attr('id') + '; expires=' + expirationDate.toUTCString() + '; path=/; SameSite=Strict';
 
 		$.each(field_groups, function(index, item) {
@@ -291,7 +291,7 @@ jQuery(function ($) {
 				if(item.type == 'input'){
 					$('input[name="' + inputName + '"]').val(item.value);
 				} else {
-					$('input[name="' + inputName + '"][value="'+item.value+'"').prop('checked',true);
+					$('input[name="' + inputName + '"][value="'+item.value+'"').click().change();
 				}
 			});
 		});		
