@@ -190,7 +190,7 @@ function custom_dashboard_pending_posts_widget() {
 
     // Query pending posts of type 'partner' and 'cta'
     $args = [
-        'post_type'      => ['partner', 'cta'],
+        'post_type'      => ['partners', 'cta'],
         'post_status'    => 'pending',
         'posts_per_page' => 10, // Adjust as needed
         'orderby'        => 'date',
@@ -212,10 +212,11 @@ function custom_dashboard_pending_posts_widget() {
                     $pending_posts->the_post();
                     $post_id = get_the_ID();
                     $post_type = get_post_type($post_id);
-                    $post_type_label = get_post_type_object($post_type)->labels->singular_name; // Get human-readable name
+                    $post_type_label = get_post_type_object($post_type) ? get_post_type_object($post_type)->labels->singular_name : 'N/A'; // Get human-readable name
                     $author_id = get_the_author_meta('ID');
                     $author_name = get_the_author_meta('display_name', $author_id);
                     ?>
+
                     <li>
                         <strong>
                             <a href="<?php echo get_edit_post_link($post_id); ?>"><?php the_title(); ?></a>
