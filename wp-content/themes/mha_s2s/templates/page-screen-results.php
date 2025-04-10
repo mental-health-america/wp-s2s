@@ -246,14 +246,18 @@ else:
         }
     }
     if(!empty($partner_ctas)){
-        // If have partner CTAs, clean them up and add to the front of our CTA lineup
+        // If we have partner CTAs, clean up any duplicates and shuffle in case of multiple (unlikely)
         array_unique($partner_ctas);
         shuffle($partner_ctas);
+        $update_cta_flag = true;
+
+        // Prepend the CTA with partner CTAs
+        /*
         foreach($partner_ctas as $pcta){
             array_unshift($unique_result_cta, $pcta);
         }
-        $update_cta_flag = true;
         $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas);
+        */
     }
     wp_reset_query();
 
@@ -264,7 +268,8 @@ else:
                 'entry_id'              => $entry_id,
                 'user_screen_result'    => $user_screen_result,
                 'updates' => [ 
-                    'ctas' => $unique_result_cta 
+                    'ctas' => $unique_result_cta,
+                    'partner_cta' => $partner_ctas 
                 ]
             )
         );
@@ -510,11 +515,11 @@ else:
         endwhile;
         endif;
         ?>
-        <div class="wrap normal">
-            <div id="cta-col" class="cta-cols total-<?php echo count($unique_result_cta); ?>">
+        <div class="wrap narrow">
+            <div id="cta-col-lead" class="cta-cols-lead total-<?php echo count($unique_result_cta); ?>">
                 <?php     
                     global $post;
-                    foreach($unique_result_cta as $cta){
+                    foreach($partner_ctas as $cta){
                         $post = get_post($cta); 
                         get_template_part( 'templates/blocks/block', 'cta' );
                     } 
@@ -896,8 +901,7 @@ else:
              * Layout: actions_hide_ns
              */
             if(
-                !in_array('actions_hide_ns', $layout) &&
-                empty($partner_ctas)
+                !in_array('actions_hide_ns', $layout)
             ):
         ?>
         <div id="cta-col" class="cta-cols total-<?php echo count($unique_result_cta); ?>">
