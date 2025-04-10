@@ -161,6 +161,7 @@ wp-content/mysql.sql
 *.bak
 
 # MHA specific overrides
+keys.php
 !/wp-content/plugins/mha_shard
 /wp-content/plugins/mha_shard/keys.php
 /wp-content/plugins/mha_shard/inc/tmp

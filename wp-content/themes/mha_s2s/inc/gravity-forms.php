@@ -6,13 +6,23 @@
  * Sends specific submission data to the Dexterous API
  */
 
+// General Keys
+include_once 'keys.php';
+
 // Get Auth0 Token
 function mha_get_auth0_token() {
-    // Your Auth0 credentials
-    $auth0_domain = "dev-ql7ct0gi.us.auth0.com";
-    $client_id = "yIV9cF2i9EfwhlhtsqLaJR5iQTaUbilz";
-    $client_secret = "zQdBlZC-ZV22VY4v5uzyMr_zo0uy0cGKWcv1sNsH8egb4axrGaaOGDRRep1tJsL-";
-    $audience = "https://dev-ql7ct0gi.us.auth0.com/api/v2/";
+
+    // Your Auth0 credentials - Dev
+    // $auth0_domain = "dev-ql7ct0gi.us.auth0.com";
+    // $client_id = "yIV9cF2i9EfwhlhtsqLaJR5iQTaUbilz";
+    // $client_secret = "zQdBlZC-ZV22VY4v5uzyMr_zo0uy0cGKWcv1sNsH8egb4axrGaaOGDRRep1tJsL-";
+    // $audience = "https://dev-ql7ct0gi.us.auth0.com/api/v2/";
+
+    // Your Auth0 credentials - Production
+    $auth0_domain = "mha-columbia.us.auth0.com";
+    $client_id = AUTH0_CLIENT_ID;
+    $client_secret = AUTH0_CLIENT_SECRET;
+    $audience = "https://mha-columbia.us.auth0.com/api/v2/";
 
     // Auth0 token URL
     $url = "https://$auth0_domain/oauth/token";
@@ -103,7 +113,7 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 			"gender" => $gender, // Optional
 			"transgender" => $transgender, // Optional
 			"sendwelcomesms" => "1", // Optional, defaults to "1"
-			"offhours" => $offhours, // Optional, defaults to "false"
+			// "offhours" => $offhours, // Optional, defaults to "false"
 			"userscore" => $user_screen_result['total_score'] // Optional
 		];
 
@@ -113,8 +123,11 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 		$jwt_token = mha_get_auth0_token();
 
         GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $jwt_token => ' . print_r($jwt_token, true) );
+
+        $api_domain = 'https://api-digitalpathways.letsconnect.solutions/'; // Prod
+        //$api_domain = 'https://maf970u74a.execute-api.us-west-1.amazonaws.com'; // Dev
 		
-		$url = "https://maf970u74a.execute-api.us-west-1.amazonaws.com/api/v1/user";
+		$url = $api_domain."/api/v1/user";
 		$headers = [
 			'Content-Type'  => 'application/json',
 			'Authorization' => 'Bearer ' . $jwt_token
