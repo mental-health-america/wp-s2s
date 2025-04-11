@@ -40,7 +40,7 @@ if ( get_post_status( $path_id ) ):
     <?php endif; ?>
 
         <h3><?php echo get_the_title($path_id); ?></h3>  
-        <ol class="path-list hidden-list" aria-hidden="true">
+        <ol class="path-list hidden-list">
 
             <?php
                 $counter = 0;
@@ -51,7 +51,7 @@ if ( get_post_status( $path_id ) ):
                 if( have_rows('path', $path_id) ):
                 while( have_rows('path', $path_id) ) : the_row();
                     $article = get_sub_field('article');
-                    echo '<li class="path-item wow fadeIn" data-wow-delay="'.($delay).'s">';
+                    echo '<li class="path-item">';
                         echo '<a class="button round-tiny thin '.$button_color.' block" href="'.add_query_arg('pathway', $path_id, get_the_permalink($article)).'">';
                             echo '<span class="table">';
                             echo '<span class="cell">';
