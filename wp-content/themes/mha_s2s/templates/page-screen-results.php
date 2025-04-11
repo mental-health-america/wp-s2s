@@ -235,7 +235,7 @@ else:
     $partner_cta_args = array(
         'post_type' => 'partners', 
         'post_status' => 'publish',
-        'posts_per_page' => 100,
+        'posts_per_page' => -1,
     );
     $partners_cta = get_posts($partner_cta_args);     
     $partner_ctas = array();   

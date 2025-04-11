@@ -222,3 +222,54 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 	</header>
 
 	<main id="content" class="site-content">
+
+		<?php
+			// Partner referrer template mode
+			$ref_var = get_query_var('ref');
+			$display_partner_banner = false;
+			$partner_banner_info = array();
+			if ( $ref_var ):
+				$partner_cta_args = array(
+					'post_type' => 'partners', 
+					'post_status' => 'publish',
+					'posts_per_page' => -1,
+					'fields' => 'ids',
+				);
+				$partners_cta = get_posts($partner_cta_args);   
+				foreach ( $partners_cta as $partner_id ) {
+					$partner_details = get_field('partner_information', $partner_id);		
+					if ( !empty($partner_details['partner_code']) ) {			
+						if ( $ref_var == $partner_details['partner_code'] ) {
+							$partner_banner_info = array(
+								'logo' => $partner_details['partner_logo']['sizes']['medium_large'],
+								'url' => $partner_details['partner_domain']
+							);
+							$display_partner_banner = true;
+							break;
+						}
+					}
+				}
+				if( $display_partner_banner ):
+				?>
+					<header id="partner-banner" class="mb-5 py-4" style="background-color: #e9eef5;">
+					<div class="wrap normal">
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col-6 text-left">
+									<a href="<?php echo $partner_banner_info['url']; ?>" target="_blank">
+										<img src="<?php echo $partner_banner_info['logo']; ?>" alt="" style="width: 150px; height: auto;" />
+									</a>
+								</div>
+								<div class="col-6 text-right">
+									<a href="https://mhanational.org/privacy-policy/" target="_blank" class="button round cerulean">
+										Privacy Policy
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+					</header>
+				<?php 
+				endif;
+			endif; 
+		?>

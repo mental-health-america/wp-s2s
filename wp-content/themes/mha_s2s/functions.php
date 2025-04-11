@@ -89,7 +89,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250227' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250411' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -241,6 +241,28 @@ function wp_body_classes( $classes ) {
 	if(isset($_GET['partner']) && in_array($partner_var, mha_approved_partners() )){
 		$classes[] = 'partner-'.$partner_var;
 	}     
+
+	// Partner referrer template mode
+	$partners_codes = array(); 
+	$ref_var = get_query_var('ref');
+    $partner_cta_args = array(
+        'post_type' => 'partners', 
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+    );
+    $partners_cta = get_posts($partner_cta_args);   
+	foreach( $partners_cta as $partner_id ) {
+		$partner_details = get_field('partner_information', $partner_id);		
+		if( !empty($partner_details['partner_code']) ) {			
+			if( !in_array($partner_details['partner_code'], $partners_codes) ) {
+				$partners_codes[] = $partner_details['partner_code'];
+			}
+		}
+	}
+	if(isset($_GET['ref']) && in_array($_GET['ref'], $partners_codes )){
+		$classes[] = 'iframe-mode partner-banner-display';
+	}     
+
 	
 	// Layout classes
 	if(isset($_GET['layout'])){
