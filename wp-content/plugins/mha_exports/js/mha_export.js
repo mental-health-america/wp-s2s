@@ -42,7 +42,7 @@
                 // Export is done
                 var download_link = res.download;
                 $('#submit-aggregate-data-export').prop('disabled', false).text('Download Aggregate Data');	
-                $('#aggregate-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
+                $('#aggregate-download').slideDown().html('<strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+download_link+'">'+download_link+'</a>');
 
             }
 
@@ -143,7 +143,7 @@
                 // Export is done 
                 if(!res.export_single){ 
                     $('#export_screen_link').prop('disabled', false).text('Download');	
-                    $('#screen-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                    $('#screen-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
                 }
                 
                 if(res.all_forms_continue == 1){    
@@ -303,7 +303,7 @@
                 // Export is done
                 var download_link = res.download;
                 $('#submit-nonaggregate-data-export').prop('disabled', false).text('Download Non-Aggregate Data');	
-                $('#nonaggregate-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
+                $('#nonaggregate-download').slideDown().html('<strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+download_link+'">'+download_link+'</a>');
 
             }
 
@@ -404,7 +404,7 @@
                 // Export is done
                 var download_link = res.download;
                 $('#export_user_link').prop('disabled', false).text('Download User Data');	
-                $('#user-exports-download').slideDown().html('<strong>Download:</strong> <a target="_blank" href="'+download_link+'">'+download_link+'</a>');
+                $('#user-exports-download').slideDown().html('<strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+download_link+'">'+download_link+'</a>');
 
             }
 
@@ -496,7 +496,7 @@
                 // Export is done 
                 if(!res.export_single){ 
                     $('#export_feedback_link').prop('disabled', false).text('Download');	
-                    $('#feedback-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                    $('#feedback-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
                 }
                 
                 if(res.all_forms_continue == 1){    

@@ -42,7 +42,7 @@
                 // Export is done 
                 if(!res.export_single){ 
                     $('#export_ctdacodes_link').prop('disabled', false).text('Download');	
-                    $('#ctaCodes-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                    $('#ctaCodes-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
                 }
                 
                 if(res.all_forms_continue == 1){    

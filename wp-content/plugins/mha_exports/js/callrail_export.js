@@ -43,7 +43,7 @@
                 $('#callrailcta-exports-progress .bar').css('width', '100%');
                 $('#callrailcta-exports-progress .bar').css('background-color', '#f89941').removeClass('loading');
                 $('#export_callrailcta_link').prop('disabled', false).text('Download');	
-                $('#callrailcta-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                $('#callrailcta-exports-download').slideDown().append('<li><strong>Download:</strong> <a download="'+res.filename+'" target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
                 
             }
 
@@ -85,7 +85,7 @@
                             $('#callrailcta-exports-progress .bar').css('width', '100%');
                             $('#callrailcta-exports-progress .bar').css('background-color', '#f89941').removeClass('loading');
                             $('#export_callrailcta_link').prop('disabled', false).text('Download');	
-                            $('#callrailcta-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                            $('#callrailcta-exports-download').slideDown().append('<li><strong>Download:</strong> <a download="'+res.filename+'" target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
                         }
                     }
                 } else {                
