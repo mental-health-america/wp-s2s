@@ -361,7 +361,11 @@
 		// Open links out of iframes
 		$('.iframe-mode #page a').each(function(){
 			$parent = $(this).parent();
-			if(!$parent.hasClass('screen-item') && $(this).attr('id') != 'screen-take'){
+			if(
+				!$parent.hasClass('screen-item') && 
+				$(this).attr('id') != 'screen-take' &&
+				!$('body').hasClass('partner-banner-display') 
+			){
 				$(this).attr('target', '_blank');
 			}
 		});

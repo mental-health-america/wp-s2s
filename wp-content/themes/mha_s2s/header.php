@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="<?php bloginfo( 'charset' ); ?>">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">	
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="profile" href="http://gmpg.org/xfn/11">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
@@ -34,11 +34,11 @@
 	// Screens
 	if($post_type == 'screen'):
 		if(get_field('survey')):
-		?>		
+		?>
 			window.dataLayer.push({
 				'event': 'screen_survey'
 			});
-		<?php else: ?>		
+		<?php else: ?>
 			window.dataLayer.push({
 				'event': 'screen_test'
 			});
@@ -48,7 +48,7 @@
 
 	// DIY Tools
 	if($post_type == 'diy'):
-	?>		
+	?>
 		window.dataLayer.push({
 			'event': 'diy_view',
 			'diy_title': '<?php echo get_the_title(); ?>'
@@ -58,7 +58,7 @@
 
 	// Iframe Embed Pages
 	if(basename(get_page_template()) == 'page-iframe.php'):
-	?>		
+	?>
 		window.dataLayer.push({
 			'event': 'ai_view',
 			'page_title': '<?php echo get_the_title(); ?>'
@@ -66,8 +66,8 @@
 	<?php
 	endif;
 	?>
-	
-	<?php if(basename(get_page_template()) == 'page-screen-results.php'): ?>		
+
+	<?php if(basename(get_page_template()) == 'page-screen-results.php'): ?>
 		window.dataLayer.push({
 			'sid': '<?php echo get_query_var('sid'); ?>',
 			'event': 'completed_screen',
@@ -88,7 +88,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <link rel="preconnect" href="https://fonts.gstatic.com">
 <link rel="dns-prefetch" href="//fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"> 
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
 <?php wp_head(); ?>
 </head>
@@ -109,10 +109,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 		<a id="logo" href="/"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/mha-logo.png" alt="<?php bloginfo( 'name' ); ?>" /></a>
 
-		<div id="utility-menu" class="utility-menu relative">	
+		<div id="utility-menu" class="utility-menu relative">
 
 			<span id="utility-donate" class="button"><a target="_blank" class="donate red round thin" href="<?php echo get_field('mobile_donate_button','options'); ?>">Donate</a></span>
-			
+
 			<div id="search-header">
 				<button id="search-toggle"
 					aria-expanded="false"
@@ -124,36 +124,36 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				</button>
 				<?php get_search_form(); ?>
 			</div>
-			
-			<span id="sign-in-container">	
-				<?php if(is_user_logged_in()): ?>						
+
+			<span id="sign-in-container">
+				<?php if(is_user_logged_in()): ?>
 					<a class="my-account-link button" href="/my-account?cb=<?php echo date('U'); ?>">My Account</a>
 					&nbsp;|
 					<a class="my-account-link button" href="<?php echo wp_logout_url(); ?>">Log Out</a>
-				<?php else: ?>						
+				<?php else: ?>
 					<button id="sign-in-toggle"
 						class="button"
 						role="button"
 						aria-haspopup="true"
 						aria-expanded="false"
-						aria-controls="sign-in-container">			
+						aria-controls="sign-in-container">
 						<strong>Log In</strong>
 					</button>
 					<div id="sign-in-hover" aria-controls="sign-in-toggle" aria-label="Toggle Sign In Form">
 						<div class="bubble round-tr bubble-border narrow dark light-blue">
 						<div class="inner clearfix">
-							<div class="sign-up-form form-container line-form blue text-left wide">	
+							<div class="sign-up-form form-container line-form blue text-left wide">
 								<div class="intro text-blue">
 									<?php the_field('log_in_introduction', 'options'); ?>
 								</div>
 								<?php
-									$args = array( 
+									$args = array(
 										'label_username' => 'Email Address',
 										'remember' => true,
 										'echo' => false,
 										'form_id' => 'loginform-header',
 									);
-									$login_form = wp_login_form($args); 
+									$login_form = wp_login_form($args);
 									$login_form = str_replace('login-username', 'login-username float-label', $login_form);
 									$login_form = str_replace('login-password', 'login-password float-label', $login_form);
 									echo $login_form;
@@ -161,7 +161,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 								<div class="right existing-account small">
 									<a class="plain" href="<?php echo wp_lostpassword_url(); ?>">Forgot Password</a> |
 									<a class="plain" href="/sign-up">Sign Up</a>
-								</div>	
+								</div>
 							</div>
 							<div class="clear text-center pt-3 center">
 								<hr class="mt-0 mb-3" />
@@ -172,10 +172,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 						</div>
 						</div>
 					</div>
-				<?php 
+				<?php
 					endif;
 				?>
-				<?php 
+				<?php
 				/*
 				// Language Toggle
 				<span class="header-language">
@@ -184,7 +184,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 						echo do_shortcode( '[language-switcher]' );
 					?>
 				</span>
-				*/ 
+				*/
 				?>
 			</span>
 
@@ -197,28 +197,81 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				<span></span>
 				<strong class="text">Menu</strong>
 			</button>
-			
+
 		</div>
-		
+
 		<nav id="navigation" class="main-navigation" role="navigation" aria-label="<?php _e( 'Top Menu', 'mha_s2s' ); ?>">
-			<?php 
+			<?php
 				// Main Navigation
 				wp_nav_menu([
 					'theme_location' => 'main',
 					'menu_id'        => 'main-menu',
 					'menu_class'     => 'sf-menu'
 				]);
-				
+
 				// CTA Buttons
 				wp_nav_menu([
 					'theme_location' => 'secondary',
 					'menu_id'        => 'main-menu-buttons',
 					'menu_class'     => 'secondary-menu',
 				]);
-			?>			
+			?>
 		</nav>
-	
+
 	</div>
 	</header>
 
 	<main id="content" class="site-content">
+
+		<?php
+			// Partner referrer template mode
+			$ref_var = get_query_var('ref');
+			$display_partner_banner = false;
+			$partner_banner_info = array();
+			if ( $ref_var ):
+				$partner_cta_args = array(
+					'post_type' => 'partners',
+					'post_status' => 'publish',
+					'posts_per_page' => -1,
+					'fields' => 'ids',
+				);
+				$partners_cta = get_posts($partner_cta_args);
+				foreach ( $partners_cta as $partner_id ) {
+					$partner_details = get_field('partner_information', $partner_id);
+					if ( !empty($partner_details['partner_code']) ) {
+						if ( $ref_var == $partner_details['partner_code'] ) {
+							$partner_banner_info = array(
+								'logo' => $partner_details['partner_logo']['sizes']['medium_large'],
+								'url' => $partner_details['partner_domain']
+							);
+							$display_partner_banner = true;
+							break;
+						}
+					}
+				}
+				if ( $display_partner_banner ):
+					// $partner_logo_link_url = $partner_banner_info['url'];
+					$partner_logo_link_url = add_query_arg( 'ref', $ref_var, site_url('/screening-tools/') );
+				?>
+					<header id="partner-banner" class="mb-5 py-4" style="background-color: #e9eef5;">
+					<div class="wrap normal">
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col-6 text-left">
+									<a href="<?php echo $partner_logo_link_url; ?>">
+										<img src="<?php echo $partner_banner_info['logo']; ?>" alt="" style="width: 150px; height: auto;" />
+									</a>
+								</div>
+								<div class="col-6 text-right">
+									<a href="https://mhanational.org/privacy-policy/" class="button round cerulean">
+										Privacy Policy
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+					</header>
+				<?php
+				endif;
+			endif;
+		?>

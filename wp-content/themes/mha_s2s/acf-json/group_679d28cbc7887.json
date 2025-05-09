@@ -17,7 +17,7 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
-            "layout": "block",
+            "layout": "row",
             "acfe_seamless_style": 0,
             "acfe_group_modal": 0,
             "sub_fields": [
@@ -28,7 +28,7 @@
                     "aria-label": "",
                     "type": "text",
                     "instructions": "This short string will be used to associate this partner when used in the \"ref\" field the URL. For example, the partner \"Test\" could be \"test\", and look like this: https:\/\/screening.mhanational.org\/?ref=test",
-                    "required": 0,
+                    "required": 1,
                     "conditional_logic": 0,
                     "wrapper": {
                         "width": "",
@@ -90,6 +90,26 @@
                     "default_value": "",
                     "allow_in_bindings": 0,
                     "placeholder": ""
+                },
+                {
+                    "key": "field_67f9833d7f254",
+                    "label": "Start Date",
+                    "name": "start_date",
+                    "aria-label": "",
+                    "type": "date_picker",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "display_format": "d\/m\/Y",
+                    "return_format": "d\/m\/Y",
+                    "first_day": 1,
+                    "allow_in_bindings": 0
                 }
             ],
             "acfe_group_modal_close": 0,
@@ -114,6 +134,9 @@
             "layout": "row",
             "acfe_seamless_style": 0,
             "acfe_group_modal": 0,
+            "acfe_group_modal_close": 0,
+            "acfe_group_modal_button": "",
+            "acfe_group_modal_size": "large",
             "sub_fields": [
                 {
                     "key": "field_67a62da77ad40",
@@ -144,7 +167,7 @@
                     "aria-label": "",
                     "type": "wysiwyg",
                     "instructions": "",
-                    "required": 0,
+                    "required": 1,
                     "conditional_logic": 0,
                     "wrapper": {
                         "width": "",
@@ -159,10 +182,7 @@
                     "media_upload": 1,
                     "delay": 0
                 }
-            ],
-            "acfe_group_modal_close": 0,
-            "acfe_group_modal_button": "",
-            "acfe_group_modal_size": "large"
+            ]
         }
     ],
     "location": [
@@ -170,7 +190,7 @@
             {
                 "param": "post_type",
                 "operator": "==",
-                "value": "partner"
+                "value": "partners"
             }
         ]
     ],
@@ -190,5 +210,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1738944227
+    "modified": 1744405363
 }

@@ -41,6 +41,7 @@ else:
     $espanol = get_field('espanol', $user_screen_result['screen_id']); // Spanish page
     $partner_var = get_query_var('partner'); // Partner layout overrides
     $iframe_var = get_query_var('iframe'); // Template flags when site is viewed in an iframe
+    $current_date = date('Ymd'); 
     $max_ctas = 2; // Limit CTAs to 2 max
 
     // Global Default Options
@@ -240,9 +241,12 @@ else:
     $partners_cta = get_posts($partner_cta_args);     
     $partner_ctas = array();   
     foreach ($partners_cta as $partner) {
-        $partner_details = get_field('partner_information', $partner->ID);
-        if($partner_details['partner_code'] == $user_screen_result['referer']){ 
-            array_push($partner_ctas, $partner->ID);
+        $partner_information = get_field('partner_information', $partner->ID);
+        if($partner_information['partner_code'] == $user_screen_result['referer']){ 
+            $partner_expiration_date = $partner_information['end_date_featured_content'] ?? ''; // Check if expiration is valid
+            if (empty($partner_expiration_date) || $partner_expiration_date > $current_date) {
+                array_push($partner_ctas, $partner->ID);
+            }
         }
     }
     if(!empty($partner_ctas)){
