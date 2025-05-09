@@ -171,6 +171,7 @@ keys.php
 !/wp-content/plugins/mha_imports
 !/wp-content/plugins/mha_cleanup
 !/wp-content/plugins/mha_sso
+!/wp-content/plugins/mha_iframe_control
 /wp-content/plugins/mha_sso/keys.php
 /wp-content/plugins/mha_sso/vendor
 /wp-content/plugins/mha_imports/vendor
