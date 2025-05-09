@@ -400,6 +400,41 @@ input[type="button"] {
         }
     }
 
+    &.dark-teal {
+        color: $white;
+        background: $darkTeal;
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
+        .site-content &.button:hover,
+        &.button:hover,
+        &.active,
+        &:focus,
+        &:hover {
+            color: $white;
+            background-color: $blueDark;
+        }
+    }
+
+
+    &.cerulean {
+        color: $white;
+        background: $cerulean;
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
+        .site-content &.button:hover,
+        &.button:hover,
+        &.active,
+        &:focus,
+        &:hover {
+            color: $white;
+            background-color: $blueDark;
+        }
+    }
+
     &.purple {
         color: $white;
         background: $purple;
