@@ -453,7 +453,8 @@
 		 */
 		if($('.auto-submit').length){
 			$('.auto-submit input[type=radio]').on('change', function() {
-				$(this).closest("form").trigger('submit');
+				let formSubmitId = $(this).closest("form").find('.gform_button').attr('id');
+				gform.submission.handleButtonClick( document.getElementById( formSubmitId ) );
 			});
 		}
 
