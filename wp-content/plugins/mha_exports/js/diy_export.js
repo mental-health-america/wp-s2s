@@ -43,7 +43,7 @@
                 // Export is done 
                 if(!res.export_single){ 
                     $('#export_diy_link').prop('disabled', false).text('Download');	
-                    $('#diyTool-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                    $('#diyTool-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
                 }
                 
                 if(res.all_forms_continue == 1){    
@@ -141,6 +141,31 @@
     $(document).on("submit", '#mha-diy-tool-export', function(event){
         event.preventDefault();
         diyToolExportDataStart();    
+    });
+    
+    allFormIdUpdateDiy();
+    $(document).on('keyup click', '#mha-diy-tool-export input[name="form_id"]', function(){
+        allFormIdUpdateDiy();
+    });
+
+    function allFormIdUpdateDiy(){
+        var all_checked_form_ids = $("#mha-diy-tool-export input[name='form_id']:checked").map(function(){
+            return $(this).val();
+        }).toArray();
+        $('#mha-diy-tool-export input[name="all_forms_ids"]').val( all_checked_form_ids.join(','));
+    }
+
+    // Select All/None Toggler
+    $('.form-toggler').on('change', function(e){
+        let toggler = $(this).attr('data-toggle'),
+            checked = $(this).prop('checked');
+
+        if( checked ){
+            $('input[name="'+toggler+'"]').prop('checked', true);
+        } else {
+            $('input[name="'+toggler+'"]').prop('checked', false);
+        }
+        allFormIdUpdateDiy();
     });
     
 })( jQuery );

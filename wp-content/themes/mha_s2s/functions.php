@@ -89,7 +89,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20241204' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250227' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
 	
 	// Add print CSS.
@@ -120,7 +120,7 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20241204', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20250227', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
@@ -452,6 +452,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'fb_id'; // Used for Facebook SSO
     $qvars[] = 'sso'; // Used for successful SSO logins
     $qvars[] = 'state'; // Used for SSO logins; passed from Google to contain additional data
+    $qvars[] = 'form'; // Used for optional questions page to get the previous form ID
 
 	// Resource filters
 	$qvars[] = 'treatment';
@@ -1266,8 +1267,6 @@ function disable_gf_fieldnames_query( $disable_query ){
 	return true;
 }
 
-// FacetWP Options
-include_once('inc/functions_facetwp.php');
 
 
 /**
@@ -1285,3 +1284,6 @@ function set_admin_cookie_expiration($expiration, $user_id, $remember) {
     return $expiration;
 }
 add_filter('auth_cookie_expiration', 'set_admin_cookie_expiration', 10, 3);
+
+include_once('inc/functions_facetwp.php'); // FacetWP options
+include_once('inc/gravity-forms.php'); // Gravity Forms overrides

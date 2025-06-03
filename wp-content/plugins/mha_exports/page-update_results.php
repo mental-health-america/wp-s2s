@@ -6,9 +6,9 @@
 add_action('init', 'mhaUpdateResultsScripts');
 function mhaUpdateResultsScripts() {
     if(current_user_can('edit_posts')){
-        wp_enqueue_script( 'process_mhaUpdateResults', plugin_dir_url(__FILE__) . 'mha_update.js', array('jquery'), time(), true );
+        wp_enqueue_script( 'process_mhaUpdateResults', plugin_dir_url(__FILE__) . 'js/mha_update.js', array('jquery'), time(), true );
         wp_enqueue_style( 'process_mhaacfeui', '/wp-content/plugins/acf-extended/assets/css/acfe-ui.min.css', array(), time() );
-        wp_enqueue_style( 'process_mhaUpdateResults', plugin_dir_url(__FILE__) . 'mha_export.css', array(), time() );
+        wp_enqueue_style( 'process_mhaUpdateResults', plugin_dir_url(__FILE__) . 'css/mha_export.css', array(), time() );
         wp_localize_script('process_mhaUpdateResults', 'do_mhaUpdateScreenResults', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
     }
 }
@@ -20,7 +20,7 @@ function mhaUpdateResults(){
 <div id="poststuff" class="wrap">
 
     <h1>Update User Results</h1>
-    <p>This tool will scan screens from the last 3 months and look for entires where the final result is blank.</p>
+    <p>This tool will scan screens from the last 3 months and look for entries where the final result is blank.</p>
 
     <form id="mha-update-user-results" action="#" method="POST">
         <div class="acf-columns-2">

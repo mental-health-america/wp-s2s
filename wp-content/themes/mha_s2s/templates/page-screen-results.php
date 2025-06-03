@@ -4,7 +4,7 @@ get_header();
 global $wpdb;
 
 // The user's obfuscated custom ID
-$user_screen_id = get_query_var('sid');
+$user_screen_id = str_replace('_ref', '', get_query_var('sid')); // Remove _ref in case of chained forms
 
 // Get the gravity forms entry ID for easier lookups
 $entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
@@ -12,7 +12,7 @@ $entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_val
 if ( is_wp_error( $entry_id ) || !$entry_id ):
 
     // Entry doesn't exist, display an error
-    echo '<div class="wrap narrow mb-5"><div id="message" class="error text-center"><p>This screen result does not exists.</p></div></div>';
+    echo '<div class="wrap narrow mb-5"><div id="message" class="error text-center"><p>This screen result does not exist.</p></div></div>';
 
 else:
 
@@ -41,6 +41,8 @@ else:
     $espanol = get_field('espanol', $user_screen_result['screen_id']); // Spanish page
     $partner_var = get_query_var('partner'); // Partner layout overrides
     $iframe_var = get_query_var('iframe'); // Template flags when site is viewed in an iframe
+    $current_date = date('Ymd'); 
+    $max_ctas = 2; // Limit CTAs to 2 max
 
     // Global Default Options
     $global_hide_articles = get_field('global_hide_articles', 'options');
@@ -84,6 +86,197 @@ else:
     }
     if($iframe_var){                                         
         $take_another_url = add_query_arg( 'iframe','true', $take_another_url );
+    }
+
+    /**
+    * Demographic Based Next Steps Data
+    */
+
+    // Screen specific demo steps/CTAs
+    $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $user_screen_result['answered_demos'] );      
+    foreach($demo_data['excluded_ids'] as $ex){ 
+        $excluded_ids[] = $ex;
+    }
+    foreach($demo_data['demo_steps'] as $e){
+        $demo_steps[] = $e;
+    }
+    foreach($demo_data['ctas'] as $e){
+        $result_cta[] = $e;
+    }
+
+    // Global demo steps/CTAs
+    $demo_data_global = get_mha_demo_steps( 'options', $user_screen_result['answered_demos'] );
+    foreach($demo_data_global['demo_steps'] as $e){
+        $demo_steps[] = $e;
+    }
+    foreach($demo_data_global['ctas'] as $e){
+        $result_cta[] = $e;
+    }
+        
+    /*
+    * Screen Specific CTAs
+    */
+    $screen_specific_cta = get_field('call_to_actions_all_results', $user_screen_result['screen_id']);
+    if($screen_specific_cta){
+        foreach($screen_specific_cta as $cta){
+            $result_cta[] = $cta; // Add to our array for later
+        }
+    }
+    
+    /**
+     * CTA Gathering
+     */
+
+    // Result Based CTAs
+    if($user_screen_result['featured_cta'] && count($user_screen_result['featured_cta']) > 0){
+        foreach($user_screen_result['featured_cta'] as $cta){
+            $result_cta[] = $cta;
+        }
+    }
+    
+    if(!$espanol){
+        // All Screen CTAs
+        if( have_rows('actions_global_screening', 'option') ):
+        while( have_rows('actions_global_screening', 'option') ) : the_row();  
+            $action_option = get_sub_field('action');
+            $result_cta[] = get_sub_field('action');
+        endwhile;
+        endif;
+        wp_reset_postdata();
+        
+        // Global CTAs
+        if( have_rows('actions', 'option') ):
+        while( have_rows('actions', 'option') ) : the_row();  
+            $action_option = get_sub_field('action');
+            $result_cta[] = $action_option;
+        endwhile;
+        endif;
+        wp_reset_postdata();
+    }
+
+    $unique_result_cta = array_unique($result_cta); 
+    shuffle($unique_result_cta); 
+
+    /**
+     * CTA Overrides
+     */
+    
+    /** 
+     * Elevance Overrides 
+     * 2023-12-05 Elevance always first override if present
+     * */
+    //$elevance_ads = array('116318','116319','116320','116321','116322', '142207','157517','157528','157529','157530'); // Staging/Dev
+    //$elevance_ads = array('142207','157517','157528','157529','157530'); // Production (All August)
+    $elevance_ads = array('157530'); // Production (Winner - August 2024)
+    shuffle($elevance_ads);
+    
+    // If elevance ads, put the first at the beginning of the CTAs
+    $unique_result_cta_minus_elevance = array_diff($unique_result_cta, $elevance_ads); // Get non-matching elevance CTAs
+    $unique_result_with_elevance = array_intersect($unique_result_cta, $elevance_ads); // Get matching elevance CTAs
+    if ( count($unique_result_with_elevance) > 0 ) {
+        array_unshift($unique_result_cta_minus_elevance, $elevance_ads[0]);
+        $unique_result_cta = $unique_result_cta_minus_elevance;
+    }
+    
+    /**
+     * Final CTA cleanup
+     */
+    if( count($unique_result_cta) > $max_ctas ){                   
+        // Return only unique CTAs cut down to the max 
+        $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas); 
+    }
+
+    /**
+     * Featured Next Step Override
+     */
+    $update_cta_flag = true;
+    if( isset($featured_next_steps_data->ctas) && !empty($featured_next_steps_data->ctas) ){
+        $unique_result_cta = $featured_next_steps_data->ctas;
+        $update_cta_flag = false;
+    }
+
+    /**
+     * Veteran CTA Override
+     */
+    if(
+        isset($user_screen_result['answered_demos']['Which of the following populations describes you?']) && 
+        in_array('Veteran or active-duty military', $user_screen_result['answered_demos']['Which of the following populations describes you?'])
+    ){
+        if(
+            !isset($user_screen_result['answered_demos']['Do you live in the United States or another country?']) ||
+            isset($user_screen_result['answered_demos']['Do you live in the United States or another country?']) && 
+            !in_array('I live in another country', $user_screen_result['answered_demos']['Do you live in the United States or another country?'])
+        ){
+
+            // Single override
+            $unique_result_cta = array('126533');
+
+            // Randomaize override
+            //$veteran_ads = array('126533','190592','190593','190603','190604'); // Production (All)
+            $veteran_ads = array('190604'); // Production (Winner - August 2024)
+            shuffle($veteran_ads);
+            $unique_result_cta_minus_veterans = array_diff($unique_result_cta, $veteran_ads); // Get non-matching veteran CTAs
+            $unique_result_with_veteran = array_intersect($unique_result_cta, $veteran_ads); // Get matching veteran CTAs
+            if ( count($unique_result_with_veteran) > 0 ) {
+                array_unshift($unique_result_cta_minus_veterans, $veteran_ads[0]);
+                $unique_result_cta = $unique_result_cta_minus_veterans;
+                $update_cta_flag = true;
+            }
+            if( count($unique_result_cta) > $max_ctas ){       
+                $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas); 
+                $update_cta_flag = true;
+            }
+
+        }
+    }
+
+    /**
+     * Partner CTA Override
+     */
+    $partner_cta_args = array(
+        'post_type' => 'partners', 
+        'post_status' => 'publish',
+        'posts_per_page' => 100,
+    );
+    $partners_cta = get_posts($partner_cta_args);     
+    $partner_ctas = array();   
+    foreach ($partners_cta as $partner) {
+        $partner_information = get_field('partner_information', $partner->ID);
+        if($partner_information['partner_code'] == $user_screen_result['referer']){ 
+            $partner_expiration_date = $partner_information['end_date_featured_content'] ?? ''; // Check if expiration is valid
+            if (empty($partner_expiration_date) || $partner_expiration_date > $current_date) {
+                array_push($partner_ctas, $partner->ID);
+            }
+        }
+    }
+    if(!empty($partner_ctas)){
+        // If we have partner CTAs, clean up any duplicates and shuffle in case of multiple (unlikely)
+        array_unique($partner_ctas);
+        shuffle($partner_ctas);
+        $update_cta_flag = true;
+
+        // Prepend the CTA with partner CTAs
+        /*
+        foreach($partner_ctas as $pcta){
+            array_unshift($unique_result_cta, $pcta);
+        }
+        $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas);
+        */
+    }
+    wp_reset_query();
+
+    // Update CTAs on screening result
+    if($update_cta_flag){
+        $update_featured_data = mha_update_featured_data(
+            array(
+                'entry_id'              => $entry_id,
+                'user_screen_result'    => $user_screen_result,
+                'updates' => [ 
+                    'ctas' => $unique_result_cta,
+                    'partner_cta' => $partner_ctas 
+                ]
+            )
+        );
     }
     ?>
 	
@@ -141,14 +334,6 @@ else:
             /**
              * Screening Results
              */
-            
-            // Result Based CTAs
-            if($user_screen_result['featured_cta'] && count($user_screen_result['featured_cta']) > 0){
-                foreach($user_screen_result['featured_cta'] as $cta){
-                    $result_cta[] = $cta;
-                }
-            }
-
             if( get_field('survey', $user_screen_result['screen_id']) && !get_field('show_survey_results', $user_screen_result['screen_id']) ):
                 
                 /**
@@ -274,10 +459,10 @@ else:
                     endif;
 
                     // Result content
-                    echo $user_screen_result['text'];
+                    echo isset($user_screen_result['text']) ? $user_screen_result['text'] : '';
 
                     // Footer Content
-                    echo $user_screen_result['footer'];
+                    echo isset($user_screen_result['footer']) ? $user_screen_result['footer'] : '';
                 ?>
             </div>
 
@@ -315,68 +500,67 @@ else:
                 ) );  
 
             }   
-            
-            /**
-             * Featured Next Steps Test Setup
-             */
-            $displayed_featured_links = false;
-            if($user_screen_result['featured_next_steps_data'] && !in_array('related_v1', $layout)):
-
-                // Display the featured links
-                $featured_next_steps_data = json_decode($user_screen_result['featured_next_steps_data']);
-                echo display_featured_next_steps( $featured_next_steps_data );
-                
-                // Update excluded links
-                $used_links = $featured_next_steps_data->used_links;
-                if($used_links && count($used_links)){
-                    foreach($used_links as $ul){
-                        $excluded_ids[] = $ul;
-                    }
-                    // Flag that we've already shown featured links
-                    $displayed_featured_links = true;
-                }
-
-            endif;                
         ?>
     </article>
     </div>
 
 
+    <?php 
+    /**
+     * Partner CTA Display
+     */
+    if( !empty($partner_ctas) ):
+    
+        if( have_rows('featured_next_steps_test', $user_screen_result['screen_id']) ):
+        while( have_rows('featured_next_steps_test', $user_screen_result['screen_id']) ) : the_row();  
+            echo '<div class="wrap narrow mt-5">';  
+            echo '<h2 class="section-title dark-blue bold mb-0">'.get_sub_field('next_steps_heading').'</h2>';
+            echo '</div>';
+        endwhile;
+        endif;
+        ?>
+        <div class="wrap narrow">
+            <div id="cta-col-lead" class="cta-cols-lead total-<?php echo count($unique_result_cta); ?>">
+                <?php     
+                    global $post;
+                    foreach($partner_ctas as $cta){
+                        $post = get_post($cta); 
+                        get_template_part( 'templates/blocks/block', 'cta' );
+                    } 
+                    wp_reset_postdata();                
+                ?>
+            </div>
+        </div>
+        <?php 
+    endif;
+    ?>
+        
+
     <?php
-        /**
-        * Demographic Based Next Steps Data
-        */
-
-        // Screen specific demo steps/CTAs
-        $demo_data = get_mha_demo_steps( $user_screen_result['screen_id'], $user_screen_result['answered_demos'] );      
-        foreach($demo_data['excluded_ids'] as $ex){ 
-            $excluded_ids[] = $ex;
+    /**
+     * Featured Next Steps Test Setup
+     */
+    $displayed_featured_links = false;
+    if($user_screen_result['featured_next_steps_data'] && !in_array('related_v1', $layout)):
+        echo '<div class="wrap narrow">';
+        // Display the featured links
+        $featured_next_steps_data = json_decode($user_screen_result['featured_next_steps_data']);
+        if(!empty($partner_ctas)){
+            $featured_next_steps_data->show_title = false;
         }
-        foreach($demo_data['demo_steps'] as $e){
-            $demo_steps[] = $e;
-        }
-        foreach($demo_data['ctas'] as $e){
-            $result_cta[] = $e;
-        }
-
-        // Global demo steps/CTAs
-        $demo_data_global = get_mha_demo_steps( 'options', $user_screen_result['answered_demos'] );
-        foreach($demo_data_global['demo_steps'] as $e){
-            $demo_steps[] = $e;
-        }
-        foreach($demo_data_global['ctas'] as $e){
-            $result_cta[] = $e;
-        }
-            
-        /*
-        * Screen Specific CTAs
-        */
-        $screen_specific_cta = get_field('call_to_actions_all_results', $user_screen_result['screen_id']);
-        if($screen_specific_cta){
-            foreach($screen_specific_cta as $cta){
-                $result_cta[] = $cta; // Add to our array for later
+        echo display_featured_next_steps( $featured_next_steps_data );
+        
+        // Update excluded links
+        $used_links = $featured_next_steps_data->used_links;
+        if($used_links && count($used_links)){
+            foreach($used_links as $ul){
+                $excluded_ids[] = $ul;
             }
+            // Flag that we've already shown featured links
+            $displayed_featured_links = true;
         }
+        echo '</div>';
+    endif;                
     ?>
 
     <div class="wrap normal pt-0 pb-3 d-print-none">
@@ -393,17 +577,20 @@ else:
                 echo '</div>';
             endif;
         ?>
-
         <?php
             /**
              * A/B Variant
              * Layout: actions_hide_ns_r
              */    
             if(
-                !in_array('actions_hide_ns_r', $layout) && !in_array('actions_hide_nsh', $layout) && !$displayed_featured_links && !$featured_next_steps_data ):
+                !in_array('actions_hide_ns_r', $layout) && 
+                !in_array('actions_hide_nsh', $layout) && 
+                !$displayed_featured_links && 
+                !$featured_next_steps_data &&
+                empty($partner_ctas)
+            ):
         ?>
             <?php if(!in_array('results_header_v1', $layout)): ?><div class="wrap narrow"><?php endif; ?>
-
                 <h2 class="section-title dark-blue bold mb-3 mt-5">
                     <?php if($espanol): ?>
                         Siguientes Pasos
@@ -411,7 +598,6 @@ else:
                         Next Steps
                     <?php endif; ?>
                 </h2>
-
             <?php if(!in_array('results_header_v1', $layout)): ?></div><?php endif; ?>
         <?php endif; ?>
         
@@ -649,7 +835,10 @@ else:
                             <?php
                                 if($related_article_args['style'] == 'featured'){
 
-                                    $related_articles_decoded = json_decode($related_articles);   
+                                    $related_articles_decoded = json_decode($related_articles);  
+                                    if(!empty($partner_ctas)){
+                                        $related_articles->show_title = false;
+                                    } 
                                     echo display_featured_next_steps( $related_articles_decoded );
                                     $used_links = $related_articles_decoded->used_links;
                                     foreach($used_links as $ul){
@@ -715,130 +904,20 @@ else:
              * A/B Variant
              * Layout: actions_hide_ns
              */
-            if(!in_array('actions_hide_ns', $layout)):
-
-                if(!$espanol){
-                    // All Screen CTAs
-                    if( have_rows('actions_global_screening', 'option') ):
-                    while( have_rows('actions_global_screening', 'option') ) : the_row();  
-                        $action_option = get_sub_field('action');
-                        $result_cta[] = get_sub_field('action');
-                    endwhile;
-                    endif;
-                    wp_reset_postdata();
-                    
-                    // Global CTAs
-                    if( have_rows('actions', 'option') ):
-                    while( have_rows('actions', 'option') ) : the_row();  
-                        $action_option = get_sub_field('action');
-                        $result_cta[] = $action_option;
-                    endwhile;
-                    endif;
-                    wp_reset_postdata();
-                }
-
-                $unique_result_cta = array_unique($result_cta);  
-
-                /*
-                * Result specific CTA
-                */
-
-                shuffle($unique_result_cta);          
-                $max_ctas = 2; // Limit CTAs to 2 max
-                
-                /** 
-                 * Elevance Overrides 
-                 * 2023-12-05 Elevance always first override if present
-                 * */
-                //$elevance_ads = array('116318','116319','116320','116321','116322', '142207','157517','157528','157529','157530'); // Staging/Dev
-                //$elevance_ads = array('142207','157517','157528','157529','157530'); // Production (All August)
-                $elevance_ads = array('157530'); // Production (Winner - August 2024)
-                shuffle($elevance_ads);
-                
-                // If elevance ads, put the first at the beginning of the CTAs
-                $unique_result_cta_minus_elevance = array_diff($unique_result_cta, $elevance_ads); // Get non-matching elevance CTAs
-                $unique_result_with_elevance = array_intersect($unique_result_cta, $elevance_ads); // Get matching elevance CTAs
-                if ( count($unique_result_with_elevance) > 0 ) {
-                    array_unshift($unique_result_cta_minus_elevance, $elevance_ads[0]);
-                    $unique_result_cta = $unique_result_cta_minus_elevance;
-                }
-                
-                /**
-                 * Final CTA cleanup
-                 */
-                if( count($unique_result_cta) > $max_ctas ){                   
-                    // Return only unique CTAs cut down to the max 
-                    $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas); 
-                }
-
-
-
-                /**
-                 * Veteran CTA Override
-                 */
-                if(
-                    isset($user_screen_result['answered_demos']['Which of the following populations describes you?']) && 
-                    in_array('Veteran or active-duty military', $user_screen_result['answered_demos']['Which of the following populations describes you?'])
-                ){
-                    if(
-                        !isset($user_screen_result['answered_demos']['Do you live in the United States or another country?']) ||
-                        isset($user_screen_result['answered_demos']['Do you live in the United States or another country?']) && 
-                        !in_array('I live in another country', $user_screen_result['answered_demos']['Do you live in the United States or another country?'])
-                    ){
-
-                        // Single override
-                        $unique_result_cta = array('126533');
-
-                        // Randomaize override
-                        //$veteran_ads = array('126533','190592','190593','190603','190604'); // Production (All)
-                        $veteran_ads = array('190604'); // Production (Winner - August 2024)
-                        shuffle($veteran_ads);
-                        $unique_result_cta_minus_veterans = array_diff($unique_result_cta, $veteran_ads); // Get non-matching veteran CTAs
-                        $unique_result_with_veteran = array_intersect($unique_result_cta, $veteran_ads); // Get matching veteran CTAs
-                        if ( count($unique_result_with_veteran) > 0 ) {
-                            array_unshift($unique_result_cta_minus_veterans, $veteran_ads[0]);
-                            $unique_result_cta = $unique_result_cta_minus_veterans;
-                        }
-                        if( count($unique_result_cta) > $max_ctas ){       
-                            $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas); 
-                        }
-
-                    }
-                }
-
-                /**
-                 * Featured Next Step Override
-                 */
-                $update_cta_flag = true;
-                if( isset($featured_next_steps_data->ctas) && !empty($featured_next_steps_data->ctas) ){
-                    $unique_result_cta = $featured_next_steps_data->ctas;
-                    $update_cta_flag = false;
-                }
+            if(
+                !in_array('actions_hide_ns', $layout)
+            ):
         ?>
         <div id="cta-col" class="cta-cols total-<?php echo count($unique_result_cta); ?>">
             <?php     
                 global $post;
                 foreach($unique_result_cta as $cta){
                     $post = get_post($cta); 
-                    get_template_part( 'templates/blocks/block', 'cta' );  
+                    get_template_part( 'templates/blocks/block', 'cta' );
                 } 
-                wp_reset_postdata();
-                
+                wp_reset_postdata();                
             ?>
         </div>
-        <?php
-            if($update_cta_flag){
-                $update_featured_data = mha_update_featured_data(
-                    array(
-                        'entry_id'              => $entry_id,
-                        'user_screen_result'    => $user_screen_result,
-                        'updates' => [ 
-                            'ctas' => $unique_result_cta 
-                        ]
-                    )
-                );
-            }
-        ?>
         <?php endif; // Hide 'actions_hide_ns' ?>
 
         <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
@@ -900,7 +979,7 @@ else:
         <?php
             wp_reset_query();
             echo _e('This test was taken on ');
-            echo $user_screen_result['date'].'. ';
+            echo isset($user_screen_result['date']) ? $user_screen_result['date'].'. ' : '';
             echo _e('To view this result on the web, visit:'); 
         ?><br />
         <a class="no-after" href="<?php echo add_query_arg( 'sid', $user_screen_id, get_the_permalink($user_screen_result['screen_id']) ); ?>">

@@ -1,7 +1,7 @@
 <?php
 
 // Plugins
-require_once __DIR__ . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 use League\Csv\CharsetConverter;
 use League\Csv\Writer;
 use League\Csv\Reader;
@@ -10,7 +10,7 @@ use League\Csv\Reader;
 add_action('init', 'mhactaCodesExportScripts');
 function mhactaCodesExportScripts() {
     if(current_user_can('edit_posts')){
-        wp_enqueue_script( 'process_ctaCodesExport', plugin_dir_url(__FILE__) . 'cta_code_export.js', array('jquery'), time(), true );
+        wp_enqueue_script( 'process_ctaCodesExport', plugin_dir_url(__DIR__) . 'js/cta_code_export.js', array('jquery'), time(), true );
         wp_localize_script('process_ctaCodesExport', 'do_mhactaCodesExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
     }
 }
@@ -78,11 +78,11 @@ function mha_export_cta_codes(){
     $offset = $args['page'] * $per_page;
 
     if( $args['export_start_date'] && !$args['export_end_date'] ){
-        $where = 'WHERE date >= '.$args['export_start_date'].' AND used IS NOT NULL';
+        $where = 'WHERE date >= \''.$args['export_start_date'].'\' AND used IS NOT NULL';
     } else if( !$args['export_start_date'] && $args['export_end_date'] ){
-        $where = 'WHERE date <= '.$args['export_start_date'].' AND used IS NOT NULL';
+        $where = 'WHERE date <= \''.$args['export_start_date'].'\' AND used IS NOT NULL';
     } else if( $args['export_start_date'] && $args['export_end_date'] ){
-        $where = 'WHERE date BETWEEN '.$args['export_start_date'].' AND '.$args['export_end_date'].' AND used IS NOT NULL';
+        $where = 'WHERE date BETWEEN \''.$args['export_start_date'].'\' AND \''.$args['export_end_date'].'\' AND used IS NOT NULL';
     } else {
         $where = 'WHERE used IS NOT NULL';
     }

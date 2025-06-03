@@ -297,9 +297,11 @@ function mha_show_tests() {
 			continue;
 		}
 
-		$screen_link_args = array(
-			'ref' => $referrer
-		);
+		$screen_link_args = array();
+		
+		if($referrer){
+			$screen_link_args['ref'] = $referrer;
+		}
 		if($iframe_mode == 'true'){
 			$screen_link_args['iframe'] = 'true';
 		}
@@ -664,3 +666,84 @@ function text_area_shortcode($value, $post_id, $field) {
 	return do_shortcode($value);
 }
 add_filter('acf/load_value/type=textarea', 'text_area_shortcode', 10, 3);
+
+// Do shortcodes in textarea fields
+function mha_get_parameter($args) {
+	// Default Args
+    $defaults = array (
+		'param' => ''
+	);
+	$atts = wp_parse_args( $args, $defaults );
+	$param = get_query_var($atts['param']);
+	return $param;
+}
+add_shortcode('mha_get_parameter', 'mha_get_parameter'); 
+
+/**
+ * Customize an iframe embed by adding query params into the URL easily
+ */
+function mha_flexible_iframe_shortcode( $atts ) {
+	$atts = shortcode_atts( array(
+        'url'             => '',
+        'width'           => '100%',
+        'height'          => '600',
+        'title'           => 'Appointment Booking',
+        'params'          => '', // static params like param=value
+        'dynamic_params'  => '', // static key = dynamic source param
+    ), $atts, 'mha_iframe_flexible' );
+
+    if ( empty( $atts['url'] ) ) {
+        return '<!-- No URL provided for iframe -->';
+    }
+
+    $query = array();
+
+    // Handle static params
+    if ( !empty( $atts['params'] ) ) {
+        $pairs = explode( ',', $atts['params'] );
+        foreach ( $pairs as $pair ) {
+            $pieces = explode( '=', $pair, 2 );
+            if ( count( $pieces ) == 2 ) {
+                $key = trim( $pieces[0] );
+                $value = trim( $pieces[1] );
+                if ( $key !== '' && $value !== '' ) {
+                    $query[ $key ] = sanitize_text_field( $value );
+                }
+            }
+        }
+    }
+
+    // Handle dynamic params
+    if ( !empty( $atts['dynamic_params'] ) ) {
+        $pairs = explode( ',', $atts['dynamic_params'] );
+        foreach ( $pairs as $pair ) {
+            $pieces = explode( '=', $pair, 2 );
+            if ( count( $pieces ) == 2 ) {
+                $target_key = trim( $pieces[0] ); // the iframe param name
+                $source_key = trim( $pieces[1] ); // the URL param name
+                $value = get_query_var( $source_key, '' );
+                if ( $value !== '' ) {
+                    $query[ $target_key ] = sanitize_text_field( $value );
+                }
+            }
+        }
+    }
+
+    // Build full URL
+    $full_url = esc_url( add_query_arg( $query, $atts['url'] ) );
+
+    ob_start();
+    ?>
+    <iframe 
+        src="<?php echo $full_url; ?>"
+        title="<?php echo esc_attr( $atts['title'] ); ?>"
+        width="<?php echo esc_attr( $atts['width'] ); ?>"
+        height="<?php echo esc_attr( $atts['height'] ); ?>"
+        frameborder="0"
+        style="border: none; overflow: hidden;"
+        allowfullscreen
+    ></iframe>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode( 'mha_iframe', 'mha_flexible_iframe_shortcode' );

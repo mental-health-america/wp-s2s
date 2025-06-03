@@ -43,7 +43,7 @@
                 // Export is done 
                 if(!res.export_single){ 
                     $('#export_abtesting_link').prop('disabled', false).text('Download');	
-                    $('#abTesting-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                    $('#abTesting-exports-download').slideDown().append('<li><strong>Download:</strong> <a download="'+res.filename+'" target="_blank" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
                 }
                 
                 if(res.all_forms_continue == 1){    

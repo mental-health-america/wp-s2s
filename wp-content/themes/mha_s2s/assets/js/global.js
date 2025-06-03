@@ -71,12 +71,21 @@
 		// External links open in a new tab
 		$('#content a').each(function() {
 			var a = new RegExp('/' + window.location.host + '/');
-			if(!a.test(this.href) && !$(this).hasClass('social-share')){
-				$(this).click(function(event) {
-					event.preventDefault();
-					event.stopPropagation();
-					window.open(this.href, '_blank');
-				});
+			if(
+				!a.test(this.href) && 
+				!$(this).hasClass('social-share')
+			){
+				if(
+					$(this).attr('href') && 
+					!$(this).attr('href').includes('sms') && 
+					!$(this).attr('href').includes('tel')
+				){
+					$(this).click(function(event) {
+						event.preventDefault();
+						event.stopPropagation();
+						window.open(this.href, '_blank');
+					});
+				}
 			}
 		});
 
@@ -352,7 +361,11 @@
 		// Open links out of iframes
 		$('.iframe-mode #page a').each(function(){
 			$parent = $(this).parent();
-			if(!$parent.hasClass('screen-item') && $(this).attr('id') != 'screen-take'){
+			if(
+				!$parent.hasClass('screen-item') && 
+				$(this).attr('id') != 'screen-take' &&
+				!$('body').hasClass('partner-banner-display') 
+			){
 				$(this).attr('target', '_blank');
 			}
 		});
@@ -440,7 +453,8 @@
 		 */
 		if($('.auto-submit').length){
 			$('.auto-submit input[type=radio]').on('change', function() {
-				$(this).closest("form").trigger('submit');
+				let formSubmitId = $(this).closest("form").find('.gform_button').attr('id');
+				gform.submission.handleButtonClick( document.getElementById( formSubmitId ) );
 			});
 		}
 
@@ -505,6 +519,19 @@
 			});
 		});
 
+		// Iframe logging
+		const inIframe = window.self !== window.top;
+		if(inIframe){
+			const pageReferrer = document.referrer,
+				pageTitle = document.title,
+				pageUrl = document.location.href;
+			window.dataLayer.push({
+				'event': 'iframe_loaded',
+				'iFramePageReferrer': pageReferrer,
+				'iFramePageTitle': pageTitle,
+				'iFramePageUrl': pageUrl
+			});
+		}
 	});
 
 	$(window).on('load', function () {

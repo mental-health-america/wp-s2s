@@ -20,9 +20,9 @@ function char_fix( $input ){
 add_action('init', 'mhaThoughtScripts');
 function mhaThoughtScripts() {
     if(current_user_can('edit_posts')){
-        wp_enqueue_script( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.js', array('jquery'), time(), true );
+        wp_enqueue_script( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'js/mha_export.js', array('jquery'), time(), true );
         wp_enqueue_style( 'process_mhaacfeui', '/wp-content/plugins/acf-extended/assets/css/acfe-ui.min.css', array(), time() );
-        wp_enqueue_style( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'mha_export.css', array(), time() );
+        wp_enqueue_style( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'css/mha_export.css', array(), time() );
         wp_localize_script('process_mhaThoughts', 'do_mhaThoughts', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
     }
 }
@@ -131,7 +131,7 @@ function mhathoughtexport(){
                 <tr>
                     <th scope="row"><label for="diytool_export_start_date">Start Date</label></th>
                     <td>
-                        <input type="date" name="diytool_export_start_date" id="diytool_export_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                        <input type="date" name="diytool_export_start_date" id="diytool_export_start_date" value="<?php echo date('Y-m', strtotime('now - 3 month')).'-01'; ?>" />
                     </td>
                 </tr>
                 <tr>
@@ -148,13 +148,12 @@ function mhathoughtexport(){
                         <?php 
                         $args = array(
                             "post_type" => 'diy',
-                            "post_status" => 'publish',
+                            "post_status" => array('draft','publish','private'),
                             "posts_per_page" => 500,
                             'orderby' => array( 
-                                'meta_key' => 'ASC',
-                                'title' => 'DESC' 
+                                'title' => 'ASC' 
                             )
-                        );                        
+                        );
                         $diy_tool_items = [];
                         $diy_tool_types = [];
                         $loop = new WP_Query($args);
@@ -163,7 +162,8 @@ function mhathoughtexport(){
                                 $diy_tool_items[] = [
                                     'type' => get_field('tool_type'),
                                     'title' => get_the_title(),
-                                    'id' => get_the_ID()
+                                    'id' => get_the_ID(),
+                                    'status' => get_post_status()
                                 ];
                                 $diy_tool_types[] = get_field('tool_type'); 
                             endwhile;
@@ -174,7 +174,8 @@ function mhathoughtexport(){
                             echo '<h3 style="text-transform: capitalize; margin-bottom: 10px; margin-top: 30px;">'.str_replace('_',' ', $type).'</h3>';
                             foreach($diy_tool_items as $item){
                                 if($item['type'] == $type){
-                                    echo '<p><label><input type="checkbox" name="form_id" class="form-checkboxes" value="'.$item['id'].'"> '.$item['title'].'</label></p>'; 
+                                    $post_state = $item['status'] != 'publish' ? '<strong class="post-state"> &ndash; '.strtoupper($item['status']).'</strong>' : '';
+                                    echo '<p><label><input type="checkbox" name="form_ids" class="form-checkboxes" value="'.$item['id'].'"> '.$item['title'].''.$post_state.'</label></p>'; 
                                 }
                             }
                         }
@@ -356,6 +357,49 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="ctaCodes-exports-download" style="display: none;"></ul>      
+                        <br /><br />
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </form>
+    <br />
+
+
+    <form id="mha-callrail-cta-export" action="#" method="POST">
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
+        
+            <div id="callrail-cta-export-error"></div>
+            <h2>Callrail Ad Export</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label for="callrailcta_export_start_date">Start Date</label></th>
+                    <td>
+                        <input type="date" name="callrailcta_export_start_date" id="callrailcta_export_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')).'-01'; ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="callrailcta_export_end_date">End Date</label></th>
+                    <td>
+                        <input type="date" name="callrailcta_export_end_date" id="callrailcta_export_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <p>
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhacallrailcta'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_callrailcta_link"  value="Download Callrail Ad Log">
+                        </p>
+                        
+                        <div id="callrailcta-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <ul id="callrailcta-exports-download" style="display: none;"></ul>      
                         <br /><br />
                     </td>
                 </tr>

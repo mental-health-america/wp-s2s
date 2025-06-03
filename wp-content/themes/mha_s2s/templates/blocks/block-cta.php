@@ -10,6 +10,22 @@
     $custom = get_field('custom_classes', $id);
 
     $cta_title = html_entity_decode( addslashes(get_the_title()).' (#'.$id.')' );
+    $headline = get_field('headline', $id) ? get_field('headline', $id) : null;
+    $content = get_field('content', $id);
+
+    // Partner CTA Overrides
+    if(get_post_type($id) == 'partners'){
+        $style = 'bubble';
+        $color = 'cerulean';
+        $rounded = 'round-tl';
+        $padding = 'normal';
+        $custom = 'partner-cta';
+
+        $partner_info = get_field('partner_information', $id);
+        $partner_content = get_field('featured_content', $id);
+        $headline = isset($partner_content['headline']) && $partner_content['headline'] != '' ? $partner_content['headline'] : null; 
+        $content = isset($partner_content['content']) && $partner_content['content'] != '' ? $partner_content['content'] : null; 
+    }
 ?>
 
 <script>
@@ -40,11 +56,11 @@
         }
     ?>
 
-    <?php if(get_field('headline', $id)): ?>
-        <h2 class="section-title small bold"><?php the_field('headline', $id); ?></h2>
+    <?php if($headline): ?>
+        <h2 class="section-title small bold"><?php echo $headline; ?></h2>
     <?php endif; ?>
 
-    <?php echo get_field('content', $id); ?>
+    <?php echo $content; ?>
 
     <?php if(get_field('button_url', $id)): ?>
         <?php 

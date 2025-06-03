@@ -161,6 +161,7 @@ wp-content/mysql.sql
 *.bak
 
 # MHA specific overrides
+keys.php
 !/wp-content/plugins/mha_shard
 /wp-content/plugins/mha_shard/keys.php
 /wp-content/plugins/mha_shard/inc/tmp
@@ -170,6 +171,7 @@ wp-content/mysql.sql
 !/wp-content/plugins/mha_imports
 !/wp-content/plugins/mha_cleanup
 !/wp-content/plugins/mha_sso
+!/wp-content/plugins/mha_iframe_control
 /wp-content/plugins/mha_sso/keys.php
 /wp-content/plugins/mha_sso/vendor
 /wp-content/plugins/mha_imports/vendor

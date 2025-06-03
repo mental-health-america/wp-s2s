@@ -170,7 +170,7 @@
 // User menu
 
 .utility-menu {
-    margin: -18px 0 0 0;
+    margin: -18px 0 5px 0;
     float: right;
     text-align: right;
     font-size: 1.4em;
@@ -629,6 +629,7 @@ button.menu-toggle {
         left: 0;
         width: 100%;
         height: 100%;
+        padding-bottom: 150px;
         /* The main point: */
         overflow-y: scroll;
         /* Optional but highly reccomended: enables momentum scrolling on iOS */
@@ -715,7 +716,7 @@ button.menu-toggle {
         }
 
         ul.last {
-            padding-bottom: 150px;
+            //padding-bottom: 150px;
         }
         ul.secondary {
             padding-top: 0;

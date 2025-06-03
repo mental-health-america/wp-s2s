@@ -1,7 +1,7 @@
 <?php
 
 // Plugins
-require_once __DIR__ . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 use League\Csv\CharsetConverter;
 use League\Csv\Writer;
 use League\Csv\Reader;
@@ -10,8 +10,7 @@ use League\Csv\Reader;
 add_action('init', 'mhaDiyToolsExportScripts');
 function mhaDiyToolsExportScripts() {
     if(current_user_can('edit_posts')){
-        //wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__FILE__) . 'diy_export.js', array('jquery'), 'v1.2', true );
-        wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__FILE__) . 'diy_export.js', array('jquery'), time(), true );
+        wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__DIR__) . 'js/diy_export.js', array('jquery'), time(), true );
         wp_localize_script('process_diyToolsExport', 'do_mhaDiyToolsExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
     }
 }
@@ -95,7 +94,7 @@ function mha_export_diy_tool_data(){
     // Begin query
     $diy_res_args = array(
         "post_type" => 'diy_responses',
-        "post_status" => array('draft','publish'),
+        "post_status" => array('draft','publish','private'),
         "posts_per_page" => 100,
         "order" => 'ASC',
         "orderby" => 'date',
@@ -185,7 +184,7 @@ function mha_export_diy_tool_data(){
         $response_total_likes = 0;
         $response_total_flags = 0;
         foreach($activity_response as $ar){     
-            if($ar['question_type'] == 'html' || $ar['question_type'] == 'breathe'){
+            if(isset($ar['question_type']) && $ar['question_type'] == 'html' || isset($ar['question_type']) && $ar['question_type'] == 'breathe'){
                 continue;
             }  
             $total_likes = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_likes WHERE pid = '.$response_id.' AND \'row\' = '.$ar['id'].' AND unliked = 0');

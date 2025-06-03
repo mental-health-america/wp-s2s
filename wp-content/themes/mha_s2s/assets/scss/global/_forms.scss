@@ -124,6 +124,19 @@ label {
 
 .form-container.line-form {
 
+    .gform_required_legend {
+        display: block;
+        position: absolute;
+        left: -999em;
+        visibility: hidden;
+        height: 0px;
+        overflow: hidden;
+    }
+
+    h2.gform_submission_error {
+        font-size: 15px;
+    }
+
     &,
     .gform_wrapper {
         position: relative;
@@ -150,9 +163,11 @@ label {
             }
         }
 
+        .gform_fields .gfield,
         .gform_fields li {
             margin: 0;
             padding: 0 0 20px 0;
+            &.gfield--input-type-hidden,
             &:last-of-type {
                 padding-bottom: 0;
             }
