@@ -33,6 +33,7 @@ function mha_featured_next_steps_data( $args ){
     
     // Check for matching partner first
     $featured_next_steps_source = $args['user_screen_result']['screen_id']; // Default to screen_id
+    $is_partner_source = false;
     
     // Get partners
     $partner_args = array(
@@ -47,6 +48,7 @@ function mha_featured_next_steps_data( $args ){
         $partner_information = get_field('partner_information', $partner->ID);
         if($partner_information['partner_code'] == $args['user_screen_result']['referer']){
             $featured_next_steps_source = $partner->ID;
+            $is_partner_source = true;
             break;
         }
     }
@@ -633,13 +635,13 @@ function mha_featured_next_steps_data( $args ){
             }
         endif;
 
-        // In case of not enough links
+        // In case of not enough links - only add extra links if not a partner source
         $total_used_links = count($used_links);
         $count_diff = $max_links - $total_used_links;
         $extra_links = [];
         $extra_links_ids = null;
         $original_count = $count;
-        if($total_used_links < $max_links){
+        if($total_used_links < $max_links && !$is_partner_source){
 
             $demo_steps = [];
             $espanol = get_field('espanol', $args['user_screen_result']['screen_id']); // Spanish page
