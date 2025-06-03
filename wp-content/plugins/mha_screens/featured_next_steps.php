@@ -31,8 +31,29 @@ function mha_featured_next_steps_data( $args ){
     $debug = false;
     $debug_log = [];
     
-    if( have_rows('featured_next_steps_test', $args['user_screen_result']['screen_id']) ):
-    while( have_rows('featured_next_steps_test', $args['user_screen_result']['screen_id']) ) : the_row();
+    // Check for matching partner first
+    $featured_next_steps_source = $args['user_screen_result']['screen_id']; // Default to screen_id
+    
+    // Get partners
+    $partner_args = array(
+        'post_type' => 'partners', 
+        'post_status' => 'publish',
+        'posts_per_page' => 100,
+    );
+    $partners = get_posts($partner_args);
+    
+    // Look for matching partner
+    foreach ($partners as $partner) {
+        $partner_information = get_field('partner_information', $partner->ID);
+        if($partner_information['partner_code'] == $args['user_screen_result']['referer']){
+            $featured_next_steps_source = $partner->ID;
+            break;
+        }
+    }
+    wp_reset_postdata();
+    
+    if( have_rows('featured_next_steps_test', $featured_next_steps_source) ):
+    while( have_rows('featured_next_steps_test', $featured_next_steps_source) ) : the_row();
         
         $heading = get_sub_field('next_steps_heading');
         $randomize = get_sub_field('dont_randomize_order');

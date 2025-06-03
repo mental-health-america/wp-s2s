@@ -90,8 +90,9 @@ function mha_s2s_scripts() {
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
 	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250227' );
+	wp_enqueue_style( 'mha_s2s-language-switcher', get_template_directory_uri() . '/assets/css/language-switcher.css', array(), 'v1.0.0' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
-	
+    
 	// Add print CSS.
 	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20240702', 'print' );
 	//wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, time(), 'print' );
@@ -1287,3 +1288,57 @@ add_filter('auth_cookie_expiration', 'set_admin_cookie_expiration', 10, 3);
 
 include_once('inc/functions_facetwp.php'); // FacetWP options
 include_once('inc/gravity-forms.php'); // Gravity Forms overrides
+
+/**
+ * Get matching partner information based on referer code
+ * 
+ * @param string $referer The referer code to match against
+ * @param string $current_date Optional current date for expiration check
+ * @return array|false Array with partner info or false if no match
+ */
+function mha_get_matching_partner_info($referer, $current_date = null) {
+    if (!$referer) {
+        return false;
+    }
+
+    if (!$current_date) {
+        $current_date = date('Ymd');
+    }
+
+    $partner_args = array(
+        'post_type' => 'partners', 
+        'post_status' => 'publish',
+        'posts_per_page' => 100,
+    );
+    $partners = get_posts($partner_args);
+
+    foreach ($partners as $partner) {
+        $partner_information = get_field('partner_information', $partner->ID);
+        if ($partner_information['partner_code'] == $referer) {
+            $partner_expiration_date = $partner_information['end_date_featured_content'] ?? '';
+            if (empty($partner_expiration_date) || $partner_expiration_date > $current_date) {
+                wp_reset_postdata();
+                return array(
+                    'partner' => $partner,
+                    'information' => $partner_information,
+                    'expired' => false
+                );
+            }
+        }
+    }
+    
+    wp_reset_postdata();
+    return false;
+}
+
+/**
+ * Get featured next steps source ID based on screen and referer
+ * 
+ * @param int $screen_id The screen post ID
+ * @param string $referer The referer code
+ * @return int The post ID to use as source for featured next steps
+ */
+function mha_get_featured_next_steps_source($screen_id, $referer) {
+    $partner_info = mha_get_matching_partner_info($referer);
+    return $partner_info ? $partner_info['partner']->ID : $screen_id;
+}
