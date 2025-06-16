@@ -1,5 +1,5 @@
 <?php
-function get_mha_demo_steps( $screen_id = null, $answered_demos ){
+function get_mha_demo_steps( $screen_id = null, $answered_demos = array() ){
 
     $screen_demos = get_field('demographic_next_steps', $screen_id);
     $demo_data = [];

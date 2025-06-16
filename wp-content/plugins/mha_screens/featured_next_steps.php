@@ -551,6 +551,7 @@ function mha_featured_next_steps_data( $args ){
             
                 $return['results'][$row_index]['group_title'] = get_sub_field('link_group_title');      
                 $return['results'][$row_index]['additional_result_text'] = get_sub_field('additional_result_text');   
+                $return['results'][$row_index]['partner_next_steps'] = $is_partner_source;   
                 $return['additional_result_text'][] = get_sub_field('additional_result_text');   
 
                 if($debug){ $debug_log[] = get_sub_field('link_group_title').' Success'; }
@@ -628,6 +629,10 @@ function mha_featured_next_steps_data( $args ){
                     if(isset($r['links'][$i])){ // In case there are less than the $max_links
                         $used_links[] = $r['links'][$i];
                         $link_groups[$r['group_title']][$count] = $r['links'][$i];
+                        // Store partner status with the link group
+                        if(isset($r['partner_next_steps'])) {
+                            $link_groups['partner_source'][$count] = $r['partner_next_steps'];
+                        }
                         $count++;
                     }
                     $i++;
@@ -721,6 +726,7 @@ function mha_featured_next_steps_data( $args ){
                             }
                             $used_links[] = $eli;
                             $link_groups['Additional Resources'][$count] = $eli;
+                            $link_groups['partner_source'][$count] = false; // Extra links are never from partner
                             $count++;
                             $i++;
                             $new_i++;
@@ -743,7 +749,8 @@ function mha_featured_next_steps_data( $args ){
             'link_groups' => $link_groups,
             'additional_result_text' => $return['additional_result_text'],
             'used_links' => $used_links,
-            'ctas' => $ctas
+            'ctas' => $ctas,
+            'is_partner_source' => $is_partner_source
         );
 
         if($debug){ pre($debug_log); }
@@ -765,21 +772,43 @@ function display_featured_next_steps( $args ){
         'hide_group_titles' => 0,
         'link_groups' => array(),
         'additional_result_text' => [],
-        'show_title' => true
+        'show_title' => true,
+        'is_partner_source' => false
     );   
     $args = wp_parse_args( $args, $defaults );
 
+    // Convert link_groups to array if it's an object
+    if(is_object($args['link_groups'])) {
+        $args['link_groups'] = (array)$args['link_groups'];
+    }
+
     $return_html = '';
+    $count = 1;
 
     // Result Text
     foreach($args['additional_result_text'] as $addl_text){
-        $return_html .= '<div class="featured-next-steps-test-additional-text">'.$addl_text.'</div>';
+        // Strip shortcodes and scripts
+        $addl_text = strip_shortcodes($addl_text);
+        $addl_text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $addl_text);
+        if($addl_text != ''){
+            $partner_class = $args['is_partner_source'] ? ' partner-source' : '';
+            $return_html .= '<div class="featured-next-steps-test-additional-text'.$partner_class.'">';
+            if($partner_class){
+                $return_html .= '<div class="bubble round-tl cerulean normal"><div class="inner">';
+            }
+            $return_html .= $addl_text;
+            if($partner_class){
+                $return_html .= '</div></div>';
+            }
+            $return_html .= '</div>';
+            $count++;
+        }
     }
     
     if($args['link_groups']):
 
         // Next Step Links
-        $link_groups = (array)$args['link_groups'];
+        $link_groups = $args['link_groups'];
         $total_result_groups = count($link_groups);
         $max_links = $total_result_groups > 1 ? 2 : 4;
 
@@ -789,6 +818,9 @@ function display_featured_next_steps( $args ){
         endif;
         $count = 1;
         foreach($link_groups as $k => $v){
+            // Skip the partner status group
+            if($k === 'partner_source') continue;
+            
             $i = 1;
             $return_html .= '<div class="featured-next-steps-test-group">';
             if(!$args['hide_group_titles']){
@@ -796,9 +828,14 @@ function display_featured_next_steps( $args ){
             }
             $return_html .= '<ol>';
 
-            $display_links = (array)$v;
+            // Convert v to array if it's an object
+            $display_links = is_object($v) ? (array)$v : $v;
             foreach($display_links as $lk => $lv){
-                $return_html .= '<li class="link-item mb-3"><a class="button green thin round mr-3 rec-screen-featured-test" href="'.add_query_arg( 'order', $count, get_the_permalink($lv) ).'">'.get_the_title($lv).'</a></li>';
+                $partner_class = '';
+                if(isset($link_groups['partner_source'])) {
+                    $partner_class = $link_groups['partner_source'] ? ' partner-source' : '';
+                }
+                $return_html .= '<li class="link-item mb-3'.$partner_class.'"><a class="button green thin round mr-3 rec-screen-featured-test" href="'.add_query_arg( 'order', $count, get_the_permalink($lv) ).'">'.get_the_title($lv).'</a></li>';
                 $count++;
             }
             $return_html .= '</ol>';

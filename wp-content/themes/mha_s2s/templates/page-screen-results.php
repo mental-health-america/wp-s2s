@@ -546,7 +546,6 @@ else:
             $featured_next_steps_data->show_title = false;
         }
         echo display_featured_next_steps( $featured_next_steps_data );
-        
         // Update excluded links
         $used_links = $featured_next_steps_data->used_links;
         if($used_links && count($used_links)){
