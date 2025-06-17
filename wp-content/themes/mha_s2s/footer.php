@@ -114,6 +114,12 @@
 
 <div id="mobile-menu-container">
 <div class="inner">
+	
+	<?php /*
+	<ul class="header-language mobile menu">
+		<li class="menu-item"><?php echo do_shortcode( '[mha_language_switcher]' ); ?></li>
+	</ul>
+	*/ ?>
 
 	<ul id="mobile-menu-footer" class="menu last secondary">
 		

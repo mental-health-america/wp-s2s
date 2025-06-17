@@ -747,3 +747,55 @@ function mha_flexible_iframe_shortcode( $atts ) {
     return ob_get_clean();
 }
 add_shortcode( 'mha_iframe', 'mha_flexible_iframe_shortcode' );
+
+/**
+ * Shortcode - Bootstrap Language Switcher
+ * Display a Bootstrap-style dropdown for language switching
+ */
+function mha_language_switcher() {
+    if (!function_exists('trp_custom_language_switcher')) {
+        return '';
+    }
+
+    // Check if TranslatePress can run on current path
+    if (!apply_filters('trp_allow_tp_to_run', true)) {
+        return '';
+    }
+
+    $languages = trp_custom_language_switcher();
+    if (empty($languages)) {
+        return '';
+    }
+
+    $current_language = get_locale();
+    $output = '<div class="trp_language_switcher_shortcode">';
+    $output .= '<div class="dropdown">';
+    $output .= '<button class="dropdown-toggle trp-language-switcher" type="button" id="languageDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+    
+    foreach ($languages as $code => $item) {
+        if ($code === $current_language) {
+            $output .= esc_html($item['language_name']);
+            break;
+        }
+    }
+    
+    $output .= '</button>';
+    $output .= '<div class="dropdown-menu" aria-labelledby="languageDropdown">';
+    
+    foreach ($languages as $code => $item) {
+        if ($code !== $current_language) {
+            $output .= sprintf(
+                '<a class="dropdown-item" href="%s">%s</a>',
+                esc_url($item['current_page_url']),
+                esc_html($item['language_name'])
+            );
+        }
+    }
+    
+    $output .= '</div>';
+    $output .= '</div>';
+    $output .= '</div>';
+    
+    return $output;
+}
+add_shortcode('mha_language_switcher', 'mha_language_switcher');

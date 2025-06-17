@@ -186,7 +186,7 @@
     }
 
     @media only screen and (max-width: 767px){
-        width: calc(100% - 150px);
+        width: calc(100% - 160px);
         margin: 0;
         padding-right: 0;
     }
@@ -598,7 +598,7 @@ button.menu-toggle {
     display: none; // Hide by default
     /* Fixed elements can't scroll in some browsers/iOS */
     position: fixed;
-    top: 80px;
+    top: 105px;
     left: -100%;
     width: 100%;
     height: calc(100% - 80px);
@@ -618,7 +618,7 @@ button.menu-toggle {
     }
 
     .admin-bar & {
-        top: 126px;
+        top: 150px;
     }
 
     .inner {
