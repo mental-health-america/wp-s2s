@@ -44,6 +44,19 @@ else:
     $current_date = date('Ymd'); 
     $max_ctas = 2; // Limit CTAs to 2 max
 
+    // Get partner information if available
+    $partner_info = mha_get_matching_partner_info($user_screen_result['referer'], $current_date);
+    $partner_ctas = array();
+    if ($partner_info) {
+        array_push($partner_ctas, $partner_info['partner']->ID);
+    }
+
+    // Get featured next steps source
+    $featured_next_steps_source = mha_get_featured_next_steps_source(
+        $user_screen_result['screen_id'],
+        $user_screen_result['referer']
+    );
+    
     // Global Default Options
     $global_hide_articles = get_field('global_hide_articles', 'options');
     if($global_hide_articles){
@@ -233,22 +246,6 @@ else:
     /**
      * Partner CTA Override
      */
-    $partner_cta_args = array(
-        'post_type' => 'partners', 
-        'post_status' => 'publish',
-        'posts_per_page' => 100,
-    );
-    $partners_cta = get_posts($partner_cta_args);     
-    $partner_ctas = array();   
-    foreach ($partners_cta as $partner) {
-        $partner_information = get_field('partner_information', $partner->ID);
-        if($partner_information['partner_code'] == $user_screen_result['referer']){ 
-            $partner_expiration_date = $partner_information['end_date_featured_content'] ?? ''; // Check if expiration is valid
-            if (empty($partner_expiration_date) || $partner_expiration_date > $current_date) {
-                array_push($partner_ctas, $partner->ID);
-            }
-        }
-    }
     if(!empty($partner_ctas)){
         // If we have partner CTAs, clean up any duplicates and shuffle in case of multiple (unlikely)
         array_unique($partner_ctas);
@@ -511,8 +508,8 @@ else:
      */
     if( !empty($partner_ctas) ):
     
-        if( have_rows('featured_next_steps_test', $user_screen_result['screen_id']) ):
-        while( have_rows('featured_next_steps_test', $user_screen_result['screen_id']) ) : the_row();  
+        if( have_rows('featured_next_steps_test', $featured_next_steps_source) ):
+        while( have_rows('featured_next_steps_test', $featured_next_steps_source) ) : the_row();  
             echo '<div class="wrap narrow mt-5">';  
             echo '<h2 class="section-title dark-blue bold mb-0">'.get_sub_field('next_steps_heading').'</h2>';
             echo '</div>';
@@ -549,7 +546,6 @@ else:
             $featured_next_steps_data->show_title = false;
         }
         echo display_featured_next_steps( $featured_next_steps_data );
-        
         // Update excluded links
         $used_links = $featured_next_steps_data->used_links;
         if($used_links && count($used_links)){

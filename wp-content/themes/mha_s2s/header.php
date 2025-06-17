@@ -141,8 +141,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 		<div id="utility-menu" class="utility-menu relative">
 
-			<span id="utility-donate" class="button"><a target="_blank" class="donate red round thin" href="<?php echo get_field('mobile_donate_button','options'); ?>">Donate</a></span>
-
+		<span class="mobile-top-row">
 			<div id="search-header">
 				<button id="search-toggle"
 					aria-expanded="false"
@@ -154,6 +153,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				</button>
 				<?php get_search_form(); ?>
 			</div>
+
+			<button id="mobile-menu-button" class="menu-toggle button" aria-controls="main-menu" aria-label="Toggle Menu" aria-expanded="false">
+				<span></span>
+				<span></span>
+				<span></span>
+				<span></span>
+				<span></span>
+				<span></span>
+				<strong class="text">Menu</strong>
+			</button>
+		</span>
+		
+		<span class="mobile-bottom-row">
+			<span id="utility-donate" class="button"><a target="_blank" class="donate red round thin" href="<?php echo get_field('mobile_donate_button','options'); ?>">Donate</a></span>
 
 			<span id="sign-in-container">
 				<?php if(is_user_logged_in()): ?>
@@ -205,28 +218,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				<?php
 					endif;
 				?>
-				<?php
-				/*
-				// Language Toggle
-				<span class="header-language">
-					<?php
-						echo ' <span>&nbsp;</span> ';
-						echo do_shortcode( '[language-switcher]' );
-					?>
-				</span>
-				*/
-				?>
 			</span>
 
-			<button id="mobile-menu-button" class="menu-toggle button" aria-controls="main-menu" aria-label="Toggle Menu" aria-expanded="false">
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<span></span>
-				<strong class="text">Menu</strong>
-			</button>
+			<span class="header-language">
+				<?php
+					echo do_shortcode( '[mha_language_switcher]' );
+				?>
+			</span>
+		</span>
 
 		</div>
 

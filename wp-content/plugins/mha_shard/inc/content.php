@@ -1288,3 +1288,98 @@ function mergeDuplicates($inputArray) {
     // Resetting array keys
     return array_values($result);
 }
+
+/**
+ * Add Featured Image Column to Articles List
+ */
+add_filter('manage_article_posts_columns', 'add_featured_image_column');
+function add_featured_image_column($columns) {
+    $new_columns = array();
+    foreach($columns as $key => $value) {
+        if($key == 'title') {
+            $new_columns['featured_image'] = 'Featured Image';
+        }
+        $new_columns[$key] = $value;
+    }
+    return $new_columns;
+}
+
+/**
+ * Populate Featured Image Column
+ */
+add_action('manage_article_posts_custom_column', 'populate_featured_image_column', 10, 2);
+function populate_featured_image_column($column, $post_id) {
+    if($column == 'featured_image') {
+        if(has_post_thumbnail($post_id)) {
+            $thumbnail = get_the_post_thumbnail($post_id, array(50, 50));
+            echo $thumbnail;
+        } else {
+            echo '—';
+        }
+    }
+}
+
+/**
+ * Add Custom Columns to DIY Post Type
+ */
+add_filter('manage_diy_posts_columns', 'add_diy_custom_columns');
+function add_diy_custom_columns($columns) {
+    $new_columns = array();
+    // Add featured image first
+    $new_columns['featured_image'] = 'Image';
+    foreach($columns as $key => $value) {
+        $new_columns[$key] = $value;
+        if($key == 'title') {
+            $new_columns['tool_type'] = 'Tool Type';
+            $new_columns['espanol'] = 'Español';
+            $new_columns['featured'] = '<span style="width: 80px; display: inline-block;">Featured</span>';
+        }
+    }
+    return $new_columns;
+}
+
+/**
+ * Populate Custom Columns for DIY Post Type
+ */
+add_action('manage_diy_posts_custom_column', 'populate_diy_custom_columns', 10, 2);
+function populate_diy_custom_columns($column, $post_id) {
+    switch($column) {
+        case 'featured_image':
+            if(has_post_thumbnail($post_id)) {
+                $thumbnail = get_the_post_thumbnail($post_id, 'medium');
+                echo $thumbnail;
+            } else {
+                echo '—';
+            }
+            break;
+        case 'tool_type':
+            $tool_type = get_field('tool_type', $post_id);
+            if($tool_type) {
+                $field = get_field_object('tool_type', $post_id);
+                echo esc_html($field['choices'][$tool_type]);
+            } else {
+                echo '—';
+            }
+            break;
+        case 'espanol':
+            $espanol = get_field('espanol', $post_id);
+            echo $espanol ? 'Yes' : 'No';
+            break;
+        case 'featured':
+            $featured = get_field('featured', $post_id);
+            echo $featured ? '<span style="color: #46b450;">✓</span>' : '<span style="color: #dc3232;">✗</span>';
+            break;
+    }
+}
+
+/**
+ * Add CSS for column widths
+ */
+add_action('admin_head', 'diy_admin_custom_styles');
+function diy_admin_custom_styles() {
+    echo '<style>
+        .column-featured_image { width: 80px !important; }
+        .column-featured_image img { width: 80px !important; height: auto !important; }
+		.featured.column-featured { font-weight: bold; font-size: 16px; }
+    </style>';
+}

@@ -319,6 +319,13 @@ function mha_export_screen_data(){
                     $title_removals_to = array( '', '');
                     $v = trim( html_entity_decode ( str_replace( $title_removals, $title_removals_to, $screen_title) ) );
                 }
+                if($ftv['label'] == 'Featured Link Data' && !empty($v)) {
+                    $json_data = json_decode($v, true);
+                    if (is_array($json_data) && isset($json_data['additional_result_text'])) {
+                        $json_data['additional_result_text'] = cleanDigitalPathways($json_data['additional_result_text']);
+                        $v = json_encode($json_data);
+                    }
+                }
 
                 // Put into our array
                 if(isset($temp_array[ $ftv['label'] ])){
@@ -545,4 +552,18 @@ function moveArrayKeyToLast(&$array, $key){
         $array[$key] = $v;
     }
     return $array;
+}
+
+function cleanDigitalPathways($content) {
+    if (empty($content)) return $content;
+    
+    // Convert to string if it's an array
+    $contentStr = is_array($content) ? json_encode($content) : $content;
+    
+    // If digital-pathways is present, return empty string
+    if (strpos($contentStr, 'digital-pathways') !== false) {
+        return 'Digital Pathways Content Removed';
+    }
+    
+    return $content;
 }

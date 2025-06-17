@@ -89,7 +89,7 @@ function mhathoughtexport(){
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><label for="export_excluded_ips">Exclude Spam IP Addresses</label><p class="description">Skip suspected spam IPs addresses in the export.<br /><a target="_blank" href="/wp-admin/admin.php?page=acf-options">Update IP list</a></th>
+                    <th scope="row"><label for="export_excluded_ips">Exclude Spam IP Addresses</label><p class="description">Skip suspected spam IPs addresses in the export.<br /><a target="_blank" href="/wp-admin/admin.php?page=acf-options-mha-global-options">Update IP list</a> on the 'Misc' tab of MHA Global Options.</p></th>
                     <td>
                         <input type="checkbox" name="export_excluded_ips" id="export_excluded_ips" value="1" />
                     </td>

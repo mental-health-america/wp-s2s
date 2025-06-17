@@ -58,3 +58,41 @@ add_filter('embed_oembed_html', function ($html, $url, $attr, $post_id) {
 		return $html;
 	}
 }, 10, 4);
+
+
+/**
+ * TranslatePress Integration
+ * Mark pages with espanol ACF field as Spanish pages
+ */
+function mha_mark_spanish_pages($post_id) {
+    // Only proceed if TranslatePress is active
+    if (!function_exists('trp_get_languages')) {
+        return;
+    }
+
+    // Get the espanol field value
+    $espanol = get_field('espanol', $post_id);
+    
+    if ($espanol) {
+        // Get the Spanish language code from TranslatePress
+        $languages = trp_get_languages();
+        $spanish_code = '';
+        
+        // TranslatePress returns an array of language objects
+        foreach ($languages as $language) {
+            if (isset($language['name']) && strtolower($language['name']) === 'spanish') {
+                $spanish_code = $language['language_code'];
+                break;
+            }
+        }
+        
+        if ($spanish_code) {
+            // Mark the post as Spanish
+            update_post_meta($post_id, 'trp_language', $spanish_code);
+        }
+    } else {
+        // If espanol is not checked, remove the Spanish language mark
+        delete_post_meta($post_id, 'trp_language');
+    }
+}
+add_action('acf/save_post', 'mha_mark_spanish_pages', 20);

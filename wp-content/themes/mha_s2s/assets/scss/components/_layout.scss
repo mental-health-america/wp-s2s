@@ -161,15 +161,15 @@
         margin: 15px 0 0 0;
         @media only screen and (max-width: 1080px){
             width: 140px;
-            margin-top: 23px;
+            margin-top: 27px;
         }
-        @media only screen and (max-width: 767px){
-            width: 145px;
-            margin-top: 4px;
-        }
-        @media only screen and (max-width: 767px){
-            width: 120px;
+        @media only screen and (max-width: 990px){
+            width: 150px;
             margin-top: 0;
+        }
+        @media only screen and (max-width: 990px){
+            width: 150px;
+            margin-top: 15px;
         }
         @media only screen and (max-width: 480px){
             width: 100px;
@@ -200,91 +200,97 @@
 
 
 /* Translation header */
+.mobile-top-row {
+    @media only screen and (max-width: 767px){
+        display: block;
+        clear: both;
+        #search-header {
+            margin-right: 10px;
+        }
+    }
+}
+.mobile-bottom-row {
+    @media only screen and (max-width: 767px){
+        display: block;
+        padding-top: 10px;
+        clear: both;
+    }
+}
+.header-language {
+    margin: 0 0 0 10px;
+    @media only screen and (max-width: 767px){
+        margin: 0;
+    }
+}
 .trp-language-switcher:focus .trp-ls-shortcode-language, .trp-language-switcher:hover .trp-ls-shortcode-language {
     padding: 0;
 }
 .trp_language_switcher_shortcode {
     display: inline-block;
     width: auto;
-    min-width: 140px;
+    min-width: 120px;
     margin-left: 5px;
     max-width: 100%;
     text-align: left;
-    .trp-language-switcher {
-        width: 160px;
-        & > div {
-            width: 100% !important;
-            display: block;
-            text-decoration: none;
-            color: $blue;
-            border: 0;
-            padding: 0;
-            background-color: $lightBlue;
-            @extend .bubble;
-            @extend .round-tiny-br;
-            @include transitions(color 150ms ease, background-color 150ms ease, border-radius 150ms ease);
-            &:hover {
-                background: $ceruleanLight;
-            }
-            & > a {
-                @include montserrat(600);
-                font-size: 14px;
-                text-transform: uppercase;
-                padding: 10px 25px 10px 15px;
-            }
-        }
-
-    }
-}
-
-.wpml-ls-legacy-dropdown {
-    display: inline-block;
-    width: auto;
-    min-width: 140px;
-    margin-left: 5px;
-    max-width: 100%;
-    text-align: left;
-    a {
+    button.trp-language-switcher {
+        position: relative;
+        z-index: 1001;
+        width: 120px;
+        height: 35px;
         display: block;
         text-decoration: none;
-        color: $blue;
+        color: $cerulean;
         border: 0;
-        background-color: $lightBlue;
-        padding: 10px 25px 10px 15px;
+        padding: 0;
+        background-color: $ceruleanLight;
         @extend .bubble;
-        @extend .round-tiny-br;
+        @extend .round-tiny-tr;
         @include transitions(color 150ms ease, background-color 150ms ease, border-radius 150ms ease);
         &:hover {
-            background: $ceruleanLight;
+            background: $ceruleanPale;
+            color: $cerulean;
+        }
+        & > a {
+            @include montserrat(600);
+            font-size: 14px;
+            text-transform: uppercase;
+            padding: 10px 25px 10px 15px;
         }
     }
-    .wpml-ls-current-language:hover > a {
-        background: $ceruleanLight;
-        border-bottom-left-radius: 0;
-    }
 
-    // Dropdown
-    .wpml-ls-sub-menu {
-        opacity: 0;
-        top: calc(100% - 5px);
-        border-top: 1px solid $cerulean;
-        @include transitions(top 150ms ease, opacity 150ms ease);
-        a {
-            @extend .bubble;
-            @include radius(0);
-            background: $ceruleanLight;
-            color: $blue;
+    .dropdown-menu {
+        width: 120px;
+        margin-top: -20px;
+        padding: 30px 0 15px 0;
+        border: 0;
+        font-size: .9em;
+        background: $ceruleanPale;
+        text-align: center;
+        border-radius: 0 0 30px 30px;
+        @include transitions(color 150ms ease, background-color 150ms ease, border-radius 150ms ease);
+        .dropdown-item {
+            padding: 10px 25px 10px 15px;
+            @include montserrat(600);
+            text-transform: uppercase;
+            text-decoration: none;
+            background: transparent;
+            color: $white;
+            @include transitions(color 150ms ease);
+            &:focus,
+            &:active,
             &:hover {
-                background: $cerulean;
-                color: $white;
+                color: $ceruleanLight;
             }
         }
-
     }
 
-    .wpml-ls-current-language:focus .wpml-ls-sub-menu,
-    .wpml-ls-current-language:hover .wpml-ls-sub-menu {
-        opacity: 1;
-        top: calc(100% - 0px);
+    .show {
+        button.trp-language-switcher {
+            background: $cerulean;
+            color: $white;
+        }
+        .dropdown-menu {
+            background-color: $cerulean;
+        }
     }
 }
