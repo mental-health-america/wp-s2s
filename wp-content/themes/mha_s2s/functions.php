@@ -89,8 +89,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250227' );
-	wp_enqueue_style( 'mha_s2s-language-switcher', get_template_directory_uri() . '/assets/css/language-switcher.css', array(), 'v1.0.0' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250617' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
     
 	// Add print CSS.
@@ -777,6 +776,7 @@ add_filter( 'manage_article_posts_columns', 'mha_s2s_filter_posts_columns' );
 function mha_s2s_filter_posts_columns( $columns ) {
 	$columns['tags'] = __( 'Tags' );
 	$columns['type'] = __( 'Type' );
+	$columns['espanol'] = __( 'Espanol' );
 	return $columns;
 }
 
@@ -794,7 +794,11 @@ function mha_s2s_article_column( $column, $post_id ) {
 			echo implode(', ', $type_array);
 		}
 	}
-	
+	// Espanol
+	if ( 'espanol' === $column ) {
+		$espanol = get_field('espanol', $post_id);
+		echo $espanol ? 'Yes' : 'No';
+	}
 }
 
 // Column orderby
@@ -802,6 +806,7 @@ add_filter( 'manage_edit-article_sortable_columns', 'mha_s2s_article_sortable_co
 function mha_s2s_article_sortable_columns( $columns ) {
 	$columns['type'] = 'type';
 	$columns['tags'] = 'tags';
+	$columns['espanol'] = 'espanol';
 	return $columns;
 }
 
