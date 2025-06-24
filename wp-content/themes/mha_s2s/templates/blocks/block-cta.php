@@ -26,6 +26,8 @@
         $headline = isset($partner_content['headline']) && $partner_content['headline'] != '' ? $partner_content['headline'] : null; 
         $content = isset($partner_content['content']) && $partner_content['content'] != '' ? $partner_content['content'] : null; 
     }
+
+    if($content != ''):
 ?>
 
 <script>
@@ -88,3 +90,4 @@
     ?>
 
 </div>
+<?php endif; ?>

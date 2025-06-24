@@ -47,6 +47,8 @@
 
         <div class="diy-questions diy-worksheet" data-start="<?php echo $activity_start_row; ?>">
 
+        <?php if(!$embedded){ the_content(); } ?>	
+        
             <?php                
                 // Download button
                 $link = get_field('download', $activity_id);
@@ -63,9 +65,9 @@
             <ol>
                 
                 <?php if(!$embedded): ?>
-                <li class="page-intro">
+                <li class="page-intro worksheet-item">
                     <div class="inner">
-                        <?php the_content(); ?>				
+                        <?php the_field('introduction'); ?>				
                     </div>
                 </li>
                 <?php endif; ?>
@@ -76,6 +78,10 @@
                     while( have_rows('questions') ) : the_row();
                         $row_index = get_row_index();
                         $required_field = $allow_question_skipping ? '' : ' required';
+
+                        // Row Details
+                        $question_type = get_sub_field('question_type');
+                        $question = get_sub_field('question');
 
                         // Default tabindexes
                         $tabindex = $row_index + 1;
@@ -89,13 +95,11 @@
                                 <div class="question mb-4" data-question="q<?php echo $row_index; ?>">
                                 <div class="inner">
 
-                                    <?php if(get_sub_field('question')): ?><div class="label text-red mb-3"><?php the_sub_field('question'); ?></div><?php endif; ?>
+                                    <?php if($question && $question_type != 'html'): ?><div class="label text-red mb-3"><?php the_sub_field('question'); ?></div><?php endif; ?>
                                     <?php if(get_sub_field('description')): ?><p class="text-wine mb-3"><?php the_sub_field('description'); ?></p><?php endif; ?>
 
                                     <div class="mb-4">
                                         <?php
-                                            $question_type = get_sub_field('question_type');
-
                                             switch($question_type){
                                                 case 'checkbox':
                                                 case 'radio':
