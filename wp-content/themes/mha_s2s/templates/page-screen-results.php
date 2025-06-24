@@ -833,7 +833,7 @@ else:
 
                                     $related_articles_decoded = json_decode($related_articles);  
                                     if(!empty($partner_ctas)){
-                                        $related_articles->show_title = false;
+                                        $related_articles_decoded->show_title = false;
                                     } 
                                     echo display_featured_next_steps( $related_articles_decoded );
                                     $used_links = $related_articles_decoded->used_links;
