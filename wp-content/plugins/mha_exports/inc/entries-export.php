@@ -322,7 +322,7 @@ function mha_export_screen_data(){
                 if($ftv['label'] == 'Featured Link Data' && !empty($v)) {
                     $json_data = json_decode($v, true);
                     if (is_array($json_data) && isset($json_data['additional_result_text'])) {
-                        $json_data['additional_result_text'] = cleanDigitalPathways($json_data['additional_result_text']);
+                        $json_data['additional_result_text'] = cleanAdditionalResultText($json_data['additional_result_text']);
                         $v = json_encode($json_data);
                     }
                 }
@@ -554,15 +554,27 @@ function moveArrayKeyToLast(&$array, $key){
     return $array;
 }
 
-function cleanDigitalPathways($content) {
+function cleanAdditionalResultText($content) {
     if (empty($content)) return $content;
     
-    // Convert to string if it's an array
-    $contentStr = is_array($content) ? json_encode($content) : $content;
-    
     // If digital-pathways is present, return empty string
-    if (strpos($contentStr, 'digital-pathways') !== false) {
+    if (is_string($content) && strpos($content, 'digital-pathways') !== false) {
         return 'Digital Pathways Content Removed';
+    }
+    
+    // Handle array of strings (strip tags from each element)
+    if (is_array($content)) {
+        foreach ($content as $key => $text) {
+            if (is_string($text)) {
+                $content[$key] = strip_tags($text);
+            }
+        }
+        return $content;
+    }
+    
+    // Handle single string
+    if (is_string($content)) {
+        return strip_tags($content);
     }
     
     return $content;
