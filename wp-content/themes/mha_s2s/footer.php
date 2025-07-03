@@ -1,4 +1,34 @@
-		<?php if(get_field('display_supporters')): ?>
+		
+		<?php 
+			// Check if supporters should be displayed
+			$show_supporters = get_field('display_supporters');
+			
+			// Check for partner referrer and hide_mha_partners field
+			$ref_var = get_query_var('ref');
+			$iframe_var = get_query_var('iframe');
+			if ($ref_var) {
+				$partner_args = array(
+					'post_type' => 'partners',
+					'post_status' => 'publish',
+					'posts_per_page' => -1,
+					'fields' => 'ids',
+				);
+				$partners = get_posts($partner_args);
+				
+				foreach ($partners as $partner_id) {
+					$partner_details = get_field('partner_information', $partner_id);
+					if ($ref_var == $partner_details['partner_code']) {
+						if ($partner_details['hide_mha_partners'] && $iframe_var) {
+							$show_supporters = false;
+						}
+						break;
+					}
+				}
+				wp_reset_postdata();
+			}
+			
+			if ($show_supporters): 
+		?>
 			<div id="supporters" class="pt-5">
 			<div class="wrap wide">
 				
