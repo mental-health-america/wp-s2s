@@ -110,6 +110,48 @@
                     "return_format": "d\/m\/Y",
                     "first_day": 1,
                     "allow_in_bindings": 0
+                },
+                {
+                    "key": "field_67f983477f255",
+                    "label": "End Date",
+                    "name": "end_date",
+                    "aria-label": "",
+                    "type": "date_picker",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "display_format": "d\/m\/Y",
+                    "return_format": "d\/m\/Y",
+                    "first_day": 1,
+                    "allow_in_bindings": 0
+                },
+                {
+                    "key": "field_6866def42e73b",
+                    "label": "Hide MHA Supporters",
+                    "name": "hide_mha_partners",
+                    "aria-label": "",
+                    "type": "true_false",
+                    "instructions": "Check this to hide the 'Supporters' logo display in the footer when the partner code is present.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "message": "",
+                    "default_value": 0,
+                    "allow_in_bindings": 0,
+                    "ui_on_text": "",
+                    "ui_off_text": "",
+                    "ui": 1
                 }
             ],
             "acfe_group_modal_close": 0,
@@ -167,7 +209,7 @@
                     "aria-label": "",
                     "type": "wysiwyg",
                     "instructions": "",
-                    "required": 1,
+                    "required": 0,
                     "conditional_logic": 0,
                     "wrapper": {
                         "width": "",
@@ -210,5 +252,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1744405363
+    "modified": 1751572295
 }

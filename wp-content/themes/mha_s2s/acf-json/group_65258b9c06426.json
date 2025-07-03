@@ -1,6 +1,6 @@
 {
     "key": "group_65258b9c06426",
-    "title": "Featured Next Steps (Test)",
+    "title": "Featured Next Steps",
     "fields": [
         {
             "key": "field_651eeb09bf8a4",
@@ -92,6 +92,7 @@
                     "collapsed": "",
                     "button_label": "Add Link Group",
                     "rows_per_page": 20,
+                    "parent_repeater": "field_651eeb09bf8a4",
                     "sub_fields": [
                         {
                             "key": "field_651eebd9bf8a8",
@@ -165,7 +166,9 @@
                             "placeholder": "",
                             "allow_custom": 0,
                             "search_placeholder": "",
-                            "parent_repeater": "field_651eebcebf8a7"
+                            "parent_repeater": "field_651eebcebf8a7",
+                            "create_options": 0,
+                            "save_options": 0
                         },
                         {
                             "key": "field_651eee5560881",
@@ -189,6 +192,7 @@
                             "collapsed": "",
                             "button_label": "Add Condition",
                             "rows_per_page": 20,
+                            "parent_repeater": "field_651eebcebf8a7",
                             "sub_fields": [
                                 {
                                     "key": "field_651eeeb160882",
@@ -220,7 +224,9 @@
                                     "ui": 0,
                                     "ajax": 0,
                                     "placeholder": "",
-                                    "parent_repeater": "field_651eee5560881"
+                                    "parent_repeater": "field_651eee5560881",
+                                    "create_options": 0,
+                                    "save_options": 0
                                 },
                                 {
                                     "key": "field_651eef0660883",
@@ -263,7 +269,9 @@
                                     "placeholder": "",
                                     "allow_custom": 0,
                                     "search_placeholder": "",
-                                    "parent_repeater": "field_651eee5560881"
+                                    "parent_repeater": "field_651eee5560881",
+                                    "create_options": 0,
+                                    "save_options": 0
                                 },
                                 {
                                     "key": "field_651eef1e60884",
@@ -339,8 +347,7 @@
                                     "append": "",
                                     "parent_repeater": "field_651eee5560881"
                                 }
-                            ],
-                            "parent_repeater": "field_651eebcebf8a7"
+                            ]
                         },
                         {
                             "key": "field_651eebe2bf8a9",
@@ -413,8 +420,7 @@
                             "save_post_type": "",
                             "parent_repeater": "field_651eebcebf8a7"
                         }
-                    ],
-                    "parent_repeater": "field_651eeb09bf8a4"
+                    ]
                 },
                 {
                     "key": "field_65258c3c3df04",
@@ -492,6 +498,13 @@
                 "operator": "==",
                 "value": "screen"
             }
+        ],
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "partners"
+            }
         ]
     ],
     "menu_order": 2,
@@ -510,5 +523,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1698961180
+    "modified": 1750184344
 }

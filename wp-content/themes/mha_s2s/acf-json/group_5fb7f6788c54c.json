@@ -73,19 +73,22 @@
                 "class": "",
                 "id": ""
             },
+            "relevanssi_exclude": 0,
             "choices": {
                 "document": "Document",
+                "interactive": "Interactive",
                 "website": "Website",
                 "mobile-app": "Mobile App",
                 "video": "Video",
                 "book": "Book",
                 "other": "Other"
             },
-            "allow_custom": 0,
             "default_value": [],
+            "return_format": "value",
+            "allow_custom": 0,
+            "allow_in_bindings": 1,
             "layout": "horizontal",
             "toggle": 0,
-            "return_format": "value",
             "save_custom": 0,
             "custom_choice_button_text": "Add new choice"
         },
@@ -612,5 +615,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1698417979
+    "modified": 1741795435
 }

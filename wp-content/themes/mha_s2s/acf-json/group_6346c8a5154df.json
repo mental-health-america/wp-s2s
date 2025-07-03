@@ -325,15 +325,7 @@
                     "type": "text",
                     "instructions": "",
                     "required": 0,
-                    "conditional_logic": [
-                        [
-                            {
-                                "field": "field_63ffc8e68a53e",
-                                "operator": "==",
-                                "value": "html"
-                            }
-                        ]
-                    ],
+                    "conditional_logic": 0,
                     "wrapper": {
                         "width": "",
                         "class": "",
@@ -342,6 +334,7 @@
                     "relevanssi_exclude": 0,
                     "default_value": "",
                     "maxlength": "",
+                    "allow_in_bindings": 1,
                     "placeholder": "",
                     "prepend": "",
                     "append": "",
@@ -1062,5 +1055,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1728052390
+    "modified": 1741897626
 }
