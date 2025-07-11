@@ -49,3 +49,6 @@ include_once 'inc/admin.php';
 
 // Admin Specific Scripts
 include_once 'inc/ab_testing.php';
+
+// API Endpoints
+include_once 'inc/rest-get_screen_result_demo.php';
