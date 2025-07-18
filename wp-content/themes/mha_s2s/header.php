@@ -197,13 +197,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				?>
 			</span>
 			
-			<?php /*
 			<span class="header-language">
 				<?php
 					echo do_shortcode( '[mha_language_switcher]' );
 				?>
 			</span>
-			*/ ?>
 		</span>
 
 		</div>
