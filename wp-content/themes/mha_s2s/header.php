@@ -107,32 +107,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 	<?php
 	// Partner referrer template mode
 	$ref_var = get_query_var('ref');
-	$display_partner_banner = false;
-	$partner_banner_info = array();
-	if ( $ref_var ):
-		$partner_cta_args = array(
-			'post_type' => 'partners',
-			'post_status' => 'publish',
-			'posts_per_page' => -1,
-			'fields' => 'ids',
-		);
-		$partners_cta = get_posts($partner_cta_args);
-		foreach ( $partners_cta as $partner_id ) {
-			$partner_details = get_field('partner_information', $partner_id);
-			if ( !empty($partner_details['partner_code']) ) {
-				if ( $ref_var == $partner_details['partner_code'] ) {
-					$partner_banner_info = array(
-						'logo' => $partner_details['partner_logo']['sizes']['medium_large'],
-						'url' => $partner_details['partner_domain']
-					);
-					$display_partner_banner = true;
-					break;
-				}
-			}
-		}
-	endif;
+	$partner_banner = mha_partner_banner( $ref_var );
 
-	if(!$display_partner_banner):	
+	if(!$partner_banner):	
 	?>
 	<header id="header" class="clearfix">
 	<div class="wrap normal">
@@ -253,10 +230,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 	</header>
 	<?php endif; ?>
 
-	<main id="content" class="site-content">
-
 	<?php
-	if ( $display_partner_banner ):
+	if ( $partner_banner ):
 		// $partner_logo_link_url = $partner_banner_info['url'];
 		$partner_logo_link_url = add_query_arg( 'ref', $ref_var, site_url('/screening-tools/') );
 	?>
@@ -266,7 +241,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				<div class="row">
 					<div class="col-6 text-left">
 						<a href="<?php echo $partner_logo_link_url; ?>">
-							<img src="<?php echo $partner_banner_info['logo']; ?>" alt="" style="width: 150px; height: auto;" />
+							<img src="<?php echo $partner_banner['logo']; ?>" alt="" style="width: 150px; height: auto;" />
 						</a>
 					</div>
 					<div class="col-6 text-right">
@@ -278,6 +253,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 			</div>
 		</div>
 		</header>
+		<div id="partner-footer"></div>
 	<?php
 	endif;
 	?>
+
+	<main id="content" class="site-content">

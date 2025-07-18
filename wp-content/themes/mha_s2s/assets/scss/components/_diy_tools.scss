@@ -195,6 +195,28 @@ button.peek {
     }
 }
 
+// Responsive collapse for filters
+.show-md {
+    @media only screen and (min-width: 768px) {
+        display: block !important;
+    }
+    @media only screen and (max-width: 767px) {
+        display: none !important;
+    }
+}
+
+// Filter toggle button responsive behavior
+#filter-toggle {
+    @media only screen and (min-width: 768px) {
+        // Hide the toggle button on desktop since filters are always visible
+        display: none !important;
+    }
+    @media only screen and (max-width: 767px) {
+        // Show the toggle button on mobile
+        display: block !important;
+    }
+}
+
 .question-breadcrumb {
     display: flex;
     width: calc(100% + 100px);
