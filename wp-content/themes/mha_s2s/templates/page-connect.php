@@ -26,9 +26,9 @@ get_header();
         <div id="filters" class="clear">
         <div class="inner">
 
-            <button id="filter-toggle" class="bold text-gray caps accordion-button mb-5 mb-md-4" type="button" data-toggle="collapse" data-target="#diy-filter" aria-expanded="true" aria-controls="diy-filter">Filters</button>
+            <button id="filter-toggle" class="bold text-gray caps accordion-button mb-5 mb-md-4" type="button" data-toggle="collapse" data-target="#connect-filter" aria-expanded="false" aria-controls="connect-filter" data-expanded-md="true">Filters</button>
 
-            <div id="diy-filter" class="search-filters form-container collapse show">
+            <div id="connect-filter" class="search-filters form-container collapse show-md">
 
                 <a href="/diy-tools" class="right plain pt-1 red small bold">Clear All</a>
                 <p class="bold text-dark-blue caps nb-3 intro-label montserrat">Filters</p>

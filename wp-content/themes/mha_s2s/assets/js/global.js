@@ -89,6 +89,29 @@
 			}
 		});
 
+		/*
+		// Partner mode: append ref parameter to internal links
+		if($('body').hasClass('partner-mode')) {
+			// Get the ref parameter from current URL
+			var urlParams = new URLSearchParams(window.location.search);
+			var refValue = urlParams.get('ref');
+			
+			if(refValue) {
+				// Find all internal links and append ref parameter
+				$('a[href^="/"], a[href^="' + window.location.origin + '"]').each(function() {
+					var $link = $(this);
+					var href = $link.attr('href');
+					
+					// Skip if already has ref parameter or is a special link type
+					if(href && !href.includes('ref=') && !$link.hasClass('social-share')) {
+						var separator = href.includes('?') ? '&' : '?';
+						$link.attr('href', href + separator + 'ref=' + encodeURIComponent(refValue));
+					}
+				});
+			}
+		}
+			*/
+
 		// Disable "heading" links in the menu
 		$('li.heading > a').on('click', function(event) {
 			event.preventDefault();
@@ -137,6 +160,30 @@
 				$('#account-settings-form').addClass('reveal');
 			}
 		}
+		
+		// Responsive filter toggle
+		function updateFilterToggleState() {
+			var $filterToggle = $('#filter-toggle');
+			var $filterContent = $('#diy-filter');
+			
+			if ($(window).width() >= 768) {
+				// Desktop: always show, update aria-expanded
+				$filterContent.addClass('show-md');
+				$filterToggle.attr('aria-expanded', 'true');
+			} else {
+				// Mobile: use collapse behavior, update aria-expanded
+				$filterContent.removeClass('show-md');
+				$filterToggle.attr('aria-expanded', 'false');
+			}
+		}
+		
+		// Initialize filter toggle state
+		updateFilterToggleState();
+		
+		// Update on window resize
+		$(window).on('resize', function() {
+			updateFilterToggleState();
+		});
 		
 		// Scrolling to reveal content when opened    
 		$(document).on('shown.bs.collapse', function(event){

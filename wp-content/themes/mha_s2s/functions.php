@@ -89,8 +89,8 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250617' );
-	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
+	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250617' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
     
 	// Add print CSS.
 	wp_enqueue_style( 'mha_s2s-print-style', get_template_directory_uri() . '/assets/css/print.css', null, 'v20240702', 'print' );
@@ -120,8 +120,8 @@ function mha_s2s_scripts() {
 	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20250227', true );
-	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
+	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20250227', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
@@ -241,6 +241,45 @@ function wp_body_classes( $classes ) {
 	if(isset($_GET['partner']) && in_array($partner_var, mha_approved_partners() )){
 		$classes[] = 'partner-'.$partner_var;
 	}     
+
+	// Partner banner classes
+	$ref_var = get_query_var('ref');
+	$sid = get_query_var('sid');
+
+	if ( $ref_var ):
+
+		$partner_cta_args = array(
+			'post_type' => 'partners',
+			'post_status' => 'publish',
+			'posts_per_page' => -1,
+			'fields' => 'ids',
+		);
+		$partners_cta = get_posts($partner_cta_args);
+		foreach ( $partners_cta as $partner_id ) {
+			$partner_details = get_field('partner_information', $partner_id);
+			if ( !empty($partner_details['partner_code']) ) {
+				if ( $ref_var == $partner_details['partner_code'] ) {
+					$classes[] = 'partner-mode';
+					break;
+				}
+			}
+		}
+
+	elseif($sid):
+
+		// Screening Page Override
+		if($sid){
+			global $wpdb;
+			$user_screen_id = str_replace('_ref', '', $sid);
+			$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
+			$user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
+			$ref_var = $user_screen_result['referer'] ? $user_screen_result['referer'] : false;
+			if($ref_var){
+				$classes[] = 'partner-mode';
+			}
+		}
+
+	endif;
 	
 	// Layout classes
 	if(isset($_GET['layout'])){
@@ -1346,4 +1385,46 @@ function mha_get_matching_partner_info($referer, $current_date = null) {
 function mha_get_featured_next_steps_source($screen_id, $referer) {
     $partner_info = mha_get_matching_partner_info($referer);
     return $partner_info ? $partner_info['partner']->ID : $screen_id;
+}
+
+
+function mha_partner_banner($referer = null) {
+
+	$ref_var = $referer ? $referer : get_query_var('ref');
+	$partner_banner_info = false;
+
+	// Screening Page Override
+	if(get_query_var('sid')){
+		global $wpdb;
+		$user_screen_id = str_replace('_ref', '', get_query_var('sid'));
+		$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
+		$user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
+		$ref_var = $user_screen_result['referer'] ? $user_screen_result['referer'] : $ref_var;
+	}
+
+	// Otherwise...
+	if ( $ref_var ):
+		$partner_cta_args = array(
+			'post_type' => 'partners',
+			'post_status' => 'publish',
+			'posts_per_page' => -1,
+			'fields' => 'ids',
+		);
+		$partners_cta = get_posts($partner_cta_args);
+		foreach ( $partners_cta as $partner_id ) {
+			$partner_details = get_field('partner_information', $partner_id);
+			if ( !empty($partner_details['partner_code']) ) {
+				if ( $ref_var == $partner_details['partner_code'] ) {
+					$partner_banner_info = array(
+						'logo' => $partner_details['partner_logo']['sizes']['medium_large'],
+						'url' => $partner_details['partner_domain']
+					);
+					$display_partner_banner = true;
+					break;
+				}
+			}
+		}
+	endif;
+	return $partner_banner_info;
+
 }

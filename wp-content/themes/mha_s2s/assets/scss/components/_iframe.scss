@@ -67,3 +67,59 @@
     }
 
 }
+
+#partner-footer { display: none;}
+.partner-mode {
+    #content {
+        padding: 125px 0 54px 0; 
+    }
+    #partner-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 200;  
+        font-size: 1.6em;
+        line-height: 1em;
+        @media only screen and (max-width: 860px){
+            font-size: 1.1em;
+            line-height: 1em;
+        }
+    }
+    #partner-footer {
+        display: block;
+        position: fixed;
+        z-index: 200;
+        width: 100%;
+        height: auto;
+        padding: 10px 0;
+        bottom: 0;
+        left: 0;
+        z-index: 60;
+        background: $purple;
+        color: $white;
+        text-align: center;
+        &:before {
+            content: 'Powered by ';
+            display: inline;
+            vertical-align: middle;
+            margin: 0;
+            width: 100%;
+            text-align: center;
+            color: $white;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        &:after {
+            content: '';
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 0 0 3px;
+            width: 110px;
+            height: 34px;
+            background: url('../images/mha-logo-white.png') center left no-repeat;
+            background-size: contain;
+        }
+    }
+}

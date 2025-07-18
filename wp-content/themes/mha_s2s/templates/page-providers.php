@@ -29,9 +29,9 @@ get_header();
         <div id="filters" class="clear">
         <div class="inner">
 
-            <button id="filter-toggle" class="bold text-gray caps accordion-button mb-5 mb-md-4" type="button" data-toggle="collapse" data-target="#diy-filter" aria-expanded="true" aria-controls="diy-filter">Filters</button>
+            <button id="filter-toggle" class="bold text-gray caps accordion-button mb-5 mb-md-4" type="button" data-toggle="collapse" data-target="#providers-filter" aria-expanded="false" aria-controls="providers-filter" data-expanded-md="true">Filters</button>
 
-            <div id="diy-filter" class="search-filters form-container collapse">
+            <div id="providers-filter" class="search-filters form-container collapse show-md">
 
                 <a href="<?php echo get_the_permalink(); ?>" class="right plain pt-1 red small bold"><?php echo _e('Clear All', 'mhas2s'); ?></a>
                 <p class="bold text-dark-blue caps nb-3 intro-label montserrat"><?php echo _e('Filters', 'mhas2s'); ?></p>
