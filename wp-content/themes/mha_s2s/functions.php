@@ -275,23 +275,7 @@ function wp_body_classes( $classes ) {
 			$user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
 			$ref_var = $user_screen_result['referer'] ? $user_screen_result['referer'] : false;
 			if($ref_var){
-
-				$partner_cta_args = array(
-					'post_type' => 'partners',
-					'post_status' => 'publish',
-					'posts_per_page' => -1,
-					'fields' => 'ids',
-				);
-				$partners_cta = get_posts($partner_cta_args);
-				foreach ( $partners_cta as $partner_id ) {
-					$partner_details = get_field('partner_information', $partner_id);
-					if ( !empty($partner_details['partner_code']) ) {
-						if ( $ref_var == $partner_details['partner_code'] ) {
-							$classes[] = 'partner-mode';
-							break;
-						}
-					}
-				}
+				$classes[] = 'partner-mode';
 			}
 		}
 
