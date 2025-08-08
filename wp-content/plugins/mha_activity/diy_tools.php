@@ -6,8 +6,8 @@
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsScripts');
 function mhaDiyToolsScripts() {
-	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20240104', true);
-	//wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), time(), true);
+	//wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20240104', true);
+	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), time(), true);
 	wp_localize_script('process_mhaDiyTools', 'do_mhaDiyTools', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 
@@ -326,10 +326,10 @@ function getDiyCrowdsource(){
     $use_cache = false;
 	$json = plugin_dir_path( __FILE__ ).'tmp/'.$args['activity_id'].'_'.$args['page'].'.json'; 
 
-    if (file_exists($json) && filemtime($json) > strtotime('-1 day')) {
+    /*if (file_exists($json) && filemtime($json) > strtotime('-1 day')) {
         $responses = json_decode(file_get_contents($json), true);
         $use_cache = true;
-    }
+    }*/
 
     if(!$use_cache){
 
@@ -342,8 +342,8 @@ function getDiyCrowdsource(){
         } else {
             $crowdsource_scoring_id = 'options';
         }
-        $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $crowdsource_scoring_id);
-        $crowdsource_scoring_time = strtotime( $crowdsource_scoring_date_range );
+        $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $args['activity_id']);
+        $crowdsource_scoring_time = $crowdsource_scoring_date_range ? strtotime( $crowdsource_scoring_date_range ) : strtotime('1 month ago');
         $date_old = date('Y-m-d', $crowdsource_scoring_time);
         $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $crowdsource_scoring_id);
 
@@ -451,6 +451,9 @@ function getDiyCrowdsource(){
         if($args['current']){
             $crowd_args["post__not_in"] = array( $args['current'] );
         }
+
+        // Debugging the query:
+        //error_log('crowd_args: ' . print_r($crowd_args, true));
 
         // Get the answers for this question
         $crowd_loop = new WP_Query($crowd_args); 
