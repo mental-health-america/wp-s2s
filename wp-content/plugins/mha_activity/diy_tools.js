@@ -318,6 +318,7 @@
 				},
 				success: function( results ) {
 					var res = JSON.parse(results);
+					console.log(results);
 					$diyParent.find('.crowdthoughtsContent').removeClass('loading');
 					
 					// The initial population
