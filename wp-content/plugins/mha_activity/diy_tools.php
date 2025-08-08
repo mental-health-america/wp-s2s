@@ -6,8 +6,8 @@
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsScripts');
 function mhaDiyToolsScripts() {
-	//wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20240104', true);
-	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), time(), true);
+	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20250808', true);
+	//wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), time(), true);
 	wp_localize_script('process_mhaDiyTools', 'do_mhaDiyTools', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 
@@ -192,500 +192,467 @@ function mhaDiySubmit(){
 }
 
 
-function getDiyTopLikes( $activity_id, $where_flag, $total_questions, $args ) {
-
-    $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $activity_id);
-    $crowdsource_scoring_time = strtotime( $crowdsource_scoring_date_range );
-    $date_old = date('Y-m-d', $crowdsource_scoring_time);
-    $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $activity_id);
-
-    $responses = []; // Store carousel of responses
-    $responses_collection = []; // Uses for storing response IDs
-
-    $use_cache = false;
-	$json = plugin_dir_path( __FILE__ ).'tmp/total_relates_'.$activity_id.'.json'; 
-    $responses = null;
-
-    if (file_exists($json) && filemtime($json) > strtotime('-1 day')) {
-        $responses = json_decode(file_get_contents($json), true);
-        $use_cache = true;
+function getDiyTopLikes($activity_id, $flagged_posts = [], $total_questions = 0, $args = []) {
+    
+    // Get scoring configuration    
+    $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $args['activity_id']);
+    $date_old = $crowdsource_scoring_date_range 
+        ? date('Y-m-d', strtotime($crowdsource_scoring_date_range))
+        : date('Y-m-d', strtotime('30 days ago'));
+    
+    $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $args['activity_id']);
+    
+    // Cache settings
+    $cache_file = plugin_dir_path(__FILE__) . 'tmp/total_relates_' . $activity_id . '.json';
+    $cache_dir = dirname($cache_file);
+    
+    // Ensure cache directory exists
+    if (!is_dir($cache_dir)) {
+        wp_mkdir_p($cache_dir);
     }
-
-    if(!$use_cache){
-
-        if( get_field('override_crowdsource_scoring', $activity_id) ){
-            $crowdsource_scoring_id = $args['activity_id'];
-        } else {
-            $crowdsource_scoring_id = 'options';
+    
+    // Check cache first
+    $top_likes_data = [];
+    
+    /*
+    if (file_exists($cache_file) && filemtime($cache_file) > strtotime('-1 day')) {
+        $cached_data = json_decode(file_get_contents($cache_file), true);
+        if ($cached_data && isset($cached_data['top_likes'])) {
+            $top_likes_data = $cached_data['top_likes'];
         }
-
+    }
+    */
+    
+    if (empty($top_likes_data)) {
         global $wpdb;
-        $top_likes = $wpdb->get_results("
+        
+        // Build efficient query for top likes
+        $where_clause = $wpdb->prepare("
+            WHERE ref_pid = %d 
+            AND unliked = 0 
+            AND date >= %s
+        ", $activity_id, $date_old);
+        
+        // Add flagged posts exclusion if provided
+        if (!empty($flagged_posts)) {
+            $flagged_ids = implode(',', array_map('intval', $flagged_posts));
+            $where_clause .= " AND pid NOT IN ($flagged_ids)";
+        }
+        
+        $top_likes_query = "
             SELECT pid, COUNT(*) as total_likes 
             FROM thoughts_likes 
-            WHERE 
-                ref_pid = 108701 AND 
-                unliked = 0 AND 
-                date >= '2024-03-04'
+            $where_clause
             GROUP BY pid 
             ORDER BY total_likes DESC
-            LIMIT 100
-        ");
-        if($top_likes){
-            foreach($top_likes as $tl){
-                if(get_post($tl->pid) && !get_field('crowdsource_hidden', $tl->pid)){
+            LIMIT 500
+        ";
+        
+        $top_likes = $wpdb->get_results($top_likes_query);
+        
+        if ($top_likes) {
+            foreach ($top_likes as $tl) {
+                // Verify post exists and is not hidden
+                if (get_post($tl->pid) && !get_field('crowdsource_hidden', $tl->pid)) {
                     $response_likes_override = $relate_bonus ? ($relate_bonus * $tl->total_likes) : $tl->total_likes;
-                    $responses_collection[$tl->pid] = array(
-                        'id'    => $tl->pid,
-                        'date'  => get_the_date('', $tl->pid),
+                    $top_likes_data[] = [
+                        'pid' => $tl->pid,
+                        'date' => get_the_date('', $tl->pid),
                         'likes' => ($tl->total_likes > 0) ? $response_likes_override : 0,
-                        'true_likes' => $tl->total_likes,
-                    );                      
+                        'true_likes' => intval($tl->total_likes),
+                    ];
                 }
             }
         }
-
-        foreach($responses_collection as $k => $v){
-            $response_args = array(
-                'pid'                       => $k,
-                'true_likes'                => $v['true_likes'],
-                'likes'                     => $v['likes'],
-                'args'                      => $args,
-                'date'                      => get_the_date('', $k),
-                'total_questions'           => $total_questions,
-                'crowdsource_scoring_id'    => $crowdsource_scoring_id
-            );
-
-            $get_response_display = get_diy_response_display( $response_args );
-            if($get_response_display){
-                $responses[] = get_diy_response_display( $response_args );
-            }
-        }
-
-        // Print responses, sorted by likes
-        if($responses){
-            // Sort
-            usort($responses, function ($a, $b) {return $b['true_likes'] <=> $a['true_likes'];} );
-
-            // Update the cache file
-            $fp = fopen($json, 'w');
-            fwrite($fp, json_encode($responses));
-            fclose($fp);
-        }
-
+        
+        // Cache the results
+        $cache_data = [
+            'top_likes' => $top_likes_data,
+            'cached_at' => current_time('mysql')
+        ];
+        file_put_contents($cache_file, json_encode($cache_data));
     }
-
-    return $responses;
-
+    
+    return $top_likes_data;
 }
 
 
 add_action("wp_ajax_nopriv_getDiyCrowdsource", "getDiyCrowdsource");
 add_action("wp_ajax_getDiyCrowdsource", "getDiyCrowdsource");
 function getDiyCrowdsource(){
+    // Initialize result array
+    $result = [
+        'html' => '',
+        'args' => [],
+        'responses' => [],
+        'total_pages' => 0,
+        'current_page' => 0
+    ];
 
-    // Post data
-    $result = [];
-    $defaults = array(
+    // Parse and validate input data
+    $defaults = [
         'question'      => null,
         'current'       => null,
         'activity_id'   => null,
         'carousel'      => null,
-        'offset'        => 0,
-        'page'          => 0,
-        'total_pages'   => 0,
+        'page'          => 1,
         'embedded'      => 0,
         'single_embed'  => 0
-    );    
+    ];    
     parse_str($_POST['data'], $data);  
-    $args = wp_parse_args( $data, $defaults ); 
-    $result['html'] = '';
+    $args = wp_parse_args($data, $defaults); 
+    $args['page'] = max(1, intval($args['page'])); // Ensure page is at least 1
+    
     $result['args'] = $args;
-    $args['page'] = intval($args['page']);
+    $result['current_page'] = $args['page'];
     
     // Pagination settings
-    $per_page = $args['embedded'] ? 5 : 10; // Different page counts for display types
-    $args['offset'] = (intval($args['page']) - 1) * $per_page;
-    $args['per_page'] = $per_page;
-
-    // Future helpers
-    $diy_flag_message = get_field('flag_message', 'options');
-    $diy_flag_confirm = get_field('flag_confirmation', 'options');
-    $activity_questions = get_field('questions', $args["activity_id"]);
+    $per_page = $args['embedded'] ? 5 : 10;
+    
+    // Get activity data
+    $activity_questions = get_field('questions', $args['activity_id']);
     $total_questions = $activity_questions ? count($activity_questions) : 0;
-    $show_next_previews = get_field('show_next_previews', $args["activity_id"]) ? get_field('show_next_previews', $args["activity_id"]) : 0;
-
+    $show_next_previews = get_field('show_next_previews', $args['activity_id']) ?: 0;
+    
     if($args['single_embed'] == 1){
         $show_next_previews = 0;
     }
     
-    $responses = []; // Store carousel of responses
-    $responses_collection = []; // Uses for storing response IDs
-
-	// Return JSON contents if available
+    // Better caching strategy using WordPress transients
+    $cache_key = 'diy_crowdsource_' . $args['activity_id'] . '_' . md5(serialize($args));
+    $cache_group = 'diy_crowdsource_' . $args['activity_id'];
+    
+    // Check cache first
     $use_cache = false;
-	$json = plugin_dir_path( __FILE__ ).'tmp/'.$args['activity_id'].'_'.$args['page'].'.json'; 
-
-    /*if (file_exists($json) && filemtime($json) > strtotime('-1 day')) {
-        $responses = json_decode(file_get_contents($json), true);
+    $responses = [];
+    
+    // Try to get from cache
+    $cached_data = wp_cache_get($cache_key, $cache_group);
+    if ($cached_data !== false) {
+        $responses = $cached_data['responses'] ?? [];
+        $result['total_pages'] = $cached_data['total_pages'] ?? 0;
+        $result['has_next_page'] = $cached_data['has_next_page'] ?? false;
         $use_cache = true;
-    }*/
+    }
 
-    if(!$use_cache){
-
-        // Get top recent likes
-        global $wpdb;
-        
-        // Crowdsource Scoring Options
-        if( get_field('override_crowdsource_scoring', $args['activity_id']) ){
-            $crowdsource_scoring_id = $args['activity_id'];
-        } else {
-            $crowdsource_scoring_id = 'options';
-        }
+    if (!$use_cache) {
+        // Get scoring configuration        
         $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $args['activity_id']);
-        $crowdsource_scoring_time = $crowdsource_scoring_date_range ? strtotime( $crowdsource_scoring_date_range ) : strtotime('1 month ago');
-        $date_old = date('Y-m-d', $crowdsource_scoring_time);
-        $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $crowdsource_scoring_id);
-
-        // Get flags for later
-        $top_flags = [];
-        $top_flags_query = $wpdb->get_results("
-            SELECT pid, 'row', COUNT(pid) AS highflags 
-            FROM thoughts_flags 
-            WHERE 
-                ref_pid = {$args['activity_id']}
-            GROUP BY pid
-            HAVING (highflags >= 1) 
-            ORDER BY date DESC 
-            LIMIT 200
-        ");
-        if($top_flags_query){
-            foreach($top_flags_query as $tf){
-                $top_flags[] = $tf->pid;
-            }
-        }            
-        // Crosscheck with admin notes
-        foreach($top_flags as $k => $v){
-            $admin_note = get_field('admin_notes', $v);
-            if($admin_note && $admin_note != ''){
-                unset($top_flags[$k]);
-            }
-        }
+        $date_old = $crowdsource_scoring_date_range 
+            ? date('Y-m-d', strtotime($crowdsource_scoring_date_range))
+            : date('Y-m-d', strtotime('30 days ago'));
+            
+        $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $args['activity_id']);
         
-        // Get Likes
-        $where_flag = '';
-        if(count($top_flags)){
-            $flag_id_string = implode(',', $top_flags);
-            $where_flag = "AND pid NOT IN($flag_id_string)";
-        }
-        //$top_likes_demo = getDiyTopLikes( $crowdsource_scoring_id, $where_flag );
-        $top_likes = getDiyTopLikes( $args['activity_id'], $where_flag, $total_questions, $args );
-
-        $toplikes_per_page = $per_page;
-        $toplikes_offset = $toplikes_per_page * ($args['page'] - 1);
-        $toplikes_counter = 0;
-
-        if($top_likes){
-            $top_likes_sliced = array_slice($top_likes, $toplikes_offset);
-            $result['toplikes_normal'] = $top_likes;
-            $result['toplikes_sliced'] = $top_likes_sliced;
-            if($top_likes_sliced){
-                foreach($top_likes_sliced as $tl){
-                    if(
-                        get_post($tl['pid']) && 
-                        !get_field('crowdsource_hidden', $tl['pid']) && 
-                        !in_array($tl['pid'], $top_flags) &&
-                        $toplikes_counter < $toplikes_per_page
-                    ){
-                        $response_likes_override = $relate_bonus ? ($relate_bonus * $tl['true_likes']) : $tl['true_likes'];
-                        $responses_collection[$tl['pid']] = array(
-                            'id'    => $tl['pid'],
-                            'date'  => get_the_date('', $tl['pid']),
-                            'likes' => ($tl['true_likes'] > 0) ? $response_likes_override : 0,
-                            'true_likes' => $tl['true_likes'],
-                        );       
-                        $toplikes_counter++;               
-                    }
+        // Get flagged posts to exclude
+        global $wpdb;
+        $flagged_posts = [];
+        $flagged_query = $wpdb->get_results($wpdb->prepare("
+            SELECT pid 
+            FROM thoughts_flags 
+            WHERE ref_pid = %d
+            GROUP BY pid
+            HAVING COUNT(pid) >= 1
+        ", $args['activity_id']));
+        
+        if ($flagged_query) {
+            foreach ($flagged_query as $flag) {
+                // Only exclude if no admin note (admin reviewed and approved)
+                $admin_note = get_field('admin_notes', $flag->pid);
+                if (!$admin_note || $admin_note == '') {
+                    $flagged_posts[] = $flag->pid;
                 }
             }
         }
         
-        $crowd_args = array(
-            "post_type"     	=> 'diy_responses',
-            "order"             => 'DESC',
-            "orderby"           => 'date',
-            "post_status"       => 'publish',
-            "posts_per_page"    => $per_page,
-            "paged"             => $args['page'],
-            "post__not_in"      => $top_flags,
-            'date_query' => array(
-                array(
-                    'after'     => $date_old,
-                    'inclusive' => true
-                ),
-            ),
-            "meta_query"		=> array(
-                'relation' => 'AND',
-                array(
-                    'key'       => 'activity_id',
-                    'value'     => '"'.$args['activity_id'].'"',
-                    'compare'   => 'LIKE'
-                ),                
-                array(
-                    'relation' => 'OR',
-                    array(
-                        'key' => 'crowdsource_hidden',
-                        'value' => '1',
-                        'compare' => '!='
-                    ),
-                    array(
-                        'key' => 'crowdsource_hidden',
-                        'value' => '1',
-                        'compare' => 'NOT EXISTS'
-                        )
-                )
-            ),
-            "fields" => 'ids'
-        );
-        
-        if($args['current']){
-            $crowd_args["post__not_in"] = array( $args['current'] );
+        // Build exclusion list for flagged posts and current post
+        $exclude_posts = $flagged_posts;
+        if ($args['current']) {
+            $exclude_posts[] = $args['current'];
         }
-
-        // Debugging the query:
-        //error_log('crowd_args: ' . print_r($crowd_args, true));
-
-        // Get the answers for this question
-        $crowd_loop = new WP_Query($crowd_args); 
-        $args['total_pages'] = $crowd_loop->max_num_pages; 
+        $exclude_clause = '';
+        if (!empty($exclude_posts)) {
+            $exclude_ids = implode(',', array_map('intval', $exclude_posts));
+            $exclude_clause = "AND p.ID NOT IN ($exclude_ids)";
+        }
         
-        $result['toplikes_counter'] = $toplikes_counter;
-
-        $crowdsource_counter = 0;
-        if($crowd_loop->have_posts() && $toplikes_counter < $per_page):
-        while($crowd_loop->have_posts()) : $crowd_loop->the_post();   
-
-            if($per_page - $toplikes_counter > $crowdsource_counter){
-                // Skip previoulsy retrieved IDs
-                $pid = get_the_ID();
+        // Single efficient query to get all posts with likes for this activity
+        $posts_query = $wpdb->prepare("
+            SELECT 
+                p.ID as pid,
+                p.post_date,
+                p.post_title,
+                COALESCE(l.like_count, 0) as like_count,
+                COALESCE(l.recent_like_count, 0) as recent_like_count
+            FROM {$wpdb->posts} p
+            LEFT JOIN (
+                SELECT 
+                    pid,
+                    COUNT(*) as like_count,
+                    SUM(CASE WHEN date >= %s THEN 1 ELSE 0 END) as recent_like_count
+                FROM thoughts_likes 
+                WHERE unliked = 0
+                GROUP BY pid
+            ) l ON p.ID = l.pid
+            LEFT JOIN {$wpdb->postmeta} pm_activity ON p.ID = pm_activity.post_id AND pm_activity.meta_key = 'activity_id'
+            LEFT JOIN {$wpdb->postmeta} pm_hidden ON p.ID = pm_hidden.post_id AND pm_hidden.meta_key = 'crowdsource_hidden'
+            WHERE p.post_type = 'diy_responses'
+            AND p.post_status = 'publish'
+            AND pm_activity.meta_value LIKE %s
+            AND (pm_hidden.meta_value != '1' OR pm_hidden.meta_value IS NULL)
+            $exclude_clause
+            ORDER BY recent_like_count DESC, p.post_date DESC
+            LIMIT 100
+        ", $date_old, '%"' . $args['activity_id'] . '"%');
+        
+        $all_posts = $wpdb->get_results($posts_query);
+        
+        // Process posts and calculate scores
+        $responses_collection = [];
+        foreach ($all_posts as $post) {
+            $pid = $post->pid;
             
-                $response_likes = $wpdb->get_var("
-                    SELECT COUNT(*) as total_likes 
-                    FROM thoughts_likes 
-                    WHERE pid = {$pid} AND unliked = 0 AND date >= '{$date_old}' 
-                    GROUP BY pid 
-                    ORDER BY total_likes DESC 
-                ");
-
-                $response_likes_override = $relate_bonus ? ($relate_bonus * $response_likes) : $response_likes;
-                $responses_collection[$pid] = array(
-                    'id'    => $pid,
-                    'date'  => get_the_date('', $pid),
-                    'likes' => ($response_likes > 0) ? $response_likes_override : 0,
-                    'true_likes' => $response_likes,
-                ); 
-            }
+            // Apply relate bonus if configured
+            $true_likes = intval($post->recent_like_count);
+            $likes = $relate_bonus ? ($relate_bonus * $true_likes) : $true_likes;
             
-            $crowdsource_counter++;
-        endwhile;
-        endif;    
-        $result['crowdsource_counter'] = $crowdsource_counter;
-
-        foreach($responses_collection as $k => $v){
-            $response_args = array(
-                'pid'                       => $k,
-                'true_likes'                => $v['true_likes'],
-                'likes'                     => $v['likes'],
-                'args'                      => $args,
-                'date'                      => get_the_date('', $k),
-                'total_questions'           => $total_questions,
-                'crowdsource_scoring_id'    => $crowdsource_scoring_id
-            );
-
-            $get_response_display = get_diy_response_display( $response_args );
-            if($get_response_display){
-                $responses[] = get_diy_response_display( $response_args );
+            $responses_collection[$pid] = [
+                'id' => $pid,
+                'date' => $post->post_date,
+                'likes' => $likes,
+                'true_likes' => $true_likes,
+            ];
+        }
+        
+        // Process responses through display function to calculate scores
+        foreach ($responses_collection as $pid => $response_data) {
+            $response_args = [
+                'pid' => $pid,
+                'true_likes' => $response_data['true_likes'],
+                'likes' => $response_data['likes'],
+                'args' => $args,
+                'date' => $response_data['date'],
+                'total_questions' => $total_questions,
+                'crowdsource_scoring_id' => $args['activity_id']
+            ];
+            
+            $display_response = get_diy_response_display($response_args);
+            if ($display_response) {
+                $responses[] = $display_response;
             }
         }
-
-        // Print responses, sorted by likes
-        usort($responses, function ($a, $b) {return $b['score'] <=> $a['score'];} );
-
-        // Update the cache file
-        $fp = fopen($json, 'w');
-        fwrite($fp, json_encode($responses));
-        fclose($fp);
-    }
-    // End $use_cache
-
-    // Get user likes for this activity to pre-mark them
-    $pids_search = [];
-    foreach($responses as $r){
-        $pids_search[] = $r['pid'];
-    }
-    $user_likes = get_all_mha_user_likes( $pids_search );
-
-    // Build HTML to return
-    $result['responses'] = $responses;
-    
-    // Debug helper
-    $result['html'] .= '<div class="question-container" data-page="'.$args['page'].'">';  
-    
-
-    if($args['page'] > 1 && count($responses) > 0){
-        //$result['html'] .= '<div class="wrap narrow crowdsource-page-label text-center text-teal mb-3"><hr class="mt-4 mb-0" style="border-color: #1fb4bb;" />New</div>';   
-        $result['html'] .= '<div class="wrap narrow crowdsource-page-label text-center text-teal mb-3">Page '.$args['page'].'</div>';   
-    }
-
-    foreach($responses as $r){
         
-        // Begin HTML
-        if($args['carousel']){
-            $result['html'] .= '<div class="crowdsource-responses glide">';
-            $result['html'] .= '<div class="glide__track" data-glide-el="track">';
-            $result['html'] .= '<ol class="glide__slides">';
+        // Sort by score (highest first)
+        usort($responses, function ($a, $b) {
+            return $b['score'] <=> $a['score'];
+        });
+        
+        // Calculate pagination
+        $total_posts = count($responses);
+        $result['total_pages'] = max(1, ceil($total_posts / $per_page));
+        
+        // Check if next page would have content
+        $next_page_start = $args['page'] * $per_page;
+        $result['has_next_page'] = ($next_page_start < $total_posts);
+        
+        // Apply pagination to responses
+        $start_index = ($args['page'] - 1) * $per_page;
+        $responses = array_slice($responses, $start_index, $per_page);
+        
+        // Debug info (uncomment if needed)
+        /*
+        $result['debug'] = [
+            'total_posts_found' => count($all_posts),
+            'total_posts_after_processing' => $total_posts,
+            'per_page' => $per_page,
+            'current_page' => $args['page'],
+            'total_pages' => $result['total_pages'],
+            'has_next_page' => $result['has_next_page'],
+            'query_time' => microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']
+        ];
+        */
+        
+        // Cache the results using WordPress object cache (24 hours)
+        $cache_data = [
+            'responses' => $responses,
+            'total_pages' => $result['total_pages'],
+            'has_next_page' => $result['has_next_page'] ?? false,
+            'cached_at' => current_time('mysql'),
+            'cache_version' => '1.0'
+        ];
+        wp_cache_set($cache_key, $cache_data, $cache_group, DAY_IN_SECONDS);
+    }
+    
+    // Get user likes for pre-marking
+    $pids_search = array_column($responses, 'pid');
+    $user_likes = !empty($pids_search) ? get_all_mha_user_likes($pids_search) : [];
+    
+         // Build HTML output
+     $result['responses'] = $responses;
+     $result['html'] = build_crowdsource_html($responses, $args, $activity_questions, $user_likes, $show_next_previews, $total_questions, $result['total_pages'], $result['has_next_page'] ?? false);
+    
+    echo json_encode($result);
+    exit();
+}
+
+/**
+ * Build HTML for crowdsource responses
+ */
+function build_crowdsource_html($responses, $args, $activity_questions, $user_likes, $show_next_previews, $total_questions, $total_pages = 0, $has_next_page = false) {
+    $html = '<div class="question-container" data-page="' . $args['page'] . '">';
+    
+    // Page label
+    if ($args['page'] > 1 && count($responses) > 0) {
+        $html .= '<div class="wrap narrow crowdsource-page-label text-center text-teal mb-3">Page ' . $args['page'] . '</div>';
+    }
+    
+    // Helper variables
+    $diy_flag_message = get_field('flag_message', 'options');
+    $diy_flag_confirm = get_field('flag_confirmation', 'options');
+    
+    foreach ($responses as $r) {
+        // Begin HTML structure
+        if ($args['carousel']) {
+            $html .= '<div class="crowdsource-responses glide">';
+            $html .= '<div class="glide__track" data-glide-el="track">';
+            $html .= '<ol class="glide__slides">';
         } else {
-            $result['html'] .= '<ol class="crowdthought">';
+            $html .= '<ol class="crowdthought">';
         }
         
         $q_counter = 0;
-        foreach($activity_questions as $qid => $qval){
-            if(!$args['carousel'] && $r['answers'][$qid]['id'] != $args['question']){
+        foreach ($activity_questions as $qid => $qval) {
+            if (!$args['carousel'] && $r['answers'][$qid]['id'] != $args['question']) {
                 continue;
             }
-        
-            if($args['carousel']){
-                $result['html'] .= '<li class="glide__slide">';
+            
+            if ($args['carousel']) {
+                $html .= '<li class="glide__slide">';
             } else {
-                $result['html'] .= '<li data-question="'.$r['answers'][$qid]['id'].'">';
+                $html .= '<li data-question="' . $r['answers'][$qid]['id'] . '">';
             }
             
-            if(isset($r['answers'][$qid])){
-                $answer = $r['answers'][$qid]['answer'];
-            } else {
-                $answer = '<em class="no-response">User did not provide a response.</em>';
-            }
+            // Get answer text
+            $answer = isset($r['answers'][$qid]) 
+                ? $r['answers'][$qid]['answer'] 
+                : '<em class="no-response">User did not provide a response.</em>';
             
-            // Shorten long question labels
+            // Build question label
             $question_label_full = $activity_questions[$qid]['question'];
             $question_label_length = str_word_count($question_label_full, 0);
-            if($question_label_length > 15 && $question_label_length > 18){
+            
+            if ($question_label_length > 15) {
                 $question_label_short = limit_text($question_label_full, 15);
                 $question_label_display = '<div class="question-label-toggle mb-3">';
-                $question_label_display .= '<div class="question-label-short small"><strong>'.$question_label_short.'</strong></div>';
-                $question_label_display .= '<div class="question-label-long d-none small"><strong>'.$question_label_full.'</strong></div>';
+                $question_label_display .= '<div class="question-label-short small"><strong>' . $question_label_short . '</strong></div>';
+                $question_label_display .= '<div class="question-label-long d-none small"><strong>' . $question_label_full . '</strong></div>';
                 $question_label_display .= '</div>';
             } else {
-                $question_label_display = '<div class="question-label small mb-3"><strong>'.$question_label_full.'</strong></div>';
+                $question_label_display = '<div class="question-label small mb-3"><strong>' . $question_label_full . '</strong></div>';
             }
-
-            $result['html'] .= '<div class="thought-response-container bubble round-bl light-blue thinish" id="thought-'.$r['pid'].'-'.$qid.'">
+            
+            // Build response container
+            $like_class = mha_liked_response($user_likes, $r['pid'], $qid) ? ' liked' : '';
+            
+            $html .= '<div class="thought-response-container bubble round-bl light-blue thinish" id="thought-' . $r['pid'] . '-' . $qid . '">
                 <div class="inner">
                     <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-12 col-md-7 pl-md-0 mb-2 mb-md-0">
-                            '.$question_label_display.'
-                            <div class="user-response">'.$answer.'</div>
-                        </div>';
+                        <div class="row">
+                            <div class="col-12 col-md-7 pl-md-0 mb-2 mb-md-0">
+                                ' . $question_label_display . '
+                                <div class="user-response">' . $answer . '</div>
+                            </div>
+                            <div class="col-12 col-md-5 px-0 thought-actions text-right">
+                                <button class="icon thought-like mr-3 mr-md-3 mx-md-3 text-right ' . $like_class . '" data-nonce="' . wp_create_nonce("thoughtLike") . '" data-pid="' . $r['pid'] . '" data-row="' . $qid . '">
+                                    <span class="image mr-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30.93" height="25.99"viewBox="0 0 30.93 25.99" class="heart"><g transform="translate(0 0)"><g transform="translate(0 0)"><path d="M25.592,28s11.175-6.421,11.175-12.608A6.012,6.012,0,0,0,25.592,12.3a6.012,6.012,0,0,0-11.175,3.087C14.417,21.576,25.592,28,25.592,28Z"transform="translate(-10.127 -5.505)" stroke-linecap="round"stroke-linejoin="round" stroke-width="2" /></g></g></svg></span>
+                                    <span class="text">I relate</span>
+                                </button>
+                                <button class="icon thought-flagger px-md-0 mx-md-3 mt-md-3 text-right" data-toggle="tooltip" data-placement="top" title="' . $diy_flag_message . '" aria-controls="#thought-' . $r['pid'] . '-' . $qid . '">
+                                    <span class="image mr-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18.231" height="23.342"viewBox="0 0 18.231 23.342" class="flag"><g><path d="M0,23.068a.425.425,0,0,0,.849,0V.7A.425.425,0,0,0,0,.7Z" transform="translate(0 -0.151)" fill="#3d3d3d"stroke="#264a5c" stroke-width="2" /><path class="sail" d="M18.819,11.351H4V1.831Z" transform="translate(-3.287 -0.987)" stroke-miterlimit="10" stroke-width="2" /></g></svg></span>
+                                    <span class="text">Report</span>
+                                </button>
+                            </div>';
             
-            $like_class = mha_liked_response( $user_likes, $r['pid'], $qid ) ? ' liked' : '';
-            
-            $result['html'] .= '<div class="col-12 col-md-5 px-0 thought-actions text-right">
-                <button class="icon thought-like mr-3 mr-md-3 mx-md-3 text-right '.$like_class.'" data-nonce="'.wp_create_nonce("thoughtLike").'" data-pid="'.$r['pid'].'" data-row="'.$qid.'">
-                    <span class="image mr-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30.93" height="25.99"viewBox="0 0 30.93 25.99" class="heart"><g transform="translate(0 0)"><g transform="translate(0 0)"><path d="M25.592,28s11.175-6.421,11.175-12.608A6.012,6.012,0,0,0,25.592,12.3a6.012,6.012,0,0,0-11.175,3.087C14.417,21.576,25.592,28,25.592,28Z"transform="translate(-10.127 -5.505)" stroke-linecap="round"stroke-linejoin="round" stroke-width="2" /></g></g></svg></span>
-                    <span class="text">I relate</span>
-                </button>';
-        
-            $result['html'] .= '<button class="icon thought-flagger px-md-0 mx-md-3 mt-md-3 text-right" data-toggle="tooltip" data-placement="top" title="'.$diy_flag_message.'" aria-controls="#thought-'.$r['pid'].'-'.$qid.'">
-                    <span class="image mr-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18.231" height="23.342"viewBox="0 0 18.231 23.342" class="flag"><g><path d="M0,23.068a.425.425,0,0,0,.849,0V.7A.425.425,0,0,0,0,.7Z" transform="translate(0 -0.151)" fill="#3d3d3d"stroke="#264a5c" stroke-width="2" /><path class="sail" d="M18.819,11.351H4V1.831Z" transform="translate(-3.287 -0.987)" stroke-miterlimit="10" stroke-width="2" /></g></svg></span>
-                    <span class="text">Report</span>
-                </button>  
-            </div>';
-        
-            // Admin Debug
+            // Admin debug info
             if (current_user_can('edit_posts')) {
-                $result['html'] .= '<div class="col-12 admin-debug px-0 pt-4 small caps bold">';
-                    $result['html'] .= 'Admin Debug:<br />';   
-                    
-                    $result['html'] .= '&bull; Activity ID: '.get_field('activity_id', $r['pid'])->ID.'<br />';  
-                    $result['html'] .= '&bull; Response ID: '.$r['pid'].'<br />';   
-                    $result['html'] .= '&bull; Date Started: '.get_field('started', $r['pid']).'<br />';     
-                    $result['html'] .= '&bull; Question Index: '.$qid.'<br /><br />';   
-
-                    $result['html'] .= '&bull; True Likes: '.$r['true_likes'].'<br />';                                 
-                    $result['html'] .= '&bull; Modified Likes: '.$r['likes'].'<br />';                                 
-                    $result['html'] .= '&bull; All Answered: ';                  
-                    $result['html'] .=  ($r['total_answers'] == $total_questions) ? 'Yes' : 'No (+0)';   
-        
-                    $result['html'] .= '<br />&bull; Total Score: '.$r['score'];     
-                    $result['html'] .= '<br />&bull; [<a target="_blank" href="'.get_edit_post_link($r['pid']).'">Edit Submission</a>]<br />';             
-                $result['html'] .= '</div>';
+                $html .= '<div class="col-12 admin-debug px-0 pt-4 small caps bold">';
+                $html .= 'Admin Debug:<br />';
+                $html .= '&bull; Activity ID: ' . get_field('activity_id', $r['pid'])->ID . '<br />';
+                $html .= '&bull; Response ID: ' . $r['pid'] . '<br />';
+                $html .= '&bull; Date Started: ' . get_field('started', $r['pid']) . '<br />';
+                $html .= '&bull; Question Index: ' . $qid . '<br /><br />';
+                $html .= '&bull; True Likes: ' . $r['true_likes'] . '<br />';
+                $html .= '&bull; Modified Likes: ' . $r['likes'] . '<br />';
+                $html .= '&bull; All Answered: ' . (($r['total_answers'] == $total_questions) ? 'Yes' : 'No (+0)') . '<br />';
+                $html .= '&bull; Total Score: ' . $r['score'];
+                $html .= '<br />&bull; [<a target="_blank" href="' . get_edit_post_link($r['pid']) . '">Edit Submission</a>]<br />';
+                $html .= '</div>';
             }
             
-            $result['html'] .='</div>
-                    </div>
-                </div>';
-        
-            // Flag Prompt
-            $result['html'] .= '<div class="thought-flag-confirm-container text-center hidden">
+            $html .= '</div>
+                        </div>
+                    </div>';
+            
+            // Flag confirmation
+            $html .= '<div class="thought-flag-confirm-container text-center hidden">
                 <div class="thought-flag-confirm-container-inner p-2 pt-4 pb-4 relative">
-                    <p class="mb-3"><em>&quot;'.$answer.'&quot;</em></p>
-                    <p class="mb-3">'.$diy_flag_confirm.'</p>
-                    <p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="'.wp_create_nonce('thoughtFlag').'" data-pid="'.$r['pid'].'" data-row="'.$qid.'" data-thought-id="#thought-'.$r['pid'].'-'.$qid.'">Yes, this comment is inappropriate</button></p>
+                    <p class="mb-3"><em>&quot;' . $answer . '&quot;</em></p>
+                    <p class="mb-3">' . $diy_flag_confirm . '</p>
+                    <p class="mb-3"><button class="icon thought-flag thin button red round small" data-nonce="' . wp_create_nonce('thoughtFlag') . '" data-pid="' . $r['pid'] . '" data-row="' . $qid . '" data-thought-id="#thought-' . $r['pid'] . '-' . $qid . '">Yes, this comment is inappropriate</button></p>
                     <button class="cancel-flag-thought button blue thin round small">Nevermind</button>
                 </div>
             </div>';
-        
-            $result['html'] .= '</div>
-            </li>';
-        
-            if($args['single_embed'] == 1 && $q_counter >= 0){
-                break; // Skip other responses when only 1 question displayed in embeds
+            
+            $html .= '</div></li>';
+            
+            if ($args['single_embed'] == 1 && $q_counter >= 0) {
+                break;
             }
-
             $q_counter++;
         }
         
-        $result['html'] .= '</ol>'; 
+        $html .= '</ol>';
         
-        if($args['carousel']){
-            $result['html'] .= '</div>';
+        // Carousel navigation
+        if ($args['carousel']) {
+            $html .= '</div>';
+            $html .= '<div class="glide__arrows" data-glide-el="controls">';
+            if ($show_next_previews) {
+                $html .= '<button class="peek diy-carousel-nav fade-left glide__arrow glide__arrow--left" data-glide-dir="<"></button>';
+                $html .= '<button class="peek diy-carousel-nav fade-right glide__arrow glide__arrow--right" data-glide-dir=">"></button>';
+            }
             
-            $result['html'] .= '<div class="glide__arrows" data-glide-el="controls">';
-            if($show_next_previews){
-                $result['html'] .= '<button class="peek diy-carousel-nav fade-left glide__arrow glide__arrow--left" data-glide-dir="<"></button>';
-                $result['html'] .= '<button class="peek diy-carousel-nav fade-right glide__arrow glide__arrow--right" data-glide-dir=">"></button>';
+            foreach ($activity_questions as $qid => $qval) {
+                $html .= '<button class="diy-direct-slide d-none" data-index="' . $qid . '" data-glide-dir="=' . $qid . '">Go to slide #' . ($qid + 1) . '</button>';
             }
-        
-            foreach($activity_questions as $qid => $qval):
-                $result['html'] .= '<button class="diy-direct-slide d-none" data-index="'.$qid.'" data-glide-dir="='.$qid.'">Go to slide #'.($qid+1).'</button>';
-            endforeach;
-        
-            $result['html'] .= '</div>';
-            $result['html'] .= '</div>';
-        }      
-        // End HTML
-    }
-
-    // Next Page
-    if(count($responses)){
-        $result['html'] .= '<div id="diy-load-more-container" class="text-center mt-4 pb-5">';
-            if($args['page'] > 1 ){
-                $result['html'] .= '<button class="button gray round-tl mr-3 diy-previous-page" data-show-page="'.($args['page'] - 1).'">Previous Page</button>';
-            }
-            if($args['total_pages'] > 0 && $args['page'] < $args['total_pages'] || $use_cache && count($responses) >= $per_page){
-                $result['html'] .= '<button class="diy-load-more button teal round-br" data-show-page="'.($args['page'] + 1).'">Next Page</button>';
-            }
-        $result['html'] .= '</div>';
-    } else {
-        $result['html'] .= '<div class="wrap narrow crowdsource-page-label text-center text-orange mb-4 mt-4"><em>No more responses available.</em><hr class="mb-4 mt-2" style="border-color: #FA6767;" /></div>';   
+            
+            $html .= '</div></div>';
+        }
     }
     
-    $result['html'] .= '</div>';
-
-    // Wrap it up
-    echo json_encode($result);
-    exit();
+         // Pagination
+     $html .= '<div id="diy-load-more-container" class="text-center mt-4 pb-5">';
+     
+     // Always show Previous button if not on page 1
+     if ($args['page'] > 1) {
+         $html .= '<button class="button gray round-tl mr-3 diy-previous-page" data-show-page="' . ($args['page'] - 1) . '">Previous Page</button>';
+     }
+     
+     // Show Next button only if there are actually more posts available
+     if ($has_next_page) {
+         $html .= '<button class="diy-load-more button teal round-br" data-show-page="' . ($args['page'] + 1) . '">Next Page</button>';
+     }
+     
+     // Show "no more responses" message only if no responses and no next page
+     if (count($responses) == 0 && !$has_next_page) {
+         $html .= '<div class="wrap narrow crowdsource-page-label text-center text-orange mb-4 mt-4"><em>No more responses available.</em><hr class="mb-4 mt-2" style="border-color: #FA6767;" /></div>';
+     }
+     
+     $html .= '</div>';
+    
+    $html .= '</div>';
+    
+    return $html;
 }
 
 function limit_text($text, $limit) {
@@ -802,7 +769,122 @@ function mhaDiyGetConfirmation() {
 
 }
 
+/**
+ * Invalidate crowdsource cache for a specific activity
+ */
+function invalidate_diy_crowdsource_cache($activity_id) {
+    $cache_group = 'diy_crowdsource_' . $activity_id;
+    wp_cache_delete_group($cache_group);
+}
 
+/**
+ * Clear all DIY crowdsource caches
+ */
+function clear_all_diy_crowdsource_caches() {
+    global $wpdb;
+    
+    // Get all activity IDs that have DIY responses
+    $activity_ids = $wpdb->get_col("
+        SELECT DISTINCT pm.meta_value 
+        FROM {$wpdb->postmeta} pm 
+        WHERE pm.meta_key = 'activity_id' 
+        AND pm.meta_value != ''
+    ");
+    
+    foreach ($activity_ids as $activity_id) {
+        // Clean up the activity ID (remove quotes if present)
+        $clean_activity_id = str_replace(['"', "'"], '', $activity_id);
+        if (is_numeric($clean_activity_id)) {
+            invalidate_diy_crowdsource_cache($clean_activity_id);
+        }
+    }
+}
+
+/**
+ * Hook to invalidate cache when DIY responses are updated
+ */
+add_action('save_post_diy_responses', 'invalidate_diy_crowdsource_cache_on_save', 10, 2);
+function invalidate_diy_crowdsource_cache_on_save($post_id, $post) {
+    if ($post->post_status === 'publish') {
+        $activity_id = get_field('activity_id', $post_id);
+        if ($activity_id && is_object($activity_id)) {
+            invalidate_diy_crowdsource_cache($activity_id->ID);
+        }
+    }
+}
+
+/**
+ * Hook to invalidate cache when likes are added/removed
+ */
+add_action('wp_ajax_thoughtLike', 'invalidate_diy_crowdsource_cache_on_like', 1);
+add_action('wp_ajax_nopriv_thoughtLike', 'invalidate_diy_crowdsource_cache_on_like', 1);
+function invalidate_diy_crowdsource_cache_on_like() {
+    // This will be called before the like is processed
+    // We'll invalidate all caches to be safe
+    clear_all_diy_crowdsource_caches();
+}
+
+/**
+ * Warm cache for a specific activity (pre-generate first few pages)
+ */
+function warm_diy_crowdsource_cache($activity_id, $pages_to_warm = 3) {
+    for ($page = 1; $page <= $pages_to_warm; $page++) {
+        // Simulate the AJAX request to generate cache
+        $args = [
+            'question' => null,
+            'current' => null,
+            'activity_id' => $activity_id,
+            'carousel' => null,
+            'page' => $page,
+            'embedded' => 0,
+            'single_embed' => 0
+        ];
+        
+        // Create a mock request to trigger cache generation
+        $_POST['data'] = http_build_query($args);
+        
+        // Temporarily capture output
+        ob_start();
+        getDiyCrowdsource();
+        ob_end_clean();
+    }
+}
+
+/**
+ * Warm cache for all activities (can be called via WP-CLI or admin)
+ */
+function warm_all_diy_crowdsource_caches($pages_to_warm = 3) {
+    global $wpdb;
+    
+    $activity_ids = $wpdb->get_col("
+        SELECT DISTINCT pm.meta_value 
+        FROM {$wpdb->postmeta} pm 
+        WHERE pm.meta_key = 'activity_id' 
+        AND pm.meta_value != ''
+    ");
+    
+    foreach ($activity_ids as $activity_id) {
+        $clean_activity_id = str_replace(['"', "'"], '', $activity_id);
+        if (is_numeric($clean_activity_id)) {
+            warm_diy_crowdsource_cache($clean_activity_id, $pages_to_warm);
+        }
+    }
+}
+
+/**
+ * Admin function to manually clear and warm caches
+ */
+add_action('wp_ajax_clear_diy_caches', 'admin_clear_diy_caches');
+function admin_clear_diy_caches() {
+    if (!current_user_can('manage_options')) {
+        wp_die('Unauthorized');
+    }
+    
+    clear_all_diy_crowdsource_caches();
+    warm_all_diy_crowdsource_caches(2); // Warm first 2 pages
+    
+    wp_send_json_success(['message' => 'Caches cleared and warmed successfully']);
+}
 
 /**
  * Toggle hide thought
