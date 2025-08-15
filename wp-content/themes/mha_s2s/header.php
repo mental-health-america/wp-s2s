@@ -14,8 +14,31 @@
 <meta name="msapplication-TileImage" content="/favicon-144x144.png">
 <meta name="theme-color" content="#365888">
 
+
 <script>
-	window.dataLayer = window.dataLayer || [];
+    /** Init Google Consent Mode */
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+		dataLayer.push(arguments);
+    }
+
+    gtag("consent", "default", {
+		'ad_storage': "denied",
+		'ad_user_data': "denied",
+		'ad_personalization': "denied",
+		'analytics_storage': "denied",
+		'functionality_storage': "granted",
+		'personalization_storage': "denied",
+		'security_storage': "granted",
+		'wait_for_update': 2000,
+    });
+
+    gtag("set", "ads_data_redaction", true);
+    gtag("set", "url_passthrough", true);
+    /** End Google Consent Mode Initialization */
+</script>
+
+<script>
 	<?php if( current_user_can('editor') || current_user_can('administrator') || get_query_var('internaltraffic') == 'true' ):?>
 		window.dataLayer.push({
 			'event': 'traffic_type',
@@ -75,8 +98,9 @@
 	<?php endif; ?>
 </script>
 
-<!-- Google Optimize -->
-<!-- <script src="https://www.googleoptimize.com/optimize.js?id=OPT-PNLZZ5R"></script> -->
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link rel="dns-prefetch" href="//fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -85,10 +109,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-N3TWZFC');</script>
 <!-- End Google Tag Manager -->
-
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link rel="dns-prefetch" href="//fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
 <?php wp_head(); ?>
 </head>

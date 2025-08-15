@@ -1,0 +1,100 @@
+// Cookie Consent Banner
+.cookie-banner-display {
+    #footer {
+        padding-bottom: 100px;
+    }
+}
+.cookie-banner {
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    width: 1400px;
+    margin: 0 auto;
+    border-radius: 500px;
+    background: $purple;
+    color: $white;
+    z-index: 9999;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+    @media only screen and (max-width: 1420px){
+        width: auto;
+        margin: 0 10px;
+    }
+    @media only screen and (max-width: 980px){
+        border-radius: 40px;
+    }
+    @media only screen and (max-width: 767px){
+        border-radius: 20px;
+    }
+
+    .cookie-banner-inner {
+        padding: 20px 40px;
+        @media only screen and (max-width: 980px){
+            padding: 20px 30px;
+        }
+        @media only screen and (max-width: 767px){
+            padding: 15px;
+        }
+    }
+
+    &-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    &-text {
+        flex: 1;
+        font-size: 1.4em;
+        line-height: 1.4em;
+        letter-spacing: .02em;
+        word-spacing: .05em;
+        p { margin: 0; }
+        a {
+            color: #ffffff;
+            text-decoration: underline;
+            &:hover {
+                text-decoration: none;
+            }
+        }
+    }
+
+    &-buttons {
+        display: flex;
+        gap: 10px;
+        flex-shrink: 0;
+        button {
+            border-radius: 50px 0 50px 50px;
+            font-size: 1.4em;
+            line-height: 1.6em;
+            &:hover {
+                background-color: $white !important;
+                color: $green !important;
+            }
+            &.cookie-btn-deny {
+                &:hover {
+                    background-color: transparent !important;
+                    color: $coral !important;
+                }
+            }
+        }
+    }
+}
+
+// Mobile responsive
+@media (max-width: 768px) {
+    .cookie-banner {
+        &-content {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        &-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+}
