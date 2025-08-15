@@ -6,7 +6,7 @@
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsScripts');
 function mhaDiyToolsScripts() {
-	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20250808', true);
+	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20250814_3', true);
 	//wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), time(), true);
 	wp_localize_script('process_mhaDiyTools', 'do_mhaDiyTools', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
@@ -277,16 +277,186 @@ function getDiyTopLikes($activity_id, $flagged_posts = [], $total_questions = 0,
 }
 
 
+/**
+ * Debug function to check cache status
+ */
+function debug_diy_crowdsource_cache($activity_id = null) {
+    global $wpdb;
+    
+    $debug_info = [
+        'cache_system' => 'Unknown',
+        'cache_enabled' => false,
+        'object_cache_available' => false,
+        'cache_keys_found' => [],
+        'cache_groups_found' => [],
+        'recent_cache_entries' => [],
+        'wp_options_cache_entries' => []
+    ];
+    
+    // Check if object cache is available
+    if (function_exists('wp_cache_get')) {
+        $debug_info['object_cache_available'] = true;
+        
+        // Test cache functionality
+        $test_key = 'diy_cache_test_' . time();
+        $test_data = ['test' => 'data'];
+        wp_cache_set($test_key, $test_data, 'diy_test_group', 60);
+        $retrieved = wp_cache_get($test_key, 'diy_test_group');
+        
+        if ($retrieved === $test_data) {
+            $debug_info['cache_enabled'] = true;
+            $debug_info['cache_system'] = 'Object Cache (Working)';
+        } else {
+            $debug_info['cache_system'] = 'Object Cache (Not Working)';
+        }
+        
+        // Clean up test
+        wp_cache_delete($test_key, 'diy_test_group');
+    }
+    
+    // Check wp_options for cache entries (fallback)
+    $cache_options = $wpdb->get_results("
+        SELECT option_name, option_value, autoload 
+        FROM {$wpdb->options} 
+        WHERE option_name LIKE '_transient_%' 
+        OR option_name LIKE '_site_transient_%'
+        OR option_name LIKE '%diy_crowdsource%'
+        ORDER BY option_name
+        LIMIT 20
+    ");
+    
+    if ($cache_options) {
+        $debug_info['wp_options_cache_entries'] = array_map(function($option) {
+            return [
+                'name' => $option->option_name,
+                'autoload' => $option->autoload,
+                'value_length' => strlen($option->option_value)
+            ];
+        }, $cache_options);
+    }
+    
+    // Check for specific DIY cache entries
+    if ($activity_id) {
+        $cache_group = 'diy_crowdsource_' . $activity_id;
+        $cache_key = 'diy_crowdsource_' . $activity_id . '_' . md5(serialize(['test' => 'data']));
+        
+        // Try to get a specific cache entry
+        $specific_cache = wp_cache_get($cache_key, $cache_group);
+        $debug_info['specific_cache_test'] = [
+            'cache_key' => $cache_key,
+            'cache_group' => $cache_group,
+            'found' => ($specific_cache !== false),
+            'value' => $specific_cache
+        ];
+    }
+    
+    return $debug_info;
+}
+
+/**
+ * SQL query to check cache entries in wp_options
+ */
+function get_diy_cache_sql_queries() {
+    global $wpdb;
+    
+    $queries = [
+        'all_transients' => "
+            SELECT 
+                option_name,
+                LENGTH(option_value) as value_size,
+                autoload,
+                option_value
+            FROM {$wpdb->options} 
+            WHERE option_name LIKE '_transient_%' 
+            OR option_name LIKE '_site_transient_%'
+            ORDER BY option_name
+            LIMIT 50
+        ",
+        
+        'diy_specific_transients' => "
+            SELECT 
+                option_name,
+                LENGTH(option_value) as value_size,
+                autoload,
+                SUBSTRING(option_value, 1, 200) as value_preview
+            FROM {$wpdb->options} 
+            WHERE option_name LIKE '%diy%' 
+            OR option_name LIKE '%crowdsource%'
+            ORDER BY option_name
+        ",
+        
+        'large_transients' => "
+            SELECT 
+                option_name,
+                LENGTH(option_value) as value_size,
+                autoload
+            FROM {$wpdb->options} 
+            WHERE (option_name LIKE '_transient_%' OR option_name LIKE '_site_transient_%')
+            AND LENGTH(option_value) > 1000
+            ORDER BY LENGTH(option_value) DESC
+            LIMIT 20
+        ",
+        
+        'recent_transients' => "
+            SELECT 
+                option_name,
+                LENGTH(option_value) as value_size,
+                autoload,
+                option_value
+            FROM {$wpdb->options} 
+            WHERE option_name LIKE '_transient_%' 
+            OR option_name LIKE '_site_transient_%'
+            ORDER BY option_id DESC
+            LIMIT 20
+        "
+    ];
+    
+    return $queries;
+}
+
+/**
+ * Admin function to debug cache status
+ */
+add_action('wp_ajax_debug_diy_cache', 'admin_debug_diy_cache');
+function admin_debug_diy_cache() {
+    if (!current_user_can('manage_options')) {
+        wp_die('Unauthorized');
+    }
+    
+    $activity_id = isset($_POST['activity_id']) ? intval($_POST['activity_id']) : null;
+    $debug_info = debug_diy_crowdsource_cache($activity_id);
+    
+    // Get SQL queries
+    $queries = get_diy_cache_sql_queries();
+    $query_results = [];
+    
+    global $wpdb;
+    foreach ($queries as $query_name => $query) {
+        $query_results[$query_name] = $wpdb->get_results($query);
+    }
+    
+    $debug_info['sql_queries'] = $query_results;
+    
+    wp_send_json_success($debug_info);
+}
+
+/**
+ * Enhanced cache debugging in the main function
+ */
 add_action("wp_ajax_nopriv_getDiyCrowdsource", "getDiyCrowdsource");
 add_action("wp_ajax_getDiyCrowdsource", "getDiyCrowdsource");
 function getDiyCrowdsource(){
+    // Cache debugging control - set to false to disable debugging
+    $enable_cache_debugging = false;
+    
     // Initialize result array
     $result = [
         'html' => '',
         'args' => [],
         'responses' => [],
         'total_pages' => 0,
-        'current_page' => 0
+        'current_page' => 0,
+        'cache_debug' => []
     ];
 
     // Parse and validate input data
@@ -319,23 +489,83 @@ function getDiyCrowdsource(){
     }
     
     // Better caching strategy using WordPress transients
-    $cache_key = 'diy_crowdsource_' . $args['activity_id'] . '_' . md5(serialize($args));
-    $cache_group = 'diy_crowdsource_' . $args['activity_id'];
+    // Create a stable cache key that excludes user-specific parameters
+    $cache_args = $args;
+    unset($cache_args['current']); // Remove user-specific current post ID
+    $cache_key = 'diy_crowdsource_' . $args['activity_id'] . '_' . md5(serialize($cache_args));
+    // Remove cache group - some cache backends don't handle groups properly
+    $cache_group = '';
+    
+    // Enhanced cache debugging (only for administrators and when enabled)
+    if ($enable_cache_debugging && current_user_can('manage_options')) {
+        $result['cache_debug'] = [
+            'cache_key' => $cache_key,
+            'cache_group' => $cache_group,
+            'cache_key_length' => strlen($cache_key),
+            'object_cache_available' => function_exists('wp_cache_get'),
+            'cache_test' => null,
+            'original_args' => $args,
+            'cache_args' => $cache_args,
+            'cache_key_md5' => md5(serialize($cache_args)),
+            'cache_key_validation' => [
+                'length_ok' => strlen($cache_key) <= 250, // Most cache systems have limits
+                'contains_special_chars' => preg_match('/[^a-zA-Z0-9_-]/', $cache_key),
+                'cache_key_safe' => preg_match('/^[a-zA-Z0-9_-]+$/', $cache_key)
+            ]
+        ];
+    } else {
+        $result['cache_debug'] = null;
+    }
     
     // Check cache first
     $use_cache = false;
     $responses = [];
     
-    // Try to get from cache
-    $cached_data = wp_cache_get($cache_key, $cache_group);
+    // Try to get from cache using transients (more reliable than object cache)
+    $cached_data = get_transient($cache_key);
+    $result['cached_data'] = $cached_data;
+    if ($enable_cache_debugging && current_user_can('manage_options')) {
+        $result['cache_debug']['cache_get_result'] = $cached_data;
+    }
+    
     if ($cached_data !== false) {
         $responses = $cached_data['responses'] ?? [];
         $result['total_pages'] = $cached_data['total_pages'] ?? 0;
         $result['has_next_page'] = $cached_data['has_next_page'] ?? false;
+        $result['use_cache'] = 'true';
         $use_cache = true;
     }
 
     if (!$use_cache) {
+        $result['use_cache'] = 'false';
+        
+        // Test cache functionality using transients
+        $test_key = 'diy_test_' . time();
+        $test_data = ['test' => 'data'];
+        set_transient($test_key, $test_data, 60);
+        $test_retrieved = get_transient($test_key);
+        delete_transient($test_key);
+        
+        if ($enable_cache_debugging && current_user_can('manage_options')) {
+            $result['cache_debug']['cache_test'] = [
+                'set_success' => ($test_retrieved === $test_data),
+                'test_retrieved' => $test_retrieved
+            ];
+            
+            // Additional cache debugging
+            $result['cache_debug']['cache_storage_test'] = [
+                'cache_key_exists' => get_transient($cache_key) !== false,
+                'cache_key_after_set' => null,
+                'cache_group_keys' => [],
+                'wp_cache_get_result' => get_transient($cache_key),
+                'transient_test' => [
+                    'set' => set_transient('diy_test_transient', ['test' => 'data'], 60),
+                    'get' => get_transient('diy_test_transient'),
+                    'delete' => delete_transient('diy_test_transient')
+                ]
+            ];
+        }
+        
         // Get scoring configuration        
         $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $args['activity_id']);
         $date_old = $crowdsource_scoring_date_range 
@@ -402,7 +632,7 @@ function getDiyCrowdsource(){
             AND (pm_hidden.meta_value != '1' OR pm_hidden.meta_value IS NULL)
             $exclude_clause
             ORDER BY recent_like_count DESC, p.post_date DESC
-            LIMIT 100
+            LIMIT 200
         ", $date_old, '%"' . $args['activity_id'] . '"%');
         
         $all_posts = $wpdb->get_results($posts_query);
@@ -459,20 +689,7 @@ function getDiyCrowdsource(){
         $start_index = ($args['page'] - 1) * $per_page;
         $responses = array_slice($responses, $start_index, $per_page);
         
-        // Debug info (uncomment if needed)
-        /*
-        $result['debug'] = [
-            'total_posts_found' => count($all_posts),
-            'total_posts_after_processing' => $total_posts,
-            'per_page' => $per_page,
-            'current_page' => $args['page'],
-            'total_pages' => $result['total_pages'],
-            'has_next_page' => $result['has_next_page'],
-            'query_time' => microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']
-        ];
-        */
-        
-        // Cache the results using WordPress object cache (24 hours)
+        // Cache the results using WordPress transients (24 hours)
         $cache_data = [
             'responses' => $responses,
             'total_pages' => $result['total_pages'],
@@ -480,7 +697,23 @@ function getDiyCrowdsource(){
             'cached_at' => current_time('mysql'),
             'cache_version' => '1.0'
         ];
-        wp_cache_set($cache_key, $cache_data, $cache_group, DAY_IN_SECONDS);
+        
+        $cache_set_result = set_transient($cache_key, $cache_data, DAY_IN_SECONDS);
+        if ($enable_cache_debugging && current_user_can('manage_options')) {
+            $result['cache_debug']['cache_set_result'] = $cache_set_result;
+            $result['cache_debug']['cache_data_size'] = strlen(serialize($cache_data));
+        }
+        
+        // Test if cache can be retrieved immediately after setting
+        $immediate_retrieval = get_transient($cache_key);
+        if ($enable_cache_debugging && current_user_can('manage_options')) {
+            $result['cache_debug']['cache_storage_test']['cache_key_after_set'] = [
+                'retrieved' => $immediate_retrieval !== false,
+                'retrieved_data' => $immediate_retrieval,
+                'cache_key' => $cache_key,
+                'cache_group' => 'transient' // Using transients instead of groups
+            ];
+        }
     }
     
     // Get user likes for pre-marking
@@ -773,8 +1006,22 @@ function mhaDiyGetConfirmation() {
  * Invalidate crowdsource cache for a specific activity
  */
 function invalidate_diy_crowdsource_cache($activity_id) {
-    $cache_group = 'diy_crowdsource_' . $activity_id;
-    wp_cache_delete_group($cache_group);
+    // Since we're not using cache groups, we need to clear all DIY cache entries
+    // This is a more aggressive approach but ensures cache invalidation works
+    global $wpdb;
+    
+    // Get all cache keys that start with our DIY prefix
+    $cache_keys = $wpdb->get_col($wpdb->prepare("
+        SELECT option_name 
+        FROM {$wpdb->options} 
+        WHERE option_name LIKE %s
+        AND option_name LIKE '_transient_%'
+    ", 'diy_crowdsource_' . $activity_id . '_%'));
+    
+    foreach ($cache_keys as $cache_key) {
+        $key = str_replace('_transient_', '', $cache_key);
+        delete_transient($key);
+    }
 }
 
 /**
@@ -783,21 +1030,37 @@ function invalidate_diy_crowdsource_cache($activity_id) {
 function clear_all_diy_crowdsource_caches() {
     global $wpdb;
     
-    // Get all activity IDs that have DIY responses
-    $activity_ids = $wpdb->get_col("
-        SELECT DISTINCT pm.meta_value 
-        FROM {$wpdb->postmeta} pm 
-        WHERE pm.meta_key = 'activity_id' 
-        AND pm.meta_value != ''
+    // More efficient approach: directly clear all DIY transients
+    $cache_keys = $wpdb->get_col("
+        SELECT option_name 
+        FROM {$wpdb->options} 
+        WHERE option_name LIKE '_transient_diy_crowdsource_%'
     ");
     
-    foreach ($activity_ids as $activity_id) {
-        // Clean up the activity ID (remove quotes if present)
-        $clean_activity_id = str_replace(['"', "'"], '', $activity_id);
-        if (is_numeric($clean_activity_id)) {
-            invalidate_diy_crowdsource_cache($clean_activity_id);
+    $cleared_count = 0;
+    foreach ($cache_keys as $cache_key) {
+        $key = str_replace('_transient_', '', $cache_key);
+        if (delete_transient($key)) {
+            $cleared_count++;
         }
     }
+    
+    // Also clear any timeout entries
+    $timeout_keys = $wpdb->get_col("
+        SELECT option_name 
+        FROM {$wpdb->options} 
+        WHERE option_name LIKE '_transient_timeout_diy_crowdsource_%'
+    ");
+    
+    foreach ($timeout_keys as $timeout_key) {
+        $key = str_replace('_transient_timeout_', '', $timeout_key);
+        delete_option('_transient_timeout_' . $key);
+    }
+    
+    return [
+        'cleared_transients' => $cleared_count,
+        'total_found' => count($cache_keys)
+    ];
 }
 
 /**
@@ -912,4 +1175,140 @@ function mhaToggleHideThought() {
     echo json_encode($result);
     exit();
 
+}
+
+/**
+ * Add admin menu for cache debugging
+ */
+add_action('admin_menu', 'add_diy_cache_debug_menu');
+function add_diy_cache_debug_menu() {
+    add_submenu_page(
+        'tools.php',
+        'DIY Cache Debug',
+        'DIY Cache Debug',
+        'manage_options',
+        'diy-cache-debug',
+        'diy_cache_debug_page'
+    );
+}
+
+/**
+ * Admin page for cache debugging
+ */
+function diy_cache_debug_page() {
+    global $wpdb;
+    
+    // Handle form submissions
+    if (isset($_POST['action'])) {
+        switch ($_POST['action']) {
+            case 'debug_cache':
+                $activity_id = isset($_POST['activity_id']) ? intval($_POST['activity_id']) : null;
+                $debug_info = debug_diy_crowdsource_cache($activity_id);
+                break;
+                
+            case 'clear_cache':
+                $clear_results = clear_all_diy_crowdsource_caches();
+                echo '<div class="notice notice-success"><p>All DIY caches cleared! Cleared ' . $clear_results['cleared_transients'] . ' transients out of ' . $clear_results['total_found'] . ' found.</p></div>';
+                break;
+                
+            case 'run_sql_queries':
+                $queries = get_diy_cache_sql_queries();
+                $query_results = [];
+                foreach ($queries as $query_name => $query) {
+                    $query_results[$query_name] = $wpdb->get_results($query);
+                }
+                break;
+        }
+    }
+    
+    ?>
+    <div class="wrap">
+        <h1>DIY Cache Debug</h1>
+        
+        <div class="card">
+            <h2>Cache Status Check</h2>
+            <form method="post">
+                <input type="hidden" name="action" value="debug_cache">
+                <p>
+                    <label>Activity ID (optional):</label>
+                    <input type="number" name="activity_id" value="<?php echo isset($_POST['activity_id']) ? esc_attr($_POST['activity_id']) : ''; ?>">
+                </p>
+                <p><input type="submit" class="button button-primary" value="Check Cache Status"></p>
+            </form>
+            
+            <?php if (isset($debug_info)): ?>
+                <h3>Cache Debug Results:</h3>
+                <pre><?php echo esc_html(print_r($debug_info, true)); ?></pre>
+            <?php endif; ?>
+        </div>
+        
+        <div class="card">
+            <h2>Cache Management</h2>
+            <form method="post" style="display: inline;">
+                <input type="hidden" name="action" value="clear_cache">
+                <p><input type="submit" class="button button-secondary" value="Clear All DIY Caches" onclick="return confirm('Are you sure?')"></p>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2>SQL Queries for Manual Database Check</h2>
+            <p>Run these queries in your database to check for cache entries:</p>
+            
+            <h3>1. Check for all transients:</h3>
+            <pre>SELECT option_name, LENGTH(option_value) as value_size, autoload 
+FROM <?php echo $wpdb->options; ?> 
+WHERE option_name LIKE '_transient_%' 
+OR option_name LIKE '_site_transient_%'
+ORDER BY option_name
+LIMIT 50;</pre>
+            
+            <h3>2. Check for DIY-specific entries:</h3>
+            <pre>SELECT option_name, LENGTH(option_value) as value_size, autoload 
+FROM <?php echo $wpdb->options; ?> 
+WHERE option_name LIKE '%diy%' 
+OR option_name LIKE '%crowdsource%'
+ORDER BY option_name;</pre>
+            
+            <h3>3. Check for large cache entries:</h3>
+            <pre>SELECT option_name, LENGTH(option_value) as value_size, autoload 
+FROM <?php echo $wpdb->options; ?> 
+WHERE (option_name LIKE '_transient_%' OR option_name LIKE '_site_transient_%')
+AND LENGTH(option_value) > 1000
+ORDER BY LENGTH(option_value) DESC
+LIMIT 20;</pre>
+            
+            <h3>4. Check recent cache entries:</h3>
+            <pre>SELECT option_name, LENGTH(option_value) as value_size, autoload 
+FROM <?php echo $wpdb->options; ?> 
+WHERE option_name LIKE '_transient_%' 
+OR option_name LIKE '_site_transient_%'
+ORDER BY option_id DESC
+LIMIT 20;</pre>
+            
+            <form method="post">
+                <input type="hidden" name="action" value="run_sql_queries">
+                <p><input type="submit" class="button button-secondary" value="Run SQL Queries"></p>
+            </form>
+            
+            <?php if (isset($query_results)): ?>
+                <h3>SQL Query Results:</h3>
+                <?php foreach ($query_results as $query_name => $results): ?>
+                    <h4><?php echo esc_html($query_name); ?>:</h4>
+                    <pre><?php echo esc_html(print_r($results, true)); ?></pre>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+        
+        <div class="card">
+            <h2>Common Cache Issues & Solutions</h2>
+            <ul>
+                <li><strong>No object cache configured:</strong> WordPress falls back to database storage in wp_options table</li>
+                <li><strong>Redis/Memcached not working:</strong> Check server configuration and connection</li>
+                <li><strong>Cache keys too long:</strong> Some systems have key length limits</li>
+                <li><strong>Memory limits:</strong> Large cache entries might be rejected</li>
+                <li><strong>Permissions:</strong> Cache directory/file permissions issues</li>
+            </ul>
+        </div>
+    </div>
+    <?php
 }

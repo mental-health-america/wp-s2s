@@ -435,5 +435,81 @@ jQuery(function ($) {
 
 	}
 
+	/**
+	 * Multi step form previous/next logic
+	 */
+	/*
+
+	jQuery(document).ready(function($) {
+
+		// Update the "Previous" URL with the right reference ID, sid
+		function getUrlParam(param) {
+			const params = new URLSearchParams(window.location.search);
+			return params.get(param);
+		}
+		let sidId = getUrlParam('sid');
+		console.log(sidId);
+		if (sidId) {
+			sidId = sidId.replace(/_ref$/, ''); // Replace _ref only at the end
+			const $link = $('#multi-form-previous');
+			const originalHref = $link.attr('href');
+			if (originalHref) {
+				const url = new URL(originalHref, window.location.origin);
+				url.searchParams.set('sid', sidId);
+				$link.attr('href', url.toString());
+			}
+		}
+
+		// Local storage for demographic form
+		const storageKey = 'mhaTemporaryFormStorageCache';
+		const savedData = JSON.parse(localStorage.getItem(storageKey) || '{}');
+	
+		if ($('.dynamic-optional-questions-2').length && Object.keys(savedData).length > 0) {
+			const $form = $('.dynamic-optional-questions-2');
+		
+			$.each(savedData, function(name, value) {
+				const $field = $form.find(`[name="${name}"]`);
+				if ($field.length) {
+				if ($field.is(':radio') || $field.is(':checkbox')) {
+					$form.find(`[name="${name}"][value="${value}"]`).prop('checked', true);
+				} else {
+					$field.val(value);
+				}
+				}
+			});
+		}
+	
+		// Save demographic form values on "Previous" click
+		$('#multi-form-previous').on('click', function() {
+		const $form = $('.dynamic-optional-questions-2');
+		const data = {};
+	
+		$form.find('input, select, textarea').each(function() {
+			const $field = $(this);
+			const name = $field.attr('name');
+	
+			if (!name) {
+				return; 
+			}
+	
+			if ($field.is(':radio') || $field.is(':checkbox')) {
+				if ($field.is(':checked')) {
+					data[name] = $field.val();
+				}
+			} else {
+				data[name] = $field.val();
+			}
+		});
+	
+		localStorage.setItem(storageKey, JSON.stringify(data));
+		});
+	
+		// Clear values on form submit
+		$('.dynamic-optional-questions-2').on('submit', function() {
+			localStorage.removeItem(storageKey);
+		});
+	});
+	*/
+
 
 });
