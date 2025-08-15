@@ -174,6 +174,39 @@
 
 <?php wp_footer(); ?>
 
+<!-- Cookie Consent Banner -->
+<?php if(get_field('enable_cookie_banner', 'options')): ?>
+<div id="cookie-consent-banner" class="cookie-banner" style="display: none;" role="alert" aria-label="Cookie Consent Banner">
+<div class="cookie-banner-inner">
+<div class="cookie-banner-content">
+	<div class="cookie-banner-text">
+		<p>We use cookies and similar technologies to help personalize content and provide a better experience. By clicking "Accept", you consent to our use of cookies and data collection. You can learn more about our <a href="https://mhanational.org/privacy-policy" target="_blank">Privacy Policy</a>.</p>
+	</div>
+	<div class="cookie-banner-buttons">
+		<button id="cookie-deny" class="button small thin ghost purple cookie-btn-deny">Deny</button>
+		<button id="cookie-accept" class="button small thin ghost teal cookie-btn-accept">Accept</button>
+	</div>
+</div>
+</div>
+</div>
+
+<script>
+	// Add event listeners to cookie banner buttons
+	document.addEventListener('DOMContentLoaded', function() {
+		var acceptButton = document.getElementById('cookie-accept');
+		var denyButton = document.getElementById('cookie-deny');
+		
+		if (acceptButton) {
+			acceptButton.addEventListener('click', window.handleCookieAccept);
+		}
+		
+		if (denyButton) {
+			denyButton.addEventListener('click', window.handleCookieDeny);
+		}
+	});
+</script>
+<?php endif; ?>
+
 <!-- SiteImprove -->
 <script type="text/javascript">
 /*<![CDATA[*/

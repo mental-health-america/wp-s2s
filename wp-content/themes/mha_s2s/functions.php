@@ -123,6 +123,9 @@ function mha_s2s_scripts() {
 	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20250718', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 	
+	// Consent Management
+	wp_enqueue_script( 'mha_s2s-consent', get_theme_file_uri( '/assets/js/consent.js' ), array(), time(), true );
+	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
 	if(in_array($partner_var, mha_approved_partners() )){
