@@ -180,7 +180,7 @@
 <div class="cookie-banner-inner">
 <div class="cookie-banner-content">
 	<div class="cookie-banner-text">
-		<p>We use cookies and similar technologies to help personalize content and provide a better experience. By clicking "Accept", you consent to our use of cookies and data collection. You can learn more about our <a href="https://mhanational.org/privacy-policy" target="_blank">Privacy Policy</a>.</p>
+		<?php echo get_field('cookie_banner_text', 'options'); ?>
 	</div>
 	<div class="cookie-banner-buttons">
 		<button id="cookie-deny" class="button small thin ghost purple cookie-btn-deny">Deny</button>
