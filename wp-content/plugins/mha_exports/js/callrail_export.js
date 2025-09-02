@@ -7,7 +7,7 @@
     function callrailctaExportDataLooper( results ){
 
         var res = JSON.parse(results);
-        console.log(res);
+        //console.log(res);
 
         if(res.error){
 
@@ -71,7 +71,7 @@
                                 
                 if(results){
                     var res = JSON.parse(results);
-                    console.log(res);
+                    //console.log(res);
                     if(res.error){
                         alert(res.error+' Please refresh this page and try again.');
                     } else {

@@ -82,7 +82,7 @@ function mha_export_cta_codes(){
     } else if( !$args['export_start_date'] && $args['export_end_date'] ){
         $where = 'WHERE date <= \''.$args['export_start_date'].'\' AND used IS NOT NULL';
     } else if( $args['export_start_date'] && $args['export_end_date'] ){
-        $where = 'WHERE date BETWEEN \''.$args['export_start_date'].'\' AND \''.$args['export_end_date'].'\' AND used IS NOT NULL';
+        $where = 'WHERE date >= \''.$args['export_start_date'].'\' AND date <= \''.$args['export_end_date'].' 23:59:59\' AND used IS NOT NULL';
     } else {
         $where = 'WHERE used IS NOT NULL';
     }

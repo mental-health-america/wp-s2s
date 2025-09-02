@@ -75,7 +75,7 @@ function mha_export_ab_testing_data(){
     } else if( !$args['abtesting_export_start_date'] && $args['abtesting_export_end_date'] ){
         $where = 'WHERE date <= \''.$args['abtesting_export_start_date'].'\'';
     } else if( $args['abtesting_export_start_date'] && $args['abtesting_export_end_date'] ){
-        $where = 'WHERE date BETWEEN \''.$args['abtesting_export_start_date'].'\' AND \''.$args['abtesting_export_end_date'].'\'';
+        $where = 'WHERE date >= \''.$args['abtesting_export_start_date'].'\' AND date <= \''.$args['abtesting_export_end_date'].' 23:59:59\'';
     } else {
         $where = '';
     }

@@ -75,7 +75,7 @@ function mha_export_callrailcta(){
     } else if( !$args['callrailcta_export_start_date'] && $args['callrailcta_export_end_date'] ){
         $where = 'WHERE date <= \''.$args['callrailcta_export_start_date'].'\'';
     } else if( $args['callrailcta_export_start_date'] && $args['callrailcta_export_end_date'] ){
-        $where = 'WHERE date BETWEEN \''.$args['callrailcta_export_start_date'].'\' AND \''.$args['callrailcta_export_end_date'].'\'';
+        $where = 'WHERE date >= \''.$args['callrailcta_export_start_date'].'\' AND date <= \''.$args['callrailcta_export_end_date'].' 23:59:59\'';
     } else {
         $where = '';
     }
