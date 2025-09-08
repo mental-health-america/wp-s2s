@@ -52,9 +52,10 @@ class GF_Honeypot_Handler {
 	 * Target of the gform_abort_submission_with_confirmation filter. Aborts form submission early with a confirmation when honeypot fails and it is configured not to create an entry.
 	 *
 	 * @since 2.7
+	 * @since 2.9.8 Updated honeypotAction default to spam.
 	 *
 	 * @param bool  $do_abort Variable being filtered. True to abort submission, false to continue.
-	 * @param array $form Current form object.
+	 * @param array $form     Current form object.
 	 *
 	 * @return bool Returns true to abort form submission early and display confirmation. Returns false to let submission continue.
 	 */
@@ -66,12 +67,16 @@ class GF_Honeypot_Handler {
 		}
 
 		// Do not abort submission if Honeypot should be disabled or if honeypot action is set to create an entry.
-		if ( ! $this->is_honeypot_enabled( $form ) || rgar( $form, 'honeypotAction' ) == 'spam' ) {
+		if ( ! $this->is_honeypot_enabled( $form ) || rgar( $form, 'honeypotAction', 'spam' ) == 'spam' ) {
 			return false;
 		}
 
 		$do_abort = ! $this->validate_honeypot( $form );
 		\GFCommon::log_debug( __METHOD__ . '(): Result from Honeypot: ' . json_encode( $do_abort ) );
+
+		if ( $do_abort ) {
+			\GFFormDisplay::$submission[ (int) rgar( $form, 'id' ) ]['is_spam'] = true;
+		}
 
 		return $do_abort;
 	}
@@ -98,6 +103,9 @@ class GF_Honeypot_Handler {
 	 * @return array Returns a form object with the new honeypot field appended to the fields array.
 	 */
 	public function maybe_add_honeypot_field( $form ) {
+		if ( ! is_array( $form['fields'] ) ) {
+			return $form;
+		}
 
 		if ( rgar( $form, 'enableHoneypot' ) ) {
 			$form['fields'][] = $this->get_honeypot_field( $form );
@@ -123,9 +131,9 @@ class GF_Honeypot_Handler {
 			return (bool) \GFCache::get( $cache_key );
 		}
 
-		$honeypot_id               = $this->get_honeypot_field_id( $form );
-		$pass_server_side_honeypot = rgempty( "input_{$honeypot_id}" );
-		\GFCommon::log_debug( __METHOD__ . '(): Is honeypot input empty? ' . json_encode( $pass_server_side_honeypot ) );
+		$input_name                = $this->get_input_name( $form );
+		$pass_server_side_honeypot = rgempty( $input_name );;
+		\GFCommon::log_debug( __METHOD__ . sprintf( '(): Is honeypot input (name: %s) empty? %s', $input_name, json_encode( $pass_server_side_honeypot ) ) );
 
 		// Bypass JS field hash validation on GFAPI submissions.
 		if ( $this->is_api_submission() ) {
@@ -171,24 +179,53 @@ class GF_Honeypot_Handler {
 	}
 
 	/**
+	 * Returns the value used in the name attribute of the honeypot input.
+	 *
+	 * @since 2.9.16
+	 *
+	 * @param array    $form The form being rendered or validated.
+	 * @param null|int $id   The ID of the honeypot field, or null to use GF_Honeypot_Handler::get_honeypot_field_id().
+	 *
+	 * @return string
+	 */
+	public function get_input_name( $form, $id = null ) {
+		if ( is_null( $id ) ) {
+			$id = $this->get_honeypot_field_id( $form );
+		}
+
+		$name = sprintf( 'input_%d', $id );
+
+		/**
+		 * Allow the honeypot input name to be overridden.
+		 *
+		 * @since 2.9.16
+		 *
+		 * @param string $name The honeypot input name.
+		 * @param array  $form The form being rendered or validated.
+		 */
+		return apply_filters( 'gform_honeypot_input_name', $name, $form );
+	}
+
+	/**
 	 * Creates the honeypot field object for the given form.
 	 *
 	 * @since 2.7
 	 *
 	 * @param array $form The form the honeypot field is to be created for.
 	 *
-	 * @return GF_Field Returns the honeypot field.
+	 * @return bool|\GF_Field Returns the honeypot field.
 	 */
 	private function get_honeypot_field( $form ) {
+		$labels = $this->get_honeypot_labels();
+		shuffle( $labels );
 
-		$labels     = $this->get_honeypot_labels();
 		$field_data = array(
 			'type'        => 'honeypot',
 			'label'       => $labels[ rand( 0, count( $labels ) - 1 ) ],
 			'id'          => \GFFormsModel::get_next_field_id( $form['fields'] ),
 			'cssClass'    => 'gform_validation_container',
 			'description' => __( 'This field is for validation purposes and should be left unchanged.', 'gravityforms' ),
-			'formId'      => absint( $form['id'] ),
+			'formId'      => absint( rgar( $form, 'id' ) ),
 		);
 
 		return \GF_Fields::create( $field_data );
@@ -202,7 +239,18 @@ class GF_Honeypot_Handler {
 	 * @return array Returns an array of possible labels
 	 */
 	private function get_honeypot_labels() {
-		$honeypot_labels = array( 'Name', 'Email', 'Phone', 'Comments' );
+		$honeypot_labels = array(
+			'Name',
+			'Email',
+			'Phone',
+			'Comments',
+			'URL',
+			'Company',
+			'X/Twitter',
+			'Instagram',
+			'Facebook',
+			'LinkedIn',
+		);
 
 		/**
 		 * Allow the honeypot field labels to be overridden.

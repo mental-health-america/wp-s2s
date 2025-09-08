@@ -51,6 +51,8 @@ if ( ! class_exists( 'GFResults' ) ) {
 				require_once( GFCommon::get_base_path() . '/tooltips.php' );
 				add_filter( 'gform_tooltips', array( $this, 'add_tooltips' ) );
 
+				add_filter( 'admin_title', array( $this, 'set_unique_page_title' ), 100, 2 );
+
 			}
 
 		}
@@ -104,9 +106,10 @@ if ( ! class_exists( 'GFResults' ) ) {
 			if ( false === empty( $results_fields ) ) {
 				$form_id    = $form_meta['id'];
 				$link_class = '';
-				if ( rgget( 'page' ) == 'gf_new_form' ) {
+				$page       = GFForms::get_page_query_arg();
+				if ( $page == 'gf_new_form' ) {
 					$link_class = 'gf_toolbar_disabled';
-				} elseif ( rgget( 'page' ) == 'gf_entries' && rgget( 'view' ) == 'gf_results_' . $this->_slug ) {
+				} elseif ( $page == 'gf_entries' && rgget( 'view' ) == 'gf_results_' . $this->_slug ) {
 					$link_class = 'gf_toolbar_active';
 				}
 
@@ -177,7 +180,7 @@ if ( ! class_exists( 'GFResults' ) ) {
 			}
 		}
 
-		public function results_page( $form_id, $page_title, $gf_page, $gf_view ) {
+		public function results_page($form_id, $page_title, $gf_page, $gf_view ) {
 			$form_id = absint( $form_id );
 			if ( empty( $form_id ) ) {
 				$forms = RGFormsModel::get_forms();
@@ -217,13 +220,13 @@ if ( ! class_exists( 'GFResults' ) ) {
 			<script type="text/javascript">
 				var gresultsFields = <?php echo json_encode( $all_fields ); ?>;
 				var gresultsFilterSettings = <?php echo json_encode( $filter_settings ); ?>;
-				var gresultsInitVars = <?php echo json_encode( $init_vars ); ?>;
+				var gresultsInitVars = <?php echo json_encode( $init_vars ); // nosemgrep scanner.php.lang.security.xss.direct-reflected ?>;
 
 				<?php GFCommon::gf_global() ?>
 				<?php GFCommon::gf_vars() ?>
 			</script>
 
-			<div class="wrap gforms_edit_form <?php echo GFCommon::get_browser_class() ?>">
+			<div class="wrap gforms_edit_form <?php echo esc_attr( GFCommon::get_browser_class() ); ?>">
 
 				<?php //GFCommon::form_page_title( $form ); ?>
 				<?php //GFCommon::display_dismissible_message(); ?>
@@ -234,7 +237,7 @@ if ( ! class_exists( 'GFResults' ) ) {
 					<div id="poststuff" class="metabox-holder has-right-sidebar">
 						<div id="side-info-column" class="inner-sidebar">
 							<div id="gresults-results-filter" class="gform-settings-panel__content postbox">
-								<h2><?php echo $this->_search_title ?></h2>
+								<h2><?php echo esc_html( $this->_search_title ); ?></h2>
 
 								<div id="gresults-results-filter-content">
 									<form id="gresults-results-filter-form" action="" method="GET">
@@ -272,9 +275,9 @@ if ( ! class_exists( 'GFResults' ) ) {
 
 										foreach ( $filter_ui as $name => $filter ) {
 											?>
-											<div class="gform-settings-field__header"><label class='gform-settings-label'><?php echo $filter['label'] ?><?php gform_tooltip( rgar( $filter, 'tooltip' ), 'tooltip_bottomleft' ) ?></label></div>
+											<div class="gform-settings-field__header"><label class='gform-settings-label'><?php echo esc_html( $filter['label'] ); ?><?php gform_tooltip( rgar( $filter, 'tooltip' ), 'tooltip_bottomleft' ) ?></label></div>
 											<?php
-											echo $filter['markup'];
+											echo $filter['markup']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 										}
 
 										?>
@@ -312,7 +315,7 @@ if ( ! class_exists( 'GFResults' ) ) {
 
 				<?php
 				else :
-					_e( 'This form does not have any fields that can be used for results', 'gravityforms' );
+					esc_html_e( 'This form does not have any fields that can be used for results', 'gravityforms' );
 				endif ?>
 			</div>
 
@@ -376,7 +379,7 @@ if ( ! class_exists( 'GFResults' ) ) {
 				$output['s']               = http_build_query( $search_criteria );
 				$state_array               = null;
 				if ( isset( $_POST['state'] ) ) {
-					$state               = $_POST['state'];
+					$state               = rgpost( 'state' );
 					$posted_check_sum    = rgpost( 'checkSum' );
 					$generated_check_sum = self::generate_checksum( $state );
 					$state_array         = json_decode( base64_decode( $state ), true );
@@ -454,7 +457,7 @@ if ( ! class_exists( 'GFResults' ) ) {
 			$response['html']           = $html;
 			$response['offset']         = $offset;
 
-			echo json_encode( $response );
+			echo json_encode( $response ); // nosemgrep scanner.php.lang.security.xss.direct-reflected
 			die();
 		}
 
@@ -532,8 +535,10 @@ if ( ! class_exists( 'GFResults' ) ) {
 							'viewWindowMode' => 'explicit',
 							'viewWindow'     => array( 'min' => 0 ),
 							'title'          => esc_html__( 'Frequency', 'gravityforms' ),
-						)
-
+						),
+						'tooltip'   => array(
+							'isHtml' => true,
+						),
 					);
 
 					$data_table_json = htmlentities( json_encode( $data_table ), ENT_QUOTES, 'UTF-8', true );
@@ -886,6 +891,32 @@ if ( ! class_exists( 'GFResults' ) ) {
 			) ) ? GFSurvey::get_field_score( $field, $entry ) : 0;
 		}
 
+		/**
+		 * Sets a unique page title to the results page based on the title
+		 * and the form the user is viewing.
+		 * 
+		 * @since 2.8.16
+		 * 
+		 * @filter admin_title
+		 * 
+		 * @param string $admin_title The page title with extra context added.
+		 * @param string $title       The original page title. 
+		 * 
+		 * @return string
+		 */
+		public function set_unique_page_title( $admin_title, $title ) {
+			$form_id = rgget( 'id' );
+			if ( ! $form_id ) {
+				$forms   = RGFormsModel::get_forms( null, 'title' );
+				$form_id = ( ! empty( $forms ) ) ? $forms[0]->id : '';
+			}
+
+			$form        = GFAPI::get_form( $form_id );
+			$form_title  = rgar( $form, 'title', esc_html__( 'Form Not Found', 'gravityforms' ) );
+			$admin_title = sprintf( '%1$s &lsaquo; %2$s &lsaquo; %3$s', esc_html( $this->_title ), esc_html( $form_title ), esc_html( $admin_title ) );
+			
+			return $admin_title; 
+		}
 
 		public static function get_default_field_results( $form_id, $field, $search_criteria, &$offset, $page_size, &$more_remaining = false ) {
 			$field_results = '';

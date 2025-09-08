@@ -188,22 +188,33 @@ class GF_Field_Post_Image extends GF_Field_Fileupload {
 			return '';
 		}
 
-		$image_alt         = isset( $_POST["{$input_name}_2"] ) ? wp_strip_all_tags( $_POST["{$input_name}_2"] ) : '';
-		$image_title       = isset( $_POST["{$input_name}_1"] ) ? wp_strip_all_tags( $_POST["{$input_name}_1"] ) : '';
-		$image_caption     = isset( $_POST["{$input_name}_4"] ) ? wp_strip_all_tags( $_POST["{$input_name}_4"] ) : '';
-		$image_description = isset( $_POST["{$input_name}_7"] ) ? wp_strip_all_tags( $_POST["{$input_name}_7"] ) : '';
+		$image_alt         = isset( $_POST["{$input_name}_2"] ) ? wp_strip_all_tags( $_POST["{$input_name}_2"] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$image_title       = isset( $_POST["{$input_name}_1"] ) ? wp_strip_all_tags( $_POST["{$input_name}_1"] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$image_caption     = isset( $_POST["{$input_name}_4"] ) ? wp_strip_all_tags( $_POST["{$input_name}_4"] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$image_description = isset( $_POST["{$input_name}_7"] ) ? wp_strip_all_tags( $_POST["{$input_name}_7"] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 
 		return $url . '|:|' . $image_title . '|:|' . $image_caption . '|:|' . $image_description . '|:|' . $image_alt;
 	}
 
 	public function get_value_entry_list( $value, $entry, $field_id, $columns, $form ) {
 		list( $url, $title, $caption, $description, $alt ) = rgexplode( '|:|', $value, 5 );
-		if ( ! empty( $url ) ) {
-			// displaying thumbnail (if file is an image) or an icon based on the extension.
-			$thumb = GFEntryList::get_icon_url( $url );
-			$value = "<a href='" . esc_attr( $url ) . "' target='_blank' aria-label='" . esc_attr__( 'View the image', 'gravityforms' ) . "'><img src='$thumb' alt='$alt' /></a>";
+		if ( empty( $url ) ) {
+			return '';
 		}
-		return $value;
+
+		// Displaying thumbnail (if file is an image) or an icon based on the extension.
+		return sprintf(
+			'<a href="%s" target="_blank">'
+			.'<span class="screen-reader-text">%s</span>'
+			.'<span class="screen-reader-text">%s</span>'
+			.'<img src="%s" alt="%s">'
+			.'</a>',
+			esc_url( $url ),
+			esc_html__( 'View the image', 'gravityforms' ),
+			esc_html__( '(opens in a new tab)', 'gravityforms' ),
+			esc_url( GFEntryList::get_icon_url( $url ) ),
+			esc_attr( $alt )
+		);
 	}
 
 	public function get_value_entry_detail( $value, $currency = '', $use_text = false, $format = 'html', $media = 'screen' ) {
@@ -220,18 +231,19 @@ class GF_Field_Post_Image extends GF_Field_Fileupload {
 			switch ( $format ) {
 				case 'text' :
 					$value = $url;
-					$value .= ! empty( $alt ) ? "\n\n" . $this->label . ' (' . __( 'Alternative Text', 'gravityforms' ) . '): ' . $description : '';
+					$value .= ! empty( $alt ) ? "\n\n" . $this->label . ' (' . __( 'Alternative Text', 'gravityforms' ) . '): ' . $alt : '';
 					$value .= ! empty( $title ) ? "\n\n" . $this->label . ' (' . __( 'Title', 'gravityforms' ) . '): ' . $title : '';
 					$value .= ! empty( $caption ) ? "\n\n" . $this->label . ' (' . __( 'Caption', 'gravityforms' ) . '): ' . $caption : '';
 					$value .= ! empty( $description ) ? "\n\n" . $this->label . ' (' . __( 'Description', 'gravityforms' ) . '): ' . $description : '';
 					break;
 
 				default :
-					$value = "<a href='$url' target='_blank' aria-label='" . esc_attr__( 'View the image', 'gravityforms' ) . "'><img src='$url' width='100' alt='$alt' /></a>";
-					$value .= ! empty( $alt ) ? '<div>' . esc_html__( 'Alternative Text', 'gravityforms' ) . ": $alt</div>" : '';
-					$value .= ! empty( $title ) ? '<div>' . esc_html__( 'Title', 'gravityforms' ) . ": $title</div>" : '';
-					$value .= ! empty( $caption ) ? '<div>' . esc_html__( 'Caption', 'gravityforms' ) . ": $caption</div>" : '';
-					$value .= ! empty( $description ) ? '<div>' . esc_html__( 'Description', 'gravityforms' ) . ": $description</div>" : '';
+					$value  = sprintf( '<a href="%1$s" target="_blank" aria-label="%2$s"><img src="%1$s" width="100" alt="%3$s"></a>', esc_url( $url ), esc_attr__( 'View the image (opens in a new tab)', 'gravityforms' ), esc_attr( $alt ) );
+					$format = '<div>%s: %s</div>';
+					$value  .= ! empty( $alt ) ? sprintf( $format, esc_html__( 'Alternative Text', 'gravityforms' ), esc_html( $alt ) ) : '';
+					$value  .= ! empty( $title ) ? sprintf( $format, esc_html__( 'Title', 'gravityforms' ), esc_html( $title ) ) : '';
+					$value  .= ! empty( $caption ) ? sprintf( $format, esc_html__( 'Caption', 'gravityforms' ), esc_html( $caption ) ) : '';
+					$value  .= ! empty( $description ) ? sprintf( $format, esc_html__( 'Description', 'gravityforms' ), esc_html( $description ) ) : '';
 
 					break;
 			}

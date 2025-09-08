@@ -125,6 +125,14 @@ class Base implements ArrayAccess {
 	 */
 	public $settings;
 
+	/** Used to check if encryption is suppported.
+	 *
+	 * @since 2.7.15.2
+	 *
+	 * @var bool
+	 */
+	public $encrypt;
+
 	/**
 	 * Field id.
 	 *
@@ -231,7 +239,7 @@ class Base implements ArrayAccess {
 	 *
 	 * @var string
 	 */
-	protected $placeholder;
+	public $placeholder;
 
 	/**
 	 * Checkbox input attributes
@@ -409,6 +417,7 @@ class Base implements ArrayAccess {
 		$default_atts = array(
 			'class'         => '',
 			'default_value' => '', // Default value that should be selected or entered for the field.
+			'placeholder'   => $this->placeholder,
 		);
 
 		// Add additional default attributes.

@@ -186,7 +186,7 @@ Class GFNotification {
 					sprintf(
 						esc_html__( 'Warning! Using a third-party email in the From Email field may prevent your notification from being delivered. It is best to use an email with the same domain as your website. %sMore details in our documentation.%s', 'gravityforms' ),
 						'<a href="https://docs.gravityforms.com/troubleshooting-notifications/#use-a-valid-from-address" target="_blank" >',
-						'</a>'
+						'<span class="screen-reader-text">' . esc_html__('(opens in a new tab)', 'gravityforms') . '</span>&nbsp;<span class="gform-icon gform-icon--external-link"></span></a>'
 					)
 				);
 			}
@@ -257,6 +257,7 @@ Class GFNotification {
 						'name'                => 'toEmail',
 						'label'               => esc_html__( 'Send To Email', 'gravityforms' ),
 						'type'                => 'text',
+						'class'               => 'merge-tag-support mt-position-right mt-hide_all_fields',
 						'required'            => true,
 						'default_value'       => '{admin_email}',
 						'dependency'          => array(
@@ -529,13 +530,17 @@ Class GFNotification {
 		 *
 		 * @deprecated
 		 * @since 1.7
-		 *
+		 * @remove-in 3.0
 		 * @param array $ui_settings  An array of settings for the notification UI.
 		 * @param array $notification The current notification object being edited.
 		 * @param array $form         The current form object to which the notification being edited belongs.
 		 * @param null  $is_valid     Whether or not the current notification has passed validation. (Deprecated.)
 		 */
 		$legacy_settings = apply_filters( 'gform_notification_ui_settings', array(), $notification, $form, null );
+
+		if ( has_filter( 'gform_notification_ui_settings' ) ) {
+			trigger_error( 'gform_notification_ui_settings is deprecated and will be removed in version 3.0.', E_USER_DEPRECATED );
+		}
 
 		if ( empty( $legacy_settings ) ) {
 			return $fields;
@@ -734,8 +739,8 @@ Class GFNotification {
 						?>
 
 						var form = <?php echo json_encode( $form ) ?>;
-						var current_notification = <?php echo GFCommon::json_encode( $notification ) ?>;
-						var entry_meta = <?php echo GFCommon::json_encode( $entry_meta ) ?>;
+						var current_notification = <?php echo GFCommon::json_encode( $notification ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
+						var entry_meta = <?php echo GFCommon::json_encode( $entry_meta ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 
 						jQuery( function() {
 							ToggleConditionalLogic( true, 'notification' );
@@ -873,12 +878,12 @@ Class GFNotification {
 
 				jQuery.ajax(
 					{
-						url:      '<?php echo admin_url( 'admin-ajax.php' ); ?>',
+						url:      '<?php echo admin_url( 'admin-ajax.php' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>',
 						method:   'POST',
 						dataType: 'json',
 						data: {
 							action:                        'rg_update_notification_active',
-							rg_update_notification_active: '<?php echo wp_create_nonce( 'rg_update_notification_active' ); ?>',
+							rg_update_notification_active: '<?php echo wp_create_nonce( 'rg_update_notification_active' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>',
 							form_id:                       '<?php echo intval( $form_id ); ?>',
 							notification_id:               notification_id,
 							is_active:                     is_active ? 0 : 1,
@@ -1040,7 +1045,7 @@ Class GFNotification {
 			$email            = trim( $email );
 			$invalid_email    = GFCommon::is_invalid_or_empty_email( $email );
 			// this used to be more strict; updated to match any merge-tag-like string
-			$invalid_variable = ! preg_match( '/^{.+}$/', $email );
+			$invalid_variable = ! preg_match( '/\{.*?\}/', $email );
 
 			if ( $invalid_email && $invalid_variable ) {
 				return false;
@@ -1104,7 +1109,7 @@ Class GFNotification {
 		$selected = rgempty( 'selectedValue' ) ? 0 : rgpost( 'selectedValue' );
 
 		$dropdown = wp_dropdown_categories( array( 'class' => 'gfield_routing_select gfield_routing_value_dropdown gfield_category_dropdown', 'orderby' => 'name', 'id' => $id, 'selected' => $selected, 'hierarchical' => true, 'hide_empty' => 0, 'echo' => false ) );
-		die( $dropdown );
+		die( $dropdown ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -1406,7 +1411,7 @@ class GFNotificationTable extends WP_List_Table {
 			</tfoot>
 
 			<tbody id="the-list"<?php if ( $singular ) {
-				echo " class='list:$singular'";
+				echo " class='list:$singular'"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			} ?>>
 
 			<?php $this->display_rows_or_placeholder(); ?>
@@ -1433,8 +1438,8 @@ class GFNotificationTable extends WP_List_Table {
 		static $row_class = '';
 		$row_class = ( $row_class == '' ? ' class="alternate"' : '' );
 
-		echo '<tr id="notification-' . esc_attr( $item['id'] ) . '" ' . $row_class . '>';
-		echo $this->single_row_columns( $item );
+		echo '<tr id="notification-' . esc_attr( $item['id'] ) . '" ' . $row_class . '>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $this->single_row_columns( $item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '</tr>';
 	}
 
@@ -1465,7 +1470,7 @@ class GFNotificationTable extends WP_List_Table {
 	 * @return void
 	 */
 	function column_default( $item, $column ) {
-		echo rgar( $item, $column );
+		echo rgar( $item, $column ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -1541,9 +1546,15 @@ class GFNotificationTable extends WP_List_Table {
 			unset( $actions['delete'] );
 		}
 
+		$aria_label = sprintf(
+			/* translators: %s: Notification name */
+			__( '%s (Edit)', 'gravityforms' ),
+			$item['name']
+		);
+
 		?>
 
-		<a href="<?php echo esc_url( $edit_url ); ?>"><strong><?php echo esc_html( rgar( $item, 'name' ) ); ?></strong></a>
+		<a href="<?php echo esc_url( $edit_url ); ?>" aria-label="<?php echo esc_attr( $aria_label ); ?>"><strong><?php echo esc_html( rgar( $item, 'name' ) ); ?></strong></a>
 		<div class="row-actions">
 
 			<?php
@@ -1553,8 +1564,8 @@ class GFNotificationTable extends WP_List_Table {
 				foreach ( $actions as $key => $html ) {
 					$divider = $key == $last_key ? '' : ' | ';
 					?>
-					<span class="<?php echo $key; ?>">
-                        <?php echo $html . $divider; ?>
+					<span class="<?php echo esc_attr( $key ); ?>">
+                        <?php echo $html . $divider; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                     </span>
 				<?php
 				}
@@ -1586,7 +1597,7 @@ class GFNotificationTable extends WP_List_Table {
 			esc_html_e( 'WordPress', 'gravityforms' );
 		} else if ( rgar( $services, $notification['service'] ) ) {
 			$service = rgar( $services, $notification['service'] );
-			echo rgar( $service, 'label' );
+			echo rgar( $service, 'label' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		} else {
 			esc_html_e( 'Undefined Service', 'gravityforms' );
 		}
@@ -1606,7 +1617,7 @@ class GFNotificationTable extends WP_List_Table {
 	 * @return void
 	 */
 	function column_event( $notification ) {
-		echo rgar( $this->notification_events, rgar( $notification, 'event' ) );
+		echo rgar( $this->notification_events, rgar( $notification, 'event' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**

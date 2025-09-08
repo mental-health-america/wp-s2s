@@ -137,17 +137,19 @@ class GFAutoUpgrade {
 			$option->response[ $this->_path ] = new stdClass();
 		}
 
+		$new_version = rgar( $version_info, 'version', '0' );
+
 		$plugin = array(
 			'plugin'      => $this->_path,
 			'url'         => $this->_url,
 			'slug'        => $this->_slug,
 			'package'     => $version_info['url'] ? str_replace( '{KEY}', $key, $version_info['url'] ) : '',
-			'new_version' => $version_info['version'],
+			'new_version' => $new_version,
 			'id'          => '0',
 		);
 
 		//Empty response means that the key is invalid. Do not queue for upgrade
-		if ( ! rgar( $version_info, 'is_valid_key' ) || version_compare( $this->_version, $version_info['version'], '>=' ) ) {
+		if ( ! rgar( $version_info, 'is_valid_key' ) || version_compare( $this->_version, $new_version, '>=' ) ) {
 			unset( $option->response[ $this->_path ] );
 			$option->no_update[ $this->_path ] = (object) $plugin;
 		} else {
@@ -162,11 +164,11 @@ class GFAutoUpgrade {
 
 	// Displays current version details on plugins page and updates page
 	public function display_changelog() {
-		if ( $_REQUEST['plugin'] != $this->_slug ) {
+		if ( isset( $_REQUEST['plugin'] ) && $_REQUEST['plugin'] != $this->_slug ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
 		$change_log = $this->get_changelog();
-		echo $change_log;
+		echo $change_log; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		exit;
 	}
@@ -209,9 +211,13 @@ class GFAutoUpgrade {
 	private function get_version_info( $offering, $use_cache = true ) {
 
 		$version_info = GFCommon::get_version_info( $use_cache );
-		$is_valid_key = rgar( $version_info, 'is_valid_key' ) && rgars( $version_info, "offerings/{$offering}/is_available" );
 
-		$info = array( 'is_valid_key' => $is_valid_key, 'version' => rgars( $version_info, "offerings/{$offering}/version" ), 'url' => rgars( $version_info, "offerings/{$offering}/url" ) );
+		$info = array( 
+			'is_valid_key' => rgar( $version_info, 'is_valid_key' ),
+			'version'      => rgars( $version_info, "offerings/{$offering}/version" ),
+			'url'          => rgars( $version_info, "offerings/{$offering}/url" ),
+			'is_available' => rgars( $version_info, "offerings/{$offering}/is_available" ),
+		);
 
 		return $info;
 	}
@@ -288,7 +294,7 @@ class GFAutoUpgrade {
 	public function display_updates() {
 
 		?>
-		<div class="wrap <?php echo GFCommon::get_browser_class() ?>">
+		<div class="wrap <?php echo esc_attr( GFCommon::get_browser_class() ); ?>">
 			<h2><?php esc_html_e( $this->_title ); ?></h2>
 			<?php
 			$force_check = rgget( 'force-check' ) == 1;
@@ -313,7 +319,7 @@ class GFAutoUpgrade {
 
 					?>
 					<div class="gf_update_outdated alert_yellow">
-						<?php echo $message . ' <p>' . sprintf( esc_html__( 'You can update to the latest version automatically or download the update and install it manually. %sUpdate Automatically%s %sDownload Update%s', 'gravityforms' ), "</p><a class='button-primary' href='{$upgrade_url}'>", '</a>', "&nbsp;<a class='button' href='{$version_info['url']}'>", '</a>' ); ?>
+						<?php echo $message . ' <p>' . sprintf( esc_html__( 'You can update to the latest version automatically or download the update and install it manually. %sUpdate Automatically%s %sDownload Update%s', 'gravityforms' ), "</p><a class='button-primary' href='{$upgrade_url}'>", '</a>', "&nbsp;<a class='button' href='{$version_info['url']}'>", '</a>' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped?>
 					</div>
 				<?php
 				}
@@ -321,7 +327,7 @@ class GFAutoUpgrade {
 
 				?>
 				<div class="gf_update_current alert_green">
-					<?php printf( esc_html__( 'Your version of %s is up to date.', 'gravityforms' ), $this->_title ); ?>
+					<?php printf( esc_html__( 'Your version of %s is up to date.', 'gravityforms' ), esc_html( $this->_title ) ); ?>
 				</div>
 			<?php
 			}

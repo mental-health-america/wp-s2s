@@ -119,12 +119,12 @@ class GF_Confirmation {
 
 					jQuery.ajax(
 						{
-							url:      '<?php echo admin_url( 'admin-ajax.php' ); ?>',
+							url:      '<?php echo admin_url( 'admin-ajax.php' ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>',
 							method:   'POST',
 							dataType: 'json',
 							data: {
 								action:                        'rg_update_confirmation_active',
-								rg_update_confirmation_active: '<?php echo wp_create_nonce( 'rg_update_confirmation_active' ); ?>',
+								rg_update_confirmation_active: '<?php echo wp_create_nonce( 'rg_update_confirmation_active' ); //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped  ?>',
 								form_id:                       '<?php echo intval( $form_id ); ?>',
 								confirmation_id:               confirmation_id,
 								is_active:                     is_active ? 0 : 1,
@@ -426,7 +426,7 @@ class GF_Confirmation {
 
 		// Get ID of confirmation to duplicate, determine if we are duplicating confirmation.
 		$duplicated_cid = sanitize_key( rgget( 'duplicatedcid' ) );
-		$is_duplicate   = empty( $_POST ) && ! empty( $duplicated_cid );
+		$is_duplicate   = empty( $_POST ) && ! empty( $duplicated_cid ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 		// Get confirmation object.
 		$confirmation = rgar( $form['confirmations'], $is_duplicate ? $duplicated_cid : $confirmation_id, array() );
@@ -497,17 +497,7 @@ class GF_Confirmation {
 		$form_id         = absint( rgget( 'id' ) );
 		$confirmation_id = rgpost( 'confirmation_id' ) ? rgpost( 'confirmation_id' ) : rgget( 'cid' );
 
-		/**
-		 * Filters to form meta being used within the confirmations edit page.
-		 *
-		 * @since Unknown
-		 *
-		 * @param array $form The Form Object.
-		 */
-		$form = gf_apply_filters( array(
-			'gform_admin_pre_render',
-			$form_id
-		), GFFormsModel::get_form_meta( $form_id ) );
+		$form = GFCommon::gform_admin_pre_render( GFFormsModel::get_form_meta( $form_id ) );
 
 		// Get confirmation object.
 		$confirmation = self::get_confirmation( $confirmation_id, $form );
@@ -525,7 +515,11 @@ class GF_Confirmation {
 		// Add warning if confirmation message is unsafe.
 		if ( ! empty( $confirmation['message'] ) && self::confirmation_looks_unsafe( $confirmation['message'] ) ) {
 			$dismissible_message = esc_html__( 'Your confirmation message appears to contain a merge tag as the value for an HTML attribute. Depending on the attribute and field type, this might be a security risk. %sFurther details%s', 'gravityforms' );
-			$dismissible_message = sprintf( $dismissible_message, '<a href="https://docs.gravityforms.com/security-warning-merge-tags-html-attribute-values/" target="_blank">', '</a>' );
+			$dismissible_message = sprintf(
+				$dismissible_message,
+				'<a href="https://docs.gravityforms.com/security-warning-merge-tags-html-attribute-values/" target="_blank">',
+				'<span class="screen-reader-text">' . esc_html__( '(opens in a new tab)', 'gravityforms' ) . '</span>&nbsp;<span class="gform-icon gform-icon--external-link"></span></a>'
+			);
 			GFCommon::add_dismissible_message( $dismissible_message, 'confirmation_unsafe_' . $form_id );
 		}
 
@@ -613,7 +607,7 @@ class GF_Confirmation {
 
 						var confirmation = <?php echo $confirmation ? json_encode( $confirmation ) : 'new ConfirmationObj()' ?>;
 						var form = <?php echo json_encode( $form ); ?>;
-						var entry_meta = <?php echo GFCommon::json_encode( $entry_meta ) ?>;
+						var entry_meta = <?php echo GFCommon::json_encode( $entry_meta ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 
 						gform.addFilter( 'gform_merge_tags', 'MaybeAddSaveMergeTags' );
 
@@ -939,7 +933,7 @@ class GFConfirmationTable extends WP_List_Table {
 
 		$this->display_tablenav( 'top' );
 		?>
-		<table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>" cellspacing="0">
+		<table class="wp-list-table <?php echo esc_attr( implode( ' ', $this->get_table_classes() ) ); ?>" cellspacing="0">
 			<thead>
 			<tr>
 				<?php $this->print_column_headers(); ?>
@@ -953,7 +947,7 @@ class GFConfirmationTable extends WP_List_Table {
 			</tfoot>
 
 			<tbody id="the-list"<?php if ( $singular ) {
-				echo " class='list:$singular'";
+				echo " class='list:$singular'"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			} ?>>
 
 			<?php $this->display_rows_or_placeholder(); ?>
@@ -980,7 +974,7 @@ class GFConfirmationTable extends WP_List_Table {
 		printf(
 			'<tr id="confirmation-%s" %s>',
 			esc_attr( $item['id'] ),
-			$row_class
+			$row_class // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		);
 		$this->single_row_columns( $item );
 		echo '</tr>';
@@ -1025,7 +1019,7 @@ class GFConfirmationTable extends WP_List_Table {
 	 */
 	public function column_default( $item, $column ) {
 
-		echo rgar( $item, $column );
+		echo rgar( $item, $column ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 	}
 
@@ -1104,10 +1098,14 @@ class GFConfirmationTable extends WP_List_Table {
 			unset( $actions['delete'] );
 		}
 
-
+		$aria_label = sprintf(
+			/* translators: %s: Confirmation name */
+			__( '%s (Edit)', 'gravityforms' ),
+			$item['name']
+		);
 		?>
 
-		<a href="<?php echo esc_url( $edit_url ); ?>"><strong><?php echo esc_html( rgar( $item, 'name' ) ); ?></strong></a>
+		<a href="<?php echo esc_url( $edit_url ); ?>" aria-label="<?php echo esc_attr( $aria_label ); ?>"><strong><?php echo esc_html( rgar( $item, 'name' ) ); ?></strong></a>
 		<div class="row-actions">
 
 			<?php
@@ -1118,8 +1116,8 @@ class GFConfirmationTable extends WP_List_Table {
 				foreach ( $actions as $key => $html ) {
 					$divider = $key == $last_key ? '' : ' | ';
 					?>
-					<span class="<?php echo $key; ?>">
-                        <?php echo $html . $divider; ?>
+					<span class="<?php echo esc_attr( $key ); ?>">
+                        <?php echo $html . $divider; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                     </span>
 					<?php
 
