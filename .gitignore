@@ -161,7 +161,6 @@ wp-content/mysql.sql
 *.bak
 
 # MHA specific overrides
-keys.php
 !/wp-content/plugins/mha_shard
 /wp-content/plugins/mha_shard/keys.php
 /wp-content/plugins/mha_shard/inc/tmp
@@ -171,7 +170,6 @@ keys.php
 !/wp-content/plugins/mha_imports
 !/wp-content/plugins/mha_cleanup
 !/wp-content/plugins/mha_sso
-!/wp-content/plugins/mha_iframe_control
 /wp-content/plugins/mha_sso/keys.php
 /wp-content/plugins/mha_sso/vendor
 /wp-content/plugins/mha_imports/vendor
@@ -179,6 +177,15 @@ keys.php
 !/wp-content/plugins/gravityforms
 !/wp-content/themes/mha_s2s
 /wp-content/themes/mha_s2s/templates/page-devtest.php
+
+# Server specific
 bak
 codes
-keys.php
+tmp
+*/tmp
+.logs/
+.ftpquota
+wp-content/.htaccess
+wp-content/autoptimize_404_handler.php
+wp-content/db.php
+have-i-been-pwned-verification.txt
