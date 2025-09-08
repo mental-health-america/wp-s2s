@@ -323,8 +323,8 @@ function mha_export_screen_data(){
                     $json_data = json_decode($v, true);
                     if (is_array($json_data) && isset($json_data['additional_result_text'])) {
                         $json_data['additional_result_text'] = cleanAdditionalResultText($json_data['additional_result_text']);
-                        $v = json_encode($json_data);
                     }
+                    $v = json_encode($json_data);
                 }
 
                 // Put into our array
@@ -557,16 +557,22 @@ function moveArrayKeyToLast(&$array, $key){
 function cleanAdditionalResultText($content) {
     if (empty($content)) return $content;
     
-    // If digital-pathways is present, return empty string
-    if (is_string($content) && strpos($content, 'digital-pathways') !== false) {
-        return 'Digital Pathways Content Removed';
-    }
-    
-    // Handle array of strings (strip tags from each element)
+    // Handle array of strings
     if (is_array($content)) {
         foreach ($content as $key => $text) {
             if (is_string($text)) {
-                $content[$key] = strip_tags($text);
+                // Check for digital-pathways content
+                if (strpos($text, 'digital-pathways') !== false) {
+                    $content[$key] = 'Digital Pathways Content Removed';
+                }
+                // Check for dataLayer content
+                elseif (strpos($text, 'dataLayer') !== false) {
+                    $content[$key] = 'dataLayer Content Removed';
+                }
+                // Otherwise strip HTML tags
+                else {
+                    $content[$key] = strip_tags($text);
+                }
             }
         }
         return $content;
@@ -574,6 +580,13 @@ function cleanAdditionalResultText($content) {
     
     // Handle single string
     if (is_string($content)) {
+        // If digital-pathways is present, return empty string
+        if (strpos($content, 'digital-pathways') !== false) {
+            return 'Digital Pathways Content Removed';
+        }
+        if (strpos($content, 'dataLayer') !== false) {
+            return 'dataLayer Content Removed';
+        }
         return strip_tags($content);
     }
     
