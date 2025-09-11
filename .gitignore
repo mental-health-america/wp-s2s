@@ -185,7 +185,8 @@ tmp
 */tmp
 .logs/
 .ftpquota
+have-i-been-pwned-verification.txt
+local-xdebuginfo.php
 wp-content/.htaccess
 wp-content/autoptimize_404_handler.php
 wp-content/db.php
-have-i-been-pwned-verification.txt
