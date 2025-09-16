@@ -27,6 +27,11 @@
         border-radius: 20px;
     }
 
+    .iframe-mode &,
+    .partner-mode & {
+        bottom: 64px;
+    }
+
     .cookie-banner-inner {
         padding: 20px 40px;
         @media only screen and (max-width: 980px){

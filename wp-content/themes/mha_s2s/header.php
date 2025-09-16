@@ -14,7 +14,6 @@
 <meta name="msapplication-TileImage" content="/favicon-144x144.png">
 <meta name="theme-color" content="#365888">
 
-
 <script>
     /** Init Google Consent Mode */
     window.dataLayer = window.dataLayer || [];
@@ -36,9 +35,8 @@
     gtag("set", "ads_data_redaction", true);
     gtag("set", "url_passthrough", true);
     /** End Google Consent Mode Initialization */
-</script>
-
-<script>
+	
+	// Data Layer
 	<?php if( current_user_can('editor') || current_user_can('administrator') || get_query_var('internaltraffic') == 'true' ):?>
 		window.dataLayer.push({
 			'event': 'traffic_type',
@@ -98,9 +96,8 @@
 	<?php endif; ?>
 </script>
 
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link rel="dns-prefetch" href="//fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<!-- Google Optimize -->
+<!-- <script src="https://www.googleoptimize.com/optimize.js?id=OPT-PNLZZ5R"></script> -->
 
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -109,6 +106,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-N3TWZFC');</script>
 <!-- End Google Tag Manager -->
+
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link rel="dns-prefetch" href="//fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
 <?php wp_head(); ?>
 </head>

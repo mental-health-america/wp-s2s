@@ -51,6 +51,7 @@ function initiCookieConsentCheck() {
 // Event handlers
 window.handleCookieAccept = function() {
 	localStorage.setItem('cookie_consent', 'accepted');
+	window.dataLayer.push({ event: 'consent_granted_click' });
 	grantConsent();
 	toggleBanner(false);
 };
