@@ -115,8 +115,8 @@
                                 echo '<a class="crumb crumb-referrer" href="'.get_the_permalink($ref_id).'"><span class="text">'.get_the_title($ref_id).'</span></a>';
                             } else {
                                 if(get_query_var('ref')){
-                                    if(get_term( get_query_var('ref') )){
-                                        $term = get_term( get_query_var('ref') );
+                                    $term = get_term( get_query_var('ref') );
+                                    if($term && !is_wp_error($term)){
                                         if(get_field('custom_category_name', $term->taxonomy.'_'.$term->term_id)){
                                             $term_name = get_field('custom_category_name', $term->taxonomy.'_'.$term->term_id);
                                         } else {

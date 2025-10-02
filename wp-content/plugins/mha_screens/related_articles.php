@@ -875,8 +875,8 @@ function mha_results_related_articles_simple( $args ){
         $next_step_terms = array_unique($next_step_terms);
         $taxonomy_query = [];
         foreach($next_step_terms as $step){
-            $step = get_term($next);
-            if($step->taxonomy == 'condition' || $step->taxonomy == 'age_group' || $step->taxonomy == 'post_tag'){
+            $step = get_term($step);
+            if($step && ($step->taxonomy == 'condition' || $step->taxonomy == 'age_group' || $step->taxonomy == 'post_tag')){
                 $taxonomy_query[$step->taxonomy][] = $step->term_id;
             }
         }

@@ -275,23 +275,25 @@ function wp_body_classes( $classes ) {
 			global $wpdb;
 			$user_screen_id = str_replace('_ref', '', $sid);
 			$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
-			$user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
-			$ref_var = $user_screen_result['referer'] ? $user_screen_result['referer'] : false;
-			if($ref_var){
+			if($entry_id){
+				$user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
+				$ref_var = !is_wp_error($user_screen_result) && isset($user_screen_result['referer']) ? $user_screen_result['referer'] : false;
+				if($ref_var){
 
-				$partner_cta_args = array(
-					'post_type' => 'partners',
-					'post_status' => 'publish',
-					'posts_per_page' => -1,
-					'fields' => 'ids',
-				);
-				$partners_cta = get_posts($partner_cta_args);
-				foreach ( $partners_cta as $partner_id ) {
-					$partner_details = get_field('partner_information', $partner_id);
-					if ( !empty($partner_details['partner_code']) ) {
-						if ( $ref_var == $partner_details['partner_code'] ) {
-							$classes[] = 'partner-mode';
-							break;
+					$partner_cta_args = array(
+						'post_type' => 'partners',
+						'post_status' => 'publish',
+						'posts_per_page' => -1,
+						'fields' => 'ids',
+					);
+					$partners_cta = get_posts($partner_cta_args);
+					foreach ( $partners_cta as $partner_id ) {
+						$partner_details = get_field('partner_information', $partner_id);
+						if ( !empty($partner_details['partner_code']) ) {
+							if ( $ref_var == $partner_details['partner_code'] ) {
+								$classes[] = 'partner-mode';
+								break;
+							}
 						}
 					}
 				}
@@ -1432,10 +1434,14 @@ function mha_partner_banner($referer = null) {
 		$partners_cta = get_posts($partner_cta_args);
 		foreach ( $partners_cta as $partner_id ) {
 			$partner_details = get_field('partner_information', $partner_id);
-			if ( !empty($partner_details['partner_code']) ) {
+			if ( $partner_details && !empty($partner_details['partner_code']) ) {
 				if ( $ref_var == $partner_details['partner_code'] ) {
+					$logo_url = '';
+					if ( $partner_details['partner_logo'] && isset($partner_details['partner_logo']['sizes']['medium_large']) ) {
+						$logo_url = $partner_details['partner_logo']['sizes']['medium_large'];
+					}
 					$partner_banner_info = array(
-						'logo' => $partner_details['partner_logo']['sizes']['medium_large'],
+						'logo' => $logo_url,
 						'url' => $partner_details['partner_domain']
 					);
 					$display_partner_banner = true;

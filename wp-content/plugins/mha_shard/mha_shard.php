@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MHA - Shard
  * Plugin URI: http://mhascreening.org
- * Version: 1.2.0
+ * Version: 1.0.0
  * Author: MHA Screening Web Team
  * Author URI: http://mhascreening.org
  * Description: A companion plugin for the MHA theme.
@@ -51,7 +51,4 @@ include_once 'inc/admin.php';
 include_once 'inc/ab_testing.php';
 
 // API Endpoints
-include_once 'lib/DataTables/SSP.php';
-include_once 'inc/ApiLogger.class.php';
-include_once 'inc/ApiLogViewer.class.php';
 include_once 'inc/rest-get_screen_result_demo.php';
