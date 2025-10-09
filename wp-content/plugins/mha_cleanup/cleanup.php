@@ -17,6 +17,11 @@ function mhacleanuperLooper( $data = null ) {
         exit();
     }
 
+    // Verify nonce
+    if(!isset($_POST['data']) || !wp_verify_nonce($_POST['nonce'] ?? '', 'mhacleanupsnonce')){
+        wp_die('Security check failed');
+    }
+
     // Initial data
     if($data){
         $data = $data;
@@ -24,26 +29,52 @@ function mhacleanuperLooper( $data = null ) {
         parse_str($_POST['data'], $data);  
     }
 
-    // Defaults
-    //$form_ids = array(15, 8, 10, 1, 13, 12, 5, 18, 17, 9, 11, 16, 14); // All screening related form IDs     
-    $form_ids = explode(',',$data['form_ids']);
+    // Validate and sanitize input data
+    $form_ids_raw = sanitize_text_field($data['form_ids'] ?? '');
+    if(empty($form_ids_raw)){
+        $data['error'] = 'Form IDs are required';
+        echo json_encode($data);
+        exit();
+    }
+    
+    $form_ids = array_map('intval', explode(',', $form_ids_raw));
+    $form_ids = array_filter($form_ids, function($id) { return $id > 0; });
+    if(empty($form_ids)){
+        $data['error'] = 'Invalid form IDs provided';
+        echo json_encode($data);
+        exit();
+    }
     $data['form_ids'] = $form_ids;
     $data['log'] = '';
 
     // Pagination
     $page_size = 1000;
     if(isset($data['next_page'])){
-        $page = $data['next_page'];
+        $page = intval($data['next_page']);
     } else {
         $page = 1;
     }
     $data['page'] = $page;
     $offset = ($page - 1) * $page_size;
 
-    // Filters
-    $startDate = $data['start_date'];
+    // Filters - validate dates
+    $startDate = sanitize_text_field($data['start_date'] ?? '');
+    $endDate = sanitize_text_field($data['end_date'] ?? '');
+    
+    if(empty($startDate) || empty($endDate)){
+        $data['error'] = 'Start date and end date are required';
+        echo json_encode($data);
+        exit();
+    }
+    
+    // Validate date format
+    if(!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)){
+        $data['error'] = 'Invalid date format. Use YYYY-MM-DD';
+        echo json_encode($data);
+        exit();
+    }
+    
     $data['start_date'] = $startDate;
-    $endDate = $data['end_date'];
     $data['end_date'] = $endDate;
     $timeCheck = strtotime('last day of 2 months ago');
 
@@ -121,16 +152,29 @@ function mhaCleanerJsonScrubber() {
         exit();
     }
 
+    // Verify nonce
+    if(!isset($_POST['data']) || !wp_verify_nonce($_POST['nonce'] ?? '', 'mhacleanupsnonce')){
+        wp_die('Security check failed');
+    }
+
     $data = explode(",", trim($_POST['data']));
     $response['data'] = $data;
     $response['entries'] = [];
+    $response['errors'] = [];
     
     $counter = 0;
     foreach($data as $d) {
         if($d != ''){
-            GFAPI::delete_entry( $d );
-            $response['entries_new'][] = $d;
-            $counter++;
+            $entry_id = intval($d);
+            if($entry_id > 0){
+                $result = GFAPI::delete_entry( $entry_id );
+                if(is_wp_error($result)){
+                    $response['errors'][] = 'Failed to delete entry ' . $entry_id . ': ' . $result->get_error_message();
+                } else {
+                    $response['entries_new'][] = $entry_id;
+                    $counter++;
+                }
+            }
         }
     }
 
@@ -154,6 +198,11 @@ function mhausercleanupper() {
         exit();
     }
 
+    // Verify nonce
+    if(!isset($_POST['data']) || !wp_verify_nonce($_POST['nonce'] ?? '', 'mhausercleanupsnonce')){
+        wp_die('Security check failed');
+    }
+
     // Prep response
     $response = [];
 
@@ -161,9 +210,15 @@ function mhausercleanupper() {
     parse_str($_POST['data'], $data);  
     // $response['data'] = $data;
 
-    $user_data = $data['user_data'];
-    $response['user_data'] = $data['user_data'];
-    $response['review'] = isset($data['review']) ? $data['review'] : false;
+    $user_data = sanitize_text_field($data['user_data'] ?? '');
+    if(empty($user_data)){
+        $response['error'] = 'User ID or email is required';
+        echo json_encode($response);
+        exit();
+    }
+    
+    $response['user_data'] = $user_data;
+    $response['review'] = isset($data['review']) ? (bool)$data['review'] : false;
     
     $deleted_suffix = $response['review'] ? '' : ' removed';
 
@@ -207,7 +262,7 @@ function mhausercleanupper() {
 
                 // Get likes, flags, and hides
                 global $wpdb;
-                $results_1 = $wpdb->get_results( "SELECT pid FROM article_likes WHERE uid = ".$user_id."", OBJECT );   
+                $results_1 = $wpdb->get_results( $wpdb->prepare( "SELECT pid FROM article_likes WHERE uid = %d", $user_id ), OBJECT );   
                 $response['message'] .= '<br /><strong>'.count($results_1).'</strong> Article Likes'.$deleted_suffix.'.';
                 if($response['review']){
                     if(count($results_1) > 0){
@@ -223,7 +278,7 @@ function mhausercleanupper() {
                     }
                 }
 
-                $results_2 = $wpdb->get_results( "SELECT pid FROM screens_hidden WHERE uid = ".$user_id."", OBJECT );
+                $results_2 = $wpdb->get_results( $wpdb->prepare( "SELECT pid FROM screens_hidden WHERE uid = %d", $user_id ), OBJECT );
                 $response['message'] .= '<br /><strong>'.count($results_2).'</strong> Screens Hidden'.$deleted_suffix.'.';
                 if($response['review']){
                     if(count($results_2) > 0){
@@ -239,7 +294,7 @@ function mhausercleanupper() {
                     }
                 }
 
-                $results_3 = $wpdb->get_results( "SELECT * FROM thoughts_flags WHERE uid = ".$user_id."", OBJECT ); 
+                $results_3 = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM thoughts_flags WHERE uid = %d", $user_id ), OBJECT ); 
                 $response['message'] .= '<br /><strong>'.count($results_3).'</strong> Thought Flags'.$deleted_suffix.'.';
                 if($response['review']){
                     if(count($results_3) > 0){
@@ -255,7 +310,7 @@ function mhausercleanupper() {
                     }
                 }
 
-                $results_4 = $wpdb->get_results( "SELECT pid FROM thoughts_hidden WHERE uid = ".$user_id."", OBJECT );  
+                $results_4 = $wpdb->get_results( $wpdb->prepare( "SELECT pid FROM thoughts_hidden WHERE uid = %d", $user_id ), OBJECT );  
                 $response['message'] .= '<br /><strong>'.count($results_4).'</strong> Thoughts Hidden'.$deleted_suffix.'.';
                 if($response['review']){
                     if(count($results_4) > 0){
@@ -271,7 +326,7 @@ function mhausercleanupper() {
                     }
                 }
 
-                $results_5 = $wpdb->get_results( "SELECT * FROM thoughts_likes WHERE uid = ".$user_id."", OBJECT );   
+                $results_5 = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM thoughts_likes WHERE uid = %d", $user_id ), OBJECT );   
                 $response['message'] .= '<br /><strong>'.count($results_5).'</strong> Thought Likes'.$deleted_suffix.'.'; 
                 if($response['review']){
                     if(count($results_5) > 0){
@@ -287,7 +342,7 @@ function mhausercleanupper() {
                     }
                 }
 
-                $results_6 = $wpdb->get_results( "SELECT id, form_id FROM {$wpdb->prefix}gf_entry WHERE created_by = ".$user_id."", OBJECT ); 
+                $results_6 = $wpdb->get_results( $wpdb->prepare( "SELECT id, form_id FROM {$wpdb->prefix}gf_entry WHERE created_by = %d", $user_id ), OBJECT ); 
                 $response['message'] .= '<br /><strong>'.count($results_6).'</strong> Screening Tests'.$deleted_suffix.'.';                
                 if($response['review']){
                     if(count($results_6) > 0){
@@ -303,7 +358,7 @@ function mhausercleanupper() {
                     }
                 }
 
-                $results_7 = $wpdb->get_results( "SELECT ID FROM {$wpdb->prefix}posts WHERE post_author = ".$user_id." AND post_type = 'diy_responses'", OBJECT ); 
+                $results_7 = $wpdb->get_results( $wpdb->prepare( "SELECT ID FROM {$wpdb->prefix}posts WHERE post_author = %d AND post_type = 'diy_responses'", $user_id ), OBJECT ); 
                 $response['message'] .= '<br /><strong>'.count($results_7).'</strong> DIY Responses'.$deleted_suffix.'.';
                 if($response['review']){
                     if(count($results_7) > 0){
@@ -319,7 +374,7 @@ function mhausercleanupper() {
                     }
                 }
             
-                $results_8 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}posts WHERE post_author = ".$user_id." AND post_type = 'thought'", OBJECT ); 
+                $results_8 = $wpdb->get_results( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}posts WHERE post_author = %d AND post_type = 'thought'", $user_id ), OBJECT ); 
                 $response['message'] .= '<br /><strong>'.count($results_8).'</strong> Thoughts'.$deleted_suffix.'.';
                 if($response['review']){
                     if(count($results_8) > 0){
@@ -335,7 +390,7 @@ function mhausercleanupper() {
                     }
                 }
 
-                $results_9 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}relevanssi_log WHERE user_id = ".$user_id."", OBJECT ); 
+                $results_9 = $wpdb->get_results( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}relevanssi_log WHERE user_id = %d", $user_id ), OBJECT ); 
                 $response['message'] .= '<br /><strong>'.count($results_9).'</strong> Relevanssi log entries'.$deleted_suffix.'.';
                 if(!$response['review']){
                     foreach($results_9 as $eid9){
@@ -343,7 +398,7 @@ function mhausercleanupper() {
                     }
                 }
 
-                $results_10 = $wpdb->get_results( "SELECT id FROM {$wpdb->prefix}fa_user_logins WHERE user_id = ".$user_id."", OBJECT ); 
+                $results_10 = $wpdb->get_results( $wpdb->prepare( "SELECT id FROM {$wpdb->prefix}fa_user_logins WHERE user_id = %d", $user_id ), OBJECT ); 
                 $response['message'] .= '<br /><strong>'.count($results_10).'</strong> User Login History logs'.$deleted_suffix.'.';
                 if(!$response['review']){
                     foreach($results_10 as $eid10){
@@ -376,6 +431,11 @@ function abtestingcleanupLooper( $data = null ) {
 
     if(!current_user_can( 'manage_options' )){
         exit();
+    }
+
+    // Verify nonce
+    if(!isset($_POST['data']) || !wp_verify_nonce($_POST['nonce'] ?? '', 'mhaabtestingcleanupsnonce')){
+        wp_die('Security check failed');
     }
 
     global $wpdb;
