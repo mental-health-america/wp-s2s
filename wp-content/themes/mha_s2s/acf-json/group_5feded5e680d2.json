@@ -71,7 +71,6 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
-            "wpml_cf_preferences": 1,
             "taxonomy": [
                 "condition",
                 "post_tag"
@@ -168,6 +167,7 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
+    "display_title": "",
     "acfe_display_title": "",
     "acfe_autosync": [
         "json"
@@ -175,5 +175,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1698416415
+    "modified": 1760028258
 }

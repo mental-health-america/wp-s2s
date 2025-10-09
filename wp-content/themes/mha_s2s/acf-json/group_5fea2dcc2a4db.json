@@ -17,7 +17,8 @@
                 "id": ""
             },
             "placement": "top",
-            "endpoint": 0
+            "endpoint": 0,
+            "selected": 0
         },
         {
             "key": "field_600b34eca4fc9",
@@ -260,27 +261,6 @@
             "rows_per_page": 20
         },
         {
-            "key": "field_6511e0c6bc96e",
-            "label": "Footer Content",
-            "name": "article_footer_content",
-            "aria-label": "",
-            "type": "wysiwyg",
-            "instructions": "This will display below the content, after the sidebar to contain a full width content section.",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
-            "default_value": "",
-            "tabs": "all",
-            "toolbar": "basic",
-            "media_upload": 1,
-            "delay": 0
-        },
-        {
             "key": "field_5fea3172a7ec6",
             "label": "Contact Information",
             "name": "",
@@ -295,7 +275,8 @@
                 "id": ""
             },
             "placement": "top",
-            "endpoint": 0
+            "endpoint": 0,
+            "selected": 0
         },
         {
             "key": "field_5fea2e5763cd8",
@@ -413,7 +394,8 @@
                 "id": ""
             },
             "placement": "top",
-            "endpoint": 0
+            "endpoint": 0,
+            "selected": 0
         },
         {
             "key": "field_5fea2f6663cdd",
@@ -430,7 +412,6 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
-            "acfe_save_meta": 1,
             "uploader": "basic",
             "return_format": "id",
             "acfe_thumbnail": 0,
@@ -503,6 +484,7 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
+    "display_title": "",
     "acfe_display_title": "",
     "acfe_autosync": [
         "json"
@@ -510,5 +492,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1698416404
+    "modified": 1760028245
 }

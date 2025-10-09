@@ -109,7 +109,8 @@
                     "display_format": "d\/m\/Y",
                     "return_format": "d\/m\/Y",
                     "first_day": 1,
-                    "allow_in_bindings": 0
+                    "allow_in_bindings": 0,
+                    "default_to_current_date": 0
                 },
                 {
                     "key": "field_67f983477f255",
@@ -129,7 +130,8 @@
                     "display_format": "d\/m\/Y",
                     "return_format": "d\/m\/Y",
                     "first_day": 1,
-                    "allow_in_bindings": 0
+                    "allow_in_bindings": 0,
+                    "default_to_current_date": 0
                 },
                 {
                     "key": "field_6866def42e73b",
@@ -151,6 +153,28 @@
                     "allow_in_bindings": 0,
                     "ui_on_text": "",
                     "ui_off_text": "",
+                    "ui": 1
+                },
+                {
+                    "key": "field_68ded90c1e66f",
+                    "label": "Disable Partner Banner",
+                    "name": "disable_partner_banner",
+                    "aria-label": "",
+                    "type": "true_false",
+                    "instructions": "Check this to not display the typical partner header banner or powered by MHA footer.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "message": "",
+                    "default_value": 0,
+                    "allow_in_bindings": 0,
+                    "ui_on_text": "Disabled",
+                    "ui_off_text": "Enabled",
                     "ui": 1
                 }
             ],
@@ -245,6 +269,7 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
+    "display_title": "",
     "acfe_display_title": "",
     "acfe_autosync": [
         "json"
@@ -252,5 +277,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1751572295
+    "modified": 1760028301
 }
