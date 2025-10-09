@@ -135,7 +135,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 	<header id="header" class="clearfix">
 	<div class="wrap normal">
 
-		<a id="logo" href="/"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/mha-logo.png" alt="<?php bloginfo( 'name' ); ?>" /></a>
+		<?php
+			// Get current language slug from TranslatePress, fallback to home_url() if not available
+			if ( function_exists( 'trp_get_url_for_language' ) ) {
+				$current_lang = function_exists('trp_get_current_language') ? trp_get_current_language() : '';
+				$logo_url = trp_get_url_for_language( $current_lang, home_url( '/' ) );
+			} else {
+				$logo_url = home_url( '/' );
+			}
+		?>
+		<a id="logo" href="<?php echo esc_url( $logo_url ); ?>"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/mha-logo.png" alt="<?php bloginfo( 'name' ); ?>" /></a>
 
 		<div id="utility-menu" class="utility-menu relative">
 
@@ -218,13 +227,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				?>
 			</span>
 			
-			<?php /*
 			<span class="header-language">
 				<?php
 					echo do_shortcode( '[mha_language_switcher]' );
 				?>
 			</span>
-			*/ ?>
 		</span>
 
 		</div>

@@ -184,6 +184,7 @@
                     "display_format": "Y-m-d H:i:s",
                     "return_format": "Y-m-d H:i:s",
                     "first_day": 1,
+                    "default_to_current_date": 0,
                     "parent_repeater": "field_5f84dbab647af"
                 },
                 {
@@ -226,7 +227,8 @@
             },
             "display_format": "Y-m-d H:i:s",
             "return_format": "Y-m-d H:i:s",
-            "first_day": 1
+            "first_day": 1,
+            "default_to_current_date": 0
         },
         {
             "key": "field_5fb5795d22fa8",
@@ -244,7 +246,8 @@
             },
             "display_format": "Y-m-d H:i:s",
             "return_format": "Y-m-d H:i:s",
-            "first_day": 1
+            "first_day": 1,
+            "default_to_current_date": 0
         },
         {
             "key": "field_5ffc90d8a963d",
@@ -262,7 +265,8 @@
             },
             "display_format": "Y-m-d H:i:s",
             "return_format": "Y-m-d H:i:s",
-            "first_day": 1
+            "first_day": 1,
+            "default_to_current_date": 0
         },
         {
             "key": "field_5f84c85780df4",
@@ -304,6 +308,7 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
+    "display_title": "",
     "acfe_display_title": "",
     "acfe_autosync": [
         "json"
@@ -311,5 +316,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1698418041
+    "modified": 1760028325
 }

@@ -16,13 +16,11 @@
                 "class": "",
                 "id": ""
             },
-            "relevanssi_exclude": 0,
-            "wpml_cf_preferences": 3,
             "default_value": "",
-            "maxlength": "",
             "placeholder": "",
             "prepend": "",
-            "append": ""
+            "append": "",
+            "maxlength": ""
         },
         {
             "key": "field_5fb7e4c59b34d",
@@ -38,8 +36,6 @@
                 "class": "",
                 "id": ""
             },
-            "relevanssi_exclude": 0,
-            "wpml_cf_preferences": 3,
             "default_value": "",
             "tabs": "all",
             "toolbar": "full",
@@ -60,16 +56,12 @@
                 "class": "",
                 "id": ""
             },
-            "relevanssi_exclude": 0,
-            "wpml_cf_preferences": 3,
             "acfe_repeater_stylised_button": 0,
-            "layout": "table",
-            "pagination": 0,
+            "collapsed": "",
             "min": 0,
             "max": 0,
-            "collapsed": "",
+            "layout": "table",
             "button_label": "Add Row",
-            "rows_per_page": 20,
             "sub_fields": [
                 {
                     "key": "field_5fb7e4e69b34f",
@@ -85,13 +77,12 @@
                         "class": "",
                         "id": ""
                     },
-                    "relevanssi_exclude": 0,
-                    "wpml_cf_preferences": 3,
+                    "acfe_permissions": "",
                     "default_value": "",
-                    "maxlength": "",
                     "placeholder": "",
                     "prepend": "",
                     "append": "",
+                    "maxlength": "",
                     "parent_repeater": "field_5fb7e4cf9b34e"
                 },
                 {
@@ -108,17 +99,16 @@
                         "class": "",
                         "id": ""
                     },
-                    "relevanssi_exclude": 0,
-                    "wpml_cf_preferences": 3,
+                    "acfe_permissions": "",
                     "post_type": "",
-                    "post_status": "",
                     "taxonomy": "",
+                    "allow_null": 0,
                     "allow_archives": 1,
                     "multiple": 0,
-                    "allow_null": 0,
                     "parent_repeater": "field_5fb7e4cf9b34e"
                 }
-            ]
+            ],
+            "rows_per_page": 20
         },
         {
             "key": "field_5fd7eb5ead3fb",
@@ -134,8 +124,6 @@
                 "class": "",
                 "id": ""
             },
-            "relevanssi_exclude": 0,
-            "wpml_cf_preferences": 3,
             "choices": {
                 "purple": "Purple",
                 "red": "Red",
@@ -145,12 +133,14 @@
                 "mint": "Mint"
             },
             "default_value": false,
-            "return_format": "value",
-            "multiple": 0,
             "allow_null": 0,
+            "multiple": 0,
             "ui": 0,
+            "return_format": "value",
             "ajax": 0,
             "placeholder": "",
+            "create_options": 0,
+            "save_options": 0,
             "allow_custom": 0,
             "search_placeholder": ""
         },
@@ -168,13 +158,11 @@
                 "class": "",
                 "id": ""
             },
-            "relevanssi_exclude": 0,
-            "wpml_cf_preferences": 3,
             "default_value": "",
-            "maxlength": "",
             "placeholder": "",
             "prepend": "",
-            "append": ""
+            "append": "",
+            "maxlength": ""
         }
     ],
     "location": [
@@ -202,6 +190,7 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
+    "display_title": "",
     "acfe_display_title": "",
     "acfe_autosync": [
         "json"
@@ -209,5 +198,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1698416481
+    "modified": 1760028284
 }
