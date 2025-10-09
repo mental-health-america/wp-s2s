@@ -3,6 +3,32 @@
 
 function mha_get_user_screen_results( $user_screen_id = null, $related_articles = false ) {
 
+    // Return early if no valid user_screen_id provided
+    if ( empty( $user_screen_id ) ) {
+        return array(
+            'user_screen_id' => null,
+            'total_score' => 0,
+            'your_answers' => '',
+            'result_terms' => [],
+            'required_result_tags' => [],
+            'has_advanced_conditions' => 0,
+            'advanced_condition_row' => '',
+            'screen_id' => '',
+            'result_title' => '',
+            'alert' => 0,
+            'general_score_data' => [],
+            'text' => null,
+            'graph_data' => [],
+            'answered_demos' => [],
+            'featured_cta' => [],
+            'next_step_terms' => [],
+            'next_step_manual' => [],
+            'admin_user_result' => null,
+            'featured_next_steps_data' => null,
+            'referer' => null
+        );
+    }
+
     /**
     * Results Scoring
     */
@@ -26,7 +52,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
     $user_screen_results['next_step_terms'] = [];
     $user_screen_results['next_step_manual'] = [];
     $user_screen_results['admin_user_result'] = null;
-    
+    $user_screen_results['referer'] = null;
     $user_screen_results['featured_next_steps_data'] = null;
     $with_related_articles = $related_articles;
     $your_answers = [];
@@ -40,7 +66,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
     $additional_entry_id = null;
 
     // Got a good response, proceed!
-    if($data){
+    if($data && !is_wp_error($data)){
         
         // Text
         $label = '';
@@ -165,6 +191,8 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
 
                         if(strpos($field->cssClass, 'question-optional') !== false){
                             $your_answers_temp[$row]['answer'] = $v;
+                        } else if(strpos($field->cssClass, 'hide-score') !== false){
+                            $your_answers_temp[$row]['answer'] = $value_label;
                         } else {
                             $your_answers_temp[$row]['answer'] = $value_label.''.$value_extra;
                         }
