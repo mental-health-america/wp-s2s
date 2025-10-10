@@ -1,7 +1,7 @@
 /**
  * Cookie Consent Banner
  */
-
+ 
 // Check if banner should be shown
 function shouldShowBanner() {
 	var hasConsent = localStorage.getItem('cookie_consent') === 'accepted';
@@ -60,6 +60,7 @@ window.handleCookieDeny = function() {
 	var weekFromNow = new Date();
 	weekFromNow.setDate(weekFromNow.getDate() + 7);
 	localStorage.setItem('cookie_denied_until', weekFromNow.getTime());
+	window.dataLayer.push({ event: 'consent_denied' });
 	toggleBanner(false);
 };
 

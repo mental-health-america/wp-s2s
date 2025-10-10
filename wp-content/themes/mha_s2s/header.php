@@ -21,19 +21,19 @@
 		dataLayer.push(arguments);
     }
 
-    gtag("consent", "default", {
-		'ad_storage': "denied",
-		'ad_user_data': "denied",
-		'ad_personalization': "denied",
-		'analytics_storage': "denied",
-		'functionality_storage': "granted",
-		'personalization_storage': "denied",
-		'security_storage': "granted",
-		'wait_for_update': 2000,
-    });
-
+	gtag('consent', 'default', {
+		'ad_storage': 'denied',
+		'ad_user_data': 'denied',
+		'ad_personalization': 'denied',
+		'analytics_storage': 'denied',
+		'functionality_storage': 'granted',
+		'personalization_storage': 'denied',
+		'security_storage': 'granted',
+		'wait_for_update': 1000
+	});
+ 
     gtag("set", "ads_data_redaction", true);
-    gtag("set", "url_passthrough", true);
+    gtag("set", "url_passthrough", false);
     /** End Google Consent Mode Initialization */
 	
 	// Data Layer
@@ -227,11 +227,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				?>
 			</span>
 			
-			<span class="header-language">
+			<?php /*<span class="header-language">
 				<?php
 					echo do_shortcode( '[mha_language_switcher]' );
 				?>
-			</span>
+			</span> */ ?>
 		</span>
 
 		</div>

@@ -31,7 +31,7 @@ function mha_s2s_setup() {
 	load_theme_textdomain( 'mha_s2s' );
 
 	/*
-	 * Title tag support
+	 * Title tag support 
 	 */
 	add_theme_support( 'title-tag' );
 
@@ -124,7 +124,7 @@ function mha_s2s_scripts() {
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 
 	// Consent Management
-	wp_enqueue_script( 'mha_s2s-consent', get_theme_file_uri( '/assets/js/consent.js' ), array(), 'v1.0.1', true );
+	wp_enqueue_script( 'mha_s2s-consent', get_theme_file_uri( '/assets/js/consent.js' ), array(), 'v1.0.2', true );
 	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
@@ -261,7 +261,7 @@ function wp_body_classes( $classes ) {
 		foreach ( $partners_cta as $partner_id ) {
 			$partner_details = get_field('partner_information', $partner_id);
 			if ( !empty($partner_details['partner_code']) ) {
-				if ( $ref_var == $partner_details['partner_code'] ) {
+				if ( $ref_var == $partner_details['partner_code'] && !$partner_details['disable_partner_banner'] ) {
 					$classes[] = 'partner-mode';
 					break;
 				}
@@ -290,7 +290,7 @@ function wp_body_classes( $classes ) {
 					foreach ( $partners_cta as $partner_id ) {
 						$partner_details = get_field('partner_information', $partner_id);
 						if ( !empty($partner_details['partner_code']) ) {
-							if ( $ref_var == $partner_details['partner_code'] ) {
+							if ( $ref_var == $partner_details['partner_code'] && !$partner_details['disable_partner_banner'] ) {
 								$classes[] = 'partner-mode';
 								break;
 							}
@@ -1425,6 +1425,7 @@ function mha_partner_banner($referer = null) {
 
 	// Otherwise...
 	if ( $ref_var ):
+
 		$partner_cta_args = array(
 			'post_type' => 'partners',
 			'post_status' => 'publish',
@@ -1436,13 +1437,15 @@ function mha_partner_banner($referer = null) {
 			$partner_details = get_field('partner_information', $partner_id);
 			if ( $partner_details && !empty($partner_details['partner_code']) ) {
 				if ( $ref_var == $partner_details['partner_code'] ) {
+
 					$logo_url = '';
 					if ( $partner_details['partner_logo'] && isset($partner_details['partner_logo']['sizes']['medium_large']) ) {
 						$logo_url = $partner_details['partner_logo']['sizes']['medium_large'];
 					}
 					$partner_banner_info = array(
 						'logo' => $logo_url,
-						'url' => $partner_details['partner_domain']
+						'url' => $partner_details['partner_domain'],
+						'display' => $partner_details['disable_partner_banner']
 					);
 					$display_partner_banner = true;
 					break;
@@ -1450,6 +1453,11 @@ function mha_partner_banner($referer = null) {
 			}
 		}
 	endif;
+
+	if($partner_banner_info && isset($partner_banner_info['display']) && $partner_banner_info['display']){
+		return false;
+	}
+
 	return $partner_banner_info;
 
 }
