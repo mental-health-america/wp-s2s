@@ -31,7 +31,7 @@ function mha_s2s_setup() {
 	load_theme_textdomain( 'mha_s2s' );
 
 	/*
-	 * Title tag support
+	 * Title tag support 
 	 */
 	add_theme_support( 'title-tag' );
 
@@ -124,7 +124,7 @@ function mha_s2s_scripts() {
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 
 	// Consent Management
-	wp_enqueue_script( 'mha_s2s-consent', get_theme_file_uri( '/assets/js/consent.js' ), array(), 'v1.0.1', true );
+	wp_enqueue_script( 'mha_s2s-consent', get_theme_file_uri( '/assets/js/consent.js' ), array(), 'v1.0.2', true );
 	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
