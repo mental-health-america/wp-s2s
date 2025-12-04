@@ -29,7 +29,9 @@
             "ajax": 0,
             "placeholder": "",
             "allow_custom": 0,
-            "search_placeholder": ""
+            "search_placeholder": "",
+            "create_options": 0,
+            "save_options": 0
         },
         {
             "key": "field_6346c9cc2b596",
@@ -424,7 +426,9 @@
                     "placeholder": "",
                     "allow_custom": 0,
                     "search_placeholder": "",
-                    "parent_repeater": "field_6346c8fd2b590"
+                    "parent_repeater": "field_6346c8fd2b590",
+                    "create_options": 0,
+                    "save_options": 0
                 },
                 {
                     "key": "field_6346c95c2b593",
@@ -1048,6 +1052,7 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
+    "display_title": "",
     "acfe_display_title": "",
     "acfe_autosync": [
         "json"
@@ -1055,5 +1060,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1741897626
+    "modified": 1760028271
 }
