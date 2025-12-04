@@ -169,6 +169,8 @@ function getUserScreenResults( $user_screen_id ) {
                     } else {
                         if(strpos($field->cssClass, 'question-optional') !== false){
                             $your_answers_temp[$field->id]['answer'] = $v;
+                        } else if(strpos($field->cssClass, 'hide-score') !== false){
+                            $your_answers_temp[$field->id]['answer'] = $value_label;
                         } else {
                             $your_answers_temp[$field->id]['answer'] = $value_label.''.$value_extra;
                         }
@@ -389,7 +391,10 @@ function mha_get_screen_email_body( $user_screen_id, $screen_id, $entry_id ){
     $intro = str_replace('h3>', 'h2>', $intro);
     $header .= $intro;
     
-    $header .= '<p><strong>Overall Score:</strong> '.$user_screen_result['total_score'].' / '.get_field('overall_max_score', $screen_id).'<br />';
+    if(!get_field('hide_result_score', $user_screen_result['screen_id'])){
+        $header .= '<p><strong>Overall Score:</strong> '.$user_screen_result['total_score'].' / '.get_field('overall_max_score', $screen_id).'<br />';
+    }
+    
     if(count($user_screen_result['additional_scores']) > 0):
         foreach($user_screen_result['additional_scores'] as $addl_score):
             $header .= '<strong>'.$addl_score['title'].'</strong> '.$addl_score['total'].' / '.$addl_score['max'].'<br />';    
@@ -1008,3 +1013,4 @@ include_once 'demographic_steps.php';
 include_once 'featured_next_steps.php';
 include_once 'related_articles.php';
 include_once 'admin_screen_tester.php';
+//include_once 'multilingual.php';

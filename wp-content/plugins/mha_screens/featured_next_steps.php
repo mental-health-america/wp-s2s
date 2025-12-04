@@ -44,12 +44,14 @@ function mha_featured_next_steps_data( $args ){
     $partners = get_posts($partner_args);
     
     // Look for matching partner
-    foreach ($partners as $partner) {
-        $partner_information = get_field('partner_information', $partner->ID);
-        if($partner_information['partner_code'] == $args['user_screen_result']['referer']){
-            $featured_next_steps_source = $partner->ID;
-            $is_partner_source = true;
-            break;
+    if (isset($args['user_screen_result']['referer']) && !empty($args['user_screen_result']['referer'])) {
+        foreach ($partners as $partner) {
+            $partner_information = get_field('partner_information', $partner->ID);
+            if($partner_information && isset($partner_information['partner_code']) && $partner_information['partner_code'] == $args['user_screen_result']['referer']){
+                $featured_next_steps_source = $partner->ID;
+                $is_partner_source = true;
+                break;
+            }
         }
     }
     wp_reset_postdata();

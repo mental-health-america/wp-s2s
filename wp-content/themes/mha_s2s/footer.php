@@ -5,7 +5,6 @@
 			
 			// Check for partner referrer and hide_mha_partners field
 			$ref_var = get_query_var('ref');
-			$iframe_var = get_query_var('iframe');
 			if ($ref_var) {
 				$partner_args = array(
 					'post_type' => 'partners',
@@ -18,7 +17,7 @@
 				foreach ($partners as $partner_id) {
 					$partner_details = get_field('partner_information', $partner_id);
 					if ($ref_var == $partner_details['partner_code']) {
-						if ($partner_details['hide_mha_partners'] && $iframe_var) {
+						if ($partner_details['hide_mha_partners']) {
 							$show_supporters = false;
 						}
 						break;
@@ -176,35 +175,33 @@
 
 <!-- Cookie Consent Banner -->
 <?php if(get_field('enable_cookie_banner', 'options')): ?>
-<div id="cookie-consent-banner" class="cookie-banner" style="display: none;" role="alert" aria-label="Cookie Consent Banner">
-<div class="cookie-banner-inner">
-<div class="cookie-banner-content">
-	<div class="cookie-banner-text">
-		<?php echo get_field('cookie_banner_text', 'options'); ?>
+	<div id="cookie-consent-banner" class="cookie-banner" style="display: none;" role="alert" aria-label="Cookie Consent Banner">
+	<div class="cookie-banner-inner">
+	<div class="cookie-banner-content">
+		<div class="cookie-banner-text">
+			<?php echo get_field('cookie_banner_text', 'options'); ?>
+		</div>
+		<div class="cookie-banner-buttons">
+			<button id="cookie-deny" class="button small thin ghost purple cookie-btn-deny">Deny</button>
+			<button id="cookie-accept" class="button small thin ghost teal cookie-btn-accept">Accept</button>
+		</div>
 	</div>
-	<div class="cookie-banner-buttons">
-		<button id="cookie-deny" class="button small thin ghost purple cookie-btn-deny">Deny</button>
-		<button id="cookie-accept" class="button small thin ghost teal cookie-btn-accept">Accept</button>
 	</div>
-</div>
-</div>
-</div>
+	</div>
 
-<script>
-	// Add event listeners to cookie banner buttons
-	document.addEventListener('DOMContentLoaded', function() {
-		var acceptButton = document.getElementById('cookie-accept');
-		var denyButton = document.getElementById('cookie-deny');
-		
-		if (acceptButton) {
-			acceptButton.addEventListener('click', window.handleCookieAccept);
-		}
-		
-		if (denyButton) {
-			denyButton.addEventListener('click', window.handleCookieDeny);
-		}
-	});
-</script>
+	<script>
+		// Add event listeners to cookie banner buttons
+		document.addEventListener('DOMContentLoaded', function() {
+			var acceptButton = document.getElementById('cookie-accept');
+			var denyButton = document.getElementById('cookie-deny');		
+			if (acceptButton) {
+				acceptButton.addEventListener('click', window.handleCookieAccept);
+			}		
+			if (denyButton) {
+				denyButton.addEventListener('click', window.handleCookieDeny);
+			}
+		});
+	</script>
 <?php endif; ?>
 
 <!-- SiteImprove -->

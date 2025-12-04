@@ -81,7 +81,7 @@ else:
     }
     
     // A/B Testing
-    $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
+    $layout = get_layout_array( get_query_var('layout') );
 
     // "Take another test" button URL
     $take_another_url = '/screening-tools/';
@@ -222,10 +222,13 @@ else:
         ){
 
             // Single override
-            $unique_result_cta = array('126533');
+            // $unique_result_cta = array('126533');
+            $unique_result_cta = array('190604');
+            $update_cta_flag = true;
 
             // Randomaize override
             //$veteran_ads = array('126533','190592','190593','190603','190604'); // Production (All)
+            /*
             $veteran_ads = array('190604'); // Production (Winner - August 2024)
             shuffle($veteran_ads);
             $unique_result_cta_minus_veterans = array_diff($unique_result_cta, $veteran_ads); // Get non-matching veteran CTAs
@@ -239,6 +242,7 @@ else:
                 $unique_result_cta = array_slice($unique_result_cta, 0, $max_ctas); 
                 $update_cta_flag = true;
             }
+            */
 
         }
     }

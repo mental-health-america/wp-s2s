@@ -31,7 +31,7 @@ function mha_s2s_setup() {
 	load_theme_textdomain( 'mha_s2s' );
 
 	/*
-	 * Title tag support
+	 * Title tag support 
 	 */
 	add_theme_support( 'title-tag' );
 
@@ -80,6 +80,14 @@ add_editor_style(
 	) 
 );
 
+/**
+ * Add FontAwesome to editor
+ */
+function mha_s2s_editor_scripts() {
+	wp_enqueue_script( 'mha_s2s-fontawesome-editor', 'https://kit.fontawesome.com/179f06bdea.js', array(), null, true );
+}
+add_action( 'enqueue_block_editor_assets', 'mha_s2s_editor_scripts' );
+
 
 /**
  * Enqueue scripts and styles.
@@ -89,7 +97,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250718' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20251113' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
     
 	// Add print CSS.
@@ -109,6 +117,9 @@ function mha_s2s_scripts() {
 	wp_enqueue_script( 'mha_s2s-aos', get_template_directory_uri() . '/assets/js/aos.min.js', array(), '3.0.0v2', true );
 	wp_enqueue_script( 'mha_s2s-iframeresizer', get_template_directory_uri() . '/assets/js/iframe-resizer.min.js', array(), '4.3.2', true );
 	
+	// FontAwesome Kit
+	wp_enqueue_script( 'mha_s2s-fontawesome', 'https://kit.fontawesome.com/179f06bdea.js', array(), null, true );
+	
 	if(get_page_template_slug() == 'templates/page-my-account.php'){
 		wp_enqueue_script( 'mha_s2s-chart-js', get_template_directory_uri() . '/assets/js/chart.js', array(), '2.7.2', false );
 	}
@@ -122,9 +133,9 @@ function mha_s2s_scripts() {
 	// Global Javascript
 	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20250718', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
-	
+
 	// Consent Management
-	wp_enqueue_script( 'mha_s2s-consent', get_theme_file_uri( '/assets/js/consent.js' ), array(), time(), true );
+	wp_enqueue_script( 'mha_s2s-consent', get_theme_file_uri( '/assets/js/consent.js' ), array(), 'v1.0.2', true );
 	
 	// Partner Overrides
 	$partner_var = get_query_var('partner');
@@ -261,7 +272,7 @@ function wp_body_classes( $classes ) {
 		foreach ( $partners_cta as $partner_id ) {
 			$partner_details = get_field('partner_information', $partner_id);
 			if ( !empty($partner_details['partner_code']) ) {
-				if ( $ref_var == $partner_details['partner_code'] ) {
+				if ( $ref_var == $partner_details['partner_code'] && !$partner_details['disable_partner_banner'] ) {
 					$classes[] = 'partner-mode';
 					break;
 				}
@@ -275,23 +286,25 @@ function wp_body_classes( $classes ) {
 			global $wpdb;
 			$user_screen_id = str_replace('_ref', '', $sid);
 			$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
-			$user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
-			$ref_var = $user_screen_result['referer'] ? $user_screen_result['referer'] : false;
-			if($ref_var){
+			if($entry_id){
+				$user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
+				$ref_var = !is_wp_error($user_screen_result) && isset($user_screen_result['referer']) ? $user_screen_result['referer'] : false;
+				if($ref_var){
 
-				$partner_cta_args = array(
-					'post_type' => 'partners',
-					'post_status' => 'publish',
-					'posts_per_page' => -1,
-					'fields' => 'ids',
-				);
-				$partners_cta = get_posts($partner_cta_args);
-				foreach ( $partners_cta as $partner_id ) {
-					$partner_details = get_field('partner_information', $partner_id);
-					if ( !empty($partner_details['partner_code']) ) {
-						if ( $ref_var == $partner_details['partner_code'] ) {
-							$classes[] = 'partner-mode';
-							break;
+					$partner_cta_args = array(
+						'post_type' => 'partners',
+						'post_status' => 'publish',
+						'posts_per_page' => -1,
+						'fields' => 'ids',
+					);
+					$partners_cta = get_posts($partner_cta_args);
+					foreach ( $partners_cta as $partner_id ) {
+						$partner_details = get_field('partner_information', $partner_id);
+						if ( !empty($partner_details['partner_code']) ) {
+							if ( $ref_var == $partner_details['partner_code'] && !$partner_details['disable_partner_banner'] ) {
+								$classes[] = 'partner-mode';
+								break;
+							}
 						}
 					}
 				}
@@ -1423,6 +1436,7 @@ function mha_partner_banner($referer = null) {
 
 	// Otherwise...
 	if ( $ref_var ):
+
 		$partner_cta_args = array(
 			'post_type' => 'partners',
 			'post_status' => 'publish',
@@ -1432,11 +1446,17 @@ function mha_partner_banner($referer = null) {
 		$partners_cta = get_posts($partner_cta_args);
 		foreach ( $partners_cta as $partner_id ) {
 			$partner_details = get_field('partner_information', $partner_id);
-			if ( !empty($partner_details['partner_code']) ) {
+			if ( $partner_details && !empty($partner_details['partner_code']) ) {
 				if ( $ref_var == $partner_details['partner_code'] ) {
+
+					$logo_url = '';
+					if ( $partner_details['partner_logo'] && isset($partner_details['partner_logo']['sizes']['medium_large']) ) {
+						$logo_url = $partner_details['partner_logo']['sizes']['medium_large'];
+					}
 					$partner_banner_info = array(
-						'logo' => $partner_details['partner_logo']['sizes']['medium_large'],
-						'url' => $partner_details['partner_domain']
+						'logo' => $logo_url,
+						'url' => $partner_details['partner_domain'],
+						'display' => $partner_details['disable_partner_banner']
 					);
 					$display_partner_banner = true;
 					break;
@@ -1444,6 +1464,11 @@ function mha_partner_banner($referer = null) {
 			}
 		}
 	endif;
+
+	if($partner_banner_info && isset($partner_banner_info['display']) && $partner_banner_info['display']){
+		return false;
+	}
+
 	return $partner_banner_info;
 
 }

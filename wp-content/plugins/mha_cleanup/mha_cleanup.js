@@ -25,6 +25,10 @@ jQuery(function ($) {
         $('#mha-cleanup-data-begin').prop('disabled', true).text('Processing...');
         $('#mha-cleanup-error').html('').addClass('hidden');
         $('#cleanup-deleted-container').slideDown();
+        
+        // Reset safety counters
+        window.mhaCleanupCounter = 0;
+        window.mhaCleanGroupsCounter = 0;
 
         // Start Counter
 
@@ -40,29 +44,40 @@ jQuery(function ($) {
             url: do_mhacleanups.ajaxurl,
             data: { 
                 action: 'mhacleanuperLooper',
-                data: args
+                data: args,
+                nonce: $('input[name="nonce"]').val()
             },
             success: function( results ) {
-                var res = JSON.parse(results); 
-                if(results){
-                    if(res.error){
-                        $('#mha-cleanup-error').html(res.error).removeClass('hidden');  
-                        $('#mha-cleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
-                        $('#mha-start-clean-up').removeClass('hidden');
-                    } else {
-                        $('#cleanup-progress').slideDown();
-                        $('#cleanup-progress .bar').css('width', res.percent+'%');
-                        $('#cleanup-progress .label-number').html( res.percent );   
-                        
-                        // Spit out JSON for later 
-                        $('#cleanup-json-storage').append('<textarea class="group">'+res.entries+'</textarea>');
+                try {
+                    var res = JSON.parse(results); 
+                    if(results){
+                        if(res.error){
+                            $('#mha-cleanup-error').html(res.error).removeClass('hidden');  
+                            $('#mha-cleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
+                            $('#mha-start-clean-up').removeClass('hidden');
+                        } else {
+                            $('#cleanup-progress').slideDown();
+                            $('#cleanup-progress .bar').css('width', res.percent+'%');
+                            $('#cleanup-progress .label-number').html( res.percent );   
+                            
+                            // Spit out JSON for later 
+                            $('#cleanup-json-storage').append('<textarea class="group">'+res.entries+'</textarea>');
 
-                        mhaCleanupLooper(res);    
+                            mhaCleanupLooper(res);    
+                        }
                     }
+                } catch(e) {
+                    console.error('JSON parse error in main cleanup:', e, 'Response:', results);
+                    $('#mha-cleanup-error').html('Error parsing server response').removeClass('hidden');
+                    $('#mha-cleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
+                    $('#mha-start-clean-up').removeClass('hidden');
                 }
             },
             error: function(xhr, ajaxOptions, thrownError){                
-                console.error(xhr,thrownError);
+                console.error('AJAX error in main cleanup:', xhr, thrownError);
+                $('#mha-cleanup-error').html('Network error: ' + thrownError).removeClass('hidden');
+                $('#mha-cleanup-data-begin').prop('disabled', false).text('Are You Sure?').addClass('hidden');
+                $('#mha-start-clean-up').removeClass('hidden');
             }
         });	
 
@@ -72,6 +87,17 @@ jQuery(function ($) {
      * Provider Looper
      */
     function mhaCleanupLooper( res ){
+        
+        // Add safety counter to prevent infinite loops
+        if(!window.mhaCleanupCounter) window.mhaCleanupCounter = 0;
+        window.mhaCleanupCounter++;
+        
+        if(window.mhaCleanupCounter > 1000) { // Safety limit
+            console.error('Too many iterations in mhaCleanupLooper, stopping');
+            $('#mha-cleanup-error').html('Process stopped: too many iterations').removeClass('hidden');
+            mhaCleanGroupsCloser();
+            return;
+        }
         
         if(res.error){
 
@@ -102,7 +128,8 @@ jQuery(function ($) {
                     url: do_mhacleanups.ajaxurl,
                     data: { 
                         action: 'mhacleanuperLooper',
-                        data: args_2
+                        data: args_2,
+                        nonce: $('input[name="nonce"]').val()
                     },
                     success: function( results ) {  
                         var res2 = JSON.parse(results);	
@@ -261,50 +288,94 @@ jQuery(function ($) {
         
         //console.log('Clean group...');
 
+        // Add safety counter to prevent infinite loops
+        if(!window.mhaCleanGroupsCounter) window.mhaCleanGroupsCounter = 0;
+        window.mhaCleanGroupsCounter++;
+        
+        if(window.mhaCleanGroupsCounter > 1000) { // Safety limit
+            console.error('Too many iterations in mhaCleanGroups, stopping');
+            $('#mha-cleanup-error').html('Process stopped: too many iterations').removeClass('hidden');
+            mhaCleanGroupsCloser();
+            return;
+        }
+
+        // Add safety check to prevent infinite loops
+        if(!res || typeof res !== 'object'){
+            console.error('Invalid response object in mhaCleanGroups');
+            mhaCleanGroupsCloser();
+            return;
+        }
+
         // Loop through our JSON
         if($('#cleanup-json-storage .group').length){  
 
             var $thisGroup = $('#cleanup-json-storage .group:first');
+            
+            // Safety check for group content
+            if(!$thisGroup.val() || $thisGroup.val().trim() === ''){
+                console.warn('Empty group found, removing and continuing');
+                $thisGroup.remove();
+                mhaCleanGroups(res);
+                return;
+            }
 
             $.ajax({
                 type: "POST",
                 url: do_mhacleanups.ajaxurl,
                 data: { 
                     action: 'mhaCleanerJsonScrubber',
-                    data: $thisGroup.val()
+                    data: $thisGroup.val(),
+                    nonce: $('input[name="nonce"]').val() // Add nonce for security
                 },
                 success: function( scrub_results ) {
-
-                    var results = JSON.parse(scrub_results); 
-                    $thisGroup.remove();
-                    
-                    var cleanup_total = parseInt($('#cleanup-deleted').text());
-                    $('#cleanup-deleted').html( cleanup_total + results.deleted_entries ); 
-
-                    if($('#cleanup-json-storage .group').length){   
+                    try {
+                        var results = JSON.parse(scrub_results);
                         
-                        // There are still groups
-                        mhaCleanGroups( res );
-
-                    } else {
-
-                        // No more groups, how to proceed...
-                        if(res.form_ids && res.form_ids.length > 0){   
-                            // Start cleaning the next form ID                         
-                            mhaCleanGroupsSwitcher( res );    
-                        } else {                            
-                            // All done!
+                        // Check for errors in response
+                        if(results.error){
+                            console.error('Server error:', results.error);
+                            $('#mha-cleanup-error').html('Error: ' + results.error).removeClass('hidden');
                             mhaCleanGroupsCloser();
+                            return;
                         }
                         
+                        $thisGroup.remove();
+                        
+                        var cleanup_total = parseInt($('#cleanup-deleted').text()) || 0;
+                        $('#cleanup-deleted').html( cleanup_total + (results.deleted_entries || 0) ); 
 
+                        // Log any errors from the server
+                        if(results.errors && results.errors.length > 0){
+                            console.warn('Some entries failed to delete:', results.errors);
+                        }
+
+                        if($('#cleanup-json-storage .group').length){   
+                            
+                            // There are still groups
+                            mhaCleanGroups( res );
+
+                        } else {
+
+                            // No more groups, how to proceed...
+                            if(res.form_ids && res.form_ids.length > 0){   
+                                // Start cleaning the next form ID                         
+                                mhaCleanGroupsSwitcher( res );    
+                            } else {                            
+                                // All done!
+                                mhaCleanGroupsCloser();
+                            }
+                        }
+                    } catch(e) {
+                        console.error('JSON parse error:', e, 'Response:', scrub_results);
+                        $('#mha-cleanup-error').html('Error parsing server response').removeClass('hidden');
+                        mhaCleanGroupsCloser();
                     }
                 },
                 error: function(xhr, ajaxOptions, thrownError){                
-                    console.error(xhr,thrownError);
+                    console.error('AJAX error in mhaCleanGroups:', xhr, thrownError);
+                    $('#mha-cleanup-error').html('Network error: ' + thrownError).removeClass('hidden');
+                    mhaCleanGroupsCloser();
                 }    
-            
-        
             });
 
         } else {

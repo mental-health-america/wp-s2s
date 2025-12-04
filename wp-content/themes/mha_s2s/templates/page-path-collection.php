@@ -203,7 +203,8 @@ $term = null;
 									if(get_field('custom_category_name', $tax.'_'.$tag)){
 										$term_name = get_field('custom_category_name', $tax.'_'.$tag);
 									} else {
-										$term_name = get_term($tag, $tax)->name;
+										$term_obj = get_term($tag, $tax);
+										$term_name = ($term_obj && !is_wp_error($term_obj)) ? $term_obj->name : '';
 									}
 								?>
 								<a class="plain white" href="<?php echo get_term_link($tag, $tax); ?>">
@@ -219,23 +220,26 @@ $term = null;
 							</h3>
 							<?php 
 								else: 									
-									$term = get_term($tag, $tax)->ID;
-									$related_conditions = get_field('related_conditions', $term);
-									if($related_conditions && count($related_conditions) > 0 ){
-										echo '<h3>Learn About Other Related Mental Health Conditions</h3>';
-										echo '<div class="conditions-list">';
-										$rc_counter = 1;
-										foreach($related_conditions as $rc){
-											echo '<a class="plain cerulean" href="'.get_term_link($rc).'">'.$rc->name.'</a>';	 
-											if($rc_counter < count($related_conditions)){
-												echo ' &nbsp;<span class="noto" role="separator">|</span>&nbsp; ';
+									$term_obj = get_term($tag, $tax);
+									if($term_obj && !is_wp_error($term_obj)){
+										$term = $term_obj->ID;
+										$related_conditions = get_field('related_conditions', $term);
+										if($related_conditions && count($related_conditions) > 0 ){
+											echo '<h3>Learn About Other Related Mental Health Conditions</h3>';
+											echo '<div class="conditions-list">';
+											$rc_counter = 1;
+											foreach($related_conditions as $rc){
+												echo '<a class="plain cerulean" href="'.get_term_link($rc).'">'.$rc->name.'</a>';	 
+												if($rc_counter < count($related_conditions)){
+													echo ' &nbsp;<span class="noto" role="separator">|</span>&nbsp; ';
+												}
+												$rc_counter++;
 											}
-											$rc_counter++;
+											echo '</div>';
+										} else {
+											echo '<h3>Learn About Mental Health Conditions</h3>';
+											echo do_shortcode('[mha_conditions]'); 
 										}
-										echo '</div>';
-									} else {
-										echo '<h3>Learn About Mental Health Conditions</h3>';
-										echo do_shortcode('[mha_conditions]'); 
 									}
 								endif;
 							?>
