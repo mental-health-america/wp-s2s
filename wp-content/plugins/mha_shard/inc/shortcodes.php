@@ -770,7 +770,7 @@ function mha_language_switcher() {
     $current_language = get_locale();
     $output = '<div class="trp_language_switcher_shortcode">';
     $output .= '<div class="dropdown">';
-    $output .= '<button class="dropdown-toggle trp-language-switcher" type="button" id="languageDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+    $output .= '<button class="dropdown-toggle trp-language-switcher" type="button" id="languageDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-globe"></i> ';
     
     foreach ($languages as $code => $item) {
         if ($code === $current_language) {
@@ -785,7 +785,7 @@ function mha_language_switcher() {
     foreach ($languages as $code => $item) {
         if ($code !== $current_language) {
             $output .= sprintf(
-                '<a class="dropdown-item" href="%s">%s</a>',
+                '<a class="dropdown-item" href="%s"><i class="fa-solid fa-globe"></i> %s</a>',
                 esc_url($item['current_page_url']),
                 esc_html($item['language_name'])
             );
@@ -799,3 +799,82 @@ function mha_language_switcher() {
     return $output;
 }
 add_shortcode('mha_language_switcher', 'mha_language_switcher');
+
+/**
+ * Shortcode - Hide/Show Content for Partners
+ * Controls content visibility based on whether URL contains a ref parameter that matches a partner code
+ * 
+ * Usage: 
+ *   [mha_hide_for_partner]Content to hide when partner matches[/mha_hide_for_partner]
+ *   [mha_hide_for_partner show="true"]Content to show only when partner matches[/mha_hide_for_partner]
+ *   [mha_hide_for_partner show="example"]Content to show only when ref=example[/mha_hide_for_partner]
+ * 
+ * @param array $atts Shortcode attributes
+ *   - show: (string) "true" to show when any partner matches, specific partner code (e.g. "example") to show only for that partner, "false" or omitted to hide when partner matches
+ */
+function mha_display_for_partner_shortcode( $atts, $content = null ) {
+    // Parse shortcode attributes
+    $atts = shortcode_atts( array(
+        'show' => 'false',
+    ), $atts, 'mha_hide_for_partner' );
+    
+    // Get the ref parameter from URL and normalize (trim whitespace)
+    $ref_var = trim( get_query_var('ref') );
+    
+    // Check if show is a boolean or a specific partner code string
+    $show_value = trim( $atts['show'] );
+    $show_value_lower = strtolower( $show_value );
+    $is_boolean_show = filter_var( $show_value_lower, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+    
+    // If show is a specific partner code string (not a boolean)
+    if ( $is_boolean_show === null && $show_value_lower !== 'false' && !empty( $show_value ) ) {
+        // Show only if ref matches the specific partner code (case-insensitive match)
+        return ( strcasecmp( $ref_var, $show_value ) === 0 ) ? do_shortcode( $content ) : '';
+    }
+    
+    // Convert show attribute to boolean for true/false behavior
+    $show_when_partner = filter_var( $atts['show'], FILTER_VALIDATE_BOOLEAN );
+    
+    // If no ref parameter
+    if ( empty( $ref_var ) ) {
+        // If show mode, hide content (no partner = don't show)
+        // If hide mode, show content (no partner = show)
+        return $show_when_partner ? '' : do_shortcode( $content );
+    }
+    
+    // Get all partner posts
+    $partner_args = array(
+        'post_type' => 'partners',
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+    );
+    $partners = get_posts( $partner_args );
+    
+    // Check if ref matches any partner code (case-insensitive)
+    $is_partner = false;
+    foreach ( $partners as $partner_id ) {
+        $partner_details = get_field( 'partner_information', $partner_id );
+        if ( !empty( $partner_details['partner_code'] ) ) {
+            // Normalize partner code by trimming whitespace for comparison
+            $partner_code = trim( $partner_details['partner_code'] );
+            // Case-insensitive comparison
+            if ( strcasecmp( $ref_var, $partner_code ) === 0 ) {
+                $is_partner = true;
+                break;
+            }
+        }
+    }
+    
+    wp_reset_postdata();
+    
+    // Determine visibility based on mode and partner match
+    if ( $show_when_partner ) {
+        // Show mode: show content when partner matches, hide otherwise
+        return $is_partner ? do_shortcode( $content ) : '';
+    } else {
+        // Hide mode (default): hide content when partner matches, show otherwise
+        return $is_partner ? '' : do_shortcode( $content );
+    }
+}
+add_shortcode( 'mha_display_for_partner', 'mha_display_for_partner_shortcode' );

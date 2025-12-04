@@ -268,8 +268,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 			<div class="container-fluid">
 				<div class="row">
 					<div class="col-6 text-left">
-						<a href="<?php echo $partner_logo_link_url; ?>">
-							<img src="<?php echo $partner_banner['logo']; ?>" alt="" style="width: 150px; height: auto;" />
+						<a 
+							href="<?php echo $partner_logo_link_url; ?>" 
+							class="partner-logo d-block"
+							style="background-image: url('<?php echo $partner_banner['logo']; ?>');">
 						</a>
 					</div>
 					<div class="col-6 text-right">

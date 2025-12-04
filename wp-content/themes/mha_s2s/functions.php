@@ -80,6 +80,14 @@ add_editor_style(
 	) 
 );
 
+/**
+ * Add FontAwesome to editor
+ */
+function mha_s2s_editor_scripts() {
+	wp_enqueue_script( 'mha_s2s-fontawesome-editor', 'https://kit.fontawesome.com/179f06bdea.js', array(), null, true );
+}
+add_action( 'enqueue_block_editor_assets', 'mha_s2s_editor_scripts' );
+
 
 /**
  * Enqueue scripts and styles.
@@ -89,7 +97,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20250916.1' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20251113' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
     
 	// Add print CSS.
@@ -108,6 +116,9 @@ function mha_s2s_scripts() {
 	wp_enqueue_script( 'mha_s2s-glide', get_template_directory_uri() . '/assets/js/glide.js', array(), 'v20241204', true );
 	wp_enqueue_script( 'mha_s2s-aos', get_template_directory_uri() . '/assets/js/aos.min.js', array(), '3.0.0v2', true );
 	wp_enqueue_script( 'mha_s2s-iframeresizer', get_template_directory_uri() . '/assets/js/iframe-resizer.min.js', array(), '4.3.2', true );
+	
+	// FontAwesome Kit
+	wp_enqueue_script( 'mha_s2s-fontawesome', 'https://kit.fontawesome.com/179f06bdea.js', array(), null, true );
 	
 	if(get_page_template_slug() == 'templates/page-my-account.php'){
 		wp_enqueue_script( 'mha_s2s-chart-js', get_template_directory_uri() . '/assets/js/chart.js', array(), '2.7.2', false );
