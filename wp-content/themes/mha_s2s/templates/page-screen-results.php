@@ -81,7 +81,7 @@ else:
     }
     
     // A/B Testing
-    $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
+    $layout = get_layout_array( get_query_var('layout') );
 
     // "Take another test" button URL
     $take_another_url = '/screening-tools/';

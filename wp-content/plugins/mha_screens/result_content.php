@@ -105,7 +105,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
 
             // Get screen token          
             if (isset($field->label) && strpos($field->label, 'Token') !== false) {     
-                $token = $v;
+                // $token = $v;
             }
 
             //Screening Questions
@@ -228,6 +228,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
         }   
 
         // Get additional entries in case of chained forms
+        /*
         if($token){
             global $wpdb;
             $token_ref = $token.'_ref';
@@ -252,6 +253,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
                 endforeach;
             endif;
         }
+        */
 
         // Your Answers HTML
         $merged_answers = mergeDuplicates($your_answers_temp);
