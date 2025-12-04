@@ -10,16 +10,9 @@ class GFAsyncUpload {
 
 		GFCommon::log_debug( 'GFAsyncUpload::upload(): Starting.' );
 
-		if ( $_SERVER['REQUEST_METHOD'] != 'POST' ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-			status_header( 404 );
-			die();
+		if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+			self::die_error();
 		}
-
-		header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
-		send_nosniff_header();
-		nocache_headers();
-
-		status_header( 200 );
 
 		// If the file is bigger than the server can accept then the form_id might not arrive.
 		// This might happen if the file is bigger than the max post size ini setting.
@@ -35,18 +28,18 @@ class GFAsyncUpload {
 		$form           = GFAPI::get_form( $form_id );
 
 		if ( empty( $form ) || ! $form['is_active'] ) {
-			die();
+			self::die_error();
 		}
 
 		if ( GFCommon::form_requires_login( $form ) ) {
 			if ( ! is_user_logged_in() ) {
-				die();
+				self::die_error( 401, __( 'You must be logged in to upload files to this form.', 'gravityforms' ) );
 			}
 			check_admin_referer( 'gform_file_upload_' . $form_id, '_gform_file_upload_nonce_' . $form_id );
 		}
 
 		if ( ! ctype_alnum( $form_unique_id ) ) {
-			die();
+			self::die_error();
 		}
 
 		$tmp_location = GFFormsModel::get_tmp_upload_location( $form['id'] );
@@ -97,8 +90,8 @@ class GFAsyncUpload {
 		 */
 		$field = gf_apply_filters( array( 'gform_multifile_upload_field', $form['id'], $field_id ), GFFormsModel::get_field( $form, $field_id ), $form, $field_id );
 
-		if ( empty( $field ) || GFFormsModel::get_input_type( $field ) != 'fileupload' ) {
-			die();
+		if ( empty( $field ) || GFFormsModel::get_input_type( $field ) !== 'fileupload' ) {
+			self::die_error();
 		}
 
 		if ( GFCommon::file_name_has_disallowed_extension( $file_name ) || GFCommon::file_name_has_disallowed_extension( $uploaded_filename ) ) {
@@ -106,17 +99,16 @@ class GFAsyncUpload {
 			self::die_error( 104, __( 'The uploaded file type is not allowed.', 'gravityforms' ) );
 		}
 
-		$file_name = sanitize_file_name( $file_name );
-		$uploaded_filename = sanitize_file_name( $uploaded_filename );
-
-		$allowed_extensions = ! empty( $field->allowedExtensions ) ? GFCommon::clean_extensions( explode( ',', strtolower( $field->allowedExtensions ) ) ) : array();
-
-		$max_upload_size_in_bytes = $field->maxFileSize > 0 ? $field->maxFileSize * 1048576 : wp_max_upload_size();
+		$max_upload_size_in_bytes = $field->get_max_file_size_bytes();
 		$max_upload_size_in_mb    = $max_upload_size_in_bytes / 1048576;
 
 		if ( $_FILES['file']['size'] > 0 && $_FILES['file']['size'] > $max_upload_size_in_bytes ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 			self::die_error( 104,sprintf( __( 'File exceeds size limit. Maximum file size: %dMB', 'gravityforms' ), $max_upload_size_in_mb ) );
 		}
+
+		$file_name          = sanitize_file_name( $file_name );
+		$uploaded_filename  = sanitize_file_name( $uploaded_filename );
+		$allowed_extensions = $field->get_clean_allowed_extensions();
 
 		if ( ! empty( $allowed_extensions ) ) {
 			if ( ! GFCommon::match_file_extension( $file_name, $allowed_extensions ) || ! GFCommon::match_file_extension( $uploaded_filename, $allowed_extensions ) ) {
@@ -147,14 +139,7 @@ class GFAsyncUpload {
 		// Only validate if chunking is disabled, or if the final chunk has been uploaded.
 		$check_chunk = $chunks === 0 || $chunk === ( $chunks - 1 );
 
-		/**
-		 * Allows the disabling of file upload whitelisting
-		 *
-		 * @param bool false Set to 'true' to disable whitelisting.  Defaults to 'false'.
-		 */
-		$whitelisting_disabled = apply_filters( 'gform_file_upload_whitelisting_disabled', false );
-
-		if ( ! $whitelisting_disabled && $check_chunk ) {
+		if ( ! $field->is_check_type_and_ext_disabled() && $check_chunk ) {
 
 			$file_array = $_FILES['file']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 
@@ -266,6 +251,7 @@ class GFAsyncUpload {
 				self::die_error( 105, __( 'Upload unsuccessful', 'gravityforms' ) . ' ' . $uploaded_filename );
 			}
 
+			self::send_headers( 200 );
 			gf_do_action( array( 'gform_post_multifile_upload', $form['id'] ), $form, $field, $uploaded_filename, $tmp_file_name, $file_path );
 
 			GFCommon::log_debug( sprintf( 'GFAsyncUpload::upload(): File upload complete. temp_filename: %s  uploaded_filename: %s ', $tmp_file_name, $uploaded_filename ) );
@@ -276,6 +262,7 @@ class GFAsyncUpload {
 				self::die_error( 105, __( 'Upload unsuccessful', 'gravityforms' ) . ' ' . $uploaded_filename );
 			}
 
+			self::send_headers( 200 );
 			GFCommon::log_debug( sprintf( 'GFAsyncUpload::upload(): Chunk upload complete. temp_filename: %s  uploaded_filename: %s chunk: %d', $tmp_file_name, $uploaded_filename, $chunk ) );
 		}
 
@@ -296,19 +283,46 @@ class GFAsyncUpload {
 		die( $output ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
-	public static function die_error( $status_code, $message ) {
-		$response = array();
-
-		$response['status'] = 'error';
-		$response['error'] = array(
-			'code' => $status_code,
-			'message' => $message,
+	/**
+	 * Ends the request with an error response.
+	 *
+	 * @since unknown
+	 * @since 2.9.20 Made the params optional.
+	 *
+	 * @param int|string $status_code The status code. Optional. Defaults to 400.
+	 * @param string     $message     The error message. Optional. Defaults to 'Invalid request.'.
+	 *
+	 * @return void
+	 */
+	public static function die_error( $status_code = 400, $message = '' ) {
+		self::send_headers( is_int( $status_code ) ? $status_code : 400 );
+		wp_send_json(
+			array(
+				'status' => 'error',
+				'error'  => array(
+					'code'    => $status_code,
+					'message' => $message ?: __( 'Invalid request.', 'gravityforms' ),
+				),
+			)
 		);
-		$response_json = json_encode( $response );
-		die( $response_json ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
+
+	/**
+	 * Sends the headers for the response.
+	 *
+	 * @since 2.9.20
+	 *
+	 * @param int $status_code The status code.
+	 *
+	 * @return void
+	 */
+	private static function send_headers( $status_code ) {
+		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+		send_nosniff_header();
+		nocache_headers();
+		status_header( $status_code );
+	}
+
 }
-
-
 
 GFAsyncUpload::upload();

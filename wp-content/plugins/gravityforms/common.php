@@ -2143,10 +2143,23 @@ class GFCommon {
 
 				self::log_debug( __METHOD__ . '(): Attaching file(s) for field #' . $upload_field->id . '. ' . print_r( $files, true ) );
 
+				$upload_root_url = rgar( GF_Field_FileUpload::get_upload_root_info( absint( rgar( $form, 'id' ) ) ), 'url' );
+
 				// Loop through attachment URLs; replace URL with path and add to attachments.
 				foreach ( $files as $file ) {
 					if ( is_string( $file ) ) {
-						$attachments[] = GFFormsModel::get_physical_file_path( $file, rgar( $lead, 'id' ) );
+						if ( ! str_starts_with( $file, $upload_root_url ) ) {
+							self::log_debug( __METHOD__ . sprintf( '(): Not attaching file from URL: %s', $file ) );
+							continue;
+						}
+
+						$file_path = GFFormsModel::get_physical_file_path( $file, rgar( $lead, 'id' ) );
+						if ( ! file_exists( $file_path ) ) {
+							self::log_error( __METHOD__ . sprintf( '(): Not attaching file; %s does not exist.', $file_path ) );
+							continue;
+						}
+
+						$attachments[] = $file_path;
 					} elseif ( ! empty( $file['tmp_path'] ) && file_exists( $file['tmp_path'] ) ) {
 						$attachments[] = $file['tmp_path'];
 					}
@@ -4105,7 +4118,7 @@ Content-Type: text/html;
 			<a href="%s" class="%s gform-button--icon-leading" target="%s" rel="noopener">
 				<span class="screen-reader-text">%s</span>
 				<span class="screen-reader-text">%s</span>
-				<i class="gform-button__icon gform-common-icon gform-common-icon--eye"></i>%s
+				<i class="gform-button__icon gform-common-icon gform-common-icon--eye" aria-hidden="true"></i>%s
 			</a>
 				',
 			esc_url( $options['url'] ),
@@ -4128,10 +4141,27 @@ Content-Type: text/html;
 		return $preview_link;
 	}
 
+	/**
+	 * Returns an array of file extensions with periods and spaces removed.
+	 *
+	 * @since unknown
+	 * @since 2.9.18 Updated to support being passed a string of comma separated extensions.
+	 *
+	 * @param array|string $extensions The file extensions to be cleaned.
+	 *
+	 * @return array
+	 */
 	public static function clean_extensions( $extensions ) {
-		$count = sizeof( $extensions );
-		for ( $i = 0; $i < $count; $i ++ ) {
-			$extensions[ $i ] = str_replace( '.', '', str_replace( ' ', '', $extensions[ $i ] ) );
+		if ( empty( $extensions ) ) {
+			return array();
+		}
+
+		if ( ! is_array( $extensions ) ) {
+			$extensions = explode( ',', strtolower( $extensions ) );
+		}
+
+		foreach ( $extensions as &$ext ) {
+			$ext = str_replace( array( '.', ' ' ), '', $ext );
 		}
 
 		return $extensions;
@@ -4155,6 +4185,7 @@ Content-Type: text/html;
 			'js',
 			'lnk',
 			'htaccess',
+			'phar',
 			'phtml',
 			'ps1',
 			'ps2',
@@ -5651,7 +5682,7 @@ Content-Type: text/html;
 		 */
 		$logic_a11y_warn                   = esc_html__( 'Adding conditional logic to the form submit button could cause usability problems for some users and negatively impact the accessibility of your form. Learn more about button conditional logic in our %1$sdocumentation%2$s.', 'gravityforms' );
 		$logic_a11y_warn_link1             = '<a href="https://docs.gravityforms.com/field-accessibility-warning/" target="_blank" rel="noopener">';
-		$logic_a11y_warn_link2             = '<span class="screen-reader-text">' . esc_html__( '(opens in a new tab)', 'gravityforms' ) . '</span>&nbsp;<span class="gform-icon gform-icon--external-link"></span></a>';
+		$logic_a11y_warn_link2             = '<span class="screen-reader-text">' . esc_html__( '(opens in a new tab)', 'gravityforms' ) . '</span>&nbsp;<span class="gform-icon gform-icon--external-link" aria-hidden="true"></span></a>';
 		$gf_vars['conditional_logic_a11y'] = sprintf( $logic_a11y_warn, $logic_a11y_warn_link1, $logic_a11y_warn_link2 );
 		$gf_vars['page']                   = esc_html__( 'Page', 'gravityforms' );
 		$gf_vars['next_button']            = esc_html__( 'Next Button', 'gravityforms' );
@@ -5890,7 +5921,7 @@ Content-Type: text/html;
 
 		if ( ! empty( $errors ) ) {
 			?>
-			<div class="alert error below-h2">
+			<div class="notice notice-error gf-notice" id="gf-admin-notices-wrapper">
 				<?php if ( count( $errors ) > 1 ) { ?>
 					<ul style="margin: 0.5em 0 0; padding: 2px;">
 						<li><?php echo wp_kses_post( implode( '</li><li>', $errors ) ); ?></li>
@@ -6216,15 +6247,19 @@ Content-Type: text/html;
 	 * Get the Javascript code from the gforms_hooks file and return it.
 	 *
 	 * @since 2.5
+	 * @since 2.9.19 Added the $set_printed_prop param.
+	 *
+	 * @param bool $set_printed_prop Optional. Indicates if GFFormDisplay::$hooks_js_printed should be set to true.
 	 *
 	 * @return false|string
 	 */
-	public static function get_hooks_javascript_code() {
-		require_once self::get_base_path() . '/form_display.php';
+	public static function get_hooks_javascript_code( $set_printed_prop = true ) {
+		if ( $set_printed_prop ) {
+			require_once self::get_base_path() . '/form_display.php';
+			GFFormDisplay::$hooks_js_printed = true;
+		}
 
 		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || isset( $_GET['gform_debug'] ) ? '' : '.min'; // phpcs:ignoreWordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Recommended
-
-		GFFormDisplay::$hooks_js_printed = true;
 
 		return file_get_contents( GFCommon::get_base_path() . '/js/gforms_hooks' . $min . '.js' );
 	}
@@ -7517,12 +7552,13 @@ Content-Type: text/html;
 	 * @since 2.5
 	 * @since 2.6 Added check for icon_namespace $item check to allow for custom font icon kits.
 	 *
-	 * @param array       $item    Array containing an "icon" property.
-	 * @param string|null $default Default icon.
+	 * @param array       $item        Array containing an "icon" property.
+	 * @param string|null $default     Default icon.
+	 * @param bool        $aria_hidden Whether to add aria-hidden attribute. Defaults to true.
 	 *
 	 * @return string|null
 	 */
-	public static function get_icon_markup( $item, $default = null ) {
+	public static function get_icon_markup( $item, $default = null, $aria_hidden = true ) {
 
 		// Get icon.
 		$icon = rgar( $item, 'icon', $default );
@@ -7535,27 +7571,30 @@ Content-Type: text/html;
 		// Get icon namespace.
 		$icon_namespace = rgar( $item, 'icon_namespace' );
 
+		// Add aria-hidden attribute.
+		$aria_hidden_attr = $aria_hidden ? ' aria-hidden="true"' : '';
+
 		// Return icon markup.
 		if ( ! rgblank( $icon_namespace ) ) {
-			return sprintf( '<i class="'. $icon_namespace .'-icon %s"></i>', esc_attr( $icon ) );
+			return sprintf( '<i class="'. $icon_namespace .'-icon %s"%s></i>', esc_attr( $icon ), $aria_hidden_attr );
 		} else if ( strpos( $icon, '<svg' ) !== false ) {
 			return $icon;
 		} else if ( filter_var( $icon, FILTER_VALIDATE_URL ) ) {
-			return sprintf( '<img src="%s" />', esc_attr( $icon ) );
+			return sprintf( '<img src="%s"%s />', esc_attr( $icon ), $aria_hidden_attr );
 		} else if ( strpos( $icon, 'fa-' ) !== false ) {
 			// Font awesome icon styles, aliased & non-aliased
 			$fa_styles = array( 'fas', 'fa-solid', 'far', 'fa-regular', 'fal', 'fa-light', 'fat', 'fa-thin', 'fad', 'fa-duotone', 'fab', 'fa-brands' );
 			if ( str_replace( $fa_styles, '', $icon ) !== $icon ) {
 				// Newer version which allows for icon styles
-				return sprintf( '<i class="%s"></i>', esc_attr( $icon ) );
+				return sprintf( '<i class="%s"%s></i>', esc_attr( $icon ), $aria_hidden_attr );
 			} else {
 				// Older version
-				return sprintf( '<i class="fa %s"></i>', esc_attr( $icon ) );
+				return sprintf( '<i class="fa %s"%s></i>', esc_attr( $icon ), $aria_hidden_attr );
 			}
 		} else if ( strpos( $icon, 'dashicons' ) === 0 ) {
-			return sprintf( '<i class="dashicons %s"></i>', esc_attr( $icon ) );
+			return sprintf( '<i class="dashicons %s"%s></i>', esc_attr( $icon ), $aria_hidden_attr );
 		} else if ( strpos( $icon, 'gform-icon' ) === 0 ) {
-			return sprintf( '<i class="gform-icon %s"></i>', esc_attr( $icon ) );
+			return sprintf( '<i class="gform-icon %s"%s></i>', esc_attr( $icon ), $aria_hidden_attr );
 		}
 
 		return null;
@@ -8230,6 +8269,112 @@ Content-Type: text/html;
 		wp_die( '', '', array( 'response' => null ) );
 	}
 
+	/**
+	 * Logs message only once per request.
+	 *
+	 * @since 2.9.23
+	 *
+	 * @param string $message Message to log.
+	 */
+	public static function log_once_per_request( $message ) {
+		static $cache = array();
+
+		$hash = md5( $message );
+
+		// Already logged in this request?
+		if ( isset( $cache[ $hash ] ) ) {
+			return;
+		}
+
+		GFCommon::log_debug( "GFCommon::evaluate_minimum_requirements(): {$message}" );
+
+		$cache[ $hash ] = true;
+	}
+
+	/**
+	 * Evaluate minimum requirements for an add-on.
+	 *
+	 * @since 2.9.23
+	 *
+	 * @param array $minimum_requirements List of dependency rules.
+	 *
+	 * @return array ['block' => bool, 'message' => string|null] Whether to block installation/activation and the message to show.
+	 */
+	public static function evaluate_minimum_requirements( array $minimum_requirements ) {
+		if ( empty( $minimum_requirements ) ) {
+			return array( 'block' => false, 'message' => null );
+		}
+
+		// Get all installed plugins with their active status.
+		$installed = GFForms::get_installed_plugins();
+
+		foreach ( $minimum_requirements as $requirements ) {
+			$addon_name           = $requirements['minimum_requirements_name'] ?? null;
+			$addon_slug           = $requirements['minimum_requirements_slug'] ?? null;
+			$addon_version        = $requirements['minimum_requirements_version'] ?? null;
+			$addon_version_latest = $requirements['minimum_requirements_version_latest'] ?? null;
+			$parent_title         = $requirements['parent_title'] ?? null;
+
+			// If one of the required fields is missing, skip this requirement.
+			if ( $addon_name === null || $addon_slug === null || $addon_version === null ) {
+				continue;
+			}
+
+			// Set the right version number if the text latest is used.
+			$version_latest_used = false;
+			if ( $addon_version === 'latest' ) {
+				$version_latest_used = true;
+				$addon_version       = $addon_version_latest ?? null;
+			}
+
+			// Check if required add-on is installed.
+			if ( ! isset( $installed[ $addon_slug ] ) ) {
+				// translators: 1: current add-on name, 2: required add-on name, 3: required add-on version.
+				$message = sprintf(
+					esc_html__( 'The Gravity Forms %1$s requires %2$s to be installed. Please install %2$s %3$s.', 'gravityforms' ),
+						$parent_title,
+						$addon_name,
+						$addon_version
+				);
+
+				self::log_once_per_request( $message . json_encode( $minimum_requirements ) );
+				return [ 'block' => true, 'message' => $message ];
+			}
+
+			// Check if required add-on is active.
+			if ( ! $installed[ $addon_slug ]['is_active'] ) {
+				// translators: 1: current add-on name, 2: required add-on name, 3: required add-on version..
+				$message = sprintf(
+					esc_html__( 'The Gravity Forms %1$s requires %2$s to be active. Please activate %2$s %3$s.', 'gravityforms' ),
+				$parent_title,
+						$installed[ $addon_slug ]['name'] ?? null,
+						$addon_version
+				);
+
+				self::log_once_per_request( $message . json_encode( $minimum_requirements ) );
+				return [ 'block' => true, 'message' => $message ];
+			}
+
+			// Check if required add-on meets minimum version.
+			if ( version_compare( $installed[ $addon_slug ]['version'], $addon_version, '<' ) ) {
+
+				// translators: 1: current add-on name, 2: required add-on name, 3: minimum required version, 4: currently installed version. 5: latest version if the text latest is used, version number otherwise.
+				$message = sprintf(
+					esc_html__( 'The Gravity Forms %1$s requires %2$s version %3$s or higher for full compatibility. You are currently using version %4$s. Please update %2$s to %5$s version.', 'gravityforms' ),
+						$parent_title,
+						$installed[ $addon_slug ]['name'],
+						$addon_version,
+						$installed[ $addon_slug ]['version'],
+						$version_latest_used ? 'latest' : $addon_version
+				);
+
+				self::log_once_per_request( $message . json_encode( $minimum_requirements ) );
+				return [ 'block' => true, 'message' => $message ];
+			}
+		}
+
+		return [ 'block' => false, 'message' => null ];
+	}
 }
 
 class GFCategoryWalker extends Walker {
