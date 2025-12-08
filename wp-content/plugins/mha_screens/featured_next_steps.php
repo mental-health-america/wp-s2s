@@ -27,9 +27,30 @@ function mha_featured_next_steps_data( $args ){
     );   
     $args = wp_parse_args( $args, $defaults );
     $return = [];
+    $return['additional_result_text'] = []; // Initialize as array
 
     $debug = false;
     $debug_log = [];
+    
+    // Check for screen_id's featured_next_steps field first (takes precedence)
+    $screen_id = isset($args['user_screen_result']['screen_id']) ? $args['user_screen_result']['screen_id'] : null;
+    $screen_featured_links = [];
+    $screen_heading = get_field('next_steps_heading', $screen_id) ?: '';
+    
+    if($screen_id && have_rows('featured_next_steps', $screen_id)):
+        // Get heading if available
+        
+        $row_index = 0;
+        while( have_rows('featured_next_steps', $screen_id) ) : the_row();
+            $link = get_sub_field('link');
+            if($link){
+                $link_id = is_object($link) ? $link->ID : $link;
+                if($link_id){
+                    $screen_featured_links[] = $link_id;
+                }
+            }
+        endwhile;
+    endif;
     
     // Check for matching partner first
     $featured_next_steps_source = $args['user_screen_result']['screen_id']; // Default to screen_id
@@ -56,12 +77,34 @@ function mha_featured_next_steps_data( $args ){
     }
     wp_reset_postdata();
     
+    // Add screen's featured_next_steps links first (with precedence)
+    if(!empty($screen_featured_links)){
+        $screen_row_index = 0;
+        $return['results'][$screen_row_index]['group_title'] = ''; // No group title for screen links
+        $return['results'][$screen_row_index]['additional_result_text'] = '';
+        $return['results'][$screen_row_index]['partner_next_steps'] = false;
+        
+        $counter = 1;
+        foreach($screen_featured_links as $screen_link_id){
+            $return['results'][$screen_row_index]['links'][$counter] = $screen_link_id;
+            $counter++;
+        }
+        
+        // Set heading for screen featured links (takes precedence)
+        if(!empty($screen_heading)){
+            $return['heading'] = $screen_heading;
+        } else {
+            $return['heading'] = 'Next Steps';
+        }
+    }
+    
     if( have_rows('featured_next_steps_test', $featured_next_steps_source) ):
     while( have_rows('featured_next_steps_test', $featured_next_steps_source) ) : the_row();
         
         $heading = get_sub_field('next_steps_heading');
         $randomize = get_sub_field('dont_randomize_order');
         $randomize_group = get_sub_field('dont_randomize_group_order');
+        $hide_group_titles = get_sub_field('hide_group_titles'); // Store during loop
 
         if( have_rows('next_step_links') ):
         while( have_rows('next_step_links') ) : the_row();
@@ -510,15 +553,35 @@ function mha_featured_next_steps_data( $args ){
                                     }                               
                                     break;
                                 case 'greater than':
-                                    if(isset($args['answered_demos'][$con_key]) && $args['answered_demos'][$con_key] > $con_value){
-                                        $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
+                                    if(isset($args['answered_demos'][$con_key])){
+                                        $demo_value = $args['answered_demos'][$con_key];
+                                        // Handle array (sum values) or scalar value
+                                        if(is_array($demo_value)){
+                                            $demo_value = array_sum($demo_value);
+                                        }
+                                        // Convert to numeric for comparison
+                                        $demo_value = is_numeric($demo_value) ? (float)$demo_value : 0;
+                                        $con_value_num = is_numeric($con_value) ? (float)$con_value : 0;
+                                        if($demo_value > $con_value_num){
+                                            $con_score++;
+                                            if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $demo_value > $con_value_num)  / $con_score"; }
+                                        }
                                     }
                                     break;
                                 case 'less than':
-                                    if(isset($args['answered_demos'][$con_key]) && $args['answered_demos'][$con_key] < $con_value){
-                                        $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
+                                    if(isset($args['answered_demos'][$con_key])){
+                                        $demo_value = $args['answered_demos'][$con_key];
+                                        // Handle array (sum values) or scalar value
+                                        if(is_array($demo_value)){
+                                            $demo_value = array_sum($demo_value);
+                                        }
+                                        // Convert to numeric for comparison
+                                        $demo_value = is_numeric($demo_value) ? (float)$demo_value : 0;
+                                        $con_value_num = is_numeric($con_value) ? (float)$con_value : 0;
+                                        if($demo_value < $con_value_num){
+                                            $con_score++;
+                                            if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $demo_value < $con_value_num)  / $con_score"; }
+                                        }
                                     }
                                     break;
                                     
@@ -575,10 +638,25 @@ function mha_featured_next_steps_data( $args ){
         endif;
 
         if(isset($return['results'])){
-            $return['heading'] = $heading;
+            // Only set heading from conditional results if screen heading wasn't already set
+            // (screen featured links take precedence)
+            if(empty($return['heading']) && !empty($heading)){
+                $return['heading'] = $heading;
+            } elseif(empty($return['heading'])){
+                // Fallback to conditional heading or default
+                $return['heading'] = !empty($heading) ? $heading : 'Next Steps';
+            }
             $return['hide_group_titles'] = get_sub_field('hide_group_titles');
             if(!$randomize_group){
-                shuffle($return['results']);
+                // Preserve screen featured links at the beginning, shuffle the rest
+                $screen_result = !empty($screen_featured_links) && isset($return['results'][0]) ? $return['results'][0] : null;
+                $other_results = !empty($screen_featured_links) ? array_slice($return['results'], 1) : $return['results'];
+                shuffle($other_results);
+                if($screen_result !== null){
+                    $return['results'] = array_merge([$screen_result], $other_results);
+                } else {
+                    $return['results'] = $other_results;
+                }
             }
         }
 
@@ -746,10 +824,10 @@ function mha_featured_next_steps_data( $args ){
             'total_used_links' => $total_used_links,
             'count_diff' => $count_diff,
             'max_links' => $max_links,
-            'heading' => $return['heading'],
-            'hide_group_titles' => $return['hide_group_titles'],
+            'heading' => (!empty($return['heading'])) ? $return['heading'] : 'Next Steps',
+            'hide_group_titles' => isset($return['hide_group_titles']) ? $return['hide_group_titles'] : 0,
             'link_groups' => $link_groups,
-            'additional_result_text' => $return['additional_result_text'],
+            'additional_result_text' => isset($return['additional_result_text']) ? $return['additional_result_text'] : '',
             'used_links' => $used_links,
             'ctas' => $ctas,
             'is_partner_source' => $is_partner_source
@@ -788,25 +866,27 @@ function display_featured_next_steps( $args ){
     $count = 1;
 
     // Result Text
-    foreach($args['additional_result_text'] as $addl_text){
-        // Strip shortcodes and scripts
-        $addl_text = strip_shortcodes($addl_text);
-        $addl_text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $addl_text);
-        if($addl_text != ''){
-            $partner_class = $args['is_partner_source'] ? ' partner-source' : '';
-            $return_html .= '<div class="featured-next-steps-test-additional-text'.$partner_class.'">';
-            if($partner_class){
-                $return_html .= '<div class="bubble round-tl cerulean normal"><div class="inner">';
+    if(!empty($args['additional_result_text'])){
+        foreach($args['additional_result_text'] as $addl_text){
+            // Strip shortcodes and scripts
+            $addl_text = strip_shortcodes($addl_text);
+            $addl_text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $addl_text);
+            if($addl_text != ''){
+                $partner_class = $args['is_partner_source'] ? ' partner-source' : '';
+                $return_html .= '<div class="featured-next-steps-test-additional-text'.$partner_class.'">';
+                if($partner_class){
+                    $return_html .= '<div class="bubble round-tl cerulean normal"><div class="inner">';
+                }
+                $return_html .= $addl_text;
+                if($partner_class){
+                    $return_html .= '</div></div>';
+                }
+                $return_html .= '</div>';
+                $count++;
             }
-            $return_html .= $addl_text;
-            if($partner_class){
-                $return_html .= '</div></div>';
-            }
-            $return_html .= '</div>';
-            $count++;
         }
     }
-    
+
     if($args['link_groups']):
 
         // Next Step Links
