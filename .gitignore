@@ -171,6 +171,8 @@ wp-content/mysql.sql
 !/wp-content/plugins/mha_imports
 !/wp-content/plugins/mha_cleanup
 !/wp-content/plugins/mha_sso
+!/wp-content/plugins/mha_iframe_control
+!/wp-content/plugins/mha_rest-api-key-manager
 /wp-content/plugins/mha_sso/keys.php
 /wp-content/plugins/mha_sso/vendor
 /wp-content/plugins/mha_imports/vendor
@@ -178,16 +180,16 @@ wp-content/mysql.sql
 !/wp-content/plugins/gravityforms
 !/wp-content/themes/mha_s2s
 /wp-content/themes/mha_s2s/templates/page-devtest.php
-
-# Server specific
 bak
 codes
-tmp
-*/tmp
-.logs/
+keys.php
+.logs
+tmp/
+db.php
+autoptimize_404_handler.php
 .ftpquota
 have-i-been-pwned-verification.txt
 local-xdebuginfo.php
 wp-content/.htaccess
-wp-content/autoptimize_404_handler.php
-wp-content/db.php
+log/
+languages/
