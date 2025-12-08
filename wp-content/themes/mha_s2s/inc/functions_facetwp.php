@@ -156,6 +156,9 @@ add_action( 'wp_head', function() {
 			 */
 			$(document).on('facetwp-refresh', function() {
 				$('.facetwp-template').addClass('loaded').animate({ opacity: .25 }, 150);
+				// Clear combined container so it rebuilds after refresh
+				$('.facetwp-facet-combined-conditions-tags').html('');
+				$('.facetwp-facet-conditions, .facetwp-facet-tag').show();
 			});
 			$(document).on('facetwp-loaded', function() {
 				$('.facetwp-template').addClass('loaded').animate({ opacity: 1 }, 150);
@@ -185,6 +188,111 @@ add_action( 'wp_head', function() {
 					$('#geo-search-message').show();
 				} else {
 					$('#geo-search-message').hide();
+				}
+
+				// Combine conditions and tags facets
+				var $combinedContainer = $('.facetwp-facet-combined-conditions-tags');
+				if ($combinedContainer.length > 0) {
+					var limit = parseInt($combinedContainer.data('limit')) || 7;
+					var $conditionsFacet = $('.facetwp-facet-conditions');
+					var $tagsFacet = $('.facetwp-facet-tag');
+					
+					if ($conditionsFacet.length > 0 || $tagsFacet.length > 0) {
+						var allCombinedItems = [];
+						
+						// Get conditions items
+						$conditionsFacet.find('.facetwp-checkbox').each(function() {
+							var $item = $(this);
+							var counter = parseInt($item.find('.facetwp-counter').text().replace(/[^0-9]/g, '')) || 0;
+							var $temp = $('<div>').html($item[0].outerHTML);
+							$temp.find('.facetwp-checkbox').attr('data-facet-name', 'conditions');
+							allCombinedItems.push({
+								html: $temp.html(),
+								counter: counter,
+								facet: 'conditions',
+								value: $item.data('value')
+							});
+						});
+						
+						// Get tags items
+						$tagsFacet.find('.facetwp-checkbox').each(function() {
+							var $item = $(this);
+							var counter = parseInt($item.find('.facetwp-counter').text().replace(/[^0-9]/g, '')) || 0;
+							var $temp = $('<div>').html($item[0].outerHTML);
+							$temp.find('.facetwp-checkbox').attr('data-facet-name', 'tag');
+							allCombinedItems.push({
+								html: $temp.html(),
+								counter: counter,
+								facet: 'tag',
+								value: $item.data('value')
+							});
+						});
+						
+						// Sort by counter (descending)
+						allCombinedItems.sort(function(a, b) {
+							return b.counter - a.counter;
+						});
+						
+						// Function to render items
+						function renderItems(items, showAll) {
+							var itemsToShow = showAll ? items : items.slice(0, limit);
+							var combinedHtml = '';
+							itemsToShow.forEach(function(item) {
+								combinedHtml += item.html;
+							});
+							
+							// Add "View all topics" button if there are more items than limit
+							if (!showAll && items.length > limit) {
+								combinedHtml += '<button type="button" class="view-all-topics-btn plain small mt-2 mb-2" style="display: block; width: 100%; text-align: left; padding: 0.5rem 0; color: inherit; border: none; background: none; cursor: pointer;">View all topics</button>';
+							} else if (showAll && items.length > limit) {
+								combinedHtml += '<button type="button" class="view-all-topics-btn plain small mt-2 mb-2" style="display: block; width: 100%; text-align: left; padding: 0.5rem 0; color: inherit; border: none; background: none; cursor: pointer;">Show less</button>';
+							}
+							
+							$combinedContainer.html(combinedHtml);
+							
+							// Handle "View all topics" button click
+							$combinedContainer.find('.view-all-topics-btn').on('click', function(e) {
+								e.preventDefault();
+								var $btn = $(this);
+								if ($btn.text().indexOf('Show less') !== -1) {
+									renderItems(allCombinedItems, false);
+								} else {
+									renderItems(allCombinedItems, true);
+								}
+								return false;
+							});
+						}
+						
+						// Initial render (show top 7)
+						renderItems(allCombinedItems, false);
+						
+						// Handle clicks on combined items - trigger clicks on original hidden facets
+						$combinedContainer.on('click', '.facetwp-checkbox', function(e) {
+							e.preventDefault();
+							var $checkbox = $(this);
+							var facetName = $checkbox.data('facet-name') || $checkbox.attr('data-facet-name');
+							var value = $checkbox.data('value');
+							
+							// Find and click the original checkbox
+							if (facetName === 'conditions') {
+								var $original = $conditionsFacet.find('.facetwp-checkbox[data-value="' + value + '"]');
+								if ($original.length) {
+									$original.trigger('click');
+								}
+							} else if (facetName === 'tag') {
+								var $original = $tagsFacet.find('.facetwp-checkbox[data-value="' + value + '"]');
+								if ($original.length) {
+									$original.trigger('click');
+								}
+							}
+							
+							return false;
+						});
+						
+						// Hide original facets if combined container exists (but keep them in DOM for FacetWP)
+						$conditionsFacet.css('display', 'none');
+						$tagsFacet.css('display', 'none');
+					}
 				}
 
 			});
@@ -240,3 +348,18 @@ add_filter( 'facetwp_assets', function( $assets ) {
     FWP()->display->json['proximity']['minLength'] = 5;
     return $assets;
 } );
+
+/**
+ * Display combined conditions and tags facets as a single sorted list (top 7)
+ * This creates a container that JavaScript will populate
+ */
+function facetwp_display_combined_conditions_tags( $limit = 7 ) {
+	return '<div class="facetwp-facet-combined-conditions-tags" data-limit="' . esc_attr( $limit ) . '"></div>';
+}
+
+/** ACF Google Maps API Key */
+function my_acf_google_map_api( $api ){
+    $api['key'] = 'AIzaSyCDPitrjnuDyHaoLf5rfm8euGP1bgEJEno';
+    return $api;
+}
+add_filter('acf/fields/google_map/api', 'my_acf_google_map_api');

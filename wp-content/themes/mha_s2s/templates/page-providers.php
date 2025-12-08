@@ -40,14 +40,10 @@ get_header();
                 
                 <label for="zip-code-search" class="text-blue-dark"><?php echo _e('Search for resources near you', 'mhas2s'); ?></label>
                 <div class="facetwp-facet facetwp-facet-custom facetwp-type-custom">
-                    <span class="facetwp-input-wrap">
-                        <i class="facetwp-icon zip-icon faux-submit submit-zip-search"></i>
-                        <input type="text" id="zip-code-search" class="location-search-zip facetwp-location" value="<?php echo get_query_var('geo'); ?>" placeholder="Zip code" autocomplete="off" data-connect="location_search">
-                    </span>
+                    <?php echo facetwp_display( 'facet', 'location_search' ); ?>
                 </div>
-                <div class="d-none"><?php echo facetwp_display( 'facet', 'location_search' ); ?></div>
-
-                <div class="d-none">
+                
+                <div class="d-none2">
                 <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#areaServed" aria-expanded="true" aria-controls="areaServed"><?php echo _e('Area Served', 'mhas2s'); ?></button>
                 <div id="areaServed" class="collapse show filter-checkboxes">
                     <?php echo facetwp_display( 'facet', 'area_served' ); ?>
@@ -59,15 +55,17 @@ get_header();
                     <?php echo facetwp_display( 'facet', 'service_type' ); ?>
                 </div>
 
-                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList"><?php echo _e('Conditions', 'mhas2s'); ?></button>
+
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Topics</button>
                 <div id="conditionsList" class="collapse show filter-checkboxes">
                     <?php echo facetwp_display( 'facet', 'general_mental_health' ); ?>
-                    <?php echo facetwp_display( 'facet', 'conditions' ); ?>
-                </div>
-
-                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList"><?php echo _e('Tags'); ?></button>
-                <div id="tagsList" class="collapse show filter-checkboxes">
-                    <?php echo facetwp_display( 'facet', 'tag' ); ?>
+                    <?php 
+                    // Display conditions and tags separately (hidden) for FacetWP to process
+                    echo facetwp_display( 'facet', 'conditions' ); 
+                    echo facetwp_display( 'facet', 'tag' ); 
+                    // Display combined list (top 7)
+                    echo facetwp_display_combined_conditions_tags( 7 );
+                    ?>
                 </div>
 
             </div>

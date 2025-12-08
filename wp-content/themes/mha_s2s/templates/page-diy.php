@@ -35,26 +35,27 @@ get_header();
 
                 <?php echo facetwp_display( 'facet', 'search' ); ?>
 
-                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#diyType" aria-expanded="true" aria-controls="diyType">Type</button>
-                <div id="diyType" class="collapse show filter-checkboxes">
-                    <?php echo facetwp_display( 'facet', 'diy_type' ); ?>
-                </div>
-
-                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList">Tags</button>
-                <div id="tagsList" class="collapse show filter-checkboxes">
-                    <?php echo facetwp_display( 'facet', 'tag' ); ?>
-                </div>
-
                 <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#espanolCheck" aria-expanded="true" aria-controls="espanolCheck">Languages</button>
                 <div id="espanolCheck" class="collapse show filter-checkboxes">
                     <?php echo facetwp_display( 'facet', 'language' ); ?>
                     <div class="language-toggle facetwp-checkbox" data-value="1"><span class="facetwp-display-value">Español</span><span id="espanol-total"></span></div>
                 </div>
 
-                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Conditions</button>
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Topics</button>
                 <div id="conditionsList" class="collapse show filter-checkboxes">
                     <?php echo facetwp_display( 'facet', 'general_mental_health' ); ?>
-                    <?php echo facetwp_display( 'facet', 'conditions' ); ?>
+                    <?php 
+                    // Display conditions and tags separately (hidden) for FacetWP to process
+                    echo facetwp_display( 'facet', 'conditions' ); 
+                    echo facetwp_display( 'facet', 'tag' ); 
+                    // Display combined list (top 7)
+                    echo facetwp_display_combined_conditions_tags( 7 );
+                    ?>
+                </div>
+                
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#diyType" aria-expanded="true" aria-controls="diyType">Type</button>
+                <div id="diyType" class="collapse show filter-checkboxes">
+                    <?php echo facetwp_display( 'facet', 'diy_type' ); ?>
                 </div>
 
             </div>

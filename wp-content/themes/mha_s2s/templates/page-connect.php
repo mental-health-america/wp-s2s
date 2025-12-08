@@ -35,15 +35,16 @@ get_header();
 
                 <?php echo facetwp_display( 'facet', 'search' ); ?>
 
-                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Conditions</button>
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#conditionsList" aria-expanded="true" aria-controls="conditionsList">Topics</button>
                 <div id="conditionsList" class="collapse show filter-checkboxes">
                     <?php echo facetwp_display( 'facet', 'general_mental_health' ); ?>
-                    <?php echo facetwp_display( 'facet', 'conditions' ); ?>
-                </div>
-
-                <button class="bold text-gray caps accordion-button mb-3 mt-3" type="button" data-toggle="collapse" data-target="#tagsList" aria-expanded="true" aria-controls="tagsList">Tags</button>
-                <div id="tagsList" class="collapse show filter-checkboxes">
-                    <?php echo facetwp_display( 'facet', 'tag' ); ?>
+                    <?php 
+                    // Display conditions and tags separately (hidden) for FacetWP to process
+                    echo facetwp_display( 'facet', 'conditions' ); 
+                    echo facetwp_display( 'facet', 'tag' ); 
+                    // Display combined list (top 7)
+                    echo facetwp_display_combined_conditions_tags( 7 );
+                    ?>
                 </div>
 
             </div>

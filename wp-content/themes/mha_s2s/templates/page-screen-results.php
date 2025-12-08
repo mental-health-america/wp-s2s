@@ -20,7 +20,6 @@ else:
 
     // Get Screen Results
     $user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
-
     // Update featured links based on result page attributes
     // To debug, comment this out to not lock in answers so refreshing works
     if($user_screen_result['featured_next_steps_data'] && str_contains(get_query_var('layout'), 'mhats')){
@@ -512,12 +511,16 @@ else:
      */
     if( !empty($partner_ctas) ):
     
-        if( have_rows('featured_next_steps_test', $featured_next_steps_source) ):
-        while( have_rows('featured_next_steps_test', $featured_next_steps_source) ) : the_row();  
-            echo '<div class="wrap narrow mt-5">';  
-            echo '<h2 class="section-title dark-blue bold mb-0">'.get_sub_field('next_steps_heading').'</h2>';
-            echo '</div>';
-        endwhile;
+        // Only show heading here if we're NOT displaying featured_next_steps_data below
+        // (featured_next_steps_data will show its own heading)
+        if( empty($user_screen_result['featured_next_steps_data']) || in_array('related_v1', $layout) ):
+            if( have_rows('featured_next_steps_test', $featured_next_steps_source) ):
+            while( have_rows('featured_next_steps_test', $featured_next_steps_source) ) : the_row();  
+                echo '<div class="wrap narrow mt-5">';  
+                echo '<h2 class="section-title dark-blue bold mb-0">'.get_sub_field('next_steps_heading').'</h2>';
+                echo '</div>';
+            endwhile;
+            endif;
         endif;
         ?>
         <div class="wrap narrow">
@@ -546,6 +549,7 @@ else:
         echo '<div class="wrap narrow">';
         // Display the featured links
         $featured_next_steps_data = json_decode($user_screen_result['featured_next_steps_data']);
+        // Hide title if partner CTAs already showed a heading above
         if(!empty($partner_ctas)){
             $featured_next_steps_data->show_title = false;
         }
