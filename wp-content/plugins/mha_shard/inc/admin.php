@@ -148,3 +148,86 @@ function diy_responses_filter_query($query) {
 }
 add_filter('pre_get_posts', 'diy_responses_filter_query');
 
+/** 
+ * Filter Articles by Type
+ */
+
+// Add filter dropdown for article post type
+function article_filter_by_type($post_type) {
+    if ($post_type === 'article') {
+        $selected = isset($_GET['type_filter']) ? sanitize_text_field($_GET['type_filter']) : '';
+
+        $type_choices = array(
+            'condition' => 'Condition',
+            'diy' => 'DIY Tool',
+            'connect' => 'Connect',
+            'treatment' => 'Treatment',
+            'provider' => 'Provider'
+        );
+
+        ?>
+        <select name="type_filter">
+            <option value=""><?php _e('All Types', 'textdomain'); ?></option>
+            <?php foreach ($type_choices as $value => $label) : ?>
+                <option value="<?php echo esc_attr($value); ?>" <?php selected($selected, $value); ?>>
+                    <?php echo esc_html($label); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <?php
+    }
+}
+add_action('restrict_manage_posts', 'article_filter_by_type');
+
+// Modify query to filter articles by Type
+function article_filter_query_by_type($query) {
+    global $pagenow;
+    if (is_admin() && $pagenow === 'edit.php' && isset($_GET['type_filter']) && !empty($_GET['type_filter']) && isset($_GET['post_type']) && $_GET['post_type'] === 'article') {
+        $type_value = sanitize_text_field($_GET['type_filter']);
+        $query->query_vars['meta_query'][] = array(
+            'key'     => 'type',
+            'value'   => '"' . $type_value . '"',
+            'compare' => 'LIKE'
+        );
+    }
+}
+add_filter('pre_get_posts', 'article_filter_query_by_type');
+
+// Modify Type column to show area_served for Provider type
+// Remove the default Type column handler and replace with our custom one
+add_action('admin_init', function() {
+	remove_action('manage_article_posts_custom_column', 'mha_s2s_article_column', 10);
+}, 5);
+
+add_action('manage_article_posts_custom_column', 'article_type_column_with_area_served', 10, 2);
+function article_type_column_with_area_served($column, $post_id) {
+	// Handle Type column
+	if ('type' === $column) {
+		$types = get_field('type', $post_id);
+		if ($types && is_array($types)) {
+			$type_array = [];
+			foreach ($types as $type) {
+				$type_label = str_replace('Diy', 'DIY', ucfirst($type));
+				
+				// If type is "provider", add area_served in parentheses
+				if ($type === 'provider') {
+					$area_served = get_field('area_served', $post_id);
+					if ($area_served) {
+						// Handle array by imploding, or use string directly
+						$area_served_display = is_array($area_served) ? implode(', ', $area_served) : $area_served;
+						$type_label .= ' (' . esc_html($area_served_display) . ')';
+					}
+				}
+				
+				$type_array[] = $type_label;
+			}
+			echo implode(', ', $type_array);
+		}
+	}
+	// Handle Espanol column (preserve existing functionality)
+	elseif ('espanol' === $column) {
+		$espanol = get_field('espanol', $post_id);
+		echo $espanol ? 'Yes' : 'No';
+	}
+}
+
