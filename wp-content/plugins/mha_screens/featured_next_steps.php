@@ -662,6 +662,108 @@ function mha_featured_next_steps_data( $args ){
 
     endwhile;
     endif;
+    
+    // Add demographic_next_steps links as regular featured links if we don't have enough
+    if(isset($return['results'])){
+        // Count total links from existing results
+        $total_existing_links = 0;
+        foreach($return['results'] as $r){
+            if(isset($r['links'])){
+                $total_existing_links += count($r['links']);
+            }
+        }
+        
+        // Determine max links needed (4 if single group, 2 if multiple groups)
+        $groups_with_links = 0;
+        foreach($return['results'] as $r){
+            if(isset($r['links']) && !empty($r['links'])){
+                $groups_with_links++;
+            }
+        }
+        $max_links_needed = $groups_with_links > 1 ? 2 : 4;
+        
+        // Add demographic_next_steps links if we need more
+        if($total_existing_links < $max_links_needed && !$is_partner_source){
+            $demo_steps_for_featured = [];
+            
+            // Get demographic_next_steps links (screen-specific first, then global)
+            // Screen specific demo steps
+            $demo_data_screen = get_mha_demo_steps( $args['user_screen_result']['screen_id'], $args['user_screen_result']['answered_demos'] );
+            foreach($demo_data_screen['demo_steps'] as $demo_step){
+                if(is_object($demo_step) && isset($demo_step->ID)){
+                    $demo_steps_for_featured[] = $demo_step->ID;
+                } elseif(is_numeric($demo_step)){
+                    $demo_steps_for_featured[] = $demo_step;
+                }
+            }
+            
+            // Global demo steps
+            $demo_data_global = get_mha_demo_steps( 'options', $args['user_screen_result']['answered_demos'] );
+            foreach($demo_data_global['demo_steps'] as $demo_step){
+                if(is_object($demo_step) && isset($demo_step->ID)){
+                    $demo_steps_for_featured[] = $demo_step->ID;
+                } elseif(is_numeric($demo_step)){
+                    $demo_steps_for_featured[] = $demo_step;
+                }
+            }
+            
+            // Remove duplicates
+            $demo_steps_for_featured = array_unique($demo_steps_for_featured);
+            
+            // Get already used link IDs to exclude
+            $used_link_ids = [];
+            foreach($return['results'] as $r){
+                if(isset($r['links'])){
+                    foreach($r['links'] as $link_id){
+                        $used_link_ids[] = $link_id;
+                    }
+                }
+            }
+            
+            // Remove already used links
+            $demo_steps_for_featured = array_diff($demo_steps_for_featured, $used_link_ids);
+            $demo_steps_for_featured = array_values($demo_steps_for_featured); // Re-index array
+            
+            // Add demographic links to existing result entry with empty group_title (like screen featured links)
+            // This prevents creating a new group which would reduce max_links from 4 to 2
+            if(!empty($demo_steps_for_featured)){
+                // Find existing result entry with empty group_title (screen featured links entry)
+                $target_row_index = null;
+                foreach($return['results'] as $idx => $r){
+                    if(isset($r['group_title']) && $r['group_title'] === '' && isset($r['links'])){
+                        $target_row_index = $idx;
+                        break;
+                    }
+                }
+                
+                // If no empty group_title entry exists, create a new one
+                if($target_row_index === null){
+                    $target_row_index = count($return['results']);
+                    $return['results'][$target_row_index]['group_title'] = ''; // No group title, like screen featured links
+                    $return['results'][$target_row_index]['additional_result_text'] = '';
+                    $return['results'][$target_row_index]['partner_next_steps'] = false;
+                    $return['results'][$target_row_index]['links'] = [];
+                }
+                
+                // Get the current highest link index in the target entry
+                $current_max_index = 0;
+                if(isset($return['results'][$target_row_index]['links']) && !empty($return['results'][$target_row_index]['links'])){
+                    $current_max_index = max(array_keys($return['results'][$target_row_index]['links']));
+                }
+                
+                // Add demographic links to the existing entry
+                $counter = $current_max_index + 1;
+                $links_to_add = $max_links_needed - $total_existing_links;
+                foreach($demo_steps_for_featured as $demo_link_id){
+                    if($counter > ($current_max_index + $links_to_add)){
+                        break;
+                    }
+                    $return['results'][$target_row_index]['links'][$counter] = $demo_link_id;
+                    $counter++;
+                }
+            }
+        }
+    }
 
     //pre($return);
 
@@ -720,15 +822,18 @@ function mha_featured_next_steps_data( $args ){
             }
         endif;
 
-        // In case of not enough links - only add extra links if not a partner source
+        // Calculate variables needed for extra links section
         $total_used_links = count($used_links);
         $count_diff = $max_links - $total_used_links;
         $extra_links = [];
         $extra_links_ids = null;
         $original_count = $count;
+
+        // In case of not enough links - add extra links from related articles
         if($total_used_links < $max_links && !$is_partner_source){
 
             $demo_steps = [];
+            $excluded_ids = []; // Initialize excluded_ids array
             $espanol = get_field('espanol', $args['user_screen_result']['screen_id']); // Spanish page
             $partner_var = get_query_var('partner'); // Partner layout overrides
             $iframe_var = get_query_var('iframe'); // Template flags when site is viewed in an iframe
