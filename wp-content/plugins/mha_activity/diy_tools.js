@@ -2,6 +2,38 @@
 	
 	$(document).ready(function() {
 
+		/**
+		 * Helper function to update the data-has-recommended flag on submit button
+		 * based on whether there are any unanswered recommended questions
+		 */
+		function updateRecommendedFlag($diyParent){
+			let hasUnansweredRecommended = false;
+			$diyParent.find('.question[data-recommended="true"]').each(function(){
+				let $question = $(this),
+					questionData = $question.attr('data-question'),
+					$textarea = $question.find('.textarea[data-question="'+questionData.replace('q', '')+'"]'),
+					$radioCheckbox = $question.find('input[type="radio"]:checked, input[type="checkbox"]:checked'),
+					hasAnswer = false;
+				
+				if($textarea.length && $textarea.val().trim() !== ''){
+					hasAnswer = true;
+				}
+				if($radioCheckbox.length > 0){
+					hasAnswer = true;
+				}
+				
+				if(!hasAnswer && $question.attr('data-recommended-text')){
+					hasUnansweredRecommended = true;
+					return false; // Break out of each loop
+				}
+			});
+			
+			let $submitButton = $diyParent.find('.next-question.submit');
+			if($submitButton.length){
+				$submitButton.attr('data-has-recommended', hasUnansweredRecommended ? 'true' : 'false');
+			}
+		}
+
 		function mhaDiyNextQuestion( event, thisEl ){
 			event.preventDefault();
 
@@ -95,19 +127,39 @@
 										recommended_header_text = $diyParent.find('.diy-questions-container').attr('data-recommended-header'),
 										recommended_footer_text = $diyParent.find('.diy-questions-container').attr('data-recommended-footer');
 
-									recommended_text += recommended_header_text+'<br />';
-
+									// Check for unanswered recommended questions
+									// Only count questions that are marked as recommended AND have no answer
 									$diyParent.find('.question[data-recommended="true"]').each(function(){
-										let questionRecText = $(this).attr('data-recommended-text'),
-											questionData = $(this).attr('data-question'),
-											questionRecButton = '<button class="question-jump button tiny" data-glide-dir="'+questionData+'">&laquo; Revisit this question</button>';
-										recommended_text += ''+questionRecText+' '+questionRecButton+'<br />';
-										recommended_count++;
+										let $question = $(this),
+											questionData = $question.attr('data-question'),
+											// Check if question has an answer - look for textarea or checked radio/checkbox
+											$textarea = $question.find('.textarea[data-question="'+questionData.replace('q', '')+'"]'),
+											$radioCheckbox = $question.find('input[type="radio"]:checked, input[type="checkbox"]:checked'),
+											hasAnswer = false;
+										
+										// Check if textarea has value
+										if($textarea.length && $textarea.val().trim() !== ''){
+											hasAnswer = true;
+										}
+										
+										// Check if radio/checkbox is checked
+										if($radioCheckbox.length > 0){
+											hasAnswer = true;
+										}
+										
+										// Only add to recommended list if question is unanswered
+										if(!hasAnswer){
+											let questionRecText = $question.attr('data-recommended-text');
+											if(questionRecText){
+												recommended_text += ''+questionRecText+' <button class="question-jump button tiny" data-glide-dir="'+questionData+'">&laquo; Revisit this question</button><br />';
+												recommended_count++;
+											}
+										}
 									});
 
-									recommended_text += recommended_footer_text;
-
+									// Only show tooltip if there are actually unanswered recommended questions
 									if(recommended_count > 0){
+										recommended_text = recommended_header_text+'<br />'+recommended_text+recommended_footer_text;
 										$diyParent.find('.next-question.submit').attr('data-has-recommended', 'false'); // Allow next submit click
 										// Display recommended text
 										$diyParent.prepend('<div class="wrap normal pb-2 recommended-display" style="max-width: 918px;"><div class="recommended-tooltip bubble round-tl narrow dark-blue"><div class="inner">'+recommended_text+'</div></div></div>');
@@ -115,6 +167,9 @@
 											scrollTop: $diyParent.offset().top - 75
 										});
 										return;
+									} else {
+										// All recommended questions are answered, update the flag to prevent future false triggers
+										$diyParent.find('.next-question.submit').attr('data-has-recommended', 'false');
 									}
 								}
 
@@ -610,7 +665,8 @@
 						$(".diy-questions[data-skip=0] input[type='radio'], .diy-questions[data-skip=0] input[type='checkbox']").each(function(e){
 							let $parent = $(this).parents('li'),
 								inputName = $(this).attr('name'),
-								$nextButton = $parent.find('.action-button');
+								$nextButton = $parent.find('.action-button'),
+								$diyParent = $parent.parents('.diy-tool-container');
 
 							// Enable in case of refresh
 							if($(this).is(":checked")){
@@ -620,12 +676,28 @@
 
 							// Simple validation*
 							$('.diy-questions[data-skip=0] input[name="'+inputName+'"]').on("change", function(event) {
+								let $question = $(this).parents('.question'),
+									wasRecommended = $question.attr('data-recommended') == 'true';
+								
 								if($(this).is(":checked")){
 									$nextButton.prop('disabled', false);
 									$parent.addClass('valid');
+									// If this was a recommended question and now has an answer, update flag
+									if(wasRecommended){
+										$question.attr('data-recommended', 'false');
+										updateRecommendedFlag($diyParent);
+									}
 								} else {
 									$nextButton.prop('disabled', true);
 									$parent.removeClass('valid');
+									// If this was a recommended question and answer was cleared, restore flag
+									if(wasRecommended && $question.attr('data-recommended-text')){
+										$question.attr('data-recommended', 'true');
+										let $submitButton = $diyParent.find('.next-question.submit');
+										if($submitButton.length){
+											$submitButton.attr('data-has-recommended', 'true');
+										}
+									}
 								}
 							});
 						});
@@ -633,13 +705,26 @@
 						// Enter key navigation
 						$(document).on("keydown", ".diy-questions .question .textarea", function(e) { 
 							
-							let val = $(this).val(),
-								rec = $(this).parents('.question').attr('data-recommended');
+							let $diyParent = $(this).parents('.diy-tool-container'),
+								val = $(this).val(),
+								$question = $(this).parents('.question'),
+								rec = $question.attr('data-recommended');
+							
 							if(val != '' && rec == 'true'){
-								$(this).parents('.question').attr('data-recommended', 'false');
+								$question.attr('data-recommended', 'false');
+								// Update submit button flag if no recommended questions remain unanswered
+								updateRecommendedFlag($diyParent);
 							}
 							if(val == '' && rec == 'false'){
-								$(this).parents('.question').attr('data-recommended', 'true');
+								$question.attr('data-recommended', 'true');
+								// Ensure submit button flag is set if a recommended question becomes unanswered
+								let $submitButton = $diyParent.find('.next-question.submit');
+								if($submitButton.length && $submitButton.attr('data-has-recommended') != 'true'){
+									// Check if this question was originally recommended (has recommended text)
+									if($question.attr('data-recommended-text')){
+										$submitButton.attr('data-has-recommended', 'true');
+									}
+								}
 							}
 
 							if (e.key === 'Enter' || e.keyCode === 13) {
@@ -647,7 +732,7 @@
 								e.stopPropagation(); 
 								if($(e.currentTarget).val() != ''){
 									// Focus on next slide
-									$(this).parents('.diy-tool-container').find('.glide__slide.glide__slide--active').next('li').find('.textarea').focus();
+									$diyParent.find('.glide__slide.glide__slide--active').next('li').find('.textarea').focus();
 
 									// Go to slide
 									question.go('>');
@@ -873,7 +958,11 @@
 				thisName = $(this).attr('name'),
 				current = $('.character-counter[data-answer="'+thisName+'"] .current'),
 				maximum = $('.character-counter[data-answer="'+thisName+'"] .maximum'),
-				theCount = $('.character-counter[data-answer="'+thisName+'"]');
+				theCount = $('.character-counter[data-answer="'+thisName+'"]'),
+				$diyParent = $(this).parents('.diy-tool-container'),
+				$question = $(this).parents('.question'),
+				val = $(this).val().trim(),
+				rec = $question.attr('data-recommended');
 			
 			current.text(characterCount);
 					
@@ -891,6 +980,18 @@
 				theCount.removeClass('d-none').addClass('d-block');
 			} else {
 				theCount.removeClass('d-block').addClass('d-none');
+			}
+
+			// Update recommended flag based on textarea value
+			if(val != '' && rec == 'true'){
+				$question.attr('data-recommended', 'false');
+				updateRecommendedFlag($diyParent);
+			} else if(val == '' && rec == 'false' && $question.attr('data-recommended-text')){
+				$question.attr('data-recommended', 'true');
+				let $submitButton = $diyParent.find('.next-question.submit');
+				if($submitButton.length){
+					$submitButton.attr('data-has-recommended', 'true');
+				}
 			}
 
 		});
