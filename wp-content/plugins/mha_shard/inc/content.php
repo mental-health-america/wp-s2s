@@ -4,7 +4,7 @@
 add_action('init', 'mhaContentScripts');
 function mhaContentScripts() {
 	wp_enqueue_script('mha_ab_testing_script', plugin_dir_url( __FILE__ ).'js/ab_testing.js', 'jquery', time(), true);
-	wp_enqueue_script('process_mhaContent', plugin_dir_url( __FILE__ ).'js/scripts.js', 'jquery', '20221206_1', true);
+	wp_enqueue_script('process_mhaContent', plugin_dir_url( __FILE__ ).'js/scripts.js', 'jquery', time(), true);
 	wp_localize_script('process_mhaContent', 'do_mhaContent', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 
