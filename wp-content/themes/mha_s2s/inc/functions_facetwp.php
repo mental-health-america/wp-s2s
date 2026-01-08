@@ -17,6 +17,11 @@ add_filter( 'facetwp_is_main_query', function( $is_main_query, $query ) {
 
 // Necessary overrides for taxonomy terms
 add_filter( 'facetwp_index_row', function( $params, $class ) {
+	// Ensure $params is an array before accessing array keys
+	if ( ! is_array( $params ) ) {
+		return $params;
+	}
+	
 	if ( 'Conditions' == $params['facet_name'] ) {
 		$term_id = (int) $params['term_id'];
 		$value = get_term_meta( $term_id, 'related_condition', true );

@@ -774,7 +774,7 @@ function mha_featured_next_steps_data( $args ){
         $ctas = [];
 
         // Result Text
-        if($return['results']):
+        if(isset($return['results']) && $return['results']):
             foreach($return['results'] as $r){
                 //$additional_result_text[] = $r['additional_result_text'];
 
@@ -794,7 +794,7 @@ function mha_featured_next_steps_data( $args ){
 
         // Not all groups have links, so we only want to count those
         $groups_with_links = 0; 
-        if($return['results']):
+        if(isset($return['results']) && $return['results']):
             foreach($return['results'] as $r){
                 if(isset($r['links'])){
                     $groups_with_links++;
@@ -804,7 +804,7 @@ function mha_featured_next_steps_data( $args ){
         $max_links = $groups_with_links > 1 ? 2 : 4;
 
         $count = 1;
-        if($return['results']):
+        if(isset($return['results']) && $return['results']):
             foreach($return['results'] as $r){
                 $i = 1;
                 while($i <= $max_links){
@@ -913,7 +913,6 @@ function mha_featured_next_steps_data( $args ){
                             $link_groups['Additional Resources'][$count] = $eli;
                             $link_groups['partner_source'][$count] = false; // Extra links are never from partner
                             $count++;
-                            $i++;
                             $new_i++;
                         }
 
