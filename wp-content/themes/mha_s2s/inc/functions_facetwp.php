@@ -851,31 +851,15 @@ add_filter( 'facetwp_index_row', function( $params, $class ) {
 function facetwp_index_location_data() {
     global $wpdb;
     
-    // Logging
-    $log_file = WP_CONTENT_DIR . '/location-indexing-debug.log';
-    $log = function( $message, $data = null ) use ( $log_file ) {
-        $timestamp = date( 'Y-m-d H:i:s' );
-        $log_entry = "[{$timestamp}] {$message}";
-        if ( $data !== null ) {
-            $log_entry .= "\n" . print_r( $data, true );
-        }
-        $log_entry .= "\n" . str_repeat( '-', 80 ) . "\n";
-        file_put_contents( $log_file, $log_entry, FILE_APPEND );
-    };
-    
-    $log( "=== FACETWP_INDEX_LOCATION_DATA CALLED ===" );
-    
     // Use a transient to prevent duplicate runs within 2 seconds
     $transient_key = 'facetwp_location_indexing';
     if ( get_transient( $transient_key ) ) {
-        $log( "Skipping - transient lock active" );
         return;
     }
     set_transient( $transient_key, true, 2 ); // 2 second lock
     
     // Clear ALL existing location_search entries first (including any hash values)
-    $deleted = $wpdb->query( "DELETE FROM {$wpdb->prefix}facetwp_index WHERE facet_name = 'location_search'" );
-    $log( "Deleted {$deleted} existing location_search entries" );
+    $wpdb->query( "DELETE FROM {$wpdb->prefix}facetwp_index WHERE facet_name = 'location_search'" );
     
     // Get all published provider posts
     $provider_posts = get_posts( array(
@@ -888,15 +872,11 @@ function facetwp_index_location_data() {
         'fields' => 'ids'
     ) );
     
-    $log( "Found " . count( $provider_posts ) . " provider posts to index" );
-    
     if ( empty( $provider_posts ) ) {
-        $log( "No provider posts found - exiting" );
         return;
     }
     
     $table_name = $wpdb->prefix . 'facetwp_index';
-    $inserted_count = 0;
     
     // Index each provider post that has location data
     foreach ( $provider_posts as $post_id ) {
@@ -906,8 +886,6 @@ function facetwp_index_location_data() {
         if ( ! $location_rows || ! is_array( $location_rows ) ) {
             continue;
         }
-        
-        $log( "Post #{$post_id} has " . count( $location_rows ) . " location rows" );
         
         foreach ( $location_rows as $row_index => $location_row ) {
             // Try field names first, then fallback to field IDs
@@ -925,12 +903,9 @@ function facetwp_index_location_data() {
             } elseif ( isset( $location_row['field_5fd3efaac74a6'] ) ) {
                 $lng = $location_row['field_5fd3efaac74a6'];
             }
-            
-            $log( "Post #{$post_id}, Row {$row_index} - lat: {$lat}, lng: {$lng}" );
 
             // Skip if lat/lng are empty or invalid
             if ( '' === trim((string) $lat) || '' === trim((string) $lng) ) {
-                $log( "Skipping - empty lat/lng" );
                 continue;
             }
             
@@ -939,7 +914,6 @@ function facetwp_index_location_data() {
             $lng = floatval( trim( $lng ) );
             
             if ( empty( $lat ) || empty( $lng ) || $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180 ) {
-                $log( "Skipping - invalid lat/lng values" );
                 continue;
             }
 
@@ -953,7 +927,7 @@ function facetwp_index_location_data() {
             // Insert directly into database
             $facet_value = $lat . ',' . $lng;
             
-            $result = $wpdb->insert(
+            $wpdb->insert(
                 $table_name,
                 array(
                     'post_id' => $post_id,
@@ -967,21 +941,8 @@ function facetwp_index_location_data() {
                 ),
                 array( '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%d' )
             );
-            
-            if ( $result ) {
-                $inserted_count++;
-                $log( "Inserted: Post #{$post_id}, {$facet_value}" );
-            } else {
-                $log( "Failed to insert: Post #{$post_id}, Error: " . $wpdb->last_error );
-            }
         }
     }
-    
-    $log( "Total inserted: {$inserted_count} location entries" );
-    
-    // Verify final count
-    $final_count = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}facetwp_index WHERE facet_name = 'location_search'" );
-    $log( "Final location_search entries in database: {$final_count}" );
 }
 
 // Backup: Also call indexing from hooks in case facetwp_index_row filter doesn't get called
@@ -1063,25 +1024,6 @@ add_filter( 'facetwp_query_args', function( $query_args, $class ) {
  * Manually calculates distances to handle Google Places API issues
  */
 add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
-    // Logging function
-    $log_file = WP_CONTENT_DIR . '/proximity-filter-debug.log';
-    $log = function( $message, $data = null ) use ( $log_file ) {
-        $timestamp = date( 'Y-m-d H:i:s' );
-        $log_entry = "[{$timestamp}] {$message}";
-        if ( $data !== null ) {
-            $log_entry .= "\n" . print_r( $data, true );
-        }
-        $log_entry .= "\n" . str_repeat( '-', 80 ) . "\n";
-        file_put_contents( $log_file, $log_entry, FILE_APPEND );
-    };
-    
-    $log( "=== FACETWP_FACET_FILTER_POSTS CALLED ===" );
-    $log( "Initial post_ids:", $post_ids );
-    
-    // Log the class parameter type and contents
-    $class_type = gettype( $class );
-    $log( "Class parameter type: {$class_type}" );
-    
     // Safely access the facet information
     $facet = null;
     $facet_name = '';
@@ -1089,23 +1031,19 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
     
     // Handle both object and array cases
     if ( is_object( $class ) ) {
-        $log( "Class is an object: " . get_class( $class ) );
         $class_props = get_object_vars( $class );
-        $log( "All class object properties:", $class_props );
         
         // Method 1: Check class->facet property
         if ( isset( $class->facet ) && is_array( $class->facet ) ) {
             $facet = $class->facet;
             $facet_name = isset( $facet['name'] ) ? $facet['name'] : '';
             $facet_type = isset( $facet['type'] ) ? $facet['type'] : '';
-            $log( "Found facet from class->facet: name={$facet_name}, type={$facet_type}" );
         }
         
         // Method 2: Check class->facet_name and class->facet_type directly
         if ( empty( $facet_name ) && isset( $class->facet_name ) ) {
             $facet_name = $class->facet_name;
             $facet_type = isset( $class->facet_type ) ? $class->facet_type : '';
-            $log( "Found facet from class->facet_name: name={$facet_name}, type={$facet_type}" );
             if ( ! empty( $facet_name ) ) {
                 $facet = array( 'name' => $facet_name, 'type' => $facet_type );
             }
@@ -1115,20 +1053,16 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
         if ( empty( $facet_name ) && isset( $class_props['facet_name'] ) ) {
             $facet_name = $class_props['facet_name'];
             $facet_type = isset( $class_props['facet_type'] ) ? $class_props['facet_type'] : '';
-            $log( "Found facet from class_props: name={$facet_name}, type={$facet_type}" );
             if ( ! empty( $facet_name ) ) {
                 $facet = array( 'name' => $facet_name, 'type' => $facet_type );
             }
         }
     } elseif ( is_array( $class ) ) {
-        $log( "Class is an array, contents:", $class );
-        
         // Method 1: Check if the array itself is the facet
         if ( isset( $class['name'] ) && isset( $class['type'] ) ) {
             $facet = $class;
             $facet_name = $class['name'];
             $facet_type = $class['type'];
-            $log( "Found facet from array directly: name={$facet_name}, type={$facet_type}" );
         }
         
         // Method 2: Check for facet nested inside
@@ -1136,22 +1070,17 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
             $facet = $class['facet'];
             $facet_name = isset( $facet['name'] ) ? $facet['name'] : '';
             $facet_type = isset( $facet['type'] ) ? $facet['type'] : '';
-            $log( "Found facet from class['facet']: name={$facet_name}, type={$facet_type}" );
         }
         
         // Method 3: Check for facet_name key directly
         if ( empty( $facet_name ) && isset( $class['facet_name'] ) ) {
             $facet_name = $class['facet_name'];
             $facet_type = isset( $class['facet_type'] ) ? $class['facet_type'] : '';
-            $log( "Found facet from class['facet_name']: name={$facet_name}, type={$facet_type}" );
             if ( ! empty( $facet_name ) ) {
                 $facet = array( 'name' => $facet_name, 'type' => $facet_type );
             }
         }
     }
-    
-    $log( "Final facet info - name: '{$facet_name}', type: '{$facet_type}'" );
-    $log( "Final facet array:", $facet );
     
     // Only handle location_search proximity facet
     // Check both the array format and direct string comparison
@@ -1159,23 +1088,16 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
     if ( ! empty( $facet_name ) && 'location_search' === $facet_name ) {
         if ( 'proximity' === $facet_type ) {
             $is_location_search = true;
-        } else {
-            $log( "Facet name is 'location_search' but type is '{$facet_type}', not 'proximity'" );
         }
     } elseif ( is_array( $facet ) && isset( $facet['name'] ) && 'location_search' === $facet['name'] ) {
         if ( isset( $facet['type'] ) && 'proximity' === $facet['type'] ) {
             $is_location_search = true;
-        } else {
-            $log( "Facet array has name 'location_search' but type is '{$facet['type']}', not 'proximity'" );
         }
     }
     
     if ( ! $is_location_search ) {
-        $log( "Not location_search proximity facet - returning original post_ids" );
         return $post_ids;
     }
-    
-    $log( "Processing location_search proximity facet" );
     
     // When FacetWP sets up a proximity search, it may pass $post_ids as [0] as a placeholder
     // We need to ignore that and query all posts, then filter by proximity
@@ -1188,10 +1110,8 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
     if ( empty( $location_value ) ) {
         if ( is_object( $class ) && isset( $class->value ) && ! empty( $class->value ) ) {
             $location_value = $class->value;
-            $log( "Location value from class->value:", $location_value );
         } elseif ( is_array( $class ) && isset( $class['value'] ) && ! empty( $class['value'] ) ) {
             $location_value = $class['value'];
-            $log( "Location value from class['value']:", $location_value );
         }
     }
     
@@ -1200,18 +1120,14 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
         if ( is_object( $class ) ) {
             if ( isset( $class->selected_values ) && ! empty( $class->selected_values ) ) {
                 $location_value = $class->selected_values;
-                $log( "Location value from class->selected_values:", $location_value );
             } elseif ( isset( $class->values ) && ! empty( $class->values ) ) {
                 $location_value = $class->values;
-                $log( "Location value from class->values:", $location_value );
             }
         } elseif ( is_array( $class ) ) {
             if ( isset( $class['selected_values'] ) && ! empty( $class['selected_values'] ) ) {
                 $location_value = $class['selected_values'];
-                $log( "Location value from class['selected_values']:", $location_value );
             } elseif ( isset( $class['values'] ) && ! empty( $class['values'] ) ) {
                 $location_value = $class['values'];
-                $log( "Location value from class['values']:", $location_value );
             }
         }
     }
@@ -1248,7 +1164,6 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
         parse_str( $_POST['data'], $post_data );
         if ( isset( $post_data['location_search'] ) ) {
             $location_value = $post_data['location_search'];
-            $log( "Location value from POST['data']:", $location_value );
         }
     }
     
@@ -1266,31 +1181,20 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
     if ( empty( $location_value ) && class_exists( 'FWP' ) ) {
         try {
             $fwp = FWP();
-            $log( "FWP() object exists, checking facets..." );
             if ( $fwp && isset( $fwp->facets ) ) {
-                $log( "FWP()->facets:", $fwp->facets );
                 if ( isset( $fwp->facets['location_search'] ) ) {
                     $facet_data = $fwp->facets['location_search'];
-                    $log( "FWP()->facets['location_search']:", $facet_data );
                     // Check if it has selected_values (from debug output, this is where it's stored)
                     if ( isset( $facet_data['selected_values'] ) && ! empty( $facet_data['selected_values'] ) ) {
                         $location_value = $facet_data['selected_values'];
-                        $log( "Location value from FWP()->facets['location_search']['selected_values']:", $location_value );
                     } elseif ( is_array( $facet_data ) && count( $facet_data ) >= 2 ) {
                         // Or it might be passed directly as [lat, lng, radius]
                         $location_value = $facet_data;
-                        $log( "Location value from FWP()->facets['location_search'] (direct array):", $location_value );
-                    } else {
-                        $log( "FWP()->facets['location_search'] exists but doesn't have valid data structure" );
                     }
-                } else {
-                    $log( "FWP()->facets['location_search'] does not exist" );
                 }
-            } else {
-                $log( "FWP()->facets does not exist" );
             }
         } catch ( Exception $e ) {
-            $log( "Error accessing FWP(): " . $e->getMessage() );
+            // Silently fail
         }
     }
     
@@ -1300,14 +1204,12 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
             $fwp = FWP();
             if ( $fwp && isset( $fwp->helper ) && method_exists( $fwp->helper, 'get_url_vars' ) ) {
                 $url_vars = $fwp->helper->get_url_vars();
-                $log( "URL vars from FWP()->helper->get_url_vars():", $url_vars );
                 if ( isset( $url_vars['location_search'] ) && ! empty( $url_vars['location_search'] ) ) {
                     $location_value = $url_vars['location_search'];
-                    $log( "Location value from URL vars:", $location_value );
                 }
             }
         } catch ( Exception $e ) {
-            $log( "Error accessing FWP()->helper->get_url_vars(): " . $e->getMessage() );
+            // Silently fail
         }
     }
     
@@ -1342,15 +1244,11 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
         }
     }
     
-    $log( "Final location_value after all checks:", $location_value );
-    
     // If no location value, return original post_ids (no filtering)
     if ( empty( $location_value ) || ! is_array( $location_value ) || count( $location_value ) < 2 ) {
         // No location search active, return original post_ids unchanged
         // But if post_ids is [0] (FacetWP placeholder), return empty array
-        $log( "No valid location_value found - returning original post_ids" );
         if ( $post_ids === array( 0 ) || ( is_array( $post_ids ) && count( $post_ids ) === 1 && $post_ids[0] === 0 ) ) {
-            $log( "post_ids is [0] placeholder - returning empty array" );
             return array();
         }
         return $post_ids;
@@ -1363,13 +1261,9 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
     $search_lng = floatval( $location_value[1] );
     $radius = isset( $location_value[2] ) ? floatval( $location_value[2] ) : 50; // Default 50 miles
     
-    $log( "Extracted search params - lat: {$search_lat}, lng: {$search_lng}, radius: {$radius}" );
-    
     if ( empty( $search_lat ) || empty( $search_lng ) ) {
-        $log( "Invalid lat/lng - returning original post_ids" );
         // Invalid lat/lng - if post_ids is [0] placeholder, return empty
         if ( $post_ids === array( 0 ) || ( is_array( $post_ids ) && count( $post_ids ) === 1 && $post_ids[0] === 0 ) ) {
-            $log( "post_ids is [0] placeholder - returning empty array" );
             return array();
         }
         return $post_ids;
@@ -1391,10 +1285,7 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
     
     $indexed_rows = $wpdb->get_results( $query, ARRAY_A );
     
-    $log( "Found " . count( $indexed_rows ) . " indexed location rows" );
-    
     if ( empty( $indexed_rows ) ) {
-        $log( "No indexed rows found - returning empty array" );
         return array(); // No locations indexed, return empty
     }
     
@@ -1436,18 +1327,13 @@ add_filter( 'facetwp_facet_filter_posts', function( $post_ids, $class ) {
     // Remove duplicates
     $valid_post_ids = array_unique( $valid_post_ids );
     
-    $log( "Valid post IDs within radius:", $valid_post_ids );
-    $log( "Total valid posts: " . count( $valid_post_ids ) );
-    
     // When location_search is active, we want ALL posts within radius
     // Don't limit to $post_ids because those might have been filtered by area_served
     // Return all valid posts that are within the search radius
     // If we got valid posts, return them; otherwise return empty array (no matches)
     if ( ! empty( $valid_post_ids ) ) {
-        $log( "Returning valid post IDs: " . implode( ', ', $valid_post_ids ) );
         return $valid_post_ids;
     } else {
-        $log( "No posts within radius - returning empty array" );
         // No posts found within radius - return empty array (not original post_ids)
         return array();
     }
