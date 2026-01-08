@@ -262,6 +262,7 @@ jQuery(function ($) {
 
 	});
 
+	/*
 	function submitCustomZipSearch( event = null ){
 		if (event.which == 13 || event == 1) {
 			var enteredZip = $('#zip-code-search').val();
@@ -282,6 +283,7 @@ jQuery(function ($) {
 					success: function( result ) {
 
 						var res = JSON.parse(result); 
+						console.log(res);
 						$('.search-filters').collapse('hide');
 						FWP.facets['location_search'] = [
 							res.lat,
@@ -330,6 +332,6 @@ jQuery(function ($) {
 	var hasGeoOnLoad = getParameterByName('geo');
 	if(hasGeoOnLoad && $('body').hasClass('page-template-page-providers')){
 		submitCustomZipSearch( 1 );
-	}
+	}*/
 
 });
