@@ -1,0 +1,104 @@
+<?php
+/**
+ * Screen Collection Template
+ */
+
+get_header();
+$layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
+$wrap_width = get_field('page_content_width') ? get_field('page_content_width') : 'normal';
+
+$screen_collection_id = get_the_ID();
+$org = get_query_var('org') ? get_query_var('org') : false;
+$allowed_orgs = get_field('allowed_organizations');
+$org_display = '';
+$org_id = '';
+
+$org_approved = false;
+$screens = get_field('screens');
+$screen_order = get_field('force_screen_order');
+$require_user_id = get_field('ask_for_user_id');
+
+$referrer =  get_query_var('ref');
+$iframe_mode = get_query_var('iframe');
+?>
+
+	<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+
+		<?php if(in_array('screen_header_v1', $layout)): ?>
+			<div class="wrap normal">
+				<div class="page-heading plain">			
+					<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
+				</div>
+			</div>
+		<?php else: ?>
+			<div class="page-heading mint bar">	
+			<div class="wrap <?php echo $wrap_width; ?>">		
+				<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>			
+			</div>
+			</div>
+		<?php endif; ?>
+
+		<div class="wrap normal">
+			<div class="page-intro">
+				<?php the_content(); ?>				
+			</div>
+			
+			<hr />
+
+			<div id="screen-collection-orgs">
+				<?php 
+					foreach($allowed_orgs as $organization):
+						if($organization['organization_id'] == $org): 
+							$org_display = $organization['organization_display_name'];
+							$org_id = $organization['organization_id'];
+							echo '<p class="mb-0"><strong>Organization:</strong> '.$org_display.'</p>';							
+							$org_approved = true;
+							break;	
+						endif; 
+				 	endforeach;
+					
+					if(!$org):
+						echo '<p class="mb-0">Please use your approve organization URL to access this.</p>';
+					elseif($org && !$org_approved):
+						echo '<p class="mb-0">This organization is not approved to access this collection.</p>';
+					endif;
+				 ?>
+			</div>
+
+			<?php if($org_approved): ?>
+				<div class="spinner-border my-2" role="status">
+					<span class="sr-only">Loading...</span>
+				</div>
+				<form action="<?php echo get_the_permalink(); ?>" method="post" class="screen-collection-user form-container loading d-none">
+					<div class="row g-0">
+						<div class="col-auto pr-0">
+						<label class="form-label" for="user_id">User ID:</label>
+							<input type="text" name="user_id" id="user_id" class="round-tr form-control" placeholder="" required value="" />
+						</div>
+						<div class="col-auto">
+							<label class="form-label" for="submit">&nbsp;</label>
+							<button type="submit" class="round-bl">Submit</button>
+						</div>
+					</div>
+					<small id="emailHelp" class="form-text text-muted mb-4">Please provide your user ID to access this collection.</small>
+					<input type="hidden" name="org" value="<?php echo $org_display; ?>" />
+					<input type="hidden" name="org_id" value="<?php echo $org_id; ?>" />
+					<input type="hidden" name="screen_ids" value="<?php echo implode(',', $screens); ?>" />
+					<input type="hidden" name="screen_collection" value="<?php echo $screen_collection_id; ?>" />
+				</form>
+
+				<?php
+					// Get user_id from POST or set empty (will be set via JavaScript if needed)
+					$user_id_param = isset($_POST['user_id']) ? sanitize_text_field($_POST['user_id']) : '';
+					
+					// Use shortcode to render screenings list
+					echo do_shortcode('[screen_collection_list screens="'.implode(',', $screens).'" screen_order="'.($screen_order ? 'true' : 'false').'" org_id="'.$org_id.'" user_id="'.$user_id_param.'" referrer="'.$referrer.'" iframe_mode="'.($iframe_mode ? 'true' : 'false').'"]');
+				endif;
+			?>
+		</div>
+		
+
+	</article>
+
+<?php
+get_footer();

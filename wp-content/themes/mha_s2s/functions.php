@@ -524,6 +524,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'sso'; // Used for successful SSO logins
     $qvars[] = 'state'; // Used for SSO logins; passed from Google to contain additional data
     $qvars[] = 'form'; // Used for optional questions page to get the previous form ID
+    $qvars[] = 'org'; // Used for Screen Collection page to get the organization ID
 
 	// Resource filters
 	$qvars[] = 'treatment';

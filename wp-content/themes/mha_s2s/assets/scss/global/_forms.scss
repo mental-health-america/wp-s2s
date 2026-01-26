@@ -715,3 +715,16 @@ article .gform_wrapper.gravity-theme {
         bottom: 0;
     }
 }
+
+/* Normal Forms */
+.form-container {
+    input {
+        padding: 0 25px;
+        height: 55px;
+    }
+    button,
+    input[type="submit"] {
+        padding: 0 25px;
+        height: 55px;
+    }
+}
