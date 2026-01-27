@@ -7,8 +7,13 @@ use League\Csv\Writer;
 use League\Csv\Reader;
 
 // Enqueing Scripts
-add_action('init', 'mhactaCodesExportScripts');
-function mhactaCodesExportScripts() {
+add_action('admin_enqueue_scripts', 'mhactaCodesExportScripts');
+function mhactaCodesExportScripts($hook) {
+    // Only load on the export page
+    if ($hook !== 'toplevel_page_mhathoughtexport') {
+        return;
+    }
+    
     if(current_user_can('edit_posts')){
         wp_enqueue_script( 'process_ctaCodesExport', plugin_dir_url(__DIR__) . 'js/cta_code_export.js', array('jquery'), time(), true );
         wp_localize_script('process_ctaCodesExport', 'do_mhactaCodesExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );

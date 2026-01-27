@@ -7,11 +7,13 @@
 #diyTool-exports-progress,
 #feedback-exports-progress,
 #abTesting-exports-progress,
+#click-monitor-exports-progress,
 #nonaggregate-progress {
     width: 401px;
     height: 41px;
     position: relative;
     border: 1px solid #007BA7;
+    margin-bottom: 20px;
 }
 
 #callrailcta-exports-progress .bar-wrapper,
@@ -23,6 +25,7 @@
 #update-screen-results-progress .bar-wrapper,
 #aggregate-progress .bar-wrapper,
 #abTesting-exports-progress .bar-wrapper,
+#click-monitor-exports-progress .bar-wrapper,
 #nonaggregate-progress .bar-wrapper {
     position: relative;
     height: 38px;
@@ -38,6 +41,7 @@
 #update-screen-results-progress .bar,
 #aggregate-progress .bar,
 #abTesting-exports-progress .bar,
+#click-monitor-exports-progress .bar,
 #nonaggregate-progress .bar {
     position: absolute;
     z-index: 2;
@@ -58,6 +62,7 @@
 #update-screen-results-progress .bar.loading:after,
 #aggregate-progress .bar.loading:after,
 #abTesting-exports-progress .bar.loading:after,
+#click-monitor-exports-progress .bar.loading:after,
 #nonaggregate-progress .bar.loading:after {  
     content: "";
     position: absolute;
@@ -76,12 +81,15 @@
 #feedback-exports-download,
 #ctaCodes-exports-download,
 #diyTools-exports-download,
-#user-exports-download
+#user-exports-download,
 #screen-exports-download,
 #aggregate-download,
 #abTesting-download,
+#click-monitor-exports-download,
 #nonaggregate-download {
-    padding-top: 15px;
+    padding-top: 25px;
+    padding-left: 0;
+
 }
 
 @keyframes move {
@@ -92,3 +100,88 @@
         background-position: 50px 50px;
     }
 }
+
+/* Bootstrap Tabs Styling for WordPress Admin */
+#generalExportsTab .nav-tabs {
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+#generalExportsTab .nav-tabs .nav-link {
+    color: #2271b1;
+    border: 1px solid transparent;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    padding: 10px 15px;
+    margin-bottom: -1px;
+    background: none;
+    border-bottom: none;
+}
+
+#generalExportsTab .nav-tabs .nav-link:hover {
+    border-color: #e9ecef #e9ecef #dee2e6;
+    isolation: isolate;
+    color: #135e96;
+}
+
+#generalExportsTab .nav-tabs .nav-link.active {
+    color: #1d2327;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+    font-weight: 600;
+}
+#generalExportsTab .nav-tabs .nav-item {
+    margin-bottom: 0;
+}
+
+.tab-content {
+    padding-top: 0;
+}
+
+.tab-pane {
+    padding: 20px 0;
+}
+
+.tab-pane .acf-columns-2 {
+    margin-top: 0;
+}
+
+#generalExportsTabContent .form-table {  background: #fff;
+    width: 100%;
+    border: 1px solid #c3c4c7;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-top-color: rgb(195, 196, 199);
+    border-top: 0;
+    margin-bottom: 20px;
+    margin-top: 0;
+}
+#generalExportsTabContent form h2 {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    margin: 0;
+    color: #23282d;
+    font-size: 14px;
+    padding: 8px 12px;
+    line-height: 1.48;
+}
+#generalExportsTabContent th {  
+    border-top: 1px solid #eee;
+    border-right: 1px solid #e1e1e1;
+    background: #f9f9f9;
+    padding: 15px 12px;
+    width: 20%;
+    font-size: 13px;
+    position: initial;
+    color: #444;
+}
+#generalExportsTabContent td {    
+    background: #fff;
+    border-top: 1px solid #eee;
+    position: initial;
+    padding: 15px 12px;
+}
+#generalExportsTabContent table tr:last-of-type td {
+    border-top: 1px solid #CCC;
+}  
