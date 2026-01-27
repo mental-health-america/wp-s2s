@@ -96,6 +96,7 @@ require_once(ROOTDIR . 'inc/ab-testing.php');
 require_once(ROOTDIR . 'inc/cta-code-export.php');
 require_once(ROOTDIR . 'inc/callrail-export.php');
 require_once(ROOTDIR . 'inc/feedback-export.php');
+require_once(ROOTDIR . 'inc/click-monitor-export.php');
 
 require_once(ROOTDIR . 'page-export.php');
 require_once(ROOTDIR . 'page-update_results.php');

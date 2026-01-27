@@ -21,6 +21,20 @@ jQuery(function ($) {
 		// Get current page URL
 		var url = window.location.href;
 		
+		// Capture all data attributes from the clicked element
+		var dataAttributes = {};
+		if ($clickedElement.length) {
+			// Get all attributes
+			var attrs = $clickedElement[0].attributes;
+			for (var i = 0; i < attrs.length; i++) {
+				var attr = attrs[i];
+				// Check if it's a data attribute
+				if (attr.name.indexOf('data-') === 0) {
+					dataAttributes[attr.name] = attr.value;
+				}
+			}
+		}
+		
 		// Send AJAX request to track the click
 		$.ajax({
 			type: "POST",
@@ -29,19 +43,14 @@ jQuery(function ($) {
 				action: 'track_click_monitor',
 				click_id: click_id,
 				cta_id: cta_id,
-				url: url
+				url: url,
+				data_attributes: JSON.stringify(dataAttributes)
 			},
 			success: function(response) {
-				// Optional: Log success or handle response
-				if (typeof console !== 'undefined' && console.log) {
-					console.log('Click tracked:', response);
-				}
+				//console.log('Click tracked:', response);
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
-				// Optional: Log error
-				if (typeof console !== 'undefined' && console.error) {
-					console.error('Error tracking click:', thrownError);
-				}
+				//console.error('Error tracking click:', thrownError);
 			}
 		});
 		

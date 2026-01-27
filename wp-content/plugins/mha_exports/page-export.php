@@ -316,6 +316,49 @@ function mhathoughtexport(){
     </form>
     <br />
 
+    <form id="mha-click-monitor-export" action="#" method="POST">
+        <div class="acf-columns-2">
+        <div class="acf-column-1">
+        
+            <div id="click-monitor-export-error"></div>
+            <h2>Click Monitor Export</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label for="export_click_monitor_start_date">Start Date</label></th>
+                    <td>
+                        <input type="date" name="export_click_monitor_start_date" id="export_click_monitor_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')); ?>-01" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="export_click_monitor_end_date">End Date</label></th>
+                    <td>
+                        <input type="date" name="export_click_monitor_end_date" id="export_click_monitor_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+
+                        <p>
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhaclickmonitor'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_click_monitor_link"  value="Download Click Monitor Data">
+                        </p>
+                        
+                        <div id="click-monitor-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>            
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <ul id="click-monitor-exports-download" style="display: none;"></ul>      
+                        <br /><br />
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+        </div>
+    </form>
+    <br />
+
 
     <form id="mha-cta-codes-export" action="#" method="POST">
         <div class="acf-columns-2">
