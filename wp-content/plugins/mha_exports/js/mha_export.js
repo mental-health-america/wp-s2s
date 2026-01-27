@@ -599,6 +599,103 @@
         });	
         
     }
+    /**
+     * Click Monitor Export
+     */
+    function clickMonitorExportLooper( results ){
+
+        var res = JSON.parse(results);
+
+        if(res.error){
+
+            // Error
+            $('#click-monitor-export-error').html(res.error);        
+
+        } else {
+            
+            if(res.next_page != ''){
+
+                $.ajax({
+                    type: "POST",
+                    url: do_mhaThoughts.ajaxurl,
+                    data: { 
+                        action: 'mha_export_click_monitor_data',
+                        data: res,
+                        start: 0
+                    },
+                    success: function( results_2 ) {  
+                        var res = JSON.parse(results_2);
+                        $('#click-monitor-exports-progress').slideDown();
+                        $('#click-monitor-exports-progress .bar').css('width', res.percent+'%');
+                        $('#click-monitor-exports-progress .label-number').html( res.percent );         
+                        clickMonitorExportLooper( results_2 );
+                    },
+                    error: function(xhr, ajaxOptions, thrownError){                        
+                        console.error(xhr,thrownError);
+                    }
+                });	
+
+            } else {
+
+                // Export is done 
+                $('#export_click_monitor_link').prop('disabled', false).text('Download Click Monitor Data');	
+                $('#click-monitor-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+res.download+'">'+res.download+'</a><br /><strong>Elapsed Time:</strong> '+res.total_elapsed_time)+'</li>';
+                $('#click-monitor-exports-progress .bar').css('width', '100%');
+                $('#click-monitor-exports-progress .bar').css('background-color', '#f89941').removeClass('loading');
+                $('#click-monitor-exports-download').slideDown().append('<li>Done!</li>');
+
+            }
+
+        }
+    }
+
+    $(document).on("submit", '#mha-click-monitor-export', function(event){
+
+        // Disable default form submit
+        event.preventDefault();
+
+        // Vars
+        var args = $('#mha-click-monitor-export').serialize();
+            
+        // Disable button
+        $('#export_click_monitor_link').prop('disabled', true).text('Processing...');
+        $('#click-monitor-export-error').html('');
+        $('#click-monitor-exports-progress .bar').css('background-color', '').addClass('loading');
+        $('#click-monitor-exports-progress .label-number').html( 'Calculating...' );  
+        
+        $.ajax({
+            type: "POST",
+            url: do_mhaThoughts.ajaxurl,
+            data: { 
+                action: 'mha_export_click_monitor_data',
+                data: args + '&start=1'
+            },
+            success: function( results ) {
+                if(results){
+                    var res = JSON.parse(results);
+                    if(res.error){
+                        $('#click-monitor-export-error').html(res.error);
+                        $('#export_click_monitor_link').prop('disabled', false).text('Download Click Monitor Data');
+                    } else {
+                        $('#click-monitor-exports-progress').slideDown();
+                        $('#click-monitor-exports-progress .bar').css('width', res.percent+'%');
+                        $('#click-monitor-exports-progress .label-number').html( res.percent );        
+                        clickMonitorExportLooper( results );    
+                    }
+                } else {                    
+                    alert('No data available for this query. Please refresh this page and try again.');
+                    $('#export_click_monitor_link').prop('disabled', false).text('Download Click Monitor Data');
+                }
+                
+            },
+            error: function(xhr, ajaxOptions, thrownError){                
+                console.error(xhr,thrownError);
+                $('#export_click_monitor_link').prop('disabled', false).text('Download Click Monitor Data');
+            }
+        });	
+
+    });
+
     $(document).on("submit", '#mha-feedback-exports', function(event){
         event.preventDefault();
         feedbackExportDataStart();    
