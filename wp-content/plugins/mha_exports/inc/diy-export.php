@@ -7,8 +7,13 @@ use League\Csv\Writer;
 use League\Csv\Reader;
 
 // Enqueing Scripts
-add_action('init', 'mhaDiyToolsExportScripts');
-function mhaDiyToolsExportScripts() {
+add_action('admin_enqueue_scripts', 'mhaDiyToolsExportScripts');
+function mhaDiyToolsExportScripts($hook) {
+    // Only load on the export page
+    if ($hook !== 'toplevel_page_mhathoughtexport') {
+        return;
+    }
+    
     if(current_user_can('edit_posts')){
         wp_enqueue_script( 'process_diyToolsExport', plugin_dir_url(__DIR__) . 'js/diy_export.js', array('jquery'), time(), true );
         wp_localize_script('process_diyToolsExport', 'do_mhaDiyToolsExport', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );

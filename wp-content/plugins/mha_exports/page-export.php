@@ -17,9 +17,17 @@ function char_fix( $input ){
 /** 
  * Init Scripts
  */
-add_action('init', 'mhaThoughtScripts');
-function mhaThoughtScripts() {
+add_action('admin_enqueue_scripts', 'mhaThoughtScripts');
+function mhaThoughtScripts($hook) {
+    // Only load on the export page
+    if ($hook !== 'toplevel_page_mhathoughtexport') {
+        return;
+    }
+    
     if(current_user_can('edit_posts')){
+        wp_enqueue_style( 'mha_bootstrap_css', '/wp-content/themes/mha_s2s/assets/bootstrap/css/bootstrap.css', array(), '4.3.1.20220722' );
+        wp_enqueue_script( 'mha_bootstrap_js', '/wp-content/themes/mha_s2s/assets/bootstrap/js/bootstrap.bundle.min.js', array('jquery'), '4.3.1', true );
+
         wp_enqueue_script( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'js/mha_export.js', array('jquery'), time(), true );
         wp_enqueue_style( 'process_mhaacfeui', '/wp-content/plugins/acf-extended/assets/css/acfe-ui.min.css', array(), time() );
         wp_enqueue_style( 'process_mhaThoughts', plugin_dir_url(__FILE__) . 'css/mha_export.css', array(), time() );
@@ -33,13 +41,48 @@ function mhathoughtexport(){
 
 <div id="poststuff" class="wrap">
 
-    <h1>General Data Exports</h1>
+    <h1>Data Exports</h1>
 
-    <form id="mha-all-screen-exports" action="#" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
+    <!-- Bootstrap Tabs Navigation -->
+    <ul class="nav nav-tabs" id="generalExportsTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="screen-exports-tab" data-toggle="tab" data-target="#screen-exports" type="button" role="tab" aria-controls="screen-exports" aria-selected="true">Screen Exports</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="diy-tool-export-tab" data-toggle="tab" data-target="#diy-tool-export" type="button" role="tab" aria-controls="diy-tool-export" aria-selected="false">DIY Tool Data</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="ab-testing-export-tab" data-toggle="tab" data-target="#ab-testing-export" type="button" role="tab" aria-controls="ab-testing-export" aria-selected="false">A/B Testing Logs</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="feedback-exports-tab" data-toggle="tab" data-target="#feedback-exports" type="button" role="tab" aria-controls="feedback-exports" aria-selected="false">Feedback Forms</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="click-monitor-export-tab" data-toggle="tab" data-target="#click-monitor-export" type="button" role="tab" aria-controls="click-monitor-export" aria-selected="false">Click Monitor</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="cta-codes-export-tab" data-toggle="tab" data-target="#cta-codes-export" type="button" role="tab" aria-controls="cta-codes-export" aria-selected="false">Used CTA Codes</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="callrail-cta-export-tab" data-toggle="tab" data-target="#callrail-cta-export" type="button" role="tab" aria-controls="callrail-cta-export" aria-selected="false">Callrail Ad</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="user-exports-tab" data-toggle="tab" data-target="#user-exports" type="button" role="tab" aria-controls="user-exports" aria-selected="false">User Export</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="uci-exports-tab" data-toggle="tab" data-target="#uci-exports" type="button" role="tab" aria-controls="uci-exports" aria-selected="false">UCI Data Exports</button>
+        </li>
+    </ul>
+
+    <!-- Bootstrap Tabs Content -->
+    <div class="tab-content" id="generalExportsTabContent">
         
-            <div id="screen-export-error"></div>
+        <!-- Screen Exports Tab -->
+        <div class="tab-pane fade show active" id="screen-exports" role="tabpanel" aria-labelledby="screen-exports-tab">
+            <form id="mha-all-screen-exports" action="#" method="POST">
+                <div class="acf-columns-2">
+                    <div class="acf-column-1">
+                        <div id="screen-export-error"></div>
             <h2>Screen Exports</h2>
             <table class="form-table" role="presentation">
             <tbody>
@@ -110,21 +153,22 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="screen-exports-download" style="display: none;"></ul>      
-                        <br /><br />
+                        
                     </td>
                 </tr>
             </tbody>
             </table>
+                    </div>
+                </div>
+            </form>
         </div>
-        </div>
-    </form>
-    <br />
 
-    <form id="mha-diy-tool-export" action="#" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
-        
-            <div id="diy-tool-export-error"></div>
+        <!-- DIY Tool Data Export Tab -->
+        <div class="tab-pane fade" id="diy-tool-export" role="tabpanel" aria-labelledby="diy-tool-export-tab">
+            <form id="mha-diy-tool-export" action="#" method="POST">
+                <div class="acf-columns-2">
+                    <div class="acf-column-1">
+                        <div id="diy-tool-export-error"></div>
             <h2>DIY Tool Data Export</h2>
             <table class="form-table" role="presentation">
             <tbody>
@@ -199,22 +243,22 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="diyTool-exports-download" style="display: none;"></ul>      
-                        <br /><br />
+                        
                     </td>
                 </tr>
             </tbody>
             </table>
+                    </div>
+                </div>
+            </form>
         </div>
-        </div>
-    </form>
-    <br />
 
-
-    <form id="mha-ab-testing-export" action="#" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
-        
-            <div id="ab-testing-export-error"></div>
+        <!-- A/B Testing Logs Tab -->
+        <div class="tab-pane fade" id="ab-testing-export" role="tabpanel" aria-labelledby="ab-testing-export-tab">
+            <form id="mha-ab-testing-export" action="#" method="POST">
+                <div class="acf-columns-2">
+                    <div class="acf-column-1">
+                        <div id="ab-testing-export-error"></div>
             <h2>A/B Testing Logs</h2>
             <table class="form-table" role="presentation">
             <tbody>
@@ -243,21 +287,22 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="abTesting-exports-download" style="display: none;"></ul>      
-                        <br /><br />
+                        
                     </td>
                 </tr>
             </tbody>
             </table>
+                    </div>
+                </div>
+            </form>
         </div>
-        </div>
-    </form>
-    <br />
 
-    <form id="mha-feedback-exports" action="#" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
-        
-            <div id="feedback-export-error"></div>
+        <!-- Feedback Form Exports Tab -->
+        <div class="tab-pane fade" id="feedback-exports" role="tabpanel" aria-labelledby="feedback-exports-tab">
+            <form id="mha-feedback-exports" action="#" method="POST">
+                <div class="acf-columns-2">
+                    <div class="acf-column-1">
+                        <div id="feedback-export-error"></div>
             <h2>Feedback Form Exports</h2>
             <table class="form-table" role="presentation">
             <tbody>
@@ -306,21 +351,22 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="feedback-exports-download" style="display: none;"></ul>      
-                        <br /><br />
+                        
                     </td>
                 </tr>
             </tbody>
             </table>
+                    </div>
+                </div>
+            </form>
         </div>
-        </div>
-    </form>
-    <br />
 
-    <form id="mha-click-monitor-export" action="#" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
-        
-            <div id="click-monitor-export-error"></div>
+        <!-- Click Monitor Export Tab -->
+        <div class="tab-pane fade" id="click-monitor-export" role="tabpanel" aria-labelledby="click-monitor-export-tab">
+            <form id="mha-click-monitor-export" action="#" method="POST">
+                <div class="acf-columns-2">
+                    <div class="acf-column-1">
+                        <div id="click-monitor-export-error"></div>
             <h2>Click Monitor Export</h2>
             <table class="form-table" role="presentation">
             <tbody>
@@ -349,22 +395,22 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="click-monitor-exports-download" style="display: none;"></ul>      
-                        <br /><br />
+                        
                     </td>
                 </tr>
             </tbody>
             </table>
+                    </div>
+                </div>
+            </form>
         </div>
-        </div>
-    </form>
-    <br />
 
-
-    <form id="mha-cta-codes-export" action="#" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
-        
-            <div id="cta-codes-export-error"></div>
+        <!-- Used CTA Codes Export Tab -->
+        <div class="tab-pane fade" id="cta-codes-export" role="tabpanel" aria-labelledby="cta-codes-export-tab">
+            <form id="mha-cta-codes-export" action="#" method="POST">
+                <div class="acf-columns-2">
+                    <div class="acf-column-1">
+                        <div id="cta-codes-export-error"></div>
             <h2>Used CTA Codes Export</h2>
             <table class="form-table" role="presentation">
             <tbody>
@@ -400,22 +446,22 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="ctaCodes-exports-download" style="display: none;"></ul>      
-                        <br /><br />
+                        
                     </td>
                 </tr>
             </tbody>
             </table>
+                    </div>
+                </div>
+            </form>
         </div>
-        </div>
-    </form>
-    <br />
 
-
-    <form id="mha-callrail-cta-export" action="#" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
-        
-            <div id="callrail-cta-export-error"></div>
+        <!-- Callrail Ad Export Tab -->
+        <div class="tab-pane fade" id="callrail-cta-export" role="tabpanel" aria-labelledby="callrail-cta-export-tab">
+            <form id="mha-callrail-cta-export" action="#" method="POST">
+                <div class="acf-columns-2">
+                    <div class="acf-column-1">
+                        <div id="callrail-cta-export-error"></div>
             <h2>Callrail Ad Export</h2>
             <table class="form-table" role="presentation">
             <tbody>
@@ -443,22 +489,25 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="callrailcta-exports-download" style="display: none;"></ul>      
-                        <br /><br />
+                        
                     </td>
                 </tr>
             </tbody>
             </table>
+                    </div>
+                </div>
+            </form>
         </div>
-        </div>
-    </form>
-    <br />
 
-    <form id="mha-user-exports" action="#" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
-        
-            <div id="user-export-error"></div>
+        <!-- User Export Tab -->
+        <div class="tab-pane fade" id="user-exports" role="tabpanel" aria-labelledby="user-exports-tab">
+            <form id="mha-user-exports" action="#" method="POST">
+                <div class="acf-columns-2">
+                    <div class="acf-column-1">
+                        <div id="user-export-error"></div>
             <h2>User Export</h2>
+            <table class="form-table" role="presentation">
+            <tbody>
                 <tr>
                     <td colspan="2">
 
@@ -472,23 +521,39 @@ function mhathoughtexport(){
                             <strong class="label"><span class="label-number">0</span>%</strong>
                         </div>
                         <ul id="user-exports-download" style="display: none;"></ul>      
-                        <br /><br />
+                        
                     </td>
                 </tr>
             </tbody>
             </table>
+                    </div>
+                </div>
+            </form>
         </div>
-        </div>
-    </form>
-    <br />
 
-    <h1>UCI Data Exports</h1>		
+        <!-- UCI Data Exports Tab -->
+        <div class="tab-pane fade" id="uci-exports" role="tabpanel" aria-labelledby="uci-exports-tab">
+            <h2>UCI Data Exports</h2>
+            
+            <!-- Bootstrap Tabs Navigation for UCI Exports -->
+            <ul class="nav nav-tabs" id="uciExportsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="aggregate-data-tab" data-toggle="tab" data-target="#aggregate-data" type="button" role="tab" aria-controls="aggregate-data" aria-selected="true">Aggregate Data</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="nonaggregate-data-tab" data-toggle="tab" data-target="#nonaggregate-data" type="button" role="tab" aria-controls="nonaggregate-data" aria-selected="false">Non-Aggregate Data</button>
+                </li>
+            </ul>
 
-    <form action="#" id="aggregate-data-export" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
-        
-            <div id="aggregate-error"></div>
+            <!-- Bootstrap Tabs Content for UCI Exports -->
+            <div class="tab-content" id="uciExportsTabContent">
+                
+                <!-- Aggregate Data Tab -->
+                <div class="tab-pane fade show active" id="aggregate-data" role="tabpanel" aria-labelledby="aggregate-data-tab">
+                    <form action="#" id="aggregate-data-export" method="POST">
+                        <div class="acf-columns-2">
+                            <div class="acf-column-1">
+                                <div id="aggregate-error"></div>
             <h2>Aggregate Data</h2>
             <table class="form-table" role="presentation">
             <tbody>
@@ -526,16 +591,17 @@ function mhathoughtexport(){
                 </tr>
             </tbody>
             </table>
+                            </div>
+                        </div>
+                    </form>
+                </div>
 
-        </div>
-        </div>
-    </form>
-
-    <form action="#" id="nonaggregate-data-export" method="POST">
-        <div class="acf-columns-2">
-        <div class="acf-column-1">
-        
-            <div id="nonaggregate-error"></div>
+                <!-- Non-Aggregate Data Tab -->
+                <div class="tab-pane fade" id="nonaggregate-data" role="tabpanel" aria-labelledby="nonaggregate-data-tab">
+                    <form action="#" id="nonaggregate-data-export" method="POST">
+                        <div class="acf-columns-2">
+                            <div class="acf-column-1">
+                                <div id="nonaggregate-error"></div>
             <h2>Non-Aggregate Data</h2>
             <table class="form-table" role="presentation">
             <tbody>
@@ -575,10 +641,18 @@ function mhathoughtexport(){
                 </tr>
             </tbody>
             </table>
+                            </div>
+                        </div>
+                    </form>
+                </div>
 
+            </div>
+            <!-- End UCI Data Exports Nested Tabs -->
         </div>
-        </div>
-    </form>
+        <!-- End UCI Data Exports Tab -->
+
+    </div>
+    <!-- End Data Exports Tabs -->
 
 </div>	
 <?php } 
