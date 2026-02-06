@@ -86,6 +86,12 @@ function mha_export_click_monitor_data(){
         $args['export_click_monitor_end_date'] = date('Y-m-t', strtotime('now - 1 month'));
     }
 
+    // If no date provided (both empty), export all rows
+    $no_date_filter = (
+        empty(trim((string) $args['export_click_monitor_start_date'])) &&
+        empty(trim((string) $args['export_click_monitor_end_date']))
+    );
+
     // Pagination
     $page_size = 1500;
     $offset = ($args['page'] - 1) * $page_size;
@@ -97,25 +103,35 @@ function mha_export_click_monitor_data(){
     global $wpdb;
     $table_name = 'mha_click_monitor';
     
-    // Build date query
-    $start_date = $args['export_click_monitor_start_date'] . ' 00:00:00';
-    $end_date = $args['export_click_monitor_end_date'] . ' 23:59:59';
-    
-    // Get total count
-    $total_count = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM {$table_name} WHERE date >= %s AND date <= %s",
-        $start_date,
-        $end_date
-    ));
-    
-    // Get paginated results
-    $results = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM {$table_name} WHERE date >= %s AND date <= %s ORDER BY date DESC LIMIT %d OFFSET %d",
-        $start_date,
-        $end_date,
-        $page_size,
-        $offset
-    ), ARRAY_A);
+    if ($no_date_filter) {
+        // Export all rows - no date filter
+        $total_count = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table_name}");
+        $results = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$table_name} ORDER BY date DESC LIMIT %d OFFSET %d",
+            $page_size,
+            $offset
+        ), ARRAY_A);
+    } else {
+        // Build date query
+        $start_date = $args['export_click_monitor_start_date'] . ' 00:00:00';
+        $end_date = $args['export_click_monitor_end_date'] . ' 23:59:59';
+        
+        // Get total count
+        $total_count = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$table_name} WHERE date >= %s AND date <= %s",
+            $start_date,
+            $end_date
+        ));
+        
+        // Get paginated results
+        $results = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$table_name} WHERE date >= %s AND date <= %s ORDER BY date DESC LIMIT %d OFFSET %d",
+            $start_date,
+            $end_date,
+            $page_size,
+            $offset
+        ), ARRAY_A);
+    }
     
     $csv_data = [];
     $i = 0;
@@ -192,7 +208,11 @@ function mha_export_click_monitor_data(){
      */
     try {
 
-        $args['filename'] = $args['filename'] ? $args['filename'] : 'click-monitor--'.$args['export_click_monitor_start_date'].'_'.$args['export_click_monitor_end_date'].'--'.date('U').'.csv';
+        if (!$args['filename']) {
+            $args['filename'] = $no_date_filter
+                ? 'click-monitor--all--'.date('U').'.csv'
+                : 'click-monitor--'.$args['export_click_monitor_start_date'].'_'.$args['export_click_monitor_end_date'].'--'.date('U').'.csv';
+        }
         $writer_type = $args['filename'] ? 'a+' : 'w+';
                 
         if($args['page'] >= $max_pages){
