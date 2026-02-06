@@ -23,7 +23,8 @@ function mha_featured_next_steps_data( $args ){
         'iframe_var'         => '',
         'partner_var'        => '',
         'user_screen_result' => array(),
-        'answered_demos'     => array()
+        'answered_demos'     => array(),
+        'url_params'         => array()  // Optional: pass URL param values (e.g. layout) when not in $_GET (e.g. results page)
     );   
     $args = wp_parse_args( $args, $defaults );
     $return = [];
@@ -98,6 +99,10 @@ function mha_featured_next_steps_data( $args ){
         }
     }
     
+    // Use a running key so multiple matching next_step_links rows (across all featured_next_steps_test
+    // and within nested repeaters) are never overwritten. get_row_index() resets per outer loop.
+    $conditional_result_key = !empty($screen_featured_links) ? 1 : 0;
+
     if( have_rows('featured_next_steps_test', $featured_next_steps_source) ):
     while( have_rows('featured_next_steps_test', $featured_next_steps_source) ) : the_row();
         
@@ -122,7 +127,14 @@ function mha_featured_next_steps_data( $args ){
                 $con_type = get_sub_field('type');
                 $con_condition = get_sub_field('condition');
                 $con_key = get_sub_field('key');
-                $get_key = isset($_GET[$con_key]) ? sanitize_text_field($_GET[$con_key]) : null;
+                // Use $_GET first; fall back to $args['url_params'] so layout etc. can be passed on results page
+                if ( isset( $_GET[ $con_key ] ) ) {
+                    $get_key = sanitize_text_field( $_GET[ $con_key ] );
+                } elseif ( isset( $args['url_params'][ $con_key ] ) ) {
+                    $get_key = is_string( $args['url_params'][ $con_key ] ) ? $args['url_params'][ $con_key ] : '';
+                } else {
+                    $get_key = null;
+                }
                 $con_value = get_sub_field('value');
 
                 //echo "Condition checker: $con_type - $con_condition - $con_key - $get_key - $con_value<br />";
@@ -614,24 +626,29 @@ function mha_featured_next_steps_data( $args ){
                     shuffle($links);
                 }
             
-                $return['results'][$row_index]['group_title'] = get_sub_field('link_group_title');      
-                $return['results'][$row_index]['additional_result_text'] = get_sub_field('additional_result_text');   
-                $return['results'][$row_index]['partner_next_steps'] = $is_partner_source;   
+                $return['results'][$conditional_result_key]['group_title'] = get_sub_field('link_group_title');      
+                $return['results'][$conditional_result_key]['additional_result_text'] = get_sub_field('additional_result_text');   
+                $return['results'][$conditional_result_key]['partner_next_steps'] = $is_partner_source;   
                 $return['additional_result_text'][] = get_sub_field('additional_result_text');   
 
                 if($debug){ $debug_log[] = get_sub_field('link_group_title').' Success'; }
 
                 $ctas = get_sub_field('cta');                 
-                $return['results'][$row_index]['ctas'] = $ctas ? $ctas : null;  
+                $return['results'][$conditional_result_key]['ctas'] = $ctas ? $ctas : null;  
 
                 $counter = 1;
                 if($links){
                     foreach($links as $l){
-                        $return['results'][$row_index]['links'][$counter] = $l;
-                        $counter++;
+                        // Store post ID so links survive JSON encode/decode and work with get_the_permalink()
+                        $link_id = is_object($l) ? (isset($l->ID) ? $l->ID : $l) : (is_array($l) && isset($l['ID']) ? $l['ID'] : $l);
+                        if ( $link_id ) {
+                            $return['results'][$conditional_result_key]['links'][$counter] = (int) $link_id;
+                            $counter++;
+                        }
                     }
                 }
 
+                $conditional_result_key++;
             }
 
         endwhile;
@@ -1021,7 +1038,12 @@ function display_featured_next_steps( $args ){
                 if(isset($link_groups['partner_source'])) {
                     $partner_class = $link_groups['partner_source'] ? ' partner-source' : '';
                 }
-                $return_html .= '<li class="link-item mb-3'.$partner_class.'"><a class="button green thin round mr-3 rec-screen-featured-test" href="'.add_query_arg( 'order', $count, get_the_permalink($lv) ).'">'.get_the_title($lv).'</a></li>';
+                // Normalize to post ID (handles ID, numeric string, or object from JSON)
+                $link_id = is_object($lv) ? (isset($lv->ID) ? $lv->ID : 0) : (is_array($lv) && isset($lv['ID']) ? $lv['ID'] : (int) $lv);
+                if (!$link_id) {
+                    continue;
+                }
+                $return_html .= '<li class="link-item mb-3'.$partner_class.'"><a class="button green thin round mr-3 rec-screen-featured-test" href="'.esc_url( add_query_arg( 'order', $count, get_the_permalink($link_id) ) ).'">'.get_the_title($link_id).'</a></li>';
                 $count++;
             }
             $return_html .= '</ol>';

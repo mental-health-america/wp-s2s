@@ -1012,5 +1012,6 @@ include_once 'result_logging.php';
 include_once 'demographic_steps.php';
 include_once 'featured_next_steps.php';
 include_once 'related_articles.php';
+include_once 'result_next_steps.php';
 include_once 'admin_screen_tester.php';
 include_once 'multilingual.php';

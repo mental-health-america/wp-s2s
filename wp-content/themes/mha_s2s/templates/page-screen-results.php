@@ -1024,6 +1024,96 @@ else:
         <?php endif; ?>
     </div>
 
+    <?php
+    /**
+     * Refactor comparison: unified next steps (single pool → featured top 4 + related with fill).
+     * Compare with the current Featured Next Steps + Related Articles above.
+     * To show featured and related in separate places without duplicating links:
+     *   1. Call mha_get_unified_next_steps( $args + array( 'return_parts' => 'featured_only' ) ), output featured, keep $unified['displayed_ids'].
+     *   2. Later call mha_get_unified_next_steps( $args + array( 'return_parts' => 'related_only', 'already_displayed_ids' => $unified['displayed_ids'] ) ), output related.
+     * See wp-content/plugins/mha_screens/result_next_steps.php and AI_HELPER_SCREEN_RESULTS.md
+     */
+    if ( function_exists( 'mha_get_unified_next_steps' ) && function_exists( 'mha_render_unified_featured_next_steps' ) && function_exists( 'mha_render_unified_related_articles' ) ) {
+        $unified_args = array(
+            'user_screen_result'  => $user_screen_result,
+            'excluded_ids'        => $excluded_ids,
+            'demo_steps'          => $demo_steps,
+            'next_step_manual'    => $user_screen_result['next_step_manual'],
+            'espanol'             => $espanol,
+            'layout'              => $layout,
+            'iframe_var'          => $iframe_var,
+            'partner_var'         => $partner_var,
+            'answered_demos'      => $user_screen_result['answered_demos'],
+            'featured_count'      => 4,
+            'max_related_total'   => 20,
+        );
+        $unified = mha_get_unified_next_steps( $unified_args );
+        ?>
+        <div class="wrap narrow mb-5 pt-5 mt-5 border-top border-dark refactor-comparison-unified-next-steps">
+            <h2 class="section-title dark-blue bold mb-3">Next Steps (Refactor)</h2>
+            <?php
+            echo mha_render_unified_featured_next_steps( $unified['featured'], array( 'heading' => '', 'show_title' => false ) );
+            ?>
+            <?php if ( ! empty( $unified['related'] ) ) : ?>
+                <h2 class="section-title dark-blue bold mb-3 mt-5">Related Resources (Refactor)</h2>
+                <?php echo mha_render_unified_related_articles( $unified['related'], array( 'layout' => $layout ) ); ?>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    /**
+     * Admin debug: entire link pool as an ordered list (source order: URL include_ids, screen featured, result-based, demographic, scored).
+     */
+    if ( current_user_can( 'edit_posts' ) && function_exists( 'mha_build_unified_next_steps_pool' ) ) {
+        $pool_debug_args = array(
+            'user_screen_result' => $user_screen_result,
+            'excluded_ids'       => $excluded_ids,
+            'demo_steps'         => $demo_steps,
+            'next_step_manual'   => $user_screen_result['next_step_manual'],
+            'espanol'            => $espanol,
+            'layout'             => $layout,
+            'iframe_var'         => $iframe_var,
+            'partner_var'        => $partner_var,
+            'answered_demos'     => $user_screen_result['answered_demos'],
+            'limit'              => 50,
+        );
+        $pool_built = mha_build_unified_next_steps_pool( $pool_debug_args );
+        $screen_id_debug = isset( $user_screen_result['screen_id'] ) ? (int) $user_screen_result['screen_id'] : 0;
+        ?>
+        <div class="wrap narrow mb-5 pt-5 mt-5 border-top border-dark admin-pool-debug">
+            <h2 class="section-title dark-blue bold mb-3">Admin: Full link pool (debug)</h2>
+            <p class="text-gray small mb-3">Screen ID used for featured_next_steps: <strong><?php echo (int) $screen_id_debug; ?></strong>. Order: 1) URL include_ids, 2) Screen featured next steps, 3) Result-based, 4) Demographic, 5) Scored articles.</p>
+            <?php if ( ! empty( $pool_built['pool'] ) ) : ?>
+                <ol class="next-steps">
+                    <?php
+                    foreach ( $pool_built['pool'] as $idx => $item ) {
+                        $num = $idx + 1;
+                        $score_info = '';
+                        if ( isset( $item['score'] ) && $item['score'] !== null ) {
+                            $score_info = ' <span class="small text-red">(Score: ' . (int) $item['score'];
+                            if ( ! empty( $item['score_debug'] ) ) {
+                                $score_info .= ' [' . esc_html( $item['score_debug'] ) . ']';
+                            }
+                            $score_info .= ')</span>';
+                        }
+                        $type_label = isset( $item['type'] ) ? ' <span class="small text-muted">[' . esc_html( $item['type'] ) . ']</span>' : '';
+                        ?>
+                        <li class="mb-2">
+                            <a class="dark-gray plain" href="<?php echo esc_url( $item['url'] ); ?>"<?php echo $item['target']; ?>><?php echo esc_html( $item['title'] ); ?></a>
+                            <?php echo $type_label; ?>
+                            <?php echo $score_info; ?>
+                        </li>
+                    <?php } ?>
+                </ol>
+            <?php else : ?>
+                <p class="text-muted">No links in pool. Check that Screen ID above is the post that has the Featured Next Steps repeater (e.g. 22).</p>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+    ?>
+
 <?php endif; ?>
     
 <?php    

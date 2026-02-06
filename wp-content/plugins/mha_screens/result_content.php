@@ -392,8 +392,13 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
             $next = get_sub_field('featured_next_steps');
             if($next){
                 foreach($next as $n){
-                    if(isset($n['link']->ID)){
-                        $user_screen_results['next_step_manual'][] = $n['link']->ID;
+                    $link = isset($n['link']) ? $n['link'] : null;
+                    if ($link && is_object($link) && isset($link->ID)) {
+                        $user_screen_results['next_step_manual'][] = $link->ID;
+                    } elseif ($link && is_array($link) && isset($link['ID'])) {
+                        $user_screen_results['next_step_manual'][] = (int) $link['ID'];
+                    } elseif (is_numeric($link)) {
+                        $user_screen_results['next_step_manual'][] = (int) $link;
                     }
                 }
             }
