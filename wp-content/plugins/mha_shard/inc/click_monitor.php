@@ -20,15 +20,30 @@ function track_click_monitor() {
 	$url = isset($_POST['url']) ? esc_url_raw($_POST['url']) : '';
 	$data_attributes_json = isset($_POST['data_attributes']) ? $_POST['data_attributes'] : '';
 	
-	// Validate and sanitize JSON data attributes
+	// Validate and sanitize JSON data attributes (exclude standard Bootstrap attributes)
 	$data_attributes = '';
 	if (!empty($data_attributes_json)) {
 		$decoded = json_decode(stripslashes($data_attributes_json), true);
 		if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-			// Sanitize each value in the data attributes array
+			$bootstrap_data_attrs = array(
+				'data-toggle', 'data-target', 'data-dismiss', 'data-backdrop', 'data-keyboard',
+				'data-show', 'data-hide', 'data-offset', 'data-flip', 'data-boundary',
+				'data-reference', 'data-display', 'data-placement', 'data-trigger', 'data-html',
+				'data-animation', 'data-container', 'data-delay', 'data-selector', 'data-parent',
+				'data-slide', 'data-slide-to', 'data-ride', 'data-interval', 'data-pause',
+				'data-wrap', 'data-focus', 'data-original-title', 'data-original-text',
+			);
 			$sanitized_attrs = array();
 			foreach ($decoded as $key => $value) {
 				$sanitized_key = sanitize_key($key);
+				// Skip Bootstrap 4/5 standard attributes
+				if (in_array($sanitized_key, $bootstrap_data_attrs, true)) {
+					continue;
+				}
+				// Skip Bootstrap 5 data-bs-* attributes
+				if (strpos($sanitized_key, 'data-bs-') === 0) {
+					continue;
+				}
 				$sanitized_value = sanitize_text_field($value);
 				$sanitized_attrs[$sanitized_key] = $sanitized_value;
 			}
