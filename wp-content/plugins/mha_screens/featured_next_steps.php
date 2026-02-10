@@ -871,30 +871,6 @@ function mha_featured_next_steps_data( $args ){
             }
         endif;
 
-        // Add overflow conditional links (beyond max_links per group) so they appear instead of being dropped
-        if(isset($return['results']) && $return['results'] && !empty($return['all_conditional_link_ids'])){
-            $used_link_ids_so_far = array_map(function($v){ return is_object($v) && isset($v->ID) ? (int)$v->ID : (is_numeric($v) ? (int)$v : null); }, $used_links);
-            $used_link_ids_so_far = array_filter($used_link_ids_so_far);
-            $overflow_ids = array_diff($return['all_conditional_link_ids'], $used_link_ids_so_far);
-            if(!empty($overflow_ids)){
-                foreach($return['results'] as $r){
-                    if(isset($r['links']) && is_array($r['links'])){
-                        $max_key = max(array_keys($r['links']));
-                        for($i = $max_links + 1; $i <= $max_key; $i++){
-                            if(isset($r['links'][$i])){
-                                $used_links[] = $r['links'][$i];
-                                $link_groups['Additional Resources'][$count] = $r['links'][$i];
-                                if(isset($r['partner_next_steps'])){
-                                    $link_groups['partner_source'][$count] = $r['partner_next_steps'];
-                                }
-                                $count++;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         // Calculate variables needed for extra links section
         $total_used_links = count($used_links);
         $count_diff = $max_links - $total_used_links;
@@ -902,8 +878,16 @@ function mha_featured_next_steps_data( $args ){
         $extra_links_ids = null;
         $original_count = $count;
 
-        // In case of not enough links - add extra links from related articles
-        if($total_used_links < $max_links && !$is_partner_source){
+        // Overflow conditional links (beyond max_links per group) - pass to related_articles as manual so they trickle into Additional Resources
+        $overflow_conditional_link_ids = array();
+        if(!empty($return['all_conditional_link_ids'])){
+            $used_link_ids_flat = array_map(function($v){ return is_object($v) && isset($v->ID) ? (int)$v->ID : (is_numeric($v) ? (int)$v : null); }, $used_links);
+            $used_link_ids_flat = array_filter($used_link_ids_flat);
+            $overflow_conditional_link_ids = array_values(array_diff($return['all_conditional_link_ids'], $used_link_ids_flat));
+        }
+
+        // Call related_articles when short on links OR when we have overflow conditional links (so they trickle into Additional Resources)
+        if(($total_used_links < $max_links || !empty($overflow_conditional_link_ids)) && !$is_partner_source){
 
             $demo_steps = [];
             $excluded_ids = []; // Initialize excluded_ids array
@@ -955,16 +939,15 @@ function mha_featured_next_steps_data( $args ){
                 $demo_steps[] = $e;
             }
 
-            // Include conditional next_step_links as manual links for Additional Resources (so all matching links can appear)
+            // Include overflow conditional links (and existing manual) so they trickle into related_articles and appear in Additional Resources
             $next_step_manual = isset($args['user_screen_result']['next_step_manual']) && is_array($args['user_screen_result']['next_step_manual']) ? $args['user_screen_result']['next_step_manual'] : array();
-            if(!empty($return['all_conditional_link_ids'])){
-                $used_link_ids_flat = array_map(function($v){ return is_object($v) && isset($v->ID) ? (int)$v->ID : (is_numeric($v) ? (int)$v : null); }, $used_links);
-                $used_link_ids_flat = array_filter($used_link_ids_flat);
-                $conditional_not_used = array_diff($return['all_conditional_link_ids'], $used_link_ids_flat);
-                $next_step_manual = array_merge($next_step_manual, array_values($conditional_not_used));
-                $next_step_manual = array_values(array_unique($next_step_manual));
-            }
-            // Related Articles
+            $next_step_manual = array_merge($next_step_manual, $overflow_conditional_link_ids);
+            $next_step_manual = array_values(array_unique($next_step_manual));
+
+            // Request enough from related_articles to include overflow + any fill (so overflow links appear in the response)
+            $links_to_add_from_response = max($count_diff, count($overflow_conditional_link_ids));
+            $related_article_total = max(4, $total_used_links + $links_to_add_from_response);
+
             $related_article_args = array(
                 'demo_steps'         => $demo_steps,
                 'next_step_manual'   => $next_step_manual,
@@ -974,7 +957,7 @@ function mha_featured_next_steps_data( $args ){
                 'espanol'            => $espanol,
                 'iframe_var'         => $iframe_var,
                 'partner_var'        => $partner_var,
-                'total'              => 4,
+                'total'              => $related_article_total,
                 'style'              => 'featured',
                 'hide_all'           => true,
                 'layout'             => $layout,
@@ -988,7 +971,7 @@ function mha_featured_next_steps_data( $args ){
                     if(isset($extra_links_result_decoded->link_groups->related_links)){
                         $new_i = 1;
                         foreach($extra_links_ids as $eli){
-                            if($new_i > $count_diff){
+                            if($new_i > $links_to_add_from_response){
                                 break;
                             }
                             $used_links[] = $eli;
