@@ -98,6 +98,10 @@ function mha_featured_next_steps_data( $args ){
         }
     }
     
+    // Use a running index so multiple conditional groups can display (e.g. layout contains actions_z AND layout contains actions_a).
+    // get_row_index() would repeat across featured_next_steps_test rows and overwrite previous matches.
+    $next_result_index = !empty($screen_featured_links) ? 1 : 0;
+
     if( have_rows('featured_next_steps_test', $featured_next_steps_source) ):
     while( have_rows('featured_next_steps_test', $featured_next_steps_source) ) : the_row();
         
@@ -614,24 +618,25 @@ function mha_featured_next_steps_data( $args ){
                     shuffle($links);
                 }
             
-                $return['results'][$row_index]['group_title'] = get_sub_field('link_group_title');      
-                $return['results'][$row_index]['additional_result_text'] = get_sub_field('additional_result_text');   
-                $return['results'][$row_index]['partner_next_steps'] = $is_partner_source;   
+                $return['results'][$next_result_index]['group_title'] = get_sub_field('link_group_title');      
+                $return['results'][$next_result_index]['additional_result_text'] = get_sub_field('additional_result_text');   
+                $return['results'][$next_result_index]['partner_next_steps'] = $is_partner_source;   
                 $return['additional_result_text'][] = get_sub_field('additional_result_text');   
 
                 if($debug){ $debug_log[] = get_sub_field('link_group_title').' Success'; }
 
                 $ctas = get_sub_field('cta');                 
-                $return['results'][$row_index]['ctas'] = $ctas ? $ctas : null;  
+                $return['results'][$next_result_index]['ctas'] = $ctas ? $ctas : null;  
 
                 $counter = 1;
                 if($links){
                     foreach($links as $l){
-                        $return['results'][$row_index]['links'][$counter] = $l;
+                        $return['results'][$next_result_index]['links'][$counter] = $l;
                         $counter++;
                     }
                 }
 
+                $next_result_index++;
             }
 
         endwhile;
