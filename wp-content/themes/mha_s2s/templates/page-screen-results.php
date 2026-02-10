@@ -296,7 +296,7 @@ else:
         get_template_part( 'templates/results/block', 'header', array('espanol' => $espanol) ); 
     ?>
 
-    <div class="wrap narrow">
+    <div class="wrap narrow screen-result-container">
     <article class="screen screen-result">
 
         <?php 
@@ -523,7 +523,7 @@ else:
             endif;
         endif;
         ?>
-        <div class="wrap narrow">
+        <div class="wrap narrow partner-cta-container">
             <div id="cta-col-lead" class="cta-cols-lead total-<?php echo count($unique_result_cta); ?>">
                 <?php     
                     global $post;
@@ -542,8 +542,48 @@ else:
 
     <?php
     /**
-     * Featured Next Steps Test Setup
+     * Featured Next Steps (v3)
      */
+
+    $displayed_featured_links = false;
+    $unified_args = array(
+        'user_screen_result'  => $user_screen_result,
+        'excluded_ids'        => $excluded_ids,
+        'demo_steps'          => $demo_steps,
+        'next_step_manual'    => $user_screen_result['next_step_manual'],
+        'espanol'             => $espanol,
+        'layout'              => $layout,
+        'iframe_var'          => $iframe_var,
+        'partner_var'         => $partner_var,
+        'answered_demos'      => $user_screen_result['answered_demos'],
+        'featured_count'      => 4,
+        'max_related_total'   => 20,
+        'debug'               => false,
+    );
+    $unified = mha_get_unified_next_steps( $unified_args );
+    ?>
+    <div class="wrap narrow next-steps-featured-container">
+        <?php
+            // Featured Next Steps
+            echo mha_render_unified_featured_next_steps( 
+                $unified['featured'], 
+                array( 
+                    'heading' => 'Next Steps', 
+                    'show_title' => true, 
+                    'layout' => $layout, 
+                    'espanol' => $espanol,
+                    'iframe_var' => $iframe_var,
+                    'partner_var' => $partner_var,
+                    'user_screen_result' => $user_screen_result
+                ) 
+            );
+            $displayed_featured_links = true;
+        ?>
+    </div>
+
+    <?php
+    // Featured Next Steps (v2)
+    /*
     $displayed_featured_links = false;
     if($user_screen_result['featured_next_steps_data'] && !in_array('related_v1', $layout)):
         echo '<div class="wrap narrow">';
@@ -564,7 +604,8 @@ else:
             $displayed_featured_links = true;
         }
         echo '</div>';
-    endif;                
+    endif;           
+    */     
     ?>
 
     <div class="wrap normal pt-0 pb-3 d-print-none">
@@ -594,8 +635,8 @@ else:
                 empty($partner_ctas)
             ):
         ?>
-            <?php if(!in_array('results_header_v1', $layout)): ?><div class="wrap narrow"><?php endif; ?>
-                <h2 class="section-title dark-blue bold mb-3 mt-5">
+            <?php if(!in_array('results_header_v1', $layout)): ?><div class="wrap narrow next-steps-title-container"><?php endif; ?>
+                <h2 class="section-title dark-blue bold mb-3 mt-5 next-steps-title">
                     <?php if($espanol): ?>
                         Siguientes Pasos
                     <?php else: ?>
@@ -787,90 +828,100 @@ else:
              */
             if(!in_array('actions_ns_top_r', $layout) && !$displayed_featured_links):     
         ?>        
-            <!--
-            <div class="bubble round-tl mb-5 mint">
-            <div class="inner">       
-                <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
-                    <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
-                <?php endif; ?>
-                -->
-                <?php 
-                    // Related Articles
-                    $related_article_args = array(
-                        'demo_steps'         => $demo_steps,
-                        'next_step_manual'   => $user_screen_result['next_step_manual'],
-                        'user_screen_result' => $user_screen_result,
-                        'excluded_ids'       => $excluded_ids,
-                        'next_step_terms'    => $user_screen_result['next_step_terms'],
-                        'espanol'            => $espanol,
-                        'iframe_var'         => $iframe_var,
-                        'partner_var'        => $partner_var,
-                        'total'              => 4,
-                        'style'              => 'featured',
-                        'hide_all'           => true,
-                        'layout'             => $layout,
-                        'with_html'          => true,
-                        'answered_demos'     => $user_screen_result['answered_demos']
-                    );
+            <?php 
+                // Related Articles
+                $related_article_args = array(
+                    'demo_steps'         => $demo_steps,
+                    'next_step_manual'   => $user_screen_result['next_step_manual'],
+                    'user_screen_result' => $user_screen_result,
+                    'excluded_ids'       => $excluded_ids,
+                    'next_step_terms'    => $user_screen_result['next_step_terms'],
+                    'espanol'            => $espanol,
+                    'iframe_var'         => $iframe_var,
+                    'partner_var'        => $partner_var,
+                    'total'              => 4,
+                    'style'              => 'featured',
+                    'hide_all'           => true,
+                    'layout'             => $layout,
+                    'with_html'          => true,
+                    'answered_demos'     => $user_screen_result['answered_demos']
+                );
 
-                    if(in_array('related_v1', $layout)){                        
+                if(in_array('related_v1', $layout)){                        
+                    ?>
+                        <div class="bubble round-tl mb-5 mint">
+                        <div class="inner">
+                                                
+                            <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
+                                <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
+                            <?php endif; ?>
+                            <?php                                 
+                                $related_article_args['style'] = 'button';
+                                mha_results_related_articles_simple( $related_article_args ); 
+                            ?>
+
+                        </div>
+                        </div>
+                    <?php
+
+                } else {
+                    
+                    // Featured Next Steps (v3)
+                    if( !$displayed_featured_links ):
+                        echo '<div class="wrap narrow related-articles-container">';
+                        echo mha_render_unified_featured_next_steps( 
+                            $unified['featured'], 
+                            array( 
+                                'heading' => '', 
+                                'show_title' => false, 
+                                'layout' => $layout, 
+                                'user_screen_result' => $user_screen_result
+                            ) 
+                        );
+                        echo '</div>';
+                        $displayed_featured_links = true;
+                    endif;
+
+                    // Featured Next Steps (v2)
+                    /*
+                    $related_articles = mha_results_related_articles( $related_article_args ); 
+                    ?>
+
+                    <div class="wrap narrow related-articles-container">
+                        <?php
+                            if($related_article_args['style'] == 'featured'){
+
+                                $related_articles_decoded = json_decode($related_articles);  
+                                if(!empty($partner_ctas)){
+                                    $related_articles_decoded->show_title = false;
+                                } 
+                                echo display_featured_next_steps( $related_articles_decoded );
+                                $used_links = $related_articles_decoded->used_links;
+                                foreach($used_links as $ul){
+                                    $excluded_ids[] = $ul;
+                                }
+
+                            } else {
                         ?>
                             <div class="bubble round-tl mb-5 mint">
                             <div class="inner">
-                                                    
-                                <?php if(get_field('next_steps_subtitle', $user_screen_result['screen_id'])): ?>
-                                    <h2 class="section-title cerulean small bold"><?php the_field('next_steps_subtitle', $user_screen_result['screen_id']); ?></h2>
-                                <?php endif; ?>
-                                <?php                                 
-                                    $related_article_args['style'] = 'button';
-                                    mha_results_related_articles_simple( $related_article_args ); 
+                                <?php
+                                echo $related_articles['html'];
+                                $used_links = $related_articles_decode['excluded_ids'];
+                                foreach($used_links as $ul){
+                                    $excluded_ids[] = $ul;
+                                }
                                 ?>
-
                             </div>
                             </div>
-                        <?php
+                        <?php } ?>
+                    </div>
+                    */
+                    ?>
 
-                    } else {
-                        
-                        $related_articles = mha_results_related_articles( $related_article_args ); 
-                        ?>
-
-                        <div class="wrap narrow">
-                            <?php
-                                if($related_article_args['style'] == 'featured'){
-
-                                    $related_articles_decoded = json_decode($related_articles);  
-                                    if(!empty($partner_ctas)){
-                                        $related_articles_decoded->show_title = false;
-                                    } 
-                                    echo display_featured_next_steps( $related_articles_decoded );
-                                    $used_links = $related_articles_decoded->used_links;
-                                    foreach($used_links as $ul){
-                                        $excluded_ids[] = $ul;
-                                    }
-
-                                } else {
-                            ?>
-                                <div class="bubble round-tl mb-5 mint">
-                                <div class="inner">
-                                    <?php
-                                    echo $related_articles['html'];
-                                    $used_links = $related_articles_decode['excluded_ids'];
-                                    foreach($used_links as $ul){
-                                        $excluded_ids[] = $ul;
-                                    }
-                                    ?>
-                                </div>
-                                </div>
-                            <?php } ?>
-                        </div>
-                    <?php
-                    }
-                ?>
-            <!--
-            </div>
-            </div>
-            -->
+                <?php
+                }
+            ?>
         <?php endif; // Hide 'actions_ns_top_r' ?>
 
         <?php 
@@ -972,9 +1023,26 @@ else:
             if(in_array('related_v1', $layout)){
                 mha_results_related_articles_simple( $related_article_args_2 );
             } else {
+
+                // AdditionalRelated Articles (v3)
+                echo mha_render_unified_related_articles( 
+                    $unified['related'], 
+                    array( 
+                        'layout' => $layout, 
+                        'user_screen_result' => $user_screen_result, 
+                        'espanol' => $espanol,
+                        'iframe_var' => $iframe_var,
+                        'partner_var' => $partner_var
+                    ) 
+                );
+                
+                // Additional Related Articles (v2)
+                /*
+                echo '<hr />';
                 $related_articles_2 = mha_results_related_articles( $related_article_args_2 );
                 $excluded_ids = $related_articles_2['excluded_ids'];
                 echo $related_articles_2['html'];
+                */
             }
         ?>
     </div>
@@ -1026,46 +1094,10 @@ else:
 
     <?php
     /**
-     * Refactor comparison: unified next steps (single pool → featured top 4 + related with fill).
-     * Compare with the current Featured Next Steps + Related Articles above.
-     * To show featured and related in separate places without duplicating links:
-     *   1. Call mha_get_unified_next_steps( $args + array( 'return_parts' => 'featured_only' ) ), output featured, keep $unified['displayed_ids'].
-     *   2. Later call mha_get_unified_next_steps( $args + array( 'return_parts' => 'related_only', 'already_displayed_ids' => $unified['displayed_ids'] ) ), output related.
-     * See wp-content/plugins/mha_screens/result_next_steps.php and AI_HELPER_SCREEN_RESULTS.md
-     */
-    if ( function_exists( 'mha_get_unified_next_steps' ) && function_exists( 'mha_render_unified_featured_next_steps' ) && function_exists( 'mha_render_unified_related_articles' ) ) {
-        $unified_args = array(
-            'user_screen_result'  => $user_screen_result,
-            'excluded_ids'        => $excluded_ids,
-            'demo_steps'          => $demo_steps,
-            'next_step_manual'    => $user_screen_result['next_step_manual'],
-            'espanol'             => $espanol,
-            'layout'              => $layout,
-            'iframe_var'          => $iframe_var,
-            'partner_var'         => $partner_var,
-            'answered_demos'      => $user_screen_result['answered_demos'],
-            'featured_count'      => 4,
-            'max_related_total'   => 20,
-        );
-        $unified = mha_get_unified_next_steps( $unified_args );
-        ?>
-        <div class="wrap narrow mb-5 pt-5 mt-5 border-top border-dark refactor-comparison-unified-next-steps">
-            <h2 class="section-title dark-blue bold mb-3">Next Steps (Refactor)</h2>
-            <?php
-            echo mha_render_unified_featured_next_steps( $unified['featured'], array( 'heading' => '', 'show_title' => false ) );
-            ?>
-            <?php if ( ! empty( $unified['related'] ) ) : ?>
-                <h2 class="section-title dark-blue bold mb-3 mt-5">Related Resources (Refactor)</h2>
-                <?php echo mha_render_unified_related_articles( $unified['related'], array( 'layout' => $layout ) ); ?>
-            <?php endif; ?>
-        </div>
-        <?php
-    }
-
-    /**
      * Admin debug: entire link pool as an ordered list (source order: URL include_ids, screen featured, result-based, demographic, scored).
      */
-    if ( current_user_can( 'edit_posts' ) && function_exists( 'mha_build_unified_next_steps_pool' ) ) {
+    /*
+    if ( current_user_can( 'manage_options' ) && function_exists( 'mha_build_unified_next_steps_pool' ) ) {
         $pool_debug_args = array(
             'user_screen_result' => $user_screen_result,
             'excluded_ids'       => $excluded_ids,
@@ -1077,41 +1109,47 @@ else:
             'partner_var'        => $partner_var,
             'answered_demos'     => $user_screen_result['answered_demos'],
             'limit'              => 50,
+            'debug'              => true,
         );
         $pool_built = mha_build_unified_next_steps_pool( $pool_debug_args );
         $screen_id_debug = isset( $user_screen_result['screen_id'] ) ? (int) $user_screen_result['screen_id'] : 0;
         ?>
-        <div class="wrap narrow mb-5 pt-5 mt-5 border-top border-dark admin-pool-debug">
-            <h2 class="section-title dark-blue bold mb-3">Admin: Full link pool (debug)</h2>
-            <p class="text-gray small mb-3">Screen ID used for featured_next_steps: <strong><?php echo (int) $screen_id_debug; ?></strong>. Order: 1) URL include_ids, 2) Screen featured next steps, 3) Result-based, 4) Demographic, 5) Scored articles.</p>
-            <?php if ( ! empty( $pool_built['pool'] ) ) : ?>
-                <ol class="next-steps">
-                    <?php
-                    foreach ( $pool_built['pool'] as $idx => $item ) {
-                        $num = $idx + 1;
-                        $score_info = '';
-                        if ( isset( $item['score'] ) && $item['score'] !== null ) {
-                            $score_info = ' <span class="small text-red">(Score: ' . (int) $item['score'];
-                            if ( ! empty( $item['score_debug'] ) ) {
-                                $score_info .= ' [' . esc_html( $item['score_debug'] ) . ']';
+        <div class="wrap narrow mb-5 pt-5 mt-5 admin-pool-debug">
+            <button class="button red round-bl btn" type="button" data-toggle="collapse" data-target="#adminNextStepsDebug" aria-expanded="false" aria-controls="adminNextStepsDebug">
+                Admin Next Steps Debugging
+            </button>
+
+            <div class="collapse mt-3" id="adminNextStepsDebug">
+                <h2 class="section-title dark-blue bold mb-3 debug-title">Next Steps Link Pool</h2>
+                <?php if ( ! empty( $pool_built['pool'] ) ) : ?>
+                    <ol class="next-steps">
+                        <?php
+                        foreach ( $pool_built['pool'] as $idx => $item ) {
+                            $score_info = '';
+                            if ( isset( $item['score'] ) && $item['score'] !== null ) {
+                                $score_info = ' <span class="small text-red">(Score: ' . (int) $item['score'];
+                                if ( ! empty( $item['score_debug'] ) ) {
+                                    $score_info .= ' [' . esc_html( $item['score_debug'] ) . ']';
+                                }
+                                $score_info .= ')</span>';
                             }
-                            $score_info .= ')</span>';
-                        }
-                        $type_label = isset( $item['type'] ) ? ' <span class="small text-muted">[' . esc_html( $item['type'] ) . ']</span>' : '';
-                        ?>
-                        <li class="mb-2">
-                            <a class="dark-gray plain" href="<?php echo esc_url( $item['url'] ); ?>"<?php echo $item['target']; ?>><?php echo esc_html( $item['title'] ); ?></a>
-                            <?php echo $type_label; ?>
-                            <?php echo $score_info; ?>
-                        </li>
-                    <?php } ?>
-                </ol>
-            <?php else : ?>
-                <p class="text-muted">No links in pool. Check that Screen ID above is the post that has the Featured Next Steps repeater (e.g. 22).</p>
-            <?php endif; ?>
+                            $type_label = isset( $item['type'] ) ? ' <span class="small text-muted">[' . esc_html( $item['type'] ) . ']</span>' : '';
+                            ?>
+                            <li class="mb-2">
+                                <a class="dark-gray plain" href="<?php echo esc_url( $item['url'] ); ?>"<?php echo $item['target']; ?>><?php echo esc_html( $item['title'] ); ?></a><br />
+                                <?php echo $type_label; ?>
+                                <?php echo $score_info; ?>
+                            </li>
+                        <?php } ?>
+                    </ol>
+                <?php else : ?>
+                    <p class="text-muted">No links in pool. Check that Screen ID above is the post that has the Featured Next Steps repeater.</p>
+                <?php endif; ?>
+            </div>
         </div>
         <?php
     }
+    */
     ?>
 
 <?php endif; ?>

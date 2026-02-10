@@ -383,6 +383,35 @@ ol.next-steps.single-column {
         @include montserrat(600);
     }
 }
+ol.next-steps.two-column {
+    margin: 0;
+    padding: 0;
+    column-count: 2;
+    column-gap: 40px;
+    @media only screen and (max-width: 767px){
+        column-count: 1;
+        column-gap: 0;
+    }
+    li {
+        list-style-type: none;
+        margin: 0 0 1em 0;
+        padding: 0;
+        @include montserrat(600);
+        -webkit-column-break-inside: avoid;
+                 page-break-inside: avoid;
+                      break-inside: avoid;
+        width: 100%;
+        display: block;
+    }
+    li.see-all-link {
+        margin-top: 1em;
+        column-span: all;
+        text-align: left;
+        @media only screen and (max-width: 767px){
+            margin-top: 0;
+        }
+    }
+}
 
 ol.next-steps.masonry {
     margin: 0;
