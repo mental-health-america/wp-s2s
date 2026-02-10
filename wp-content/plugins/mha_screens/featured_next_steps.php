@@ -621,7 +621,10 @@ function mha_featured_next_steps_data( $args ){
                 $return['results'][$next_result_index]['group_title'] = get_sub_field('link_group_title');      
                 $return['results'][$next_result_index]['additional_result_text'] = get_sub_field('additional_result_text');   
                 $return['results'][$next_result_index]['partner_next_steps'] = $is_partner_source;   
-                $return['additional_result_text'][] = get_sub_field('additional_result_text');   
+                $return['additional_result_text'][] = array(
+                    'group_title' => get_sub_field('link_group_title'),
+                    'text'        => get_sub_field('additional_result_text')
+                );   
 
                 if($debug){ $debug_log[] = get_sub_field('link_group_title').' Success'; }
 
@@ -667,6 +670,22 @@ function mha_featured_next_steps_data( $args ){
 
     endwhile;
     endif;
+
+    // Collect all link IDs from every matching next_step_links row (for manual/extra links pool)
+    $return['all_conditional_link_ids'] = array();
+    if(isset($return['results'])){
+        foreach($return['results'] as $r){
+            if(isset($r['links']) && is_array($r['links'])){
+                foreach($r['links'] as $link_val){
+                    $id = is_object($link_val) && isset($link_val->ID) ? (int) $link_val->ID : (is_numeric($link_val) ? (int) $link_val : null);
+                    if($id !== null){
+                        $return['all_conditional_link_ids'][] = $id;
+                    }
+                }
+            }
+        }
+        $return['all_conditional_link_ids'] = array_values(array_unique($return['all_conditional_link_ids']));
+    }
     
     // Add demographic_next_steps links as regular featured links if we don't have enough
     if(isset($return['results'])){
@@ -690,6 +709,36 @@ function mha_featured_next_steps_data( $args ){
         // Add demographic_next_steps links if we need more
         if($total_existing_links < $max_links_needed && !$is_partner_source){
             $demo_steps_for_featured = [];
+            $unused_conditional_link_ids = [];
+            if(!empty($return['all_conditional_link_ids'])){
+                // Links that are in results but beyond max_links_needed per group (not shown in featured slots)
+                $displayed_link_ids = array();
+                foreach($return['results'] as $r){
+                    if(isset($r['links']) && is_array($r['links'])){
+                        $i = 1;
+                        while($i <= $max_links_needed){
+                            if(isset($r['links'][$i])){
+                                $lv = $r['links'][$i];
+                                $id = is_object($lv) && isset($lv->ID) ? (int) $lv->ID : (is_numeric($lv) ? (int) $lv : null);
+                                if($id !== null) $displayed_link_ids[] = $id;
+                            }
+                            $i++;
+                        }
+                    }
+                }
+                $unused_conditional_link_ids = array_values(array_diff($return['all_conditional_link_ids'], $displayed_link_ids));
+            }
+            
+            // Get already used link IDs to exclude (all links currently in results; normalize to ID)
+            $used_link_ids = [];
+            foreach($return['results'] as $r){
+                if(isset($r['links'])){
+                    foreach($r['links'] as $link_val){
+                        $id = is_object($link_val) && isset($link_val->ID) ? (int) $link_val->ID : (is_numeric($link_val) ? (int) $link_val : null);
+                        if($id !== null) $used_link_ids[] = $id;
+                    }
+                }
+            }
             
             // Get demographic_next_steps links (screen-specific first, then global)
             // Screen specific demo steps
@@ -715,23 +764,18 @@ function mha_featured_next_steps_data( $args ){
             // Remove duplicates
             $demo_steps_for_featured = array_unique($demo_steps_for_featured);
             
-            // Get already used link IDs to exclude
-            $used_link_ids = [];
-            foreach($return['results'] as $r){
-                if(isset($r['links'])){
-                    foreach($r['links'] as $link_id){
-                        $used_link_ids[] = $link_id;
-                    }
-                }
-            }
-            
-            // Remove already used links
+            // Remove already used links from demographic pool
             $demo_steps_for_featured = array_diff($demo_steps_for_featured, $used_link_ids);
             $demo_steps_for_featured = array_values($demo_steps_for_featured); // Re-index array
             
-            // Add demographic links to existing result entry with empty group_title (like screen featured links)
+            // Build pool to fill: first unused conditional (manual) links, then demographic
+            $fill_pool = array_merge($unused_conditional_link_ids, $demo_steps_for_featured);
+            $fill_pool = array_diff($fill_pool, $used_link_ids);
+            $fill_pool = array_values($fill_pool);
+            
+            // Add manual/conditional + demographic links to existing result entry when we need more
             // This prevents creating a new group which would reduce max_links from 4 to 2
-            if(!empty($demo_steps_for_featured)){
+            if(!empty($fill_pool)){
                 // Find existing result entry with empty group_title (screen featured links entry)
                 $target_row_index = null;
                 foreach($return['results'] as $idx => $r){
@@ -756,14 +800,14 @@ function mha_featured_next_steps_data( $args ){
                     $current_max_index = max(array_keys($return['results'][$target_row_index]['links']));
                 }
                 
-                // Add demographic links to the existing entry
+                // Add manual (conditional) + demographic links to the existing entry
                 $counter = $current_max_index + 1;
                 $links_to_add = $max_links_needed - $total_existing_links;
-                foreach($demo_steps_for_featured as $demo_link_id){
+                foreach($fill_pool as $fill_link_id){
                     if($counter > ($current_max_index + $links_to_add)){
                         break;
                     }
-                    $return['results'][$target_row_index]['links'][$counter] = $demo_link_id;
+                    $return['results'][$target_row_index]['links'][$counter] = $fill_link_id;
                     $counter++;
                 }
             }
@@ -827,6 +871,30 @@ function mha_featured_next_steps_data( $args ){
             }
         endif;
 
+        // Add overflow conditional links (beyond max_links per group) so they appear instead of being dropped
+        if(isset($return['results']) && $return['results'] && !empty($return['all_conditional_link_ids'])){
+            $used_link_ids_so_far = array_map(function($v){ return is_object($v) && isset($v->ID) ? (int)$v->ID : (is_numeric($v) ? (int)$v : null); }, $used_links);
+            $used_link_ids_so_far = array_filter($used_link_ids_so_far);
+            $overflow_ids = array_diff($return['all_conditional_link_ids'], $used_link_ids_so_far);
+            if(!empty($overflow_ids)){
+                foreach($return['results'] as $r){
+                    if(isset($r['links']) && is_array($r['links'])){
+                        $max_key = max(array_keys($r['links']));
+                        for($i = $max_links + 1; $i <= $max_key; $i++){
+                            if(isset($r['links'][$i])){
+                                $used_links[] = $r['links'][$i];
+                                $link_groups['Additional Resources'][$count] = $r['links'][$i];
+                                if(isset($r['partner_next_steps'])){
+                                    $link_groups['partner_source'][$count] = $r['partner_next_steps'];
+                                }
+                                $count++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Calculate variables needed for extra links section
         $total_used_links = count($used_links);
         $count_diff = $max_links - $total_used_links;
@@ -887,10 +955,19 @@ function mha_featured_next_steps_data( $args ){
                 $demo_steps[] = $e;
             }
 
+            // Include conditional next_step_links as manual links for Additional Resources (so all matching links can appear)
+            $next_step_manual = isset($args['user_screen_result']['next_step_manual']) && is_array($args['user_screen_result']['next_step_manual']) ? $args['user_screen_result']['next_step_manual'] : array();
+            if(!empty($return['all_conditional_link_ids'])){
+                $used_link_ids_flat = array_map(function($v){ return is_object($v) && isset($v->ID) ? (int)$v->ID : (is_numeric($v) ? (int)$v : null); }, $used_links);
+                $used_link_ids_flat = array_filter($used_link_ids_flat);
+                $conditional_not_used = array_diff($return['all_conditional_link_ids'], $used_link_ids_flat);
+                $next_step_manual = array_merge($next_step_manual, array_values($conditional_not_used));
+                $next_step_manual = array_values(array_unique($next_step_manual));
+            }
             // Related Articles
             $related_article_args = array(
                 'demo_steps'         => $demo_steps,
-                'next_step_manual'   => $args['user_screen_result']['next_step_manual'],
+                'next_step_manual'   => $next_step_manual,
                 'user_screen_result' => $args['user_screen_result'],
                 'excluded_ids'       => $excluded_ids,
                 'next_step_terms'    => $args['user_screen_result']['next_step_terms'],
@@ -976,15 +1053,21 @@ function display_featured_next_steps( $args ){
 
     // Result Text
     if(!empty($args['additional_result_text'])){
-        foreach($args['additional_result_text'] as $addl_text){
+        foreach($args['additional_result_text'] as $item){
+            // Support both { group_title, text } and legacy plain string
+            $group_title = is_array($item) && isset($item['group_title']) ? $item['group_title'] : (is_object($item) && isset($item->group_title) ? $item->group_title : '');
+            $addl_text   = is_array($item) && isset($item['text']) ? $item['text'] : (is_object($item) && isset($item->text) ? $item->text : $item);
             // Strip shortcodes and scripts
             $addl_text = strip_shortcodes($addl_text);
             $addl_text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $addl_text);
-            if($addl_text != ''){
+            if($addl_text != '' || !$args['hide_group_titles'] && $group_title !== ''){
                 $partner_class = $args['is_partner_source'] ? ' partner-source' : '';
                 $return_html .= '<div class="featured-next-steps-test-additional-text'.$partner_class.'">';
                 if($partner_class){
                     $return_html .= '<div class="bubble round-tl cerulean normal"><div class="inner">';
+                }
+                if(!$args['hide_group_titles'] && $group_title !== ''){
+                    $return_html .= '<p class="mt-4 mb-3">'.esc_html($group_title).'</p>';
                 }
                 $return_html .= $addl_text;
                 if($partner_class){
