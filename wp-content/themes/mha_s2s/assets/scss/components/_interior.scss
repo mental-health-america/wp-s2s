@@ -398,8 +398,8 @@ ol.next-steps.two-column {
         padding: 0;
         @include montserrat(600);
         -webkit-column-break-inside: avoid;
-                 page-break-inside: avoid;
-                      break-inside: avoid;
+        page-break-inside: avoid;
+        break-inside: avoid;
         width: 100%;
         display: block;
     }

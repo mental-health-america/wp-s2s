@@ -6,7 +6,7 @@
  * then splits into Featured Next Steps (top N) and Related Articles (rest + fill).
  * Use for refactor comparison and eventual replacement of display_featured_next_steps + mha_results_related_articles.
  *
- * @see AI_HELPER_SCREEN_RESULTS.md
+ * @see DEV_DOCUMENTATION.md
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -429,7 +429,7 @@ function mha_unified_next_steps_is_partner_source( $user_screen_result ) {
  * 4. Demographic based links (screen + global options from get_mha_demo_steps)
  * 5. Scored articles (WP_Query + global options scoring)
  *
- * Exclusion rules (aligned with mha_featured_next_steps_data and page-screen-results): merged from
+ * Exclusion rules: merged from
  * $args['excluded_ids'] plus base exclusions from mha_unified_next_steps_base_excluded_ids()
  * (global_hide_articles, screen_results_hide_articles, exclude_ids query var), then demo_steps
  * excluded_ids when building demo data.
@@ -438,8 +438,458 @@ function mha_unified_next_steps_is_partner_source( $user_screen_result ) {
  * @return array [ 'pool' => array of items, 'used_ids' => array ]
  */
 /**
- * Build base excluded IDs from options and URL (same as template and mha_featured_next_steps_data).
- * Use so unified pool always applies global_hide_articles, screen_results_hide_articles, exclude_ids.
+ * Get URL parameter value for condition checks: $_GET first, then $url_params (e.g. from results page).
+ *
+ * @param string $key        Query key (e.g. 'layout').
+ * @param array  $url_params Optional override (e.g. [ 'layout' => 'ras_r' ]).
+ * @return string|null
+ */
+function mha_unified_featured_get_url_param( $key, $url_params = [] ) {
+	if ( isset( $_GET[ $key ] ) ) {
+		return sanitize_text_field( wp_unslash( $_GET[ $key ] ) );
+	}
+	if ( isset( $url_params[ $key ] ) ) {
+		return is_string( $url_params[ $key ] ) ? $url_params[ $key ] : '';
+	}
+	return null;
+}
+
+/**
+ * Evaluate a single featured next-step condition (test_result, url_parameter, question_response, demographic_response).
+ * Mirrors logic in featured_next_steps.php so conditional link groups match.
+ *
+ * @param string $con_type      Condition type: test_result, url_parameter, question_response, demographic_response.
+ * @param string $con_condition Operator: equals, contains, starts with, ends with, does not equal, etc.
+ * @param string $con_key       Key (e.g. URL param name or demo key).
+ * @param string $con_value     Value to compare against.
+ * @param array  $args          Full context: result_title, user_screen_result, answered_demos, url_params.
+ * @return bool True if this condition passes.
+ */
+function mha_unified_featured_condition_passes( $con_type, $con_condition, $con_key, $con_value, $args ) {
+	$result_title = isset( $args['result_title'] ) ? $args['result_title'] : '';
+	$url_params   = isset( $args['url_params'] ) && is_array( $args['url_params'] ) ? $args['url_params'] : [];
+	$get_key      = mha_unified_featured_get_url_param( $con_key, $url_params );
+	$score_data   = isset( $args['user_screen_result']['general_score_data'] ) ? $args['user_screen_result']['general_score_data'] : [];
+	$answered     = isset( $args['answered_demos'] ) && is_array( $args['answered_demos'] ) ? $args['answered_demos'] : [];
+
+	// Resolve subject value by type
+	switch ( $con_type ) {
+		case 'test_result':
+			$subject = $result_title;
+			break;
+		case 'url_parameter':
+			$subject = $get_key;
+			break;
+		case 'question_response':
+			$subject = isset( $score_data[ $con_key ] ) ? $score_data[ $con_key ] : null;
+			break;
+		case 'demographic_response':
+			$subject = isset( $answered[ $con_key ] ) ? $answered[ $con_key ] : null;
+			break;
+		default:
+			return false;
+	}
+
+	// String comparisons (subject can be string or array for demographic)
+	$subject_str = is_array( $subject ) ? implode( '|', $subject ) : (string) $subject;
+	$con_value   = trim( (string) $con_value );
+
+	// Demographic-specific: equals = exactly one element matches; contains = any element matches
+	if ( $con_type === 'demographic_response' && is_array( $subject ) ) {
+		if ( $con_condition === 'equals' ) {
+			$count = 0;
+			foreach ( $subject as $s ) {
+				if ( (string) $s === $con_value ) {
+					$count++;
+				}
+			}
+			return $count === 1;
+		}
+		if ( $con_condition === 'contains' ) {
+			return in_array( $con_value, $subject, true ) || in_array( $con_value, array_map( 'strval', $subject ), true );
+		}
+		if ( $con_condition === 'does not equal' ) {
+			foreach ( $subject as $s ) {
+				if ( (string) $s === $con_value ) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
+	switch ( $con_condition ) {
+		case 'equals':
+			return $subject_str === $con_value;
+		case 'contains':
+			return $subject_str !== '' && str_contains( $subject_str, $con_value );
+		case 'starts with':
+			return $subject_str !== '' && str_starts_with( $subject_str, $con_value );
+		case 'ends with':
+			return $subject_str !== '' && str_ends_with( $subject_str, $con_value );
+		case 'does not equal':
+			return $subject_str != $con_value;
+		case 'does not contain':
+			return $subject_str !== '' && ! str_contains( $subject_str, $con_value );
+		case 'does not start with':
+			return $subject_str !== '' && ! str_starts_with( $subject_str, $con_value );
+		case 'does not end with':
+			return $subject_str !== '' && ! str_ends_with( $subject_str, $con_value );
+		case 'exists':
+		case 'not null':
+			return $subject !== null && $subject !== '';
+		case 'is null':
+			return $subject === null || $subject === '';
+		case 'greater than':
+			$n = is_numeric( $subject ) ? (float) $subject : ( is_array( $subject ) ? array_sum( array_map( 'floatval', $subject ) ) : 0 );
+			return $n > ( is_numeric( $con_value ) ? (float) $con_value : 0 );
+		case 'less than':
+			$n = is_numeric( $subject ) ? (float) $subject : ( is_array( $subject ) ? array_sum( array_map( 'floatval', $subject ) ) : 0 );
+			return $n < ( is_numeric( $con_value ) ? (float) $con_value : 0 );
+		case 'none of':
+			$values = array_map( 'trim', explode( '|', $con_value ) );
+			$subjects = is_array( $subject ) ? $subject : [ $subject_str ];
+			foreach ( $values as $v ) {
+				foreach ( $subjects as $s ) {
+					if ( (string) $s === $v ) {
+						return false;
+					}
+				}
+			}
+			return true;
+		case 'one of':
+			$values = array_map( 'trim', explode( '|', $con_value ) );
+			if ( is_array( $subject ) ) {
+				foreach ( $subject as $s ) {
+					foreach ( $values as $v ) {
+						if ( (string) $s === $v ) {
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+			// URL param "one of" can be comma-separated in get_key
+			if ( $con_type === 'url_parameter' && $get_key !== null ) {
+				$parts = array_map( 'trim', explode( '|', $get_key ) );
+				foreach ( $parts as $p ) {
+					foreach ( array_map( 'trim', explode( ',', $p ) ) as $p2 ) {
+						foreach ( $values as $v ) {
+							if ( $p2 === $v ) {
+								return true;
+							}
+						}
+					}
+				}
+				return false;
+			}
+			return in_array( $subject_str, $values, true );
+		default:
+			return false;
+	}
+}
+
+/**
+ * Unified featured next steps data: same behavior as mha_featured_next_steps_data() but returns an array
+ * (no JSON) and uses refactored condition evaluation. Used by the unified pool builder.
+ *
+ * Flow: screen featured_next_steps → partner override (referer) → featured_next_steps_test conditional
+ * next_step_links → demographic fill (get_mha_demo_steps) → related articles fill. Returns used_links
+ * in display order, additional_result_text, and is_partner_source.
+ *
+ * @param array $args result_title, user_screen_result, answered_demos, url_params (optional)
+ * @return array{ used_links: int[], additional_result_text: string[], is_partner_source: bool }|null Null if no data.
+ */
+function mha_unified_featured_next_steps_data( $args ) {
+	$defaults = [
+		'result_title'       => '',
+		'user_screen_result' => [],
+		'answered_demos'     => [],
+		'url_params'         => [],
+	];
+	$args = wp_parse_args( $args, $defaults );
+
+	$screen_id = isset( $args['user_screen_result']['screen_id'] ) ? (int) $args['user_screen_result']['screen_id'] : 0;
+	if ( ! $screen_id || ! function_exists( 'get_field' ) ) {
+		return null;
+	}
+
+	$results            = [];
+	$additional_text    = [];
+	$is_partner_source  = false;
+	$screen_heading     = get_field( 'next_steps_heading', $screen_id ) ?: '';
+
+	// 1. Screen featured_next_steps (simple repeater)
+	$screen_links = [];
+	if ( have_rows( 'featured_next_steps', $screen_id ) ) {
+		while ( have_rows( 'featured_next_steps', $screen_id ) ) {
+			the_row();
+			$link = get_sub_field( 'link' );
+			if ( $link ) {
+				$id = is_object( $link ) ? ( isset( $link->ID ) ? $link->ID : 0 ) : (int) $link;
+				if ( $id ) {
+					$screen_links[] = $id;
+				}
+			}
+		}
+	}
+	if ( ! empty( $screen_links ) ) {
+		$results[] = [
+			'group_title'           => '',
+			'additional_result_text' => '',
+			'partner_next_steps'     => false,
+			'links'                  => array_combine( range( 1, count( $screen_links ) ), $screen_links ),
+		];
+	}
+
+	// 2. Resolve source: screen or partner (by referer)
+	$source_id = $screen_id;
+	if ( ! empty( $args['user_screen_result']['referer'] ) && function_exists( 'get_posts' ) ) {
+		$partners = get_posts( [
+			'post_type'      => 'partners',
+			'post_status'    => 'publish',
+			'posts_per_page' => 100,
+		] );
+		foreach ( $partners as $partner ) {
+			$info = get_field( 'partner_information', $partner->ID );
+			if ( ! empty( $info['partner_code'] ) && $info['partner_code'] === $args['user_screen_result']['referer'] ) {
+				$source_id         = (int) $partner->ID;
+				$is_partner_source = true;
+				break;
+			}
+		}
+		wp_reset_postdata();
+	}
+
+	// 3. Conditional featured_next_steps_test → next_step_links (each matching row adds a result; multiple conditions can each display)
+	$last_heading          = '';
+	$last_randomize_group  = false;
+	if ( have_rows( 'featured_next_steps_test', $source_id ) ) {
+		while ( have_rows( 'featured_next_steps_test', $source_id ) ) {
+			the_row();
+			$heading          = get_sub_field( 'next_steps_heading' );
+			$randomize        = get_sub_field( 'dont_randomize_order' );
+			$randomize_group  = get_sub_field( 'dont_randomize_group_order' );
+			$hide_group_titles = get_sub_field( 'hide_group_titles' );
+			$last_heading     = $heading ?: $last_heading;
+			$last_randomize_group = $randomize_group;
+
+			// Process every next_step_links row; each that passes adds a separate result (so layout contains X and layout contains Y both show)
+			if ( have_rows( 'next_step_links' ) ) {
+				while ( have_rows( 'next_step_links' ) ) {
+					the_row();
+					$operator   = get_sub_field( 'operator' );
+					$group_title = get_sub_field( 'link_group_title' );
+					$conditions_met = 0;
+					$conditions_total = 0;
+
+					if ( have_rows( 'conditions' ) ) {
+						while ( have_rows( 'conditions' ) ) {
+							the_row();
+							$conditions_total++;
+							if ( mha_unified_featured_condition_passes(
+								get_sub_field( 'type' ),
+								get_sub_field( 'condition' ),
+								get_sub_field( 'key' ),
+								get_sub_field( 'value' ),
+								$args
+							) ) {
+								$conditions_met++;
+							}
+						}
+					}
+
+					$proceed = ( $operator === 'and' && $conditions_met === $conditions_total )
+						|| ( $operator === 'or' && $conditions_met > 0 );
+
+					if ( $proceed ) {
+						$links_raw = get_sub_field( 'links' );
+						$links     = [];
+						if ( $links_raw && is_array( $links_raw ) && ! $randomize ) {
+							shuffle( $links_raw );
+						}
+						if ( $links_raw && is_array( $links_raw ) ) {
+							$idx = 1;
+							foreach ( $links_raw as $l ) {
+								$link_id = is_object( $l ) ? ( isset( $l->ID ) ? $l->ID : 0 ) : ( is_array( $l ) && isset( $l['ID'] ) ? (int) $l['ID'] : (int) $l );
+								if ( $link_id ) {
+									$links[ $idx++ ] = $link_id;
+								}
+							}
+						}
+						$addl = get_sub_field( 'additional_result_text' );
+						$results[] = [
+							'group_title'           => $group_title ?: '',
+							'additional_result_text' => $addl ?: '',
+							'partner_next_steps'     => $is_partner_source,
+							'links'                  => $links,
+						];
+						if ( $addl ) {
+							$additional_text[] = $addl;
+						}
+					}
+				}
+			}
+		}
+
+		// Apply heading from conditionals once we have results
+		if ( ! empty( $results ) && ! empty( $last_heading ) && empty( $screen_heading ) ) {
+			$screen_heading = $last_heading;
+		}
+		// Shuffle group order once after collecting all matching rows (preserve first/screen so multiple conditions all display)
+		if ( ! $last_randomize_group && count( $results ) > 1 ) {
+			$first = array_shift( $results );
+			$other = $results;
+			shuffle( $other );
+			$results = array_merge( [ $first ], $other );
+		}
+	}
+
+	// 4. Demographic fill when under max and not partner
+	$groups_with_links = 0;
+	$total_links = 0;
+	foreach ( $results as $r ) {
+		if ( ! empty( $r['links'] ) ) {
+			$groups_with_links++;
+			$total_links += count( $r['links'] );
+		}
+	}
+	$max_per_group = $groups_with_links > 1 ? 2 : 4;
+	$needed = $max_per_group - $total_links;
+
+	if ( $needed > 0 && ! $is_partner_source && function_exists( 'get_mha_demo_steps' ) ) {
+		$answered = isset( $args['user_screen_result']['answered_demos'] ) ? $args['user_screen_result']['answered_demos'] : [];
+		$demo_screen = get_mha_demo_steps( $args['user_screen_result']['screen_id'], $answered );
+		$demo_global = get_mha_demo_steps( 'options', $answered );
+		$demo_ids = [];
+		foreach ( [ $demo_screen, $demo_global ] as $data ) {
+			if ( ! empty( $data['demo_steps'] ) && is_array( $data['demo_steps'] ) ) {
+				foreach ( $data['demo_steps'] as $e ) {
+					$id = is_object( $e ) && isset( $e->ID ) ? (int) $e->ID : ( is_array( $e ) && isset( $e['ID'] ) ? (int) $e['ID'] : (int) $e );
+					if ( $id ) {
+						$demo_ids[] = $id;
+					}
+				}
+			}
+		}
+		$demo_ids = array_values( array_unique( $demo_ids ) );
+		$used_ids = [];
+		foreach ( $results as $r ) {
+			if ( ! empty( $r['links'] ) ) {
+				$used_ids = array_merge( $used_ids, array_values( $r['links'] ) );
+			}
+		}
+		$demo_ids = array_values( array_diff( $demo_ids, $used_ids ) );
+		$target_idx = null;
+		foreach ( $results as $idx => $r ) {
+			if ( isset( $r['group_title'] ) && $r['group_title'] === '' && isset( $r['links'] ) ) {
+				$target_idx = $idx;
+				break;
+			}
+		}
+		if ( $target_idx === null ) {
+			$target_idx = count( $results );
+			$results[] = [
+				'group_title'           => '',
+				'additional_result_text' => '',
+				'partner_next_steps'     => false,
+				'links'                  => [],
+			];
+		}
+		$max_idx = empty( $results[ $target_idx ]['links'] ) ? 0 : max( array_keys( $results[ $target_idx ]['links'] ) );
+		$add_count = 0;
+		foreach ( $demo_ids as $did ) {
+			if ( $add_count >= $needed ) {
+				break;
+			}
+			$results[ $target_idx ]['links'][ $max_idx + 1 + $add_count ] = $did;
+			$add_count++;
+		}
+	}
+
+	// 5. Build used_links (flat order) and optionally fill from related articles
+	$used_links = [];
+	foreach ( $results as $r ) {
+		if ( empty( $r['links'] ) ) {
+			continue;
+		}
+		$i = 1;
+		while ( $i <= $max_per_group ) {
+			if ( isset( $r['links'][ $i ] ) ) {
+				$used_links[] = (int) $r['links'][ $i ];
+			}
+			$i++;
+		}
+	}
+	$total_used = count( $used_links );
+	$count_diff = $max_per_group - $total_used;
+
+	// 6. Related articles fill when still short
+	if ( $count_diff > 0 && ! $is_partner_source && function_exists( 'mha_results_related_articles' ) && function_exists( 'get_layout_array' ) ) {
+		$excluded = $used_links;
+		$excluded = array_merge( $excluded, (array) ( function_exists( 'get_field' ) ? get_field( 'global_hide_articles', 'options' ) : [] ) );
+		$excluded = array_merge( $excluded, (array) ( function_exists( 'get_field' ) ? get_field( 'screen_results_hide_articles', 'options' ) : [] ) );
+		if ( get_query_var( 'exclude_ids' ) ) {
+			$excluded = array_merge( $excluded, array_map( 'intval', array_filter( explode( ',', get_query_var( 'exclude_ids' ) ) ) ) );
+		}
+		$demo_data = get_mha_demo_steps( $args['user_screen_result']['screen_id'], $args['user_screen_result']['answered_demos'] );
+		if ( ! empty( $demo_data['excluded_ids'] ) ) {
+			$excluded = array_merge( $excluded, (array) $demo_data['excluded_ids'] );
+		}
+		$demo_steps_list = [];
+		if ( ! empty( $demo_data['demo_steps'] ) ) {
+			$demo_steps_list = array_merge( $demo_steps_list, (array) $demo_data['demo_steps'] );
+		}
+		$demo_global = get_mha_demo_steps( 'options', $args['user_screen_result']['answered_demos'] );
+		if ( ! empty( $demo_global['demo_steps'] ) ) {
+			$demo_steps_list = array_merge( $demo_steps_list, (array) $demo_global['demo_steps'] );
+		}
+		$related_args = [
+			'demo_steps'         => $demo_steps_list,
+			'next_step_manual'   => isset( $args['user_screen_result']['next_step_manual'] ) ? $args['user_screen_result']['next_step_manual'] : [],
+			'user_screen_result' => $args['user_screen_result'],
+			'excluded_ids'       => array_unique( $excluded ),
+			'next_step_terms'    => isset( $args['user_screen_result']['next_step_terms'] ) ? $args['user_screen_result']['next_step_terms'] : [],
+			'espanol'            => function_exists( 'get_field' ) ? get_field( 'espanol', $args['user_screen_result']['screen_id'] ) : '',
+			'iframe_var'         => '',
+			'partner_var'        => get_query_var( 'partner' ),
+			'total'              => 4,
+			'style'              => 'featured',
+			'hide_all'           => true,
+			'layout'             => get_layout_array( get_query_var( 'layout' ) ),
+			'answered_demos'     => isset( $args['user_screen_result']['answered_demos'] ) ? $args['user_screen_result']['answered_demos'] : [],
+		];
+		$related_json = mha_results_related_articles( $related_args );
+		if ( $related_json ) {
+			$decoded = json_decode( $related_json );
+			$related_links = isset( $decoded->link_groups->related_links ) ? (array) $decoded->link_groups->related_links : [];
+			if ( ! empty( $related_links ) ) {
+				$n = 0;
+				foreach ( $related_links as $id ) {
+					if ( $n >= $count_diff ) {
+						break;
+					}
+					$used_links[] = (int) $id;
+					$n++;
+				}
+			}
+		}
+	}
+
+	if ( empty( $used_links ) && empty( $additional_text ) ) {
+		return null;
+	}
+
+	return [
+		'used_links'            => array_map( 'intval', $used_links ),
+		'additional_result_text' => $additional_text,
+		'is_partner_source'     => $is_partner_source,
+	];
+}
+
+/**
+ * Build base excluded IDs from options and URL. Used so unified pool always applies 
+ * global_hide_articles, screen_results_hide_articles, and exclude_ids query var.
  *
  * @return array Excluded post IDs (integers)
  */
@@ -489,7 +939,7 @@ function mha_build_unified_next_steps_pool( $args ) {
 	$used  = [];
 	$target = ! empty( $args['iframe_var'] ) ? ' target="_blank"' : '';
 
-	// Merge template-style exclusions: passed excluded_ids + global/screen/URL (same as mha_featured_next_steps_data and page-screen-results)
+	// Merge template-style exclusions: passed excluded_ids + global/screen/URL
 	$excluded = array_merge(
 		(array) $args['excluded_ids'],
 		mha_unified_next_steps_base_excluded_ids()
@@ -515,6 +965,49 @@ function mha_build_unified_next_steps_pool( $args ) {
 		}
 	}
 	$excluded = array_unique( $excluded );
+	$screen_id = isset( $args['user_screen_result']['screen_id'] ) ? (int) $args['user_screen_result']['screen_id'] : 0;
+
+	// Conditional featured next steps: use order from GF entry when stored (no shuffle on refresh); only shuffle on first display
+	$conditional_used_links = [];
+	$additional_result_text = [];
+	$is_partner_source = false;
+	$stored_fns = isset( $args['user_screen_result']['featured_next_steps_data'] ) ? $args['user_screen_result']['featured_next_steps_data'] : '';
+	if ( $screen_id ) {
+		if ( $stored_fns !== '' && $stored_fns !== null ) {
+			// Use order stored in GF entry (subsequent views) — no shuffle
+			$decoded = is_string( $stored_fns ) ? json_decode( $stored_fns ) : $stored_fns;
+			if ( $decoded && isset( $decoded->used_links ) && is_array( $decoded->used_links ) ) {
+				$conditional_used_links = array_map( 'intval', array_filter( $decoded->used_links ) );
+			}
+			if ( $decoded && ! empty( $decoded->additional_result_text ) && is_array( $decoded->additional_result_text ) ) {
+				$additional_result_text = $decoded->additional_result_text;
+			}
+			if ( $decoded && ! empty( $decoded->is_partner_source ) ) {
+				$is_partner_source = true;
+			}
+		}
+		if ( empty( $conditional_used_links ) && empty( $additional_result_text ) ) {
+			// First display (no stored data): compute and shuffle once; order is saved to entry by result_content/GF
+			$fns_args = [
+				'user_screen_result' => $args['user_screen_result'],
+				'result_title'       => isset( $args['user_screen_result']['result_title'] ) ? $args['user_screen_result']['result_title'] : '',
+				'answered_demos'     => $args['answered_demos'],
+				'url_params'         => [ 'layout' => is_array( $args['layout'] ) ? implode( ',', $args['layout'] ) : (string) $args['layout'] ],
+			];
+			$fns_result = mha_unified_featured_next_steps_data( $fns_args );
+			if ( $fns_result ) {
+				if ( ! empty( $fns_result['used_links'] ) && is_array( $fns_result['used_links'] ) ) {
+					$conditional_used_links = array_map( 'intval', array_filter( $fns_result['used_links'] ) );
+				}
+				if ( ! empty( $fns_result['additional_result_text'] ) && is_array( $fns_result['additional_result_text'] ) ) {
+					$additional_result_text = $fns_result['additional_result_text'];
+				}
+				if ( ! empty( $fns_result['is_partner_source'] ) ) {
+					$is_partner_source = true;
+				}
+			}
+		}
+	}
 
 	// 1. Include IDs from the URL
 	if ( get_query_var( 'include_ids' ) ) {
@@ -536,9 +1029,25 @@ function mha_build_unified_next_steps_pool( $args ) {
 		}
 	}
 
-	// 2. Screen featured next steps — only skip if already in pool ($used), not if in $excluded
-	$screen_id = isset( $args['user_screen_result']['screen_id'] ) ? (int) $args['user_screen_result']['screen_id'] : 0;
-	if ( $screen_id && function_exists( 'get_field' ) ) {
+	// 2. Featured links: from conditional featured_next_steps_test (screen or partner) + demographic_next_steps fill, or fallback to screen featured_next_steps repeater
+	if ( ! empty( $conditional_used_links ) ) {
+		foreach ( $conditional_used_links as $id ) {
+			$id = (int) $id;
+			if ( ! $id || in_array( $id, $excluded, true ) || in_array( $id, $used, true ) ) {
+				continue;
+			}
+			$pool[] = [
+				'id'          => $id,
+				'type'        => 'manual',
+				'title'       => get_the_title( $id ),
+				'url'         => get_the_permalink( $id ),
+				'target'      => $target,
+				'score'       => null,
+				'score_debug' => '',
+			];
+			$used[] = $id;
+		}
+	} elseif ( $screen_id && function_exists( 'get_field' ) ) {
 		$featured_rows = get_field( 'featured_next_steps', $screen_id );
 		if ( is_array( $featured_rows ) ) {
 			foreach ( $featured_rows as $row ) {
@@ -640,7 +1149,12 @@ function mha_build_unified_next_steps_pool( $args ) {
 		$used[] = $item['id'];
 	}
 
-	return [ 'pool' => $pool, 'used_ids' => $used ];
+	return [
+		'pool'                  => $pool,
+		'used_ids'              => $used,
+		'additional_result_text'=> $additional_result_text,
+		'is_partner_source'     => $is_partner_source,
+	];
 }
 
 /**
@@ -672,6 +1186,8 @@ function mha_get_unified_next_steps( $args ) {
 	$built = mha_build_unified_next_steps_pool( $args );
 	$pool  = $built['pool'];
 	$used  = $built['used_ids'];
+	$additional_result_text = isset( $built['additional_result_text'] ) ? $built['additional_result_text'] : [];
+	$is_partner_source      = isset( $built['is_partner_source'] ) ? $built['is_partner_source'] : false;
 
 	$featured_count = (int) $args['featured_count'];
 	$max_related    = (int) $args['max_related_total'];
@@ -701,13 +1217,17 @@ function mha_get_unified_next_steps( $args ) {
 	}
 	$related = array_slice( $related, 0, $max_related );
 
+	$extra = [
+		'additional_result_text' => $additional_result_text,
+		'is_partner_source'      => $is_partner_source,
+	];
 	if ( $return_parts === 'featured_only' ) {
 		return [
 			'featured'       => $featured,
 			'related'        => [],
 			'used_ids'       => $used,
 			'displayed_ids'  => $displayed,
-		];
+		] + $extra;
 	}
 	if ( $return_parts === 'related_only' ) {
 		return [
@@ -715,7 +1235,7 @@ function mha_get_unified_next_steps( $args ) {
 			'related'        => $related,
 			'used_ids'       => $used,
 			'displayed_ids'  => $already,
-		];
+		] + $extra;
 	}
 
 	return [
@@ -723,7 +1243,7 @@ function mha_get_unified_next_steps( $args ) {
 		'related'       => $related,
 		'used_ids'      => $used,
 		'displayed_ids' => $displayed,
-	];
+	] + $extra;
 }
 
 /**
@@ -746,19 +1266,20 @@ function mha_unified_featured_group_labels() {
  * (one per type), optional group title <p>, then <ol> of items. Partner styling when is_partner_source.
  *
  * @param array $items Array of pool items (id, type, title, url, target, score?, score_debug?)
- * @param array $args  heading, show_title, layout, is_partner_source, user_screen_result, hide_group_titles, debug
+ * @param array $args  heading, show_title, layout, is_partner_source, user_screen_result, hide_group_titles, additional_result_text, debug
  * @return string HTML
  */
 function mha_render_unified_featured_next_steps( $items, $args = [] ) {
 	$args = wp_parse_args(
 		$args, [
-			'heading'            => 'Next Steps',
-			'show_title'         => true,
-			'layout'             => [],
-			'is_partner_source'  => null,
-			'user_screen_result' => [],
-			'hide_group_titles'  => false,
-			'debug'              => false,
+			'heading'                 => 'Next Steps',
+			'show_title'              => true,
+			'layout'                  => [],
+			'is_partner_source'       => null,
+			'user_screen_result'      => [],
+			'hide_group_titles'       => false,
+			'additional_result_text'  => [],
+			'debug'                   => false,
 		]
 	);
 	if ( $args['is_partner_source'] === null && ! empty( $args['user_screen_result'] ) && function_exists( 'mha_unified_next_steps_is_partner_source' ) ) {
@@ -766,7 +1287,26 @@ function mha_render_unified_featured_next_steps( $items, $args = [] ) {
 	}
 	$partner_class = ! empty( $args['is_partner_source'] ) ? ' partner-source' : '';
 	$out = '';
-	
+
+	// Additional result text (same as display_featured_next_steps): from conditional featured_next_steps_test rows
+	if ( ! empty( $args['additional_result_text'] ) && is_array( $args['additional_result_text'] ) ) {
+		foreach ( $args['additional_result_text'] as $addl_text ) {
+			$addl_text = strip_shortcodes( $addl_text );
+			$addl_text = preg_replace( '/<script\b[^>]*>(.*?)<\/script>/is', '', $addl_text );
+			if ( $addl_text !== '' ) {
+				$out .= '<div class="featured-next-steps-test-additional-text' . esc_attr( $partner_class ) . '">';
+				if ( $partner_class ) {
+					$out .= '<div class="bubble round-tl cerulean normal"><div class="inner">';
+				}
+				$out .= $addl_text;
+				if ( $partner_class ) {
+					$out .= '</div></div>';
+				}
+				$out .= '</div>';
+			}
+		}
+	}
+
 	$out .= '<div class="featured-next-steps-test-container mt-5 mb-5' . esc_attr( $partner_class ) . '">';
 	if ( ! empty( $args['heading'] ) ) {
 		$out .= '<h2 class="section-title dark-blue bold mb-3">' . esc_html( $args['heading'] ) . '</h2>';

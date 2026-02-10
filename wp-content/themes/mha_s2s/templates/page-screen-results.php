@@ -561,6 +561,8 @@ else:
         'debug'               => false,
     );
     $unified = mha_get_unified_next_steps( $unified_args );
+    $additional_result_text = isset( $unified['additional_result_text'] ) && is_array( $unified['additional_result_text'] ) ? $unified['additional_result_text'] : array();
+    $unified_featured_is_partner_source = ! empty( $unified['is_partner_source'] ) ? true : null;
     ?>
     <div class="wrap narrow next-steps-featured-container">
         <?php
@@ -574,7 +576,9 @@ else:
                     'espanol' => $espanol,
                     'iframe_var' => $iframe_var,
                     'partner_var' => $partner_var,
-                    'user_screen_result' => $user_screen_result
+                    'user_screen_result' => $user_screen_result,
+                    'additional_result_text' => $additional_result_text,
+                    'is_partner_source' => $unified_featured_is_partner_source,
                 ) 
             );
             $displayed_featured_links = true;
@@ -875,7 +879,9 @@ else:
                                 'heading' => '', 
                                 'show_title' => false, 
                                 'layout' => $layout, 
-                                'user_screen_result' => $user_screen_result
+                                'user_screen_result' => $user_screen_result,
+                                'additional_result_text' => $additional_result_text,
+                                'is_partner_source' => $unified_featured_is_partner_source,
                             ) 
                         );
                         echo '</div>';

@@ -193,3 +193,4 @@ local-xdebuginfo.php
 wp-content/.htaccess
 log/
 languages/
+DEV_DOCUMENTATION.md
