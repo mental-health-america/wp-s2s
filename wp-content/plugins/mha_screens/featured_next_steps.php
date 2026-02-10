@@ -878,7 +878,7 @@ function mha_featured_next_steps_data( $args ){
         $extra_links_ids = null;
         $original_count = $count;
 
-        // Overflow conditional links (beyond max_links per group) - pass to related_articles as manual so they trickle into Additional Resources
+        // Overflow conditional links (beyond max_links per group) — exposed in payload so template can pass to mha_results_related_articles (e.g. $related_article_args_2); not added to this section's Additional Resources
         $overflow_conditional_link_ids = array();
         if(!empty($return['all_conditional_link_ids'])){
             $used_link_ids_flat = array_map(function($v){ return is_object($v) && isset($v->ID) ? (int)$v->ID : (is_numeric($v) ? (int)$v : null); }, $used_links);
@@ -886,8 +886,8 @@ function mha_featured_next_steps_data( $args ){
             $overflow_conditional_link_ids = array_values(array_diff($return['all_conditional_link_ids'], $used_link_ids_flat));
         }
 
-        // Call related_articles when short on links OR when we have overflow conditional links (so they trickle into Additional Resources)
-        if(($total_used_links < $max_links || !empty($overflow_conditional_link_ids)) && !$is_partner_source){
+        // Call related_articles only when short on links (overflow is used by template's related_articles call, not here)
+        if($total_used_links < $max_links && !$is_partner_source){
 
             $demo_steps = [];
             $excluded_ids = []; // Initialize excluded_ids array
@@ -939,14 +939,8 @@ function mha_featured_next_steps_data( $args ){
                 $demo_steps[] = $e;
             }
 
-            // Include overflow conditional links (and existing manual) so they trickle into related_articles and appear in Additional Resources
+            // Only existing manual (overflow is passed by template to its own related_articles call)
             $next_step_manual = isset($args['user_screen_result']['next_step_manual']) && is_array($args['user_screen_result']['next_step_manual']) ? $args['user_screen_result']['next_step_manual'] : array();
-            $next_step_manual = array_merge($next_step_manual, $overflow_conditional_link_ids);
-            $next_step_manual = array_values(array_unique($next_step_manual));
-
-            // Request enough from related_articles to include overflow + any fill (so overflow links appear in the response)
-            $links_to_add_from_response = max($count_diff, count($overflow_conditional_link_ids));
-            $related_article_total = max(4, $total_used_links + $links_to_add_from_response);
 
             $related_article_args = array(
                 'demo_steps'         => $demo_steps,
@@ -957,7 +951,7 @@ function mha_featured_next_steps_data( $args ){
                 'espanol'            => $espanol,
                 'iframe_var'         => $iframe_var,
                 'partner_var'        => $partner_var,
-                'total'              => $related_article_total,
+                'total'              => 4,
                 'style'              => 'featured',
                 'hide_all'           => true,
                 'layout'             => $layout,
@@ -971,7 +965,7 @@ function mha_featured_next_steps_data( $args ){
                     if(isset($extra_links_result_decoded->link_groups->related_links)){
                         $new_i = 1;
                         foreach($extra_links_ids as $eli){
-                            if($new_i > $links_to_add_from_response){
+                            if($new_i > $count_diff){
                                 break;
                             }
                             $used_links[] = $eli;
@@ -999,7 +993,8 @@ function mha_featured_next_steps_data( $args ){
             'additional_result_text' => isset($return['additional_result_text']) ? $return['additional_result_text'] : '',
             'used_links' => $used_links,
             'ctas' => $ctas,
-            'is_partner_source' => $is_partner_source
+            'is_partner_source' => $is_partner_source,
+            'overflow_conditional_link_ids' => isset($overflow_conditional_link_ids) ? $overflow_conditional_link_ids : array()
         );
 
         if($debug){ pre($debug_log); }

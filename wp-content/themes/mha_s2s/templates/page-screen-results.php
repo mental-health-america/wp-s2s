@@ -945,10 +945,18 @@ else:
 
     <div class="wrap narrow mb-5 d-print-none">
         <?php 
-            // Related Articles
+            // Related Articles — include overflow conditional links from featured next steps so they appear here (not only in Additional Resources)
+            $next_step_manual_2 = isset($user_screen_result['next_step_manual']) && is_array($user_screen_result['next_step_manual']) ? $user_screen_result['next_step_manual'] : array();
+            if(!empty($user_screen_result['featured_next_steps_data'])){
+                $featured_decoded = json_decode($user_screen_result['featured_next_steps_data']);
+                if(!empty($featured_decoded->overflow_conditional_link_ids) && is_array($featured_decoded->overflow_conditional_link_ids)){
+                    $next_step_manual_2 = array_merge($next_step_manual_2, $featured_decoded->overflow_conditional_link_ids);
+                    $next_step_manual_2 = array_values(array_unique($next_step_manual_2));
+                }
+            }
             $related_article_args_2 = array(
                 'demo_steps'         => $demo_steps,
-                'next_step_manual'   => $user_screen_result['next_step_manual'],
+                'next_step_manual'   => $next_step_manual_2,
                 'user_screen_result' => $user_screen_result,
                 'excluded_ids'       => $excluded_ids,
                 'next_step_terms'    => $user_screen_result['next_step_terms'],
