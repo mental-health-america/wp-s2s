@@ -1102,7 +1102,6 @@ else:
     /**
      * Admin debug: entire link pool as an ordered list (source order: URL include_ids, screen featured, result-based, demographic, scored).
      */
-    /*
     if ( current_user_can( 'manage_options' ) && function_exists( 'mha_build_unified_next_steps_pool' ) ) {
         $pool_debug_args = array(
             'user_screen_result' => $user_screen_result,
@@ -1155,7 +1154,6 @@ else:
         </div>
         <?php
     }
-    */
     ?>
 
 <?php endif; ?>
