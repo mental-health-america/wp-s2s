@@ -921,6 +921,17 @@ function mha_unified_next_steps_base_excluded_ids() {
 	return array_unique( array_filter( $excluded ) );
 }
 
+/**
+ * Sanitize a link group title for use in a #LinkGroup_XYZ source tag (alphanumeric + underscores).
+ *
+ * @param string $group_title Raw group title (e.g. "Related Links", "Additional Resources").
+ * @return string Safe suffix for #LinkGroup_ (e.g. "Related_Links").
+ */
+function mha_unified_next_steps_sanitize_group_tag( $group_title ) {
+	$s = preg_replace( '/[^a-zA-Z0-9]+/', '_', trim( (string) $group_title ) );
+	return trim( $s, '_' ) ?: 'Unknown';
+}
+
 function mha_build_unified_next_steps_pool( $args ) {
 	$defaults = [
 		'user_screen_result' => [],
@@ -947,6 +958,8 @@ function mha_build_unified_next_steps_pool( $args ) {
 	$excluded = array_unique( array_map( 'intval', array_filter( $excluded ) ) );
 
 	$demo_steps = (array) $args['demo_steps'];
+	$demo_steps_screen = [];
+	$demo_steps_global = [];
 	if ( empty( $demo_steps ) && ! empty( $args['user_screen_result']['screen_id'] ) && function_exists( 'get_mha_demo_steps' ) ) {
 		$answered_demos = isset( $args['answered_demos'] ) ? $args['answered_demos'] : ( isset( $args['user_screen_result']['answered_demos'] ) ? $args['user_screen_result']['answered_demos'] : [] );
 		$demo_data_screen = get_mha_demo_steps( $args['user_screen_result']['screen_id'], $answered_demos );
@@ -957,10 +970,12 @@ function mha_build_unified_next_steps_pool( $args ) {
 		if ( ! empty( $demo_data_global['excluded_ids'] ) ) {
 			$excluded = array_merge( $excluded, (array) $demo_data_global['excluded_ids'] );
 		}
-		foreach ( isset( $demo_data_screen['demo_steps'] ) ? (array) $demo_data_screen['demo_steps'] : [] as $e ) {
+		$demo_steps_screen = isset( $demo_data_screen['demo_steps'] ) ? (array) $demo_data_screen['demo_steps'] : [];
+		$demo_steps_global = isset( $demo_data_global['demo_steps'] ) ? (array) $demo_data_global['demo_steps'] : [];
+		foreach ( $demo_steps_screen as $e ) {
 			$demo_steps[] = $e;
 		}
-		foreach ( isset( $demo_data_global['demo_steps'] ) ? (array) $demo_data_global['demo_steps'] : [] as $e ) {
+		foreach ( $demo_steps_global as $e ) {
 			$demo_steps[] = $e;
 		}
 	}
@@ -969,6 +984,7 @@ function mha_build_unified_next_steps_pool( $args ) {
 
 	// Conditional featured next steps: use order from GF entry when stored (no shuffle on refresh); only shuffle on first display
 	$conditional_used_links = [];
+	$conditional_link_group_map = []; // link_id => group title (for #LinkGroup_XYZ source tag when from stored data)
 	$additional_result_text = [];
 	$is_partner_source = false;
 	$stored_fns = isset( $args['user_screen_result']['featured_next_steps_data'] ) ? $args['user_screen_result']['featured_next_steps_data'] : '';
@@ -978,6 +994,21 @@ function mha_build_unified_next_steps_pool( $args ) {
 			$decoded = is_string( $stored_fns ) ? json_decode( $stored_fns ) : $stored_fns;
 			if ( $decoded && isset( $decoded->used_links ) && is_array( $decoded->used_links ) ) {
 				$conditional_used_links = array_map( 'intval', array_filter( $decoded->used_links ) );
+			}
+			if ( $decoded && isset( $decoded->link_groups ) && ( is_array( $decoded->link_groups ) || is_object( $decoded->link_groups ) ) ) {
+				$lg = (array) $decoded->link_groups;
+				foreach ( $lg as $group_title => $ids ) {
+					if ( $group_title === 'partner_source' ) {
+						continue;
+					}
+					$ids = (array) $ids;
+					foreach ( $ids as $link_id ) {
+						$link_id = (int) $link_id;
+						if ( $link_id ) {
+							$conditional_link_group_map[ $link_id ] = $group_title;
+						}
+					}
+				}
 			}
 			if ( $decoded && ! empty( $decoded->additional_result_text ) && is_array( $decoded->additional_result_text ) ) {
 				$additional_result_text = $decoded->additional_result_text;
@@ -1023,7 +1054,7 @@ function mha_build_unified_next_steps_pool( $args ) {
 				'url' => get_the_permalink( $id ),
 				'target' => $target,
 				'score' => null,
-				'score_debug' => '',
+				'score_debug' => '#URLIncluded',
 			];
 			$used[] = $id;
 		}
@@ -1036,6 +1067,11 @@ function mha_build_unified_next_steps_pool( $args ) {
 			if ( ! $id || in_array( $id, $excluded, true ) || in_array( $id, $used, true ) ) {
 				continue;
 			}
+			//$source_tags = '#FeaturedNextSteps';
+			$source_tags = $is_partner_source ? '#FeaturedNextSteps_Partner' : '#FeaturedNextSteps_Screen';
+			if ( ! empty( $conditional_link_group_map[ $id ] ) ) {
+				$source_tags .= ' #LinkGroup_' . mha_unified_next_steps_sanitize_group_tag( $conditional_link_group_map[ $id ] );
+			}
 			$pool[] = [
 				'id'          => $id,
 				'type'        => 'manual',
@@ -1043,7 +1079,7 @@ function mha_build_unified_next_steps_pool( $args ) {
 				'url'         => get_the_permalink( $id ),
 				'target'      => $target,
 				'score'       => null,
-				'score_debug' => '',
+				'score_debug' => $source_tags,
 			];
 			$used[] = $id;
 		}
@@ -1077,7 +1113,7 @@ function mha_build_unified_next_steps_pool( $args ) {
 					'url' => get_the_permalink( $id ),
 					'target' => $target,
 					'score' => null,
-					'score_debug' => '',
+					'score_debug' => '#ScreenFeaturedNextSteps #Screen',
 				];
 				$used[] = $id;
 			}
@@ -1097,40 +1133,78 @@ function mha_build_unified_next_steps_pool( $args ) {
 			'url' => get_the_permalink( $id ),
 			'target' => $target,
 			'score' => null,
-			'score_debug' => '',
+			'score_debug' => '#ResultBased #Screen',
 		];
 		$used[] = $id;
 	}
 
-	// 4. Demographic based links
-	foreach ( $demo_steps as $link ) {
-		$id = 0;
-		if ( is_object( $link ) && isset( $link->ID ) ) {
-			$id = (int) $link->ID;
-		} elseif ( is_array( $link ) && isset( $link['ID'] ) ) {
-			$id = (int) $link['ID'];
-		} else {
-			$id = (int) $link;
+	// 4. Demographic based links (screen first, then global options, so source tag is accurate)
+	$demo_sources = [
+		'#Demographic #Screen'  => $demo_steps_screen,
+		'#Demographic #Global' => $demo_steps_global,
+	];
+	foreach ( $demo_sources as $demo_source_tag => $steps ) {
+		foreach ( $steps as $link ) {
+			$id = 0;
+			if ( is_object( $link ) && isset( $link->ID ) ) {
+				$id = (int) $link->ID;
+			} elseif ( is_array( $link ) && isset( $link['ID'] ) ) {
+				$id = (int) $link['ID'];
+			} else {
+				$id = (int) $link;
+			}
+			if ( ! $id || in_array( $id, $excluded, true ) || in_array( $id, $used, true ) ) {
+				continue;
+			}
+			$title = get_the_title( $id );
+			if ( is_object( $link ) && isset( $link->post_title ) ) {
+				$title = $link->post_title;
+			} elseif ( is_array( $link ) && isset( $link['post_title'] ) ) {
+				$title = $link['post_title'];
+			}
+			$pool[] = [
+				'id' => $id,
+				'type' => 'demo',
+				'title' => $title,
+				'url' => get_the_permalink( $id ),
+				'target' => $target,
+				'score' => null,
+				'score_debug' => $demo_source_tag,
+			];
+			$used[] = $id;
 		}
-		if ( ! $id || in_array( $id, $excluded, true ) || in_array( $id, $used, true ) ) {
-			continue;
+	}
+	// When demo_steps were passed in (e.g. from template) we may not have had screen/global split
+	if ( ! empty( $demo_steps ) && empty( $demo_steps_screen ) && empty( $demo_steps_global ) ) {
+		foreach ( $demo_steps as $link ) {
+			$id = 0;
+			if ( is_object( $link ) && isset( $link->ID ) ) {
+				$id = (int) $link->ID;
+			} elseif ( is_array( $link ) && isset( $link['ID'] ) ) {
+				$id = (int) $link['ID'];
+			} else {
+				$id = (int) $link;
+			}
+			if ( ! $id || in_array( $id, $excluded, true ) || in_array( $id, $used, true ) ) {
+				continue;
+			}
+			$title = get_the_title( $id );
+			if ( is_object( $link ) && isset( $link->post_title ) ) {
+				$title = $link->post_title;
+			} elseif ( is_array( $link ) && isset( $link['post_title'] ) ) {
+				$title = $link['post_title'];
+			}
+			$pool[] = [
+				'id' => $id,
+				'type' => 'demo',
+				'title' => $title,
+				'url' => get_the_permalink( $id ),
+				'target' => $target,
+				'score' => null,
+				'score_debug' => '#Demographic',
+			];
+			$used[] = $id;
 		}
-		$title = get_the_title( $id );
-		if ( is_object( $link ) && isset( $link->post_title ) ) {
-			$title = $link->post_title;
-		} elseif ( is_array( $link ) && isset( $link['post_title'] ) ) {
-			$title = $link['post_title'];
-		}
-		$pool[] = [
-			'id' => $id,
-			'type' => 'demo',
-			'title' => $title,
-			'url' => get_the_permalink( $id ),
-			'target' => $target,
-			'score' => null,
-			'score_debug' => '',
-		];
-		$used[] = $id;
 	}
 
 	// 5. Scored articles
@@ -1339,12 +1413,14 @@ function mha_render_unified_featured_next_steps( $items, $args = [] ) {
 			$count++;
 			$link_class = 'button green thin round mr-3 rec-unified-featured';
 			$score_debug = '';
-			if ( current_user_can( 'manage_options' ) ) {
+			if ( current_user_can( 'manage_options' ) && $args['debug'] ) {
 				if ( isset( $item['score'] ) && $item['score'] !== null ) {
 					$pop_display = isset( $item['pop'] ) ? $item['pop'] : '—';
 					$score_debug = '<br /> <span class="small text-red">(Score: ' . (int) $item['score'] . ', Popularity: #' . esc_html( $pop_display ) . ') <br /> [' . esc_html( isset( $item['score_debug'] ) ? $item['score_debug'] : '' ) . ']</span>';
 				} elseif ( ! empty( $item['type'] ) ) {
-					$score_debug = '<br /> <span class="small text-red">[' . esc_html( $item['type'] ) . ']</span>';
+					// For manual/result_manual/include_ids: show source tags (#FeaturedNextSteps #LinkGroup_XYZ etc.) when set
+					$debug_content = ! empty( $item['score_debug'] ) ? $item['score_debug'] : '[' . $item['type'] . ']';
+					$score_debug = '<br /> <span class="small text-red">[' . esc_html( $debug_content ) . ']</span>';
 				}
 			}
 			$out .= '<li class="link-item mb-3' . esc_attr( $partner_class ) . '"><a class="' . esc_attr( $link_class ) . '" href="' . esc_url( $item['url'] ) . '"' . $item['target'] . '>' . esc_html( $item['title'] ) . '</a>' . $score_debug . '</li>';
@@ -1393,7 +1469,7 @@ function mha_render_unified_related_articles( $items, $args = [] ) {
 	$out .= '<ol class="next-steps two-column">';
 	foreach ( $items as $item ) {
 		$score_debug = '';
-		if ( current_user_can( 'manage_options' ) ) {
+		if ( current_user_can( 'manage_options' ) && $args['debug'] ) {
 			$pop_display = isset( $item['pop'] ) ? $item['pop'] : '—';
 			$score_debug = '<br /> <span class="small text-red">(Score: ' . (int) $item['score'] . ', Popularity: #' . esc_html( $pop_display ) . ') <br /> [' . esc_html( isset( $item['score_debug'] ) ? $item['score_debug'] : '' ) . ']</span>';
 		}

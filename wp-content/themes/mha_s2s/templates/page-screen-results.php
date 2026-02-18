@@ -1137,6 +1137,10 @@ else:
                                     $score_info .= ' [' . esc_html( $item['score_debug'] ) . ']';
                                 }
                                 $score_info .= ')</span>';
+                            } elseif ( ! empty( $item['type'] ) ) {
+                                // Same source tags as unified render: #FeaturedNextSteps #Screen #LinkGroup_XYZ etc.
+                                $debug_content = ! empty( $item['score_debug'] ) ? $item['score_debug'] : '[' . $item['type'] . ']';
+                                $score_info = ' <span class="small text-red">[' . esc_html( $debug_content ) . ']</span>';
                             }
                             $type_label = isset( $item['type'] ) ? ' <span class="small text-muted">[' . esc_html( $item['type'] ) . ']</span>' : '';
                             ?>
