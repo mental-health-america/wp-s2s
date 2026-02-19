@@ -386,10 +386,12 @@ ol.next-steps.single-column {
 ol.next-steps.two-column {
     margin: 0;
     padding: 0;
-    column-count: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     column-gap: 40px;
+    row-gap: 0;
     @media only screen and (max-width: 767px){
-        column-count: 1;
+        grid-template-columns: 1fr;
         column-gap: 0;
     }
     li {
@@ -397,15 +399,12 @@ ol.next-steps.two-column {
         margin: 0 0 1em 0;
         padding: 0;
         @include montserrat(600);
-        -webkit-column-break-inside: avoid;
-        page-break-inside: avoid;
-        break-inside: avoid;
         width: 100%;
         display: block;
     }
     li.see-all-link {
         margin-top: 1em;
-        column-span: all;
+        grid-column: 1 / -1;
         text-align: left;
         @media only screen and (max-width: 767px){
             margin-top: 0;

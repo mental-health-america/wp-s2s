@@ -241,7 +241,7 @@ function mha_next_steps_get_scored_articles( $args ) {
 				$rel_score += 1;
 				$score_debug .= '#SharesEspanol ';
 			} else {
-				continue; // In espanol mode only include articles with ACF espanol set (same as related_articles.php)
+				continue; // In espanol mode only include articles with ACF espanol set
 			}
 		}
 
@@ -249,8 +249,14 @@ function mha_next_steps_get_scored_articles( $args ) {
 			continue;
 		}
 
-		// Article type + age_group rules (same as related_articles.php): diy/connect/provider only shown when age matches
+		// Article type 
 		$article_type = get_field( 'type', $article_id );
+
+		// Only allow articles marked as diy, connect, and/or provider
+		if ( $article_type && is_array( $article_type ) && count( array_intersect( [ 'treatment', 'provider' ], $article_type ) ) > 0 ) {
+			continue;
+		}
+		
 		if ( $article_type && is_array( $article_type ) && count( array_intersect( [ 'diy', 'connect', 'provider' ], $article_type ) ) > 0 ) {
 			$article_ages = get_the_terms( $article_id, 'age_group' );
 			if ( $article_ages ) {
@@ -396,7 +402,7 @@ function mha_next_steps_get_scored_articles( $args ) {
 }
 
 /**
- * Whether featured next steps should be treated as partner-sourced (same logic as featured_next_steps.php).
+ * Whether featured next steps should be treated as partner-sourced.
  * When true, render can add partner-source class for styling. Used by mha_render_unified_featured_next_steps().
  *
  * @param array $user_screen_result Must include 'referer' key.
@@ -434,8 +440,8 @@ function mha_unified_next_steps_is_partner_source( $user_screen_result ) {
  * (global_hide_articles, screen_results_hide_articles, exclude_ids query var), then demo_steps
  * excluded_ids when building demo data.
  *
- * @param array $args  user_screen_result, excluded_ids, demo_steps, next_step_manual, espanol, layout, iframe_var, partner_var, answered_demos, limit
- * @return array [ 'pool' => array of items, 'used_ids' => array ]
+ * @param array $args  user_screen_result, excluded_ids, demo_steps, next_step_manual, espanol, layout, iframe_var, partner_var, answered_demos, limit, featured_count, debug
+ * @return array [ 'pool' => ..., 'used_ids' => ..., 'excluded_ids' => ..., 'excluded_reasons' => ..., 'manual_excluded_from_related_ids' => int[], 'skipped_links' => int[] ]
  */
 /**
  * Get URL parameter value for condition checks: $_GET first, then $url_params (e.g. from results page).
@@ -456,7 +462,6 @@ function mha_unified_featured_get_url_param( $key, $url_params = [] ) {
 
 /**
  * Evaluate a single featured next-step condition (test_result, url_parameter, question_response, demographic_response).
- * Mirrors logic in featured_next_steps.php so conditional link groups match.
  *
  * @param string $con_type      Condition type: test_result, url_parameter, question_response, demographic_response.
  * @param string $con_condition Operator: equals, contains, starts with, ends with, does not equal, etc.
@@ -598,7 +603,7 @@ function mha_unified_featured_condition_passes( $con_type, $con_condition, $con_
  * in display order, additional_result_text, and is_partner_source.
  *
  * @param array $args result_title, user_screen_result, answered_demos, url_params (optional)
- * @return array{ used_links: int[], additional_result_text: string[], is_partner_source: bool }|null Null if no data.
+ * @return array{ used_links: int[], overflow_links: int[], additional_result_text: array, link_group_map: array<int, string>, is_partner_source: bool }|null Null if no data.
  */
 function mha_unified_featured_next_steps_data( $args ) {
 	$defaults = [
@@ -719,13 +724,16 @@ function mha_unified_featured_next_steps_data( $args ) {
 						}
 						$addl = get_sub_field( 'additional_result_text' );
 						$results[] = [
-							'group_title'           => $group_title ?: '',
+							'group_title'            => $group_title ?: '',
 							'additional_result_text' => $addl ?: '',
 							'partner_next_steps'     => $is_partner_source,
 							'links'                  => $links,
 						];
 						if ( $addl ) {
-							$additional_text[] = $addl;
+							$additional_text[] = [
+								'link_group_title' => $group_title ?: '',
+								'text'             => $addl,
+							];
 						}
 					}
 				}
@@ -807,18 +815,31 @@ function mha_unified_featured_next_steps_data( $args ) {
 		}
 	}
 
-	// 5. Build used_links (flat order) and optionally fill from related articles
+	// 5. Build used_links (flat order), overflow_links, and link_group_map (link_id => group_title for pool builder on first display)
 	$used_links = [];
+	$overflow_links = [];
+	$link_group_map = [];
 	foreach ( $results as $r ) {
 		if ( empty( $r['links'] ) ) {
 			continue;
 		}
+		$group_title = isset( $r['group_title'] ) ? trim( (string) $r['group_title'] ) : '';
 		$i = 1;
 		while ( $i <= $max_per_group ) {
 			if ( isset( $r['links'][ $i ] ) ) {
-				$used_links[] = (int) $r['links'][ $i ];
+				$link_id = (int) $r['links'][ $i ];
+				$used_links[] = $link_id;
+				if ( $group_title !== '' ) {
+					$link_group_map[ $link_id ] = $group_title;
+				}
 			}
 			$i++;
+		}
+		// Links beyond max_per_group in this group are overflow (never shown in featured)
+		foreach ( $r['links'] as $k => $link_id ) {
+			if ( (int) $k > $max_per_group && (int) $link_id ) {
+				$overflow_links[] = (int) $link_id;
+			}
 		}
 	}
 	$total_used = count( $used_links );
@@ -882,30 +903,51 @@ function mha_unified_featured_next_steps_data( $args ) {
 
 	return [
 		'used_links'            => array_map( 'intval', $used_links ),
+		'overflow_links'        => array_values( array_unique( array_map( 'intval', array_filter( $overflow_links ) ) ) ),
 		'additional_result_text' => $additional_text,
+		'link_group_map'        => $link_group_map,
 		'is_partner_source'     => $is_partner_source,
 	];
 }
 
 /**
- * Build base excluded IDs from options and URL. Used so unified pool always applies 
+ * Build base excluded IDs from options and URL. Used so unified pool always applies
  * global_hide_articles, screen_results_hide_articles, and exclude_ids query var.
  *
  * @return array Excluded post IDs (integers)
  */
 function mha_unified_next_steps_base_excluded_ids() {
+	$with_reasons = mha_unified_next_steps_base_excluded_ids_with_reasons();
+	return $with_reasons['ids'];
+}
+
+/**
+ * Build base excluded IDs with reason tags for debug display.
+ *
+ * @return array{ ids: int[], reasons_by_id: array<int, string[]> }
+ */
+function mha_unified_next_steps_base_excluded_ids_with_reasons() {
 	$excluded = [];
+	$reasons_by_id = [];
 	if ( function_exists( 'get_field' ) ) {
 		$global_hide = get_field( 'global_hide_articles', 'options' );
 		if ( $global_hide && is_array( $global_hide ) ) {
 			foreach ( $global_hide as $id ) {
-				$excluded[] = (int) $id;
+				$id = (int) $id;
+				if ( $id ) {
+					$excluded[] = $id;
+					$reasons_by_id[ $id ] = array_merge( isset( $reasons_by_id[ $id ] ) ? $reasons_by_id[ $id ] : [], [ '#GlobalOptions' ] );
+				}
 			}
 		}
 		$screen_results_hide = get_field( 'screen_results_hide_articles', 'options' );
 		if ( $screen_results_hide && is_array( $screen_results_hide ) ) {
 			foreach ( $screen_results_hide as $id ) {
-				$excluded[] = (int) $id;
+				$id = (int) $id;
+				if ( $id ) {
+					$excluded[] = $id;
+					$reasons_by_id[ $id ] = array_merge( isset( $reasons_by_id[ $id ] ) ? $reasons_by_id[ $id ] : [], [ '#GlobalOptionsHidden' ] );
+				}
 			}
 		}
 	}
@@ -914,22 +956,19 @@ function mha_unified_next_steps_base_excluded_ids() {
 		$parts = array_map( 'trim', explode( ',', $url_exclude ) );
 		foreach ( $parts as $ue ) {
 			if ( $ue !== '' ) {
-				$excluded[] = (int) $ue;
+				$id = (int) $ue;
+				if ( $id ) {
+					$excluded[] = $id;
+					$reasons_by_id[ $id ] = array_merge( isset( $reasons_by_id[ $id ] ) ? $reasons_by_id[ $id ] : [], [ '#URLExclude' ] );
+				}
 			}
 		}
 	}
-	return array_unique( array_filter( $excluded ) );
-}
-
-/**
- * Sanitize a link group title for use in a #LinkGroup_XYZ source tag (alphanumeric + underscores).
- *
- * @param string $group_title Raw group title (e.g. "Related Links", "Additional Resources").
- * @return string Safe suffix for #LinkGroup_ (e.g. "Related_Links").
- */
-function mha_unified_next_steps_sanitize_group_tag( $group_title ) {
-	$s = preg_replace( '/[^a-zA-Z0-9]+/', '_', trim( (string) $group_title ) );
-	return trim( $s, '_' ) ?: 'Unknown';
+	$excluded = array_unique( array_filter( $excluded ) );
+	foreach ( $reasons_by_id as $eid => $reasons ) {
+		$reasons_by_id[ $eid ] = array_unique( $reasons );
+	}
+	return [ 'ids' => $excluded, 'reasons_by_id' => $reasons_by_id ];
 }
 
 function mha_build_unified_next_steps_pool( $args ) {
@@ -944,17 +983,25 @@ function mha_build_unified_next_steps_pool( $args ) {
 		'partner_var'        => '',
 		'answered_demos'     => [],
 		'limit'              => 200,
+		'featured_count'     => 4,
 	];
 	$args  = wp_parse_args( $args, $defaults );
 	$pool  = [];
 	$used  = [];
 	$target = ! empty( $args['iframe_var'] ) ? ' target="_blank"' : '';
 
-	// Merge template-style exclusions: passed excluded_ids + global/screen/URL
-	$excluded = array_merge(
-		(array) $args['excluded_ids'],
-		mha_unified_next_steps_base_excluded_ids()
-	);
+	// Merge template-style exclusions: passed excluded_ids + global/screen/URL; track reasons for debug
+	$excluded_reasons = []; // id => array of #Reason tags
+	$base = mha_unified_next_steps_base_excluded_ids_with_reasons();
+	$excluded = array_merge( (array) $args['excluded_ids'], $base['ids'] );
+	foreach ( $base['reasons_by_id'] as $eid => $reasons ) {
+		$excluded_reasons[ $eid ] = isset( $excluded_reasons[ $eid ] ) ? array_merge( $excluded_reasons[ $eid ], $reasons ) : $reasons;
+	}
+	foreach ( array_map( 'intval', array_filter( (array) $args['excluded_ids'] ) ) as $eid ) {
+		if ( $eid ) {
+			$excluded_reasons[ $eid ] = isset( $excluded_reasons[ $eid ] ) ? array_merge( $excluded_reasons[ $eid ], [ '#TemplateExcluded' ] ) : [ '#TemplateExcluded' ];
+		}
+	}
 	$excluded = array_unique( array_map( 'intval', array_filter( $excluded ) ) );
 
 	$demo_steps = (array) $args['demo_steps'];
@@ -965,10 +1012,20 @@ function mha_build_unified_next_steps_pool( $args ) {
 		$demo_data_screen = get_mha_demo_steps( $args['user_screen_result']['screen_id'], $answered_demos );
 		$demo_data_global = get_mha_demo_steps( 'options', $answered_demos );
 		if ( ! empty( $demo_data_screen['excluded_ids'] ) ) {
-			$excluded = array_merge( $excluded, (array) $demo_data_screen['excluded_ids'] );
+			foreach ( array_map( 'intval', array_filter( (array) $demo_data_screen['excluded_ids'] ) ) as $eid ) {
+				if ( $eid ) {
+					$excluded[] = $eid;
+					$excluded_reasons[ $eid ] = isset( $excluded_reasons[ $eid ] ) ? array_merge( $excluded_reasons[ $eid ], [ '#DemoScreenExcluded' ] ) : [ '#DemoScreenExcluded' ];
+				}
+			}
 		}
 		if ( ! empty( $demo_data_global['excluded_ids'] ) ) {
-			$excluded = array_merge( $excluded, (array) $demo_data_global['excluded_ids'] );
+			foreach ( array_map( 'intval', array_filter( (array) $demo_data_global['excluded_ids'] ) ) as $eid ) {
+				if ( $eid ) {
+					$excluded[] = $eid;
+					$excluded_reasons[ $eid ] = isset( $excluded_reasons[ $eid ] ) ? array_merge( $excluded_reasons[ $eid ], [ '#DemoGlobalExcluded' ] ) : [ '#DemoGlobalExcluded' ];
+				}
+			}
 		}
 		$demo_steps_screen = isset( $demo_data_screen['demo_steps'] ) ? (array) $demo_data_screen['demo_steps'] : [];
 		$demo_steps_global = isset( $demo_data_global['demo_steps'] ) ? (array) $demo_data_global['demo_steps'] : [];
@@ -980,10 +1037,14 @@ function mha_build_unified_next_steps_pool( $args ) {
 		}
 	}
 	$excluded = array_unique( $excluded );
+	foreach ( $excluded_reasons as $eid => $reasons ) {
+		$excluded_reasons[ $eid ] = array_values( array_unique( $reasons ) );
+	}
 	$screen_id = isset( $args['user_screen_result']['screen_id'] ) ? (int) $args['user_screen_result']['screen_id'] : 0;
 
 	// Conditional featured next steps: use order from GF entry when stored (no shuffle on refresh); only shuffle on first display
 	$conditional_used_links = [];
+	$conditional_overflow_links = []; // next_step_links links cut by max_per_group (for debug #FeaturedLinkOverflow)
 	$conditional_link_group_map = []; // link_id => group title (for #LinkGroup_XYZ source tag when from stored data)
 	$additional_result_text = [];
 	$is_partner_source = false;
@@ -994,6 +1055,22 @@ function mha_build_unified_next_steps_pool( $args ) {
 			$decoded = is_string( $stored_fns ) ? json_decode( $stored_fns ) : $stored_fns;
 			if ( $decoded && isset( $decoded->used_links ) && is_array( $decoded->used_links ) ) {
 				$conditional_used_links = array_map( 'intval', array_filter( $decoded->used_links ) );
+			}
+			if ( $decoded && isset( $decoded->overflow_links ) && is_array( $decoded->overflow_links ) ) {
+				$conditional_overflow_links = array_map( 'intval', array_filter( $decoded->overflow_links ) );
+			}
+			// When stored data has no overflow_links, compute FNS data once to get skipped links for debug display
+			if ( empty( $conditional_overflow_links ) && ( ! empty( $args['debug'] ) || ! empty( $args['return_skipped_links'] ) ) ) {
+				$fns_args_debug = [
+					'user_screen_result' => $args['user_screen_result'],
+					'result_title'       => isset( $args['user_screen_result']['result_title'] ) ? $args['user_screen_result']['result_title'] : '',
+					'answered_demos'     => $args['answered_demos'],
+					'url_params'         => [ 'layout' => is_array( $args['layout'] ) ? implode( ',', $args['layout'] ) : (string) $args['layout'] ],
+				];
+				$fns_debug = mha_unified_featured_next_steps_data( $fns_args_debug );
+				if ( $fns_debug && ! empty( $fns_debug['overflow_links'] ) && is_array( $fns_debug['overflow_links'] ) ) {
+					$conditional_overflow_links = array_map( 'intval', array_filter( $fns_debug['overflow_links'] ) );
+				}
 			}
 			if ( $decoded && isset( $decoded->link_groups ) && ( is_array( $decoded->link_groups ) || is_object( $decoded->link_groups ) ) ) {
 				$lg = (array) $decoded->link_groups;
@@ -1011,7 +1088,23 @@ function mha_build_unified_next_steps_pool( $args ) {
 				}
 			}
 			if ( $decoded && ! empty( $decoded->additional_result_text ) && is_array( $decoded->additional_result_text ) ) {
-				$additional_result_text = $decoded->additional_result_text;
+				// Normalize: stored data may be array of strings (legacy) or array of { link_group_title, text } (object or array from JSON)
+				$additional_result_text = [];
+				foreach ( $decoded->additional_result_text as $el ) {
+					if ( is_array( $el ) && array_key_exists( 'text', $el ) ) {
+						$additional_result_text[] = [
+							'link_group_title' => isset( $el['link_group_title'] ) ? trim( (string) $el['link_group_title'] ) : '',
+							'text'             => $el['text'],
+						];
+					} elseif ( is_object( $el ) && isset( $el->text ) ) {
+						$additional_result_text[] = [
+							'link_group_title' => isset( $el->link_group_title ) ? trim( (string) $el->link_group_title ) : '',
+							'text'             => $el->text,
+						];
+					} else {
+						$additional_result_text[] = [ 'link_group_title' => '', 'text' => (string) $el ];
+					}
+				}
 			}
 			if ( $decoded && ! empty( $decoded->is_partner_source ) ) {
 				$is_partner_source = true;
@@ -1030,8 +1123,14 @@ function mha_build_unified_next_steps_pool( $args ) {
 				if ( ! empty( $fns_result['used_links'] ) && is_array( $fns_result['used_links'] ) ) {
 					$conditional_used_links = array_map( 'intval', array_filter( $fns_result['used_links'] ) );
 				}
+				if ( ! empty( $fns_result['overflow_links'] ) && is_array( $fns_result['overflow_links'] ) ) {
+					$conditional_overflow_links = array_map( 'intval', array_filter( $fns_result['overflow_links'] ) );
+				}
 				if ( ! empty( $fns_result['additional_result_text'] ) && is_array( $fns_result['additional_result_text'] ) ) {
 					$additional_result_text = $fns_result['additional_result_text'];
+				}
+				if ( ! empty( $fns_result['link_group_map'] ) && is_array( $fns_result['link_group_map'] ) ) {
+					$conditional_link_group_map = $fns_result['link_group_map'];
 				}
 				if ( ! empty( $fns_result['is_partner_source'] ) ) {
 					$is_partner_source = true;
@@ -1039,6 +1138,8 @@ function mha_build_unified_next_steps_pool( $args ) {
 			}
 		}
 	}
+
+	// Skipped links (next_step_links overflow) are returned in skipped_links only; they are not added to excluded_ids so they do not appear in Excluded links.
 
 	// 1. Include IDs from the URL
 	if ( get_query_var( 'include_ids' ) ) {
@@ -1070,16 +1171,18 @@ function mha_build_unified_next_steps_pool( $args ) {
 			//$source_tags = '#FeaturedNextSteps';
 			$source_tags = $is_partner_source ? '#FeaturedNextSteps_Partner' : '#FeaturedNextSteps_Screen';
 			if ( ! empty( $conditional_link_group_map[ $id ] ) ) {
-				$source_tags .= ' #LinkGroup_' . mha_unified_next_steps_sanitize_group_tag( $conditional_link_group_map[ $id ] );
+				$source_tags .= ' #LinkGroup_' . ( sanitize_title( $conditional_link_group_map[ $id ] ) ?: 'unknown' );
 			}
+			$link_group_title = isset( $conditional_link_group_map[ $id ] ) ? trim( (string) $conditional_link_group_map[ $id ] ) : '';
 			$pool[] = [
-				'id'          => $id,
-				'type'        => 'manual',
-				'title'       => get_the_title( $id ),
-				'url'         => get_the_permalink( $id ),
-				'target'      => $target,
-				'score'       => null,
-				'score_debug' => $source_tags,
+				'id'               => $id,
+				'type'             => 'manual',
+				'title'            => get_the_title( $id ),
+				'url'              => get_the_permalink( $id ),
+				'target'           => $target,
+				'score'            => null,
+				'score_debug'      => $source_tags,
+				'link_group_title' => $link_group_title,
 			];
 			$used[] = $id;
 		}
@@ -1223,11 +1326,38 @@ function mha_build_unified_next_steps_pool( $args ) {
 		$used[] = $item['id'];
 	}
 
+	// Cut from featured slice (same logic as mha_get_unified_next_steps): pool items past featured_count that are manual types don't go to "related"; add to excluded for debug with #CutFromFeatured
+	$manual_types = [ 'manual', 'result_manual', 'include_ids' ];
+	$featured_count = (int) $args['featured_count'];
+	$manual_excluded_from_related_ids = [];
+	if ( $featured_count > 0 && count( $pool ) > $featured_count ) {
+		$rest_raw = array_slice( $pool, $featured_count );
+		foreach ( $rest_raw as $item ) {
+			$type = isset( $item['type'] ) ? $item['type'] : '';
+			if ( in_array( $type, $manual_types, true ) && ! empty( $item['id'] ) ) {
+				$mid = (int) $item['id'];
+				$manual_excluded_from_related_ids[] = $mid;
+				if ( ! in_array( $mid, $excluded, true ) ) {
+					$excluded[] = $mid;
+					$excluded_reasons[ $mid ] = isset( $excluded_reasons[ $mid ] ) ? array_merge( $excluded_reasons[ $mid ], [ '#CutFromFeatured' ] ) : [ '#CutFromFeatured' ];
+				}
+			}
+		}
+		$excluded = array_unique( $excluded );
+		foreach ( array_unique( $manual_excluded_from_related_ids ) as $eid ) {
+			$excluded_reasons[ $eid ] = array_values( array_unique( $excluded_reasons[ $eid ] ) );
+		}
+	}
+
 	return [
-		'pool'                  => $pool,
-		'used_ids'              => $used,
-		'additional_result_text'=> $additional_result_text,
-		'is_partner_source'     => $is_partner_source,
+		'pool'                            => $pool,
+		'used_ids'                        => $used,
+		'excluded_ids'                    => $excluded,
+		'excluded_reasons'                => $excluded_reasons,
+		'manual_excluded_from_related_ids' => array_values( array_unique( $manual_excluded_from_related_ids ) ),
+		'skipped_links'                   => array_values( array_unique( $conditional_overflow_links ) ),
+		'additional_result_text'           => $additional_result_text,
+		'is_partner_source'               => $is_partner_source,
 	];
 }
 
@@ -1235,7 +1365,7 @@ function mha_build_unified_next_steps_pool( $args ) {
  * Get unified next steps: one pool, split into featured (top N) and/or related (rest + fill).
  *
  * @param array $args  user_screen_result, excluded_ids, demo_steps, next_step_manual, espanol, layout, iframe_var, partner_var, answered_demos, featured_count, max_related_total, return_parts ('both'|'featured_only'|'related_only'), already_displayed_ids, related_skip
- * @return array [ 'featured' => ..., 'related' => ..., 'used_ids' => ..., 'displayed_ids' => ... ]
+ * @return array [ 'featured' => ..., 'related' => ..., 'used_ids' => ..., 'displayed_ids' => ..., 'manual_excluded_from_related' => ... ]
  */
 function mha_get_unified_next_steps( $args ) {
 	$defaults = [
@@ -1270,7 +1400,20 @@ function mha_get_unified_next_steps( $args ) {
 	$related_skip   = (int) $args['related_skip'];
 
 	$featured = array_slice( $pool, 0, $featured_count );
-	$rest     = array_slice( $pool, $featured_count );
+	$rest_raw = array_slice( $pool, $featured_count );
+
+	// Manual items (manual, result_manual, include_ids) do not trickle down into related; only demo and scored do.
+	$manual_types = [ 'manual', 'result_manual', 'include_ids' ];
+	$manual_excluded_from_related = [];
+	$rest = [];
+	foreach ( $rest_raw as $item ) {
+		$type = isset( $item['type'] ) ? $item['type'] : '';
+		if ( in_array( $type, $manual_types, true ) ) {
+			$manual_excluded_from_related[] = $item;
+		} else {
+			$rest[] = $item;
+		}
+	}
 
 	$displayed = [];
 	if ( $return_parts !== 'related_only' ) {
@@ -1292,8 +1435,9 @@ function mha_get_unified_next_steps( $args ) {
 	$related = array_slice( $related, 0, $max_related );
 
 	$extra = [
-		'additional_result_text' => $additional_result_text,
-		'is_partner_source'      => $is_partner_source,
+		'additional_result_text'       => $additional_result_text,
+		'is_partner_source'            => $is_partner_source,
+		'manual_excluded_from_related' => $manual_excluded_from_related,
 	];
 	if ( $return_parts === 'featured_only' ) {
 		return [
@@ -1340,7 +1484,7 @@ function mha_unified_featured_group_labels() {
  * (one per type), optional group title <p>, then <ol> of items. Partner styling when is_partner_source.
  *
  * @param array $items Array of pool items (id, type, title, url, target, score?, score_debug?)
- * @param array $args  heading, show_title, layout, is_partner_source, user_screen_result, hide_group_titles, additional_result_text, debug
+ * @param array $args  heading (main h2), show_title (show main heading), hide_group_titles (hide link_group_title before each list), additional_result_text, debug
  * @return string HTML
  */
 function mha_render_unified_featured_next_steps( $items, $args = [] ) {
@@ -1362,13 +1506,24 @@ function mha_render_unified_featured_next_steps( $items, $args = [] ) {
 	$partner_class = ! empty( $args['is_partner_source'] ) ? ' partner-source' : '';
 	$out = '';
 
-	// Additional result text (same as display_featured_next_steps): from conditional featured_next_steps_test rows
+	$out .= '<div class="featured-next-steps-test-container mt-4 mb-5' . esc_attr( $partner_class ) . '">';
+
+	// 1. For each next_step_links row that passed: show additional_result_text (description of the link group) first — before "Next Steps"
 	if ( ! empty( $args['additional_result_text'] ) && is_array( $args['additional_result_text'] ) ) {
-		foreach ( $args['additional_result_text'] as $addl_text ) {
+		foreach ( $args['additional_result_text'] as $addl_item ) {
+			$link_group_title = '';
+			$addl_text = '';
+			if ( is_array( $addl_item ) && array_key_exists( 'text', $addl_item ) ) {
+				$link_group_title = isset( $addl_item['link_group_title'] ) ? trim( (string) $addl_item['link_group_title'] ) : '';
+				$addl_text = $addl_item['text'];
+			} else {
+				$addl_text = (string) $addl_item;
+			}
 			$addl_text = strip_shortcodes( $addl_text );
 			$addl_text = preg_replace( '/<script\b[^>]*>(.*?)<\/script>/is', '', $addl_text );
 			if ( $addl_text !== '' ) {
 				$out .= '<div class="featured-next-steps-test-additional-text' . esc_attr( $partner_class ) . '">';
+				// Group title is shown after "Next Steps" with the featured links, not here
 				if ( $partner_class ) {
 					$out .= '<div class="bubble round-tl cerulean normal"><div class="inner">';
 				}
@@ -1381,8 +1536,9 @@ function mha_render_unified_featured_next_steps( $items, $args = [] ) {
 		}
 	}
 
-	$out .= '<div class="featured-next-steps-test-container mt-5 mb-5' . esc_attr( $partner_class ) . '">';
-	if ( ! empty( $args['heading'] ) ) {
+	// 2. Main section heading (show_title), then for each next_step_links: link_group_title (hide_group_titles) + list
+	$out .= '<div class="featured-next-steps-section">';
+	if ( ! empty( $args['show_title'] ) && ! empty( $args['heading'] ) ) {
 		$out .= '<h2 class="section-title dark-blue bold mb-3">' . esc_html( $args['heading'] ) . '</h2>';
 	}
 
@@ -1403,31 +1559,48 @@ function mha_render_unified_featured_next_steps( $items, $args = [] ) {
 			continue;
 		}
 		$group_items = $groups[ $type ];
-		$out .= '<div class="featured-next-steps-test-group">';
-		if ( ! $args['hide_group_titles'] && isset( $labels[ $type ] ) && $labels[ $type ] !== '' && $labels[ $type ] !== 'Featured' ) {
-			$out .= '<p class="mt-4 mb-3">' . esc_html( $labels[ $type ] ) . '</p>';
-		}
-		$out .= '<ol class="next-steps list-unstyled">';
-		$count = 0;
+		// Subgroup by link_group_title: each group shows link_group_title then the next-steps list
+		$by_link_group = [];
 		foreach ( $group_items as $item ) {
-			$count++;
-			$link_class = 'button green thin round mr-3 rec-unified-featured';
-			$score_debug = '';
-			if ( current_user_can( 'manage_options' ) && $args['debug'] ) {
-				if ( isset( $item['score'] ) && $item['score'] !== null ) {
-					$pop_display = isset( $item['pop'] ) ? $item['pop'] : '—';
-					$score_debug = '<br /> <span class="small text-red">(Score: ' . (int) $item['score'] . ', Popularity: #' . esc_html( $pop_display ) . ') <br /> [' . esc_html( isset( $item['score_debug'] ) ? $item['score_debug'] : '' ) . ']</span>';
-				} elseif ( ! empty( $item['type'] ) ) {
-					// For manual/result_manual/include_ids: show source tags (#FeaturedNextSteps #LinkGroup_XYZ etc.) when set
-					$debug_content = ! empty( $item['score_debug'] ) ? $item['score_debug'] : '[' . $item['type'] . ']';
-					$score_debug = '<br /> <span class="small text-red">[' . esc_html( $debug_content ) . ']</span>';
+			$lg = isset( $item['link_group_title'] ) ? trim( (string) $item['link_group_title'] ) : '';
+			$by_link_group[ $lg ][] = $item;
+		}
+		foreach ( $by_link_group as $link_group_title => $subgroup ) {
+			$out .= '<div class="featured-next-steps-test-group">';
+			// link_group_title appears before each group's list (after the "Next Steps" h2)
+			if ( ! $args['hide_group_titles'] ) {
+				if ( $link_group_title !== '' ) {
+					$out .= '<p class="mt-4 mb-3">' . esc_html( $link_group_title ) . '</p>';
+				} elseif ( isset( $labels[ $type ] ) && $labels[ $type ] !== '' && $labels[ $type ] !== 'Featured' ) {
+					$out .= '<p class="mt-4 mb-3">' . esc_html( $labels[ $type ] ) . '</p>';
 				}
 			}
-			$out .= '<li class="link-item mb-3' . esc_attr( $partner_class ) . '"><a class="' . esc_attr( $link_class ) . '" href="' . esc_url( $item['url'] ) . '"' . $item['target'] . '>' . esc_html( $item['title'] ) . '</a>' . $score_debug . '</li>';
+			$out .= '<ol class="next-steps list-unstyled">';
+			$count = 0;
+			foreach ( $subgroup as $item ) {
+				$count++;
+				$link_class = 'button green thin round mr-3 rec-unified-featured';
+				$score_debug = '';
+				if ( current_user_can( 'manage_options' ) && $args['debug'] ) {
+					if ( isset( $item['score'] ) && $item['score'] !== null ) {
+						$pop_part = '';
+						if ( isset( $item['pop'] ) && (int) $item['pop'] !== 999 ) {
+							$pop_part = ', Popularity: ' . ( (int) $item['pop'] + 1 );
+						}
+						$score_debug = '<br /> <span class="small text-red">(Score: ' . (int) $item['score'] . $pop_part . ') <br /> [' . esc_html( isset( $item['score_debug'] ) ? $item['score_debug'] : '' ) . ']</span>';
+					} elseif ( ! empty( $item['type'] ) ) {
+						// For manual/result_manual/include_ids: show source tags (#FeaturedNextSteps #LinkGroup_XYZ etc.) when set
+						$debug_content = ! empty( $item['score_debug'] ) ? $item['score_debug'] : '[' . $item['type'] . ']';
+						$score_debug = '<br /> <span class="small text-red">[' . esc_html( $debug_content ) . ']</span>';
+					}
+				}
+				$out .= '<li class="link-item mb-3' . esc_attr( $partner_class ) . '"><a class="' . esc_attr( $link_class ) . '" href="' . esc_url( $item['url'] ) . '"' . $item['target'] . '>' . esc_html( $item['title'] ) . '</a>' . $score_debug . '</li>';
+			}
+			$out .= '</ol>';
+			$out .= '</div>';
 		}
-		$out .= '</ol>';
-		$out .= '</div>';
 	}
+	$out .= '</div>'; // .featured-next-steps-section
 
 	$out .= '</div>';
 	return $out;
@@ -1466,12 +1639,15 @@ function mha_render_unified_related_articles( $items, $args = [] ) {
 	// Same grouping structure as display_featured_next_steps: container > featured-next-steps-test-group > list
 	$out .= '<div class="featured-next-steps-test-container">';
 	$out .= '<div class="featured-next-steps-test-group">';
-	$out .= '<ol class="next-steps two-column">';
+	$out .= '<ol class="next-steps masonry">';
 	foreach ( $items as $item ) {
 		$score_debug = '';
 		if ( current_user_can( 'manage_options' ) && $args['debug'] ) {
-			$pop_display = isset( $item['pop'] ) ? $item['pop'] : '—';
-			$score_debug = '<br /> <span class="small text-red">(Score: ' . (int) $item['score'] . ', Popularity: #' . esc_html( $pop_display ) . ') <br /> [' . esc_html( isset( $item['score_debug'] ) ? $item['score_debug'] : '' ) . ']</span>';
+			$pop_part = '';
+			if ( isset( $item['pop'] ) && (int) $item['pop'] !== 999 ) {
+				$pop_part = ', Popularity: ' . ( (int) $item['pop'] + 1 );
+			}
+			$score_debug = '<br /> <span class="small text-red">(Score: ' . (int) $item['score'] . $pop_part . ') <br /> [' . esc_html( isset( $item['score_debug'] ) ? $item['score_debug'] : '' ) . ']</span>';
 		}
 		$out .= '<li class="link-item mb-4"><a class="dark-gray plain rec-unified-related" href="' . esc_url( $item['url'] ) . '"' . $item['target'] . '>' . esc_html( $item['title'] ) . '</a>' . $score_debug . '</li>';
 	}

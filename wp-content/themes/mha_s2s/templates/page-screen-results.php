@@ -1115,8 +1115,10 @@ else:
             'answered_demos'     => $user_screen_result['answered_demos'],
             'limit'              => 50,
             'debug'              => true,
+            'featured_count'     => 4,
         );
         $pool_built = mha_build_unified_next_steps_pool( $pool_debug_args );
+        $featured_count_debug = isset( $pool_debug_args['featured_count'] ) ? (int) $pool_debug_args['featured_count'] : 4;
         $screen_id_debug = isset( $user_screen_result['screen_id'] ) ? (int) $user_screen_result['screen_id'] : 0;
         ?>
         <div class="wrap narrow mb-5 pt-5 mt-5 admin-pool-debug">
@@ -1125,35 +1127,129 @@ else:
             </button>
 
             <div class="collapse mt-3" id="adminNextStepsDebug">
-                <h2 class="section-title dark-blue bold mb-3 debug-title">Next Steps Link Pool</h2>
-                <?php if ( ! empty( $pool_built['pool'] ) ) : ?>
-                    <ol class="next-steps">
-                        <?php
+                <div class="card">
+                <div class="card-header"><strong>Next Steps Debug</strong></div>
+                <div class="card-body">
+                    <?php
+                    $pool_ids = ! empty( $pool_built['pool'] ) ? array_column( $pool_built['pool'], 'id' ) : [];
+                    $excluded_for_display = isset( $pool_built['excluded_ids'] ) ? (array) $pool_built['excluded_ids'] : (array) $excluded_ids;
+                    $excluded_for_display = array_unique( array_filter( array_map( 'intval', $excluded_for_display ) ) );
+                    $excluded_for_display = array_diff( $excluded_for_display, $pool_ids );
+                    $manual_excluded_from_related_ids = isset( $pool_built['manual_excluded_from_related_ids'] ) && is_array( $pool_built['manual_excluded_from_related_ids'] ) ? array_map( 'intval', $pool_built['manual_excluded_from_related_ids'] ) : array();
+                    if ( empty( $manual_excluded_from_related_ids ) && ! empty( $pool_built['pool'] ) ) {
                         foreach ( $pool_built['pool'] as $idx => $item ) {
-                            $score_info = '';
-                            if ( isset( $item['score'] ) && $item['score'] !== null ) {
-                                $score_info = ' <span class="small text-red">(Score: ' . (int) $item['score'];
-                                if ( ! empty( $item['score_debug'] ) ) {
-                                    $score_info .= ' [' . esc_html( $item['score_debug'] ) . ']';
-                                }
-                                $score_info .= ')</span>';
-                            } elseif ( ! empty( $item['type'] ) ) {
-                                // Same source tags as unified render: #FeaturedNextSteps #Screen #LinkGroup_XYZ etc.
-                                $debug_content = ! empty( $item['score_debug'] ) ? $item['score_debug'] : '[' . $item['type'] . ']';
-                                $score_info = ' <span class="small text-red">[' . esc_html( $debug_content ) . ']</span>';
+                            if ( $idx >= $featured_count_debug && in_array( isset( $item['type'] ) ? $item['type'] : '', array( 'manual', 'result_manual', 'include_ids' ), true ) ) {
+                                $manual_excluded_from_related_ids[] = (int) $item['id'];
                             }
-                            $type_label = isset( $item['type'] ) ? ' <span class="small text-muted">[' . esc_html( $item['type'] ) . ']</span>' : '';
-                            ?>
-                            <li class="mb-2">
-                                <a class="dark-gray plain" href="<?php echo esc_url( $item['url'] ); ?>"<?php echo $item['target']; ?>><?php echo esc_html( $item['title'] ); ?></a><br />
-                                <?php echo $type_label; ?>
-                                <?php echo $score_info; ?>
-                            </li>
-                        <?php } ?>
-                    </ol>
-                <?php else : ?>
-                    <p class="text-muted">No links in pool. Check that Screen ID above is the post that has the Featured Next Steps repeater.</p>
-                <?php endif; ?>
+                        }
+                    }
+                    $excluded_for_display = array_merge( $excluded_for_display, $manual_excluded_from_related_ids );
+                    $excluded_for_display = array_unique( array_filter( $excluded_for_display ) );
+                    $excluded_reasons = isset( $pool_built['excluded_reasons'] ) && is_array( $pool_built['excluded_reasons'] ) ? $pool_built['excluded_reasons'] : array();
+                    $skipped_links = isset( $pool_built['skipped_links'] ) && is_array( $pool_built['skipped_links'] ) ? $pool_built['skipped_links'] : array();
+                    $skipped_links = array_filter( array_map( 'intval', $skipped_links ) );
+                    $pool_count = ! empty( $pool_built['pool'] ) ? count( $pool_built['pool'] ) : 0;
+                    $excluded_count = count( $excluded_for_display );
+                    $skipped_count = count( $skipped_links );
+                    ?>
+                    <ul class="nav nav-tabs mb-3" id="adminNextStepsDebugTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="tab-pool-tab" data-toggle="tab" href="#adminDebugPool" role="tab" aria-controls="adminDebugPool" aria-selected="true">Included Links <?php echo $pool_count ? '(' . (int) $pool_count . ')' : ''; ?></a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="tab-excluded-tab" data-toggle="tab" href="#adminDebugExcluded" role="tab" aria-controls="adminDebugExcluded" aria-selected="false">Excluded Links <?php echo $excluded_count ? '(' . (int) $excluded_count . ')' : ''; ?></a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="tab-skipped-tab" data-toggle="tab" href="#adminDebugSkipped" role="tab" aria-controls="adminDebugSkipped" aria-selected="false">Skipped Links <?php echo $skipped_count ? '(' . (int) $skipped_count . ')' : ''; ?></a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="adminNextStepsDebugTabContent">
+                        <div class="tab-pane fade show active" id="adminDebugPool" role="tabpanel" aria-labelledby="tab-pool-tab">
+                            <?php if ( ! empty( $pool_built['pool'] ) ) : ?>
+                                <ol class="next-steps">
+                                    <?php
+                                    foreach ( $pool_built['pool'] as $idx => $item ) {
+                                        $is_manual_excluded = ( $idx >= $featured_count_debug && in_array( isset( $item['type'] ) ? $item['type'] : '', array( 'manual', 'result_manual', 'include_ids' ), true ) );
+                                        $score_info = '';
+                                        if ( $is_manual_excluded ) {
+                                            $score_info = ' <span class="small text-red">[excluded]</span>';
+                                            $type_label = isset( $item['type'] ) ? ' <span class="small text-muted">[' . esc_html( $item['type'] ) . ']</span>' : '';
+                                        } elseif ( isset( $item['score'] ) && $item['score'] !== null ) {
+                                            $type_label = isset( $item['type'] ) ? ' <span class="small text-muted">[' . esc_html( $item['type'] ) . ']</span>' : '';
+                                            $pop_part = '';
+                                            if ( isset( $item['pop'] ) && (int) $item['pop'] !== 999 ) {
+                                                $pop_part = ', Popularity: ' . ( (int) $item['pop'] + 1 );
+                                            }
+                                            $score_info = ' <span class="small text-red">(Score: ' . (int) $item['score'] . $pop_part;
+                                            if ( ! empty( $item['score_debug'] ) ) {
+                                                $score_info .= ' [' . esc_html( $item['score_debug'] ) . ']';
+                                            }
+                                            $score_info .= ')</span>';
+                                        } elseif ( ! empty( $item['type'] ) ) {
+                                            $debug_content = ! empty( $item['score_debug'] ) ? $item['score_debug'] : '[' . $item['type'] . ']';
+                                            $score_info = ' <span class="small text-red">[' . esc_html( $debug_content ) . ']</span>';
+                                            $type_label = isset( $item['type'] ) ? ' <span class="small text-muted">[' . esc_html( $item['type'] ) . ']</span>' : '';
+                                        } else {
+                                            $type_label = isset( $item['type'] ) ? ' <span class="small text-muted">[' . esc_html( $item['type'] ) . ']</span>' : '';
+                                        }
+                                        ?>
+                                        <li class="mb-2">
+                                            <a class="dark-gray plain" href="<?php echo esc_url( $item['url'] ); ?>"<?php echo $item['target']; ?>><?php echo esc_html( $item['title'] ); ?></a><br />
+                                            <?php echo $type_label; ?>
+                                            <?php echo $score_info; ?>
+                                        </li>
+                                    <?php } ?>
+                                    </ol>
+                            <?php else : ?>
+                                <p class="text-muted">No links in pool. Check that Screen ID above is the post that has the Featured Next Steps repeater.</p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="tab-pane fade" id="adminDebugExcluded" role="tabpanel" aria-labelledby="tab-excluded-tab">
+                            <?php if ( ! empty( $excluded_for_display ) ) : ?>
+                                <ul class="next-steps">
+                                    <?php foreach ( $excluded_for_display as $ex_id ) : ?>
+                                        <?php if ( get_post_status( $ex_id ) !== false ) : ?>
+                                            <?php
+                                            $reason_tags = isset( $excluded_reasons[ $ex_id ] ) ? (array) $excluded_reasons[ $ex_id ] : array();
+                                            if ( in_array( (int) $ex_id, $manual_excluded_from_related_ids, true ) && ! in_array( '#CutFromFeatured', $reason_tags, true ) ) {
+                                                $reason_tags[] = '#CutFromFeatured';
+                                            }
+                                            $reason_tags = array_unique( $reason_tags );
+                                            ?>
+                                            <li class="mb-2">
+                                                <a class="dark-gray plain" href="<?php echo esc_url( get_the_permalink( $ex_id ) ); ?>"><?php echo esc_html( get_the_title( $ex_id ) ); ?></a><br />
+                                                <span class="small text-muted">[excluded]</span>
+                                                <?php if ( ! empty( $reason_tags ) ) : ?>
+                                                    <span class="small text-red"> <?php echo esc_html( implode( ' ', $reason_tags ) ); ?></span>
+                                                <?php endif; ?>
+                                            </li>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else : ?>
+                                <p class="text-muted">No excluded links.</p>
+                            <?php endif; ?>
+                        </div>
+                        <div class="tab-pane fade" id="adminDebugSkipped" role="tabpanel" aria-labelledby="tab-skipped-tab">
+                            <?php if ( ! empty( $skipped_links ) ) : ?>
+                                <ul class="next-steps">
+                                    <?php foreach ( $skipped_links as $skip_id ) : ?>
+                                        <?php if ( get_post_status( $skip_id ) !== false ) : ?>
+                                            <li class="mb-2">
+                                                <a class="dark-gray plain" href="<?php echo esc_url( get_the_permalink( $skip_id ) ); ?>"><?php echo esc_html( get_the_title( $skip_id ) ); ?></a><br />
+                                                <span class="small text-muted">[skipped]</span>
+                                                <span class="small text-red"> #FeaturedLinkOverflow</span>
+                                            </li>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else : ?>
+                                <p class="text-muted">No skipped links (next_step_links overflow).</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                </div>
             </div>
         </div>
         <?php
