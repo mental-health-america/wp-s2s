@@ -410,7 +410,7 @@ else:
         <div id="screen-result-content" class="pt-4">
 
             <?php
-                if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d', 'result_buttons_below'), $layout))){
+                if(!count(array_intersect( array('result_buttons_below'), $layout))){
                     get_template_part( 'templates/results/action', 'email_display', array( 
                         'width' => 'normal', 
                         'show' => 0, 
@@ -662,127 +662,6 @@ else:
         <?php 
             /**
              * A/B Variant
-             * Layout: actions_b
-             */
-            if(in_array('actions_b', $layout)):
-            ?>
-                <div class="wrap narrow" id="layout-action_b">
-                    <div id="screen-result-buttons-next_steps" class="button-grid pt-3 pb-3 px-0">
-                        <?php 
-                            if( !get_field('survey', $user_screen_result['screen_id']) || get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                                get_template_part( 'templates/results/action', 'email_button', array( 
-                                    'espanol' => $espanol 
-                                    ) ); 
-                                get_template_part( 'templates/results/action', 'take_test', array( 
-                                    'url' => $take_another_url, 
-                                    'espanol' => $espanol 
-                                ) ); 
-                            endif; 
-                        ?>
-                    </div>
-                    <?php 
-                        get_template_part( 'templates/results/action', 'email_display', array( 
-                            'width' => 'normal', 
-                            'show' => 0, 
-                            'screen_id' => $user_screen_result['screen_id'], 
-                            'user_screen_id' => $user_screen_id,
-                            'espanol' => $espanol,
-                            'iframe_var' => $iframe_var,
-                            'entry_id' => $user_screen_result['result_id']
-                        )); 
-                    ?>
-                </div>        
-            <?php 
-            endif; 
-        ?>
-
-        <?php 
-            /**
-             * A/B Variant
-             * Layout: actions_c
-             */
-            if(in_array('actions_c', $layout)): 
-            ?>        
-            <div class="wrap narrow" id="layout-action_c">
-                <div id="screen-result-buttons-next_steps" class="button-grid pt-3 pb-3 px-0">
-                    <?php 
-                        if( !get_field('survey', $user_screen_result['screen_id']) || get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                            get_template_part( 'templates/results/action', 'login_email_button', array( 
-                                'espanol' => $espanol, 
-                                'with_email' => true 
-                            ) ); 
-                            get_template_part( 'templates/results/action', 'take_test', array( 
-                                'url' => $take_another_url, 
-                                'espanol' => $espanol 
-                            ) ); 
-                        endif; 
-                    ?>
-                </div>
-                <div id="login-email-results" class="collapse">
-                    <?php 
-                        get_template_part( 'templates/results/action', 'login_email_display', array( 
-                            'espanol' => $espanol, 
-                            'id' => $user_screen_result['result_id'], 
-                            'with_email' => true 
-                        ) );
-                        get_template_part( 'templates/results/action', 'email_display', array( 
-                            'width' => 'normal', 
-                            'show' => 1, 
-                            'espanol' => $espanol, 
-                            'screen_id' => $user_screen_result['screen_id'], 
-                            'user_screen_id' => $user_screen_id,
-                            'entry_id' => $user_screen_result['result_id']
-                        ) ); 
-                    ?>
-                </div>
-            </div>        
-        <?php endif; ?>
-
-        <?php 
-            /**
-             * A/B Variant
-             * Layout: actions_d
-             */
-            if(in_array('actions_d', $layout)): 
-            ?>          
-            <div class="wrap narrow" id="layout-action_d">
-                <div id="screen-result-buttons-next_steps" class="button-grid pt-3 pb-3 px-0">
-                    <?php 
-                        if( !get_field('survey', $user_screen_result['screen_id']) || get_field('show_survey_results', $user_screen_result['screen_id']) ):
-                            if(!is_user_logged_in()):
-                                get_template_part( 'templates/results/action', 'login_button', array( 
-                                    'espanol' => $espanol 
-                                ) ); 
-                            endif;
-                            get_template_part( 'templates/results/action', 'email_button', array( 
-                                'espanol' => $espanol 
-                            ) ); 
-                            get_template_part( 'templates/results/action', 'take_test', array( 
-                                'url' => $take_another_url, 
-                                'espanol' => $espanol 
-                            ) ); 
-                        endif; 
-                    ?>
-                </div>
-                <div id="login-email-results" class="collapse">
-                    <?php get_template_part( 'templates/results/action', 'login_email_display', array( 'espanol' => $espanol, 'id' => $user_screen_result['result_id'], 'with_email' => false) ); ?>
-                </div>
-                <?php 
-                    get_template_part( 'templates/results/action', 'email_display', array( 
-                        'width' => 'normal', 
-                        'show' => 0, 
-                        'espanol' => $espanol,
-                        'screen_id' => $user_screen_result['screen_id'], 
-                        'user_screen_id' => $user_screen_id,
-                        'entry_id' => $user_screen_result['result_id']
-                    ) ); 
-                ?>
-            </div>        
-        <?php endif; ?>
-
-        <?php 
-            /**
-             * A/B Variant
              * Layout: actions_ns_top
              */
             if(!in_array('actions_ns_top_r', $layout) && !$displayed_featured_links):     
@@ -871,37 +750,7 @@ else:
             </div>
             </div>
             -->
-        <?php endif; // Hide 'actions_ns_top_r' ?>
-
-        <?php 
-            /**
-             * A/B Variant
-             * Layout: actions_e
-             */
-            if(in_array('actions_e', $layout)): 
-                if(!is_user_logged_in()):
-                ?>          
-                <div class="wrap normal mb-4" id="layout-action_e">
-                    <div class="bubble round-tl mint normal">
-                    <div class="inner">
-                        <h2>Sign Up</h2>
-                        <p>Did you know you can track your Mental Health Test results over time?</p>
-                        <?php
-                            if($iframe_var){    
-                                $login_target = ' target="_blank"';
-                            } else {
-                                $login_target = '';
-                            }
-                        ?>
-                        <a class="append-thought-id button teal round"<?php echo $login_target; ?> href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$user_screen_result['result_id'] ?>">Log In or Create Account</a>
-                    </div>
-                    </div>
-                </div>        
-                <?php 
-                endif;
-            endif; 
-        ?>
-        
+        <?php endif; // Hide 'actions_ns_top_r' ?>       
         
         <?php 
             /**
