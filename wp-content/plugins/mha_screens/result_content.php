@@ -263,7 +263,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
             if($ya['type'] == 'extra'){
                 $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-12 text-gray">'.$temp_answer.'</div></div>';
             } else {
-                $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-sm-7 col-12 text-gray">'.$ya['question'].'</div><div class="col-sm-5 col-12 bold caps text-dark-blue">'.$temp_answer.'</div></div>';
+                $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-sm-7 col-12 text-gray">'.$ya['question'].'</div><div class="col-sm-5 col-12 bold text-dark-blue">'.$temp_answer.'</div></div>';
             }
         }
 

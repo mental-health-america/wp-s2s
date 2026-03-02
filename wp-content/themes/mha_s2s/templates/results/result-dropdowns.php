@@ -15,7 +15,7 @@
 
 <div class="bubble thick light-teal bubble-border round-tl montserrat mb-4 collapse anchor-content" id="your-answers">
 <div class="inner small">
-    <div class="container-fluid p-0">
+    <div class="container-fluid p-0 noto">
         <?php 
             echo ($espanol ? '<h3 class="section-title dark-teal mb-4">Sus respuestas</h3>' : '<h3 class="section-title dark-teal mb-4">Your Answers</h3>');
             echo $user_screen_result['your_answers']; 

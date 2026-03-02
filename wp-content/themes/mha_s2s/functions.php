@@ -127,8 +127,8 @@ function mha_s2s_scripts() {
 	wp_enqueue_script( 'mha_s2s-sticky', get_template_directory_uri() . '/assets/js/jquery.sticky-sidebar.min.js', array(), '1.1.2_ck.1', true );
 
 	// Load the html5 shiv.
-	wp_enqueue_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '3.7.3' );
-	wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
+	// wp_enqueue_script( 'html5', get_theme_file_uri( '/assets/js/html5.js' ), array(), '3.7.3' );
+	// wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
 	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20250718', true );
@@ -538,6 +538,61 @@ function mha_s2s_query_vars( $qvars ) {
 }
 add_filter( 'query_vars', 'mha_s2s_query_vars' );
 
+/**
+ * Get custom title for page-screen-results.php when the Gravity Form title contains "survey".
+ * Uses screen_id (from sid suffix) as the form ID and GFAPI::get_form() to get the form title.
+ */
+function mha_s2s_get_survey_results_title() {
+	if ( ! is_page_template( 'templates/page-screen-results.php' ) ) {
+		return null;
+	}
+	$sid = get_query_var( 'sid' );
+	if ( empty( $sid ) || ! is_string( $sid ) ) {
+		return null;
+	}
+	$sid_clean = str_replace( '_ref', '', $sid );
+	$parts = explode( '_', $sid_clean );
+	$suffix = end( $parts );
+	if ( ! is_numeric( $suffix ) ) {
+		return null;
+	}
+	$screen_id = (int) $suffix;
+	if ( ! class_exists( 'GFAPI' ) ) {
+		return null;
+	}
+	$form = GFAPI::get_form( $screen_id );
+	if ( ! $form || is_wp_error( $form ) || empty( $form['title'] ) ) {
+		return null;
+	}
+	$form_title = $form['title'];
+	if ( stripos( $form_title, 'survey' ) === false ) {
+		return null;
+	}
+	return 'Thank you for completing this survey!';
+}
+
+/** Core document title (when Yoast is not overriding). */
+function mha_s2s_document_title_survey_results( $title_parts ) {
+	$custom = mha_s2s_get_survey_results_title();
+	if ( $custom === null ) {
+		return $title_parts;
+	}
+	$title_parts['title'] = $custom;
+	return $title_parts;
+}
+add_filter( 'document_title_parts', 'mha_s2s_document_title_survey_results', 10, 1 );
+
+/** Yoast SEO: override title so survey results use the same custom title. */
+function mha_s2s_yoast_title_survey_results( $title ) {
+	$custom = mha_s2s_get_survey_results_title();
+	if ( $custom === null ) {
+		return $title;
+	}
+	return $custom;
+}
+add_filter( 'wpseo_title', 'mha_s2s_yoast_title_survey_results', 10, 1 );
+
+// Get an array of values from the layout query var
 function get_layout_array( $vars ){
 	$arr = explode(',', get_query_var('layout'));
 	return $arr;
