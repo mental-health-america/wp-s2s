@@ -842,7 +842,7 @@ function mha_featured_next_steps_data( $args ){
         //$max_links = $total_result_groups > 1 ? 2 : 4;
 
         // Not all groups have links, so we only want to count those
-        $groups_with_links = 0; 
+        $groups_with_links = 0;
         if(isset($return['results']) && $return['results']):
             foreach($return['results'] as $r){
                 if(isset($r['links'])){
@@ -850,30 +850,73 @@ function mha_featured_next_steps_data( $args ){
                 }
             }
         endif;
-        $max_links = $groups_with_links > 1 ? 2 : 4;
-
+        // When multiple groups: take 2 per group first, then top up to 4 total from groups that have more (so 1 manual + 3 link group is possible; 3 manual + 3 link group = 2+2)
+        $max_links_single_group = 4;
         $count = 1;
         if(isset($return['results']) && $return['results']):
-            foreach($return['results'] as $r){
-                $i = 1;
-                while($i <= $max_links){
-                    if(isset($r['links'][$i])){ // In case there are less than the $max_links
-                        $used_links[] = $r['links'][$i];
-                        $link_groups[$r['group_title']][$count] = $r['links'][$i];
-                        // Store partner status with the link group
-                        if(isset($r['partner_next_steps'])) {
-                            $link_groups['partner_source'][$count] = $r['partner_next_steps'];
+            if ( $groups_with_links > 1 ) {
+                // Phase 1: take up to 2 from each group
+                foreach($return['results'] as $r){
+                    $group_link_count = isset($r['links']) && is_array($r['links']) ? count($r['links']) : 0;
+                    $take = min( 2, $group_link_count );
+                    for ( $i = 1; $i <= $take; $i++ ) {
+                        if ( isset( $r['links'][$i] ) ) {
+                            $used_links[] = $r['links'][$i];
+                            $link_groups[$r['group_title']][$count] = $r['links'][$i];
+                            if ( isset( $r['partner_next_steps'] ) ) {
+                                $link_groups['partner_source'][$count] = $r['partner_next_steps'];
+                            }
+                            $count++;
                         }
-                        $count++;
                     }
-                    $i++;
+                }
+                // Phase 2: if total < 4, add one more from any group that has a 3rd link (until we reach 4)
+                $total_used_links = count( $used_links );
+                $slots_needed = 4 - $total_used_links;
+                if ( $slots_needed > 0 ) {
+                    foreach ( $return['results'] as $r ) {
+                        if ( $slots_needed <= 0 ) break;
+                        $group_link_count = isset($r['links']) && is_array($r['links']) ? count($r['links']) : 0;
+                        $already_taken = isset($link_groups[$r['group_title']]) ? count($link_groups[$r['group_title']]) : 0;
+                        if ( $already_taken >= 2 && $group_link_count >= 3 && isset($r['links'][3]) ) {
+                            $used_links[] = $r['links'][3];
+                            $link_groups[$r['group_title']][$count] = $r['links'][3];
+                            if ( isset( $r['partner_next_steps'] ) ) {
+                                $link_groups['partner_source'][$count] = $r['partner_next_steps'];
+                            }
+                            $count++;
+                            $slots_needed--;
+                        }
+                    }
+                }
+            } else {
+                // Single group: take up to 4
+                foreach($return['results'] as $r){
+                    $group_link_count = isset($r['links']) && is_array($r['links']) ? count($r['links']) : 0;
+                    $max_links_this_group = min( $max_links_single_group, $group_link_count );
+                    $i = 1;
+                    while ( $i <= $max_links_this_group ) {
+                        if ( isset( $r['links'][$i] ) ) {
+                            $used_links[] = $r['links'][$i];
+                            $link_groups[$r['group_title']][$count] = $r['links'][$i];
+                            if ( isset( $r['partner_next_steps'] ) ) {
+                                $link_groups['partner_source'][$count] = $r['partner_next_steps'];
+                            }
+                            $count++;
+                        }
+                        $i++;
+                    }
                 }
             }
         endif;
 
         // Calculate variables needed for extra links section
         $total_used_links = count($used_links);
-        $count_diff = $max_links - $total_used_links;
+        // Total desired = 4 (fill remaining with Additional Resources if needed)
+        $total_desired_links = 4;
+        $count_diff = max(0, $total_desired_links - $total_used_links);
+        // For payload: when multiple groups we now allow up to 3 per group if group has ≤3 links
+        $max_links = $groups_with_links > 1 ? 3 : 4;
         $extra_links = [];
         $extra_links_ids = null;
         $original_count = $count;
@@ -886,8 +929,8 @@ function mha_featured_next_steps_data( $args ){
             $overflow_conditional_link_ids = array_values(array_diff($return['all_conditional_link_ids'], $used_link_ids_flat));
         }
 
-        // Call related_articles only when short on links (overflow is used by template's related_articles call, not here)
-        if($total_used_links < $max_links && !$is_partner_source){
+        // Call related_articles only when short on links (fill to total_desired_links)
+        if($count_diff > 0 && !$is_partner_source){
 
             $demo_steps = [];
             $excluded_ids = []; // Initialize excluded_ids array
@@ -1029,23 +1072,19 @@ function display_featured_next_steps( $args ){
     $return_html = '';
     $count = 1;
 
-    // Result Text
+    // Result Text (link_group_title is not shown here — only with featured-next-steps-test-group below)
     if(!empty($args['additional_result_text'])){
         foreach($args['additional_result_text'] as $item){
             // Support both { group_title, text } and legacy plain string
-            $group_title = is_array($item) && isset($item['group_title']) ? $item['group_title'] : (is_object($item) && isset($item->group_title) ? $item->group_title : '');
-            $addl_text   = is_array($item) && isset($item['text']) ? $item['text'] : (is_object($item) && isset($item->text) ? $item->text : $item);
+            $addl_text = is_array($item) && isset($item['text']) ? $item['text'] : (is_object($item) && isset($item->text) ? $item->text : $item);
             // Strip shortcodes and scripts
             $addl_text = strip_shortcodes($addl_text);
             $addl_text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $addl_text);
-            if($addl_text != '' || !$args['hide_group_titles'] && $group_title !== ''){
+            if($addl_text != ''){
                 $partner_class = $args['is_partner_source'] ? ' partner-source' : '';
                 $return_html .= '<div class="featured-next-steps-test-additional-text'.$partner_class.'">';
                 if($partner_class){
                     $return_html .= '<div class="bubble round-tl cerulean normal"><div class="inner">';
-                }
-                if(!$args['hide_group_titles'] && $group_title !== ''){
-                    $return_html .= '<p class="mt-4 mb-3">'.esc_html($group_title).'</p>';
                 }
                 $return_html .= $addl_text;
                 if($partner_class){
@@ -1068,6 +1107,11 @@ function display_featured_next_steps( $args ){
         if($args['show_title']):
             $return_html .= '<h2 class="section-title dark-blue bold mb-3">'.$args['heading'].'</h2>';
         endif;
+        $display_group_keys = array_values(array_filter(array_keys($link_groups), function($key){ return $key !== 'partner_source'; }));
+        // Hide "Additional Resources" subtitle when it would be the only subtitle (e.g. manual link + Additional Resources only)
+        $other_group_keys = array_filter($display_group_keys, function($key){ return $key !== 'Additional Resources'; });
+        $has_true_link_group = ! empty( array_filter( $other_group_keys, function( $key ) { return trim( (string) $key ) !== ''; } ) );
+        $hide_additional_resources_heading = ! $has_true_link_group;
         $count = 1;
         foreach($link_groups as $k => $v){
             // Skip the partner status group
@@ -1076,7 +1120,9 @@ function display_featured_next_steps( $args ){
             $i = 1;
             $return_html .= '<div class="featured-next-steps-test-group">';
             if(!$args['hide_group_titles']){
-                $return_html .= '<p class="mt-4 mb-3">'.$k.'</p>';
+                if(!($k === 'Additional Resources' && $hide_additional_resources_heading)){
+                    $return_html .= '<p class="mt-4 mb-3">'.$k.'</p>';
+                }
             }
             $return_html .= '<ol>';
 
