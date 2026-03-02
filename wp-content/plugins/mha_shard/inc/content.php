@@ -559,6 +559,59 @@ function get_articles_faceted( $options ){
 	);
 	$options = wp_parse_args( $options, $defaults );
 
+	// Merge in current FacetWP search state so $options reflects the active filters (for AJAX and initial load)
+	$facetwp_vars = array();
+	if ( ! empty( $_POST['data'] ) && is_string( $_POST['data'] ) ) {
+		parse_str( $_POST['data'], $facetwp_vars );
+	} elseif ( class_exists( 'FWP' ) ) {
+		$fwp = FWP();
+		if ( $fwp && isset( $fwp->helper ) && method_exists( $fwp->helper, 'get_url_vars' ) ) {
+			$facetwp_vars = $fwp->helper->get_url_vars();
+		}
+	}
+	if ( ! empty( $facetwp_vars ) ) {
+		$options['facetwp_vars'] = $facetwp_vars;
+		if ( isset( $facetwp_vars['search'] ) && $facetwp_vars['search'] !== '' ) {
+			$options['search'] = sanitize_text_field( $facetwp_vars['search'] );
+		}
+		if ( isset( $facetwp_vars['paged'] ) && $facetwp_vars['paged'] !== '' ) {
+			$options['paged'] = max( 1, (int) $facetwp_vars['paged'] );
+		}
+		if ( ! empty( $facetwp_vars['conditions'] ) ) {
+			$options['condition_terms'] = is_array( $facetwp_vars['conditions'] ) ? array_map( 'sanitize_text_field', $facetwp_vars['conditions'] ) : array( sanitize_text_field( $facetwp_vars['conditions'] ) );
+		}
+		if ( ! empty( $facetwp_vars['tag'] ) ) {
+			$options['tag_terms'] = is_array( $facetwp_vars['tag'] ) ? array_map( 'sanitize_text_field', $facetwp_vars['tag'] ) : array( sanitize_text_field( $facetwp_vars['tag'] ) );
+		}
+		if ( ! empty( $facetwp_vars['location_search'] ) ) {
+			$loc = $facetwp_vars['location_search'];
+			$options['geo'] = is_array( $loc ) && isset( $loc[3] ) ? array( 'address' => sanitize_text_field( $loc[3] ) ) : ( is_array( $loc ) ? $loc : array( 'address' => sanitize_text_field( $loc ) ) );
+		}
+		if ( ! empty( $facetwp_vars['area_served'] ) ) {
+			$options['area_served'] = is_array( $facetwp_vars['area_served'] ) ? reset( $facetwp_vars['area_served'] ) : $facetwp_vars['area_served'];
+		}
+		if ( isset( $facetwp_vars['order'] ) ) {
+			$options['order'] = sanitize_text_field( $facetwp_vars['order'] );
+		}
+		if ( isset( $facetwp_vars['orderby'] ) ) {
+			$options['orderby'] = sanitize_text_field( $facetwp_vars['orderby'] );
+		}
+		if ( ! empty( $facetwp_vars['espanol'] ) ) {
+			$options['espanol'] = '=';
+		}
+		// Facet filter arrays (service_type, treatment_type, diy_issue, diy_type, etc.)
+		$filter_keys = array( 'service_type', 'treatment_type', 'diy_issue', 'diy_type', 'area_served' );
+		$filters = array();
+		foreach ( $filter_keys as $key ) {
+			if ( ! empty( $facetwp_vars[ $key ] ) ) {
+				$filters[ $key ] = is_array( $facetwp_vars[ $key ] ) ? array_map( 'sanitize_text_field', $facetwp_vars[ $key ] ) : array( sanitize_text_field( $facetwp_vars[ $key ] ) );
+			}
+		}
+		if ( ! empty( $filters ) ) {
+			$options['filters'] = array( $filters );
+		}
+	}
+
 	/**
 	 * Default Articles that match "Type"
 	 */
@@ -822,17 +875,50 @@ function get_articles_faceted( $options ){
 			echo '</div>';
 		}
 
-	} else {		
+	} else {
+		// Parse location for "no results" message: _location_search = lat,lng,radius,address (URL-encoded)
+		$geo_search_display = '';
+		if ( ! empty( $_GET['_location_search'] ) && is_string( $_GET['_location_search'] ) ) {
+			$decoded = urldecode( $_GET['_location_search'] );
+			$parts = explode( ',', $decoded );
+			if ( count( $parts ) >= 4 ) {
+				$geo_search_display = trim( urldecode( implode( ',', array_slice( $parts, 3 ) ) ) );
+			}
+		}
+		if ( $geo_search_display === '' && ! empty( $_POST['data'] ) && is_string( $_POST['data'] ) ) {
+			parse_str( $_POST['data'], $facet_data );
+			if ( ! empty( $facet_data['location_search'] ) ) {
+				$loc = $facet_data['location_search'];
+				if ( is_array( $loc ) && isset( $loc[3] ) ) {
+					$geo_search_display = sanitize_text_field( $loc[3] );
+				} elseif ( is_string( $loc ) ) {
+					$geo_search_display = sanitize_text_field( $loc );
+				}
+			}
+		}
+		$geo_search_display = trim( preg_replace( '/,\s*USA\s*$/i', '', $geo_search_display ) );
+		$geo_span = '<span id="geo-search-current">' . esc_html( $geo_search_display ) . '</span>';
 
 		// No articles to display messages
 		if($options['geo']){
+			/*
 			echo '<div id="resource-error" class="resource-error-message bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>';
 			echo _e('No results were found within 50 miles of your search criteria. Please try another search.');
 			echo '</strong></div></div>';
-		} else {
+			*/
 			echo '<div id="resource-error" class="resource-error-message bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>';
-			echo _e('No results matched your search criteria. Please try another search.');
+			echo sprintf( __( 'Our database does not currently include any resources near %s. To find local resources, please use the <a href="https://findtreatment.gov/" target="_blank" rel="noopener noreferrer">SAMHSA Treatment Locator</a>. To see nationwide resources, <a href="https://screening.mhanational.org/get-help/" target="_self">click here</a>.' ), $geo_span );
 			echo '</strong></div></div>';
+		} else {
+			if($options['type'] == 'provider'){
+				echo '<div id="resource-error" class="resource-error-message bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>';
+				echo sprintf( __( 'Our database does not currently include any resources near %s. To find local resources, please use the <a href="https://findtreatment.gov/" target="_blank" rel="noopener noreferrer">SAMHSA Treatment Locator</a>. To see nationwide resources, <a href="https://screening.mhanational.org/get-help/" target="_self">click here</a>.' ), $geo_span );
+				echo '</strong></div></div>';
+			} else {
+				echo '<div id="resource-error" class="resource-error-message bubble round thin raspberry" style="width: 100%;"><div class="inner text-center"><strong>';
+				echo _e('No results matched your search criteria. Please try another search.');
+				echo '</strong></div></div>';
+			}
 		}
 	}
 	
