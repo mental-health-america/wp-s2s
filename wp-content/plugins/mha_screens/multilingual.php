@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Parse browser Accept-Language header and return primary language code
  * 
@@ -362,7 +361,7 @@ function mha_enqueue_browser_language_check() {
         'mha-browser-language-check',
         $plugin_url . 'assets/browser-language-check.js',
         array(), // No dependencies
-        time(),
+        '1.0.1',
         true // Load in footer
     );
     
