@@ -35,7 +35,9 @@ function mha_featured_next_steps_data( $args ){
     // Check for screen_id's featured_next_steps field first (takes precedence)
     $screen_id = isset($args['user_screen_result']['screen_id']) ? $args['user_screen_result']['screen_id'] : null;
     $screen_featured_links = [];
-    $screen_heading = get_field('next_steps_heading', $screen_id) ?: '';
+
+    $featured_next_steps_group = get_field('featured_next_steps_test', $screen_id);
+    $screen_heading = ($featured_next_steps_group && isset($featured_next_steps_group[0]['next_steps_heading'])) ? $featured_next_steps_group[0]['next_steps_heading'] : '';
     
     if($screen_id && have_rows('featured_next_steps', $screen_id)):
         // Get heading if available
@@ -96,6 +98,7 @@ function mha_featured_next_steps_data( $args ){
         } else {
             $return['heading'] = 'Next Steps';
         }
+
     }
     
     // Use a running index so multiple conditional groups can display (e.g. layout contains actions_z AND layout contains actions_a).
@@ -1105,7 +1108,7 @@ function display_featured_next_steps( $args ){
 
         $return_html .= '<div class="featured-next-steps-test-container mt-5 mb-5">';
         if($args['show_title']):
-            $return_html .= '<h2 class="section-title dark-blue bold mb-3">'.$args['heading'].'</h2>';
+            $return_html .= '<h2 class="section-title featured-results-header dark-blue bold mb-3">'.$args['heading'].'</h2>';
         endif;
         $display_group_keys = array_values(array_filter(array_keys($link_groups), function($key){ return $key !== 'partner_source'; }));
         // Hide "Additional Resources" subtitle when it would be the only subtitle (e.g. manual link + Additional Resources only)

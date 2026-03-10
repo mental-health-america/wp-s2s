@@ -706,6 +706,12 @@ function mha_results_related_articles( $args ){
         $return_html .= '</div>';
     }
 
+    // Display featured next steps heading
+    $featured_next_steps_group = get_field('featured_next_steps_test', $user_screen_result['screen_id']);
+    $screen_heading = ($featured_next_steps_group && isset($featured_next_steps_group[0]['next_steps_heading'])) ? $featured_next_steps_group[0]['next_steps_heading'] : '';
+
+    $return['heading'] = !empty($screen_heading) ? $screen_heading : 'Next Steps';
+
     $return['html'] = $return_html;
     $return['excluded_ids'] = $args['excluded_ids'];
 
