@@ -545,12 +545,13 @@ else:
      * Featured Next Steps Test Setup
      */
     $displayed_featured_links = false;
-    if($user_screen_result['featured_next_steps_data'] && !in_array('related_v1', $layout)):
+    if(!in_array( 'related_v1', $layout) && !in_array( 'actions_hide_ns', $layout)):
+    if($user_screen_result['featured_next_steps_data']):
         echo '<div class="wrap narrow">';
         // Display the featured links
         $featured_next_steps_data = json_decode($user_screen_result['featured_next_steps_data']);
-        // Hide title if partner CTAs already showed a heading above
-        if(!empty($partner_ctas)){
+        // Hide "Next Steps" heading if partner CTAs already showed a heading above, or layout contains actions_hide_nsh
+        if(!empty($partner_ctas) || in_array('actions_hide_nsh', $layout)){
             $featured_next_steps_data->show_title = false;
         }
         echo display_featured_next_steps( $featured_next_steps_data );
@@ -564,6 +565,11 @@ else:
             $displayed_featured_links = true;
         }
         echo '</div>';
+    endif;           
+    endif; 
+
+    if(in_array( 'actions_hide_ns', $layout)):
+        $displayed_featured_links = true;    
     endif;                
     ?>
 
@@ -595,7 +601,7 @@ else:
             ):
         ?>
             <?php if(!in_array('results_header_v1', $layout)): ?><div class="wrap narrow"><?php endif; ?>
-                <h2 class="section-title dark-blue bold mb-3 mt-5">
+                <h2 class="section-title section-results-header dark-blue bold mb-3 mt-5">
                     <?php if($espanol): ?>
                         Siguientes Pasos
                     <?php else: ?>
