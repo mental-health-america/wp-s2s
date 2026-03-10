@@ -18,7 +18,7 @@
  */
 function mhaUpdateGravityFormsLanguageField(languageCode, addBrowserSuffix) {
     if (!languageCode) {
-        console.log('[MHA Browser Language] No language code provided for Gravity Forms update');
+        //console.log('[MHA Browser Language] No language code provided for Gravity Forms update');
         return;
     }
     
@@ -26,7 +26,7 @@ function mhaUpdateGravityFormsLanguageField(languageCode, addBrowserSuffix) {
     var forms = document.querySelectorAll('form[id^="gform_"]');
     
     if (forms.length === 0) {
-        console.log('[MHA Browser Language] No Gravity Forms found on page');
+        //console.log('[MHA Browser Language] No Gravity Forms found on page');
         return;
     }
     
@@ -36,7 +36,7 @@ function mhaUpdateGravityFormsLanguageField(languageCode, addBrowserSuffix) {
         newValue += '-browser';
     }
     
-    console.log('[MHA Browser Language] Updating Gravity Forms Language field to:', newValue);
+    //console.log('[MHA Browser Language] Updating Gravity Forms Language field to:', newValue);
     
     // Iterate through each form
     forms.forEach(function(form) {
@@ -57,7 +57,7 @@ function mhaUpdateGravityFormsLanguageField(languageCode, addBrowserSuffix) {
                         gformPage.classList.contains('gf_hidden') || 
                         gformPage.classList.contains('gform_page_hidden') ||
                         gformPage.hasAttribute('hidden')) {
-                        console.log('[MHA Browser Language] Skipping update - field is in hidden .gform_page');
+                        //console.log('[MHA Browser Language] Skipping update - field is in hidden .gform_page');
                         return; // Skip this field
                     }
                 }
@@ -92,14 +92,14 @@ function mhaUpdateGravityFormsLanguageField(languageCode, addBrowserSuffix) {
                     }
                 }
                 
-                console.log('[MHA Browser Language] Updated Gravity Forms Language field:', oldValue, '->', newValue, '(input:', input.id || input.name + ')');
+                //console.log('[MHA Browser Language] Updated Gravity Forms Language field:', oldValue, '->', newValue, '(input:', input.id || input.name + ')');
                 fieldUpdated = true;
             }
         });
     });
     
     if (!fieldUpdated) {
-        console.log('[MHA Browser Language] No Gravity Forms Language field found (no field with value starting with "lang--")');
+        //console.log('[MHA Browser Language] No Gravity Forms Language field found (no field with value starting with "lang--")');
     }
 }
 
@@ -112,7 +112,7 @@ function mhaGetHtmlLang() {
     var htmlLang = document.documentElement.lang;
     if (htmlLang) {
         var langCode = htmlLang.substring(0, 2).toLowerCase();
-        console.log('[MHA Browser Language] HTML lang attribute:', langCode, '(original:', htmlLang + ')');
+        //console.log('[MHA Browser Language] HTML lang attribute:', langCode, '(original:', htmlLang + ')');
         return langCode;
     }
     return '';
@@ -124,10 +124,10 @@ function mhaGetHtmlLang() {
 function mhaInitializeLanguageField() {
     var htmlLang = mhaGetHtmlLang();
     if (htmlLang) {
-        console.log('[MHA Browser Language] Initializing language field with HTML lang:', htmlLang);
+        //console.log('[MHA Browser Language] Initializing language field with HTML lang:', htmlLang);
         mhaUpdateGravityFormsLanguageField(htmlLang, false);
     } else {
-        console.log('[MHA Browser Language] No HTML lang attribute found for initialization');
+        //console.log('[MHA Browser Language] No HTML lang attribute found for initialization');
     }
 }
 
@@ -138,13 +138,13 @@ function mhaInitializeLanguageField() {
 function mhaWatchHtmlLangAttribute() {
     // Check if MutationObserver is supported
     if (typeof MutationObserver === 'undefined') {
-        console.log('[MHA Browser Language] MutationObserver not supported, cannot watch HTML lang attribute');
+        //console.log('[MHA Browser Language] MutationObserver not supported, cannot watch HTML lang attribute');
         return;
     }
     
     // Store the last known lang value
     var lastLang = document.documentElement.lang || '';
-    console.log('[MHA Browser Language] Starting to watch HTML lang attribute (initial value:', lastLang + ')');
+    //console.log('[MHA Browser Language] Starting to watch HTML lang attribute (initial value:', lastLang + ')');
     
     // Create observer to watch for attribute changes on the html element
     var observer = new MutationObserver(function(mutations) {
@@ -154,11 +154,11 @@ function mhaWatchHtmlLangAttribute() {
                 var normalizedNewLang = newLang ? newLang.substring(0, 2).toLowerCase() : '';
                 var normalizedLastLang = lastLang ? lastLang.substring(0, 2).toLowerCase() : '';
                 
-                console.log('[MHA Browser Language] HTML lang attribute changed - Old:', lastLang, 'New:', newLang);
+                //console.log('[MHA Browser Language] HTML lang attribute changed - Old:', lastLang, 'New:', newLang);
                 
                 // Only update if the language code actually changed (not just the format)
                 if (normalizedNewLang !== normalizedLastLang && normalizedNewLang) {
-                    console.log('[MHA Browser Language] Language code changed from', normalizedLastLang, 'to', normalizedNewLang, '- updating with -browser suffix');
+                    //console.log('[MHA Browser Language] Language code changed from', normalizedLastLang, 'to', normalizedNewLang, '- updating with -browser suffix');
                     // Update Gravity Forms Language field with new language and -browser suffix
                     mhaUpdateGravityFormsLanguageField(normalizedNewLang, true);
                 }
@@ -174,7 +174,7 @@ function mhaWatchHtmlLangAttribute() {
         attributeFilter: ['lang']
     });
     
-    console.log('[MHA Browser Language] HTML lang attribute observer active');
+    //console.log('[MHA Browser Language] HTML lang attribute observer active');
 }
 
 // Auto-initialize on DOM ready
@@ -189,7 +189,7 @@ function mhaWatchHtmlLangAttribute() {
         // Listen for Gravity Forms post-render events (forms loaded dynamically)
         if (typeof jQuery !== 'undefined') {
             jQuery(document).on('gform_post_render', function(event, formId, currentPage) {
-                console.log('[MHA Browser Language] Gravity Form rendered (formId:', formId, 'page:', currentPage + ')');
+                //console.log('[MHA Browser Language] Gravity Form rendered (formId:', formId, 'page:', currentPage + ')');
                 // Re-initialize language field when form is rendered
                 mhaInitializeLanguageField();
             });
