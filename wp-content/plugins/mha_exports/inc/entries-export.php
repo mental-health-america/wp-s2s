@@ -325,6 +325,8 @@ function mha_export_screen_data(){
                         $json_data['additional_result_text'] = cleanAdditionalResultText($json_data['additional_result_text']);
                     }
                     $v = json_encode($json_data);
+                    // Single-line cell so CSV row doesn't break (literal newlines break column boundaries)
+                    $v = str_replace(["\r\n", "\r", "\n"], ' ', $v);
                 }
 
                 // Put into our array
@@ -413,7 +415,7 @@ function mha_export_screen_data(){
             $args['total_elapsed_time'] = gmdate("H:i:s", abs($interval));
         }
 
-        $writer = Writer::createFromPath(WP_PLUGIN_DIR.'/mha_exports/tmp/'.$args['filename'], $writer_type);        
+        $writer = Writer::createFromPath(WP_PLUGIN_DIR.'/mha_exports/tmp/'.$args['filename'], $writer_type);
 
         // Set the headers only on page 1        
         if($args['page'] == 1){
@@ -554,41 +556,48 @@ function moveArrayKeyToLast(&$array, $key){
     return $array;
 }
 
+/**
+ * Strip HTML from a string but keep all inner text (e.g. <a href="#">something</a> → something).
+ * Handles digital-pathways and dataLayer placeholders.
+ */
+function stripHtmlKeepText($html) {
+    if (! is_string($html)) {
+        return $html;
+    }
+    if (strpos($html, 'digital-pathways') !== false) {
+        return 'Digital Pathways Content Removed';
+    }
+    if (strpos($html, 'dataLayer') !== false) {
+        return 'dataLayer Content Removed';
+    }
+    $text = strip_tags($html);
+    $text = str_replace(["\r\n", "\r", "\n"], ' ', $text);
+    return trim(preg_replace('/\s+/', ' ', $text));
+}
+
+/**
+ * Clean additional_result_text: strip HTML while keeping all text in values.
+ * Handles array of strings or array of objects with "text" key.
+ */
 function cleanAdditionalResultText($content) {
-    if (empty($content)) return $content;
-    
-    // Handle array of strings
+    if (empty($content)) {
+        return $content;
+    }
+
     if (is_array($content)) {
-        foreach ($content as $key => $text) {
-            if (is_string($text)) {
-                // Check for digital-pathways content
-                if (strpos($text, 'digital-pathways') !== false) {
-                    $content[$key] = 'Digital Pathways Content Removed';
-                }
-                // Check for dataLayer content
-                elseif (strpos($text, 'dataLayer') !== false) {
-                    $content[$key] = 'dataLayer Content Removed';
-                }
-                // Otherwise strip HTML tags
-                else {
-                    $content[$key] = strip_tags($text);
-                }
+        foreach ($content as $key => $item) {
+            if (is_string($item)) {
+                $content[$key] = stripHtmlKeepText($item);
+            } elseif (is_array($item) && isset($item['text'])) {
+                $content[$key]['text'] = stripHtmlKeepText($item['text']);
             }
         }
         return $content;
     }
-    
-    // Handle single string
+
     if (is_string($content)) {
-        // If digital-pathways is present, return empty string
-        if (strpos($content, 'digital-pathways') !== false) {
-            return 'Digital Pathways Content Removed';
-        }
-        if (strpos($content, 'dataLayer') !== false) {
-            return 'dataLayer Content Removed';
-        }
-        return strip_tags($content);
+        return stripHtmlKeepText($content);
     }
-    
+
     return $content;
 }
