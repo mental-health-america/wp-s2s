@@ -310,7 +310,7 @@ function mha_export_screen_data(){
                         $v = "\"$v\""; // Add quotes to age ranges so Excel doesn't turn it into a date
                     }
                 } 
-                if (strpos($ftv['label'], 'favor marque ') !== false || strpos($ftv['label'], 'check this box') !== false){     
+                if (strpos($ftv['label'], 'favor marque ') !== false && strpos($ftv['label'], 'lo que le corresponda') === false || strpos($ftv['label'], 'check this box') !== false){                        
                     $v = $v ? 'Yes' : 'No'; // Display Yes/No instead of 1/blank
                 }
                 if($ftv['label'] == 'Screen ID' || $ftv['label'] == 'Screen'){     
