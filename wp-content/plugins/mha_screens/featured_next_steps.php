@@ -530,7 +530,69 @@ function mha_featured_next_steps_data( $args ){
                                         $con_score++;
                                         if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                     
+                                    break;                                    
+                                case 'starts with':
+                                    if ( isset( $args['answered_demos'][ $con_key ] ) ) {
+                                        foreach ( $args['answered_demos'][ $con_key ] as $dr ) {
+                                            $dr = (string) $dr;
+                                            if ( $dr !== '' && str_starts_with( $dr, $con_value ) ) {
+                                                $con_score++;
+                                                if ( $debug ) {
+                                                    $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
                                     break;
+                                case 'ends with':
+                                    if ( isset( $args['answered_demos'][ $con_key ] ) ) {
+                                        foreach ( $args['answered_demos'][ $con_key ] as $dr ) {
+                                            $dr = (string) $dr;
+                                            if ( $dr !== '' && str_ends_with( $dr, $con_value ) ) {
+                                                $con_score++;
+                                                if ( $debug ) {
+                                                    $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    break;
+                                case 'does not start with':
+                                    if ( isset( $args['answered_demos'][ $con_key ] ) && $args['answered_demos'][ $con_key ] !== array() ) {
+                                        $all_no_prefix = true;
+                                        foreach ( $args['answered_demos'][ $con_key ] as $dr ) {
+                                            if ( str_starts_with( (string) $dr, $con_value ) ) {
+                                                $all_no_prefix = false;
+                                                break;
+                                            }
+                                        }
+                                        if ( $all_no_prefix ) {
+                                            $con_score++;
+                                            if ( $debug ) {
+                                                $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
+                                            }
+                                        }
+                                    }
+                                    break;
+                                case 'does not end with':
+                                    if ( isset( $args['answered_demos'][ $con_key ] ) && $args['answered_demos'][ $con_key ] !== array() ) {
+                                        $all_no_suffix = true;
+                                        foreach ( $args['answered_demos'][ $con_key ] as $dr ) {
+                                            if ( str_ends_with( (string) $dr, $con_value ) ) {
+                                                $all_no_suffix = false;
+                                                break;
+                                            }
+                                        }
+                                        if ( $all_no_suffix ) {
+                                            $con_score++;
+                                            if ( $debug ) {
+                                                $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
+                                            }
+                                        }
+                                    }
+                                    break;                                    
                                 case 'none of':
                                     $con_value_exp = array_map( 'trim', explode( '|', $con_value ) );
                                     if ( ! isset( $args['answered_demos'][ $con_key ] ) ) {
