@@ -134,6 +134,8 @@ function mha_featured_next_steps_data( $args ){
 
                 //echo "Condition checker: $con_type - $con_condition - $con_key - $get_key - $con_value<br />";
 
+                $con_score_before = $con_score;
+
                 switch($con_type):
 
                     case 'test_result':
@@ -530,16 +532,28 @@ function mha_featured_next_steps_data( $args ){
                                     }                                     
                                     break;
                                 case 'none of':
-                                    $con_value_exp = explode('|',$con_value);
-                                    $con_value_counter = 0;
-                                    foreach($con_value_exp as $cve){
-                                        if($args['result_title'] != trim($cve)){
-                                            $con_value_counter++;
-                                        }                                    
-                                    }
-                                    if($con_value_counter == 0){
+                                    $con_value_exp = array_map( 'trim', explode( '|', $con_value ) );
+                                    if ( ! isset( $args['answered_demos'][ $con_key ] ) ) {
+                                        // No answer: vacuously not any of the listed values
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
+                                        if ( $debug ) {
+                                            $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score [no answer]";
+                                        }
+                                        break;
+                                    }
+                                    $matches_list = 0;
+                                    foreach ( $con_value_exp as $cve ) {
+                                        foreach ( $args['answered_demos'][ $con_key ] as $ck ) {
+                                            if ( (string) $ck === (string) $cve ) {
+                                                $matches_list++;
+                                            }
+                                        }
+                                    }
+                                    if ( $matches_list === 0 ) {
+                                        $con_score++;
+                                        if ( $debug ) {
+                                            $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
+                                        }
                                     }
                                     break;
                                 case 'one of':
@@ -597,6 +611,24 @@ function mha_featured_next_steps_data( $args ){
 
                     break;
                 endswitch;
+
+                if ( $debug ) {
+                    $matched = ( $con_score > $con_score_before );
+                    $known_types = array( 'test_result', 'url_parameter', 'question_response', 'demographic_response' );
+                    $type_note   = in_array( $con_type, $known_types, true ) ? '' : ' [type not handled in switch]';
+                    $debug_log[] = sprintf(
+                        '#%d. %s — condition #%d: %s / %s (key: %s, value: %s) → %s%s',
+                        $row_index,
+                        $group_title,
+                        $i + 1,
+                        $con_type,
+                        $con_condition,
+                        $con_key,
+                        is_scalar( $con_value ) ? (string) $con_value : json_encode( $con_value ),
+                        $matched ? 'PASS' : 'FAIL',
+                        $type_note
+                    );
+                }
 
                 $i++;
             endwhile;
