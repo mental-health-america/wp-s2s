@@ -1,8 +1,16 @@
 <?php 
 /* Template Name: Learn */
 get_header(); 
-$search_query = get_query_var('search');
-$post_id = get_the_ID();
+$search_query = get_query_var( 'search' );
+$post_id        = get_the_ID();
+$learn_permalink = get_permalink( $post_id );
+$qv             = array(
+	'search'     => $search_query,
+	'search_tag' => get_query_var( 'search_tag' ),
+	'search_tax' => get_query_var( 'search_tax' ),
+	'order'      => get_query_var( 'order' ),
+	'orderby'    => get_query_var( 'orderby' ),
+);
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
@@ -27,19 +35,19 @@ $post_id = get_the_ID();
             
             <div class="bubble cerulean thin round-bl mb-5">
             <div class="inner">
-            <form method="GET" action="<?php echo get_the_permalink(get_the_ID()); ?>#ac" class="form-container line-form blue">
+            <form method="GET" action="<?php echo esc_url( $learn_permalink ); ?>#ac" class="form-container line-form blue">
                 <div class="container-fluid">
                 <div class="row">
 
                     <div class="col-12 col-md-5">
-                        <p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Search all articles" type="text" /></p>
+                        <p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo esc_attr( $search_query ); ?>" placeholder="Search all articles" type="text" /></p>
                     </div>
 
                     <div class="col-12 col-md-3 mt-3 mt-md-0">
-                        <input type="hidden" name="search_tag" value="<?php echo get_query_var('search_tag'); ?>" />
-                        <input type="hidden" name="search_tax" value="<?php echo get_query_var('search_tax'); ?>" />
-                        <input type="hidden" name="order" value="<?php echo get_query_var('order'); ?>" />
-                        <input type="hidden" name="orderby" value="<?php echo get_query_var('orderby'); ?>" />
+                        <input type="hidden" name="search_tag" value="<?php echo esc_attr( $qv['search_tag'] ); ?>" />
+                        <input type="hidden" name="search_tax" value="<?php echo esc_attr( $qv['search_tax'] ); ?>" />
+                        <input type="hidden" name="order" value="<?php echo esc_attr( $qv['order'] ); ?>" />
+                        <input type="hidden" name="orderby" value="<?php echo esc_attr( $qv['orderby'] ); ?>" />
                         <p class="m-0 wide block"><input type="submit" class="button gform_button white block pl-0 pr-0" value="Search" /></p>
                     </div>
 
@@ -49,46 +57,11 @@ $post_id = get_the_ID();
                                 Sort 
                             </button>
                             <div class="dropdown-menu" aria-labelledby="orderSelection">
-                                <a href="<?php echo add_query_arg(
-                                    array( 
-                                        'search' => get_query_var('search'), 
-                                        'search_tag' => get_query_var('search_tag'), 
-                                        'search_tax' => get_query_var('search_tax'), 
-                                        'order' => 'ASC',  
-                                        'orderby' => 'title'
-                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="" value="">Default</a>
-                                <a href="<?php echo add_query_arg(
-                                    array( 
-                                        'search' => get_query_var('search'), 
-                                        'search_tag' => get_query_var('search_tag'), 
-                                        'search_tax' => get_query_var('search_tax'), 
-                                        'order' => 'ASC',  
-                                        'orderby' => 'title'
-                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="ASC" value="title">A-Z</a>
-                                <a href="<?php echo add_query_arg(
-                                    array( 
-                                        'search' => get_query_var('search'), 
-                                        'search_tag' => get_query_var('search_tag'), 
-                                        'search_tax' => get_query_var('search_tax'), 
-                                        'order' => 'DESC', 
-                                        'orderby' => 'title'
-                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="DESC" value="title">Z-A</a>
-                                <a href="<?php echo add_query_arg(
-                                    array( 
-                                        'search' => get_query_var('search'), 
-                                        'search_tag' => get_query_var('search_tag'), 
-                                        'search_tax' => get_query_var('search_tax'), 
-                                        'order' => 'DESC', 
-                                        'orderby' => 'date')
-                                    , get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="DESC" value="date">Newest</a>
-                                <a href="<?php echo add_query_arg(
-                                    array( 
-                                        'search' => get_query_var('search'), 
-                                        'search_tag' => get_query_var('search_tag'), 
-                                        'search_tax' => get_query_var('search_tax'), 
-                                        'order' => 'ASC',  
-                                        'orderby' => 'date')
-                                    , get_the_permalink($post_id)); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="ASC" value="date">Oldest</a>
+                                <a href="<?php echo esc_url( add_query_arg( array_merge( $qv, array( 'order' => 'ASC', 'orderby' => 'title' ) ), $learn_permalink ) ); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="" value="">Default</a>
+                                <a href="<?php echo esc_url( add_query_arg( array_merge( $qv, array( 'order' => 'ASC', 'orderby' => 'title' ) ), $learn_permalink ) ); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="ASC" value="title">A-Z</a>
+                                <a href="<?php echo esc_url( add_query_arg( array_merge( $qv, array( 'order' => 'DESC', 'orderby' => 'title' ) ), $learn_permalink ) ); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="DESC" value="title">Z-A</a>
+                                <a href="<?php echo esc_url( add_query_arg( array_merge( $qv, array( 'order' => 'DESC', 'orderby' => 'date' ) ), $learn_permalink ) ); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="DESC" value="date">Newest</a>
+                                <a href="<?php echo esc_url( add_query_arg( array_merge( $qv, array( 'order' => 'ASC', 'orderby' => 'date' ) ), $learn_permalink ) ); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="ASC" value="date">Oldest</a>
                             </div>
                         </div>
                     </div>
@@ -100,38 +73,26 @@ $post_id = get_the_ID();
                             </button>
                             <div class="dropdown-menu" aria-labelledby="orderSelection">
 
-                            <a href="<?php echo add_query_arg(
-                                    array( 
-                                        'search' => get_query_var('search'), 
-                                        'search_tag' => '', 
-                                        'search_tax' => '', 
-                                        'order' => 'ASC',  
-                                        'orderby' => 'title'
-                                    ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="" value="">None</a>
+                            <a href="<?php echo esc_url( add_query_arg( array_merge( $qv, array( 'search_tag' => '', 'search_tax' => '', 'order' => 'ASC', 'orderby' => 'title' ) ), $learn_permalink ) ); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button" data-order="" value="">None</a>
 
                                 <?php
-                                    // Condition Filters
-                                    $query = get_terms(array(
-                                        'taxonomy' => array('condition','post_tag'),
+                                    $learn_filter_terms = get_terms( array(
+                                        'taxonomy'   => array( 'condition', 'post_tag' ),
                                         'hide_empty' => true,
-                                        'parent' => 0
-                                    ));
-                                    if($query){
-                                        foreach($query as $term){
-                                            if(!get_field('hide_on_front_end', $term->taxonomy.'_'.$term->term_id)){
+                                        'parent'     => 0,
+                                    ) );
+                                    if ( ! empty( $learn_filter_terms ) && ! is_wp_error( $learn_filter_terms ) ) {
+                                        $term_ids = wp_list_pluck( $learn_filter_terms, 'term_id' );
+                                        if ( $term_ids ) {
+                                            update_meta_cache( 'term', $term_ids );
+                                        }
+                                        foreach ( $learn_filter_terms as $term ) {
+                                            if ( ! get_field( 'hide_on_front_end', $term->taxonomy . '_' . $term->term_id ) ) {
                                                 ?>
-                                                    <a href="<?php echo add_query_arg(
-                                                        array( 
-                                                            'search' => get_query_var('search'), 
-                                                            'search_tag' => $term->term_id, 
-                                                            'search_tax' => $term->taxonomy, 
-                                                            'order' => 'ASC',  
-                                                            'orderby' => 'title'
-                                                        ), get_the_permalink()); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button"><?php echo $term->name; ?></a>
+                                                    <a href="<?php echo esc_url( add_query_arg( array_merge( $qv, array( 'search_tag' => $term->term_id, 'search_tax' => $term->taxonomy, 'order' => 'ASC', 'orderby' => 'title' ) ), $learn_permalink ) ); ?>#content" class="dropdown-item normal-case archive-filter-order" type="button"><?php echo esc_html( $term->name ); ?></a>
                                                 <?php
                                             }
                                         }
-                                        wp_update_term_count($query, 'post_tag', true); // This forces the tags count to update 
                                     }
                                 ?>                                
                             </div>
@@ -145,60 +106,60 @@ $post_id = get_the_ID();
             </div>
             
             <?php		
-                if(get_query_var('order')){
-                    $order = get_query_var('order');
+                if ( ! empty( $qv['order'] ) ) {
+                    $order = $qv['order'];
                 } else {
                     $order = 'DESC';
                 }
 
-                if(get_query_var('orderby')){
-                    $orderby = get_query_var('orderby');
+                if ( ! empty( $qv['orderby'] ) ) {
+                    $orderby = $qv['orderby'];
                 } else {
-                    $orderby = array('meta_value' => 'DESC', 'date' => 'DESC');
+                    $orderby = 'date';
                 }
 
                 $args = array(
-                    "post_type" => 'article',
-                    "orderby" => $orderby,
-                    "order"	=> $order,
-                    "post_status" => 'publish',
+                    "post_type"      => 'article',
+                    "orderby"        => $orderby,
+                    "order"          => $order,
+                    "post_status"    => 'publish',
                     "posts_per_page" => 25,
-                    "meta_query" => array(
+                    "meta_query"     => array(
                         array(
-                            'key' => 'type',
-                            'value' => array('condition', 'treatment', 'connect', 'diy'),
-                            'compare' => 'IN'
-                        )
-                    )
+                            'key'     => 'type',
+                            'value'   => array( 'condition', 'treatment', 'connect', 'diy' ),
+                            'compare' => 'IN',
+                        ),
+                    ),
                 );
 
-                if($search_query){
+                if ( $search_query ) {
                     $args['s'] = $search_query;
                 }
 
-                if(get_query_var('search_tax') && get_query_var('search_tag')){
+                if ( ! empty( $qv['search_tax'] ) && $qv['search_tag'] ) {
                     $args['tax_query'] = array(
                         array(
-                            'taxonomy' => get_query_var('search_tax'),
+                            'taxonomy' => $qv['search_tax'],
                             'field'    => 'term_id',
-                            'terms'    => get_query_var('search_tag'),
-                        )
+                            'terms'    => $qv['search_tag'],
+                        ),
                     );
                 }
 
-                $loop = new WP_Query($args);
-                if ( $loop->have_posts() ) :	
-                    $resources = array('condition');
+                $loop = new WP_Query( $args );
+                if ( $loop->have_posts() ) :
                     echo '<ol class="plain mb-0">';
-                    while($loop->have_posts()) : $loop->the_post();		
+                    while ( $loop->have_posts() ) :
+                        $loop->the_post();
                     ?>
                         <li class="mb-4">
                             <p class="mb-2">	
-                                <a class="dark-gray plain" href="<?php echo add_query_arg('ref', $post_id, get_the_permalink()); ?>"><?php the_title(); ?></a>
+                                <a class="dark-gray plain" href="<?php echo esc_url( add_query_arg( 'ref', $post_id, get_the_permalink() ) ); ?>"><?php the_title(); ?></a>
                             </p>
                             <!--<div class="medium small pl-5"><?php echo short_excerpt(); ?></div>-->
                         </li>
-                    <?php	
+                    <?php
                     endwhile;
                     echo '</ol>';
 
@@ -219,10 +180,10 @@ $post_id = get_the_ID();
                         'add_fragment' => '',
                     ) );
                     echo '</div>';
-                else:
+                else :
                     echo '<p>There are no results for your search criteria. Please try another search.';
-                endif; 
-                wp_reset_query();
+                endif;
+                wp_reset_postdata();
             ?>
             
         </div>
@@ -234,12 +195,12 @@ $post_id = get_the_ID();
     
     <?php
 		// Content Blocks
-		wp_reset_query();
-		if( have_rows('block') ):
+		if ( have_rows( 'block' ) ) :
         echo '<div class="mt-5">';
-		while ( have_rows('block') ) : the_row();
+		while ( have_rows( 'block' ) ) :
+			the_row();
 			$layout = get_row_layout();
-			if( get_template_part( 'templates/blocks/block', $layout ) ):
+			if ( get_template_part( 'templates/blocks/block', $layout ) ) :
 				get_template_part( 'templates/blocks/block', $layout );
 			endif;
         endwhile;
