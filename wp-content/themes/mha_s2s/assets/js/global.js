@@ -30,7 +30,27 @@
 		const formattedDateTime = `${dateMap.year}-${dateMap.month}-${dateMap.day} ${dateMap.hour}:${dateMap.minute}:${dateMap.second}${dateMap.dayPeriod.toLowerCase()}`;
 		return formattedDateTime;
 	}
-	
+
+	/**
+	 * Fill Gravity Forms hidden fields still set to the {datetime} placeholder on a given page.
+	 * Used on gform_page_loaded and gform_post_render so each step gets a reliable stamp.
+	 *
+	 * @param {number|string} form_id
+	 * @param {number|string} current_page
+	 */
+	function mhaFillGformDatetimePlaceholders( form_id, current_page ) {
+		var $page = $( '#gform_page_' + form_id + '_' + current_page );
+		if ( ! $page.length ) {
+			return;
+		}
+		var stamp = getCurrentDateTime();
+		$page.find( 'input[type="hidden"]' ).each( function() {
+			var $input = $( this );
+			if ( $.trim( $input.val() ) === '{datetime}' ) {
+				$input.val( stamp );
+			}
+		} );
+	}
 
 	/**
 	 * Document Ready Functions
@@ -557,14 +577,10 @@
 		// Bootstrap tooltips
 		$('[data-toggle="tooltip"]').tooltip();
 
-		// Date Time prefill on forms
-		$(document).on('gform_page_loaded', function(event, form_id, current_page){
-			$('#gform_page_'+form_id+'_'+current_page+' input.gform_hidden').each(function(e){
-				if($(this).val() == '{datetime}'){
-					$(this).val( getCurrentDateTime() );
-				}
-			});
-		});
+		// Date Time prefill on forms (per page arrival; PHP also fills on gform_pre_render per current page)
+		$( document ).on( 'gform_page_loaded gform_post_render', function( event, form_id, current_page ) {
+			mhaFillGformDatetimePlaceholders( form_id, current_page );
+		} );
 
 		// Iframe logging
 		const inIframe = window.self !== window.top;

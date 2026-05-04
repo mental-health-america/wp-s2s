@@ -15,7 +15,7 @@ define( 'MHASCREENS_VERSION', time() );
 // Enqueing Scripts
 add_action('init', 'mhaScreenScripts');
 function mhaScreenScripts() {
-	wp_enqueue_script('mhaScreen_validate', plugin_dir_url( __FILE__ ).'assets/jquery.validate.min.js', 'jquery', '1.0', true);
+	wp_enqueue_script('mhaScreen_validate', plugin_dir_url( __FILE__ ).'js/jquery.validate.min.js', 'jquery', '1.0', true);
 	wp_enqueue_script('process_mhaScreenEmail', plugin_dir_url( __FILE__ ).'mha_screens.js', 'jquery', MHASCREENS_VERSION, true);
     wp_localize_script('process_mhaScreenEmail', 'do_mhaResultLogs', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 	wp_localize_script('process_mhaScreenEmail', 'do_mhaScreenEmail', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
@@ -1014,4 +1014,4 @@ include_once 'featured_next_steps.php';
 include_once 'related_articles.php';
 include_once 'admin_screen_tester.php';
 include_once 'multilingual.php';
-include_once 'screen_collection.php';
+#include_once 'screen_collection.php';

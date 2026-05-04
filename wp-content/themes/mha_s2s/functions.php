@@ -131,7 +131,7 @@ function mha_s2s_scripts() {
 	// wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20250718', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20260417', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 
 	// Consent Management
@@ -425,21 +425,29 @@ function mha_screening_uid_hash( $form ) {
 
 
 /**
- * Pre-fill start time of fields
+ * Pre-fill start time of fields (only the page being rendered — per-step "arrival" time).
  */
 add_filter( 'gform_pre_render', 'mha_prefill_time_field' );
 function mha_prefill_time_field( $form ) {
 
-	// $current_page = GFFormDisplay::get_current_page( $form['id'] );
-	// Only fills the first one
+	if ( ! class_exists( 'GFFormDisplay' ) ) {
+		return $form;
+	}
+
+	$current_page = (int) GFFormDisplay::get_current_page( $form['id'] );
+	if ( $current_page < 1 ) {
+		$current_page = 1;
+	}
+
 	foreach ( $form['fields'] as &$field ) {
-		if( $field->defaultValue == '{datetime}' && $field->pageNumber == 1 ){
-			$dateTime = new DateTime('now', new DateTimeZone('America/New_York'));
-			$field->defaultValue = $dateTime->format('Y-m-d h:i:sa');
+		$default = isset( $field->defaultValue ) ? trim( (string) $field->defaultValue ) : '';
+		if ( '{datetime}' === $default && (int) $field->pageNumber === $current_page ) {
+			$dateTime = new DateTime( 'now', new DateTimeZone( 'America/New_York' ) );
+			$field->defaultValue = $dateTime->format( 'Y-m-d h:i:sa' );
 		}
 	}
-	
-    return $form;
+
+	return $form;
 }
 
 
