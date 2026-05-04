@@ -99,6 +99,7 @@ class GFFormSettings {
 	 * @since 2.5
 	 * @since 2.9.8  Updated honeypotAction default to spam.
 	 * @since 2.9.21 Moved the honeypot fields to a new spam section and added submission speed check fields.
+	 * @since 2.10.0   Added the enableSpamConfirmation toggle to the spam section.
 	 *
 	 * @param array $form Form being edited.
 	 *
@@ -123,9 +124,9 @@ class GFFormSettings {
 				return '<div id="gfield-warning-deprecated" class="gform-alert gform-alert--notice gform-alert--inline" role="alert" style="margin-block-start: 1rem;">
 					<span class="gform-alert__icon gform-icon gform-icon--circle-notice-fine" aria-hidden="true"></span>
 					<div class="gform-alert__message-wrap">
-						<p class="gform-alert__message">' . esc_html__( 'This form uses the "' . $value . '" Ready Class, which will be removed in Gravity Forms 3.1. You can use a CSS code snippet instead.', 'gravityforms' ) .
+						<p class="gform-alert__message">' . esc_html__( 'This form uses the "' . $value . '" Ready Class, which will be removed in Gravity Forms 4.0. You can use a CSS code snippet instead.', 'gravityforms' ) .
 					   ' <a href="https://docs.gravityforms.com/migrating-your-forms-from-ready-classes/" target="_blank" title="' .
-					   esc_attr__( 'Deprecation of Ready Classes in Gravity Forms 3.1', 'gravityforms' ) . '">' .
+					   esc_attr__( 'Deprecation of Ready Classes in Gravity Forms 4.0', 'gravityforms' ) . '">' .
 					   esc_html__( 'Learn more', 'gravityforms' ) .
 					   '<span class="screen-reader-text">' . esc_html__( '(opens in a new tab)', 'gravityforms' ) . '</span>&nbsp;' .
 					   '<span class="gform-icon gform-icon--external-link" aria-hidden="true"></span></a></p>
@@ -640,6 +641,13 @@ class GFFormSettings {
 							),
 						),
 					),
+					array(
+						'name'          => 'enableSpamConfirmation',
+						'type'          => 'toggle',
+						'label'         => esc_html__( 'Custom Spam Confirmation', 'gravityforms' ),
+						'description'   => esc_html__( 'Allows customization of the confirmation used for spam submissions in the Confirmations area of the form.', 'gravityforms' ),
+						'default_value' => false,
+					),
 				),
 			),
 			'form_options'      => array(
@@ -678,7 +686,7 @@ class GFFormSettings {
 		 */
 
 		if ( has_filter( 'gform_form_settings' ) ) {
-			trigger_error( 'gform_form_settings is deprecated and will be removed in version 3.0.', E_USER_DEPRECATED );
+			trigger_error( 'gform_form_settings is deprecated and will be removed in version 3.0.', E_USER_DEPRECATED ); // phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound
 		}
 		$legacy_settings = apply_filters( 'gform_form_settings', array(), $form );
 
@@ -800,7 +808,7 @@ class GFFormSettings {
 		    ></span>
 		    <div class="gform-alert__message-wrap">
 		        <p class="gform-alert__message">' . esc_html__( 'Legacy markup is incompatible with many new features, including the Orbital Theme.', 'gravityforms' ) . '</p>
-		        <p class="gform-alert__message">' . esc_html__( 'Legacy markup will be removed in Gravity Forms 3.1.0, and then all forms will use modern markup.  We recommend using modern markup on all forms.', 'gravityforms' ) . '</p>
+		        <p class="gform-alert__message">' . esc_html__( 'Legacy markup will be removed in Gravity Forms 4.0, and then all forms will use modern markup.  We recommend using modern markup on all forms.', 'gravityforms' ) . '</p>
 			    <a
 		            class="gform-alert__cta gform-button gform-button--white gform-button--size-xs"
 			        href="https://docs.gravityforms.com/about-legacy-markup"
@@ -846,7 +854,7 @@ class GFFormSettings {
 					return '<div class="gform-alert" data-js="gform-alert" style="grid-column: 1/-1;">
 						<span class="gform-alert__icon gform-icon gform-icon--campaign" aria-hidden="true"></span>
 						<div class="gform-alert__message-wrap">
-							<p class="gform-alert__message">' . esc_html__( 'This form uses a deprecated CSS Ready Class, which will be removed in Gravity Forms 3.1.', 'gravityforms' ) . '</p>
+							<p class="gform-alert__message">' . esc_html__( 'This form uses a deprecated CSS Ready Class, which will be removed in Gravity Forms 4.0.', 'gravityforms' ) . '</p>
 							<a class="gform-alert__cta gform-button gform-button--white gform-button--size-xs" href="https://docs.gravityforms.com/migrating-your-forms-from-ready-classes/" target="_blank">'
 						   	. esc_html__( 'Learn More', 'gravityforms' ) .
 						   	'<span class="screen-reader-text">' . esc_html__('about deprecated ready classes', 'gravityforms') . '</span>
@@ -871,6 +879,7 @@ class GFFormSettings {
 	 * @since 2.5
 	 * @since 2.9.8  Updated honeypotAction default to spam.
 	 * @since 2.9.21 Updated to save the submission speed check fields.
+	 * @since 2.10.0   Updated to handle the enableSpamConfirmation toggle.
 	 */
 	public static function initialize_settings_renderer() {
 
@@ -953,6 +962,9 @@ class GFFormSettings {
 							'strict',
 						)
 					);
+
+					$form['enableSpamConfirmation'] = (bool) rgar( $values, 'enableSpamConfirmation' );
+					$form = self::toggle_spam_confirmation( $form );
 
 					// Form Options.
 					$form['enableAnimation'] = (bool) rgar( $values, 'enableAnimation' );
@@ -1580,6 +1592,47 @@ class GFFormSettings {
 		if ( $changed ) {
 			GFFormsModel::save_form_confirmations( $form_id, $form['confirmations'] );
 		}
+
+		return $form;
+	}
+
+	/**
+	 * Adds or removes the custom spam confirmation based on the value of the enableSpamConfirmation toggle.
+	 *
+	 * @since 2.10.0
+	 *
+	 * @param array $form The form being edited.
+	 *
+	 * @return array
+	 */
+	public static function toggle_spam_confirmation( $form ) {
+		$form_id          = rgar( $form, 'id' );
+		$enabled          = (bool) rgar( $form, 'enableSpamConfirmation' );
+		$confirmation_key = false;
+
+		if ( ! empty( $form['confirmations'] ) ) {
+			foreach ( $form['confirmations'] as $key => $confirmation ) {
+				if ( rgar( $confirmation, 'event' ) === 'spam' ) {
+					$confirmation_key = $key;
+					break;
+				}
+			}
+		}
+
+		if ( ( $enabled && $confirmation_key ) || ( ! $enabled && ! $confirmation_key ) ) {
+			return $form;
+		}
+
+		if ( $enabled ) {
+			$confirmation                                 = GFFormsModel::get_default_confirmation( 'spam' );
+			$form['confirmations'][ $confirmation['id'] ] = $confirmation;
+			GFFormsModel::save_form_confirmations( $form_id, $form['confirmations'] );
+
+			return $form;
+		}
+
+		unset( $form['confirmations'][ $confirmation_key ] );
+		GFFormsModel::save_form_confirmations( $form_id, $form['confirmations'] );
 
 		return $form;
 	}

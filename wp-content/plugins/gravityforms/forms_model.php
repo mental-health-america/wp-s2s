@@ -1757,7 +1757,7 @@ class GFFormsModel {
 				 * @since 2.3.3.9
 				 */
 				do_action( "gform_post_update_entry_property", $lead_id, $property_name, $property_value, $previous_value );
-				gf_feed_processor()->save()->dispatch();
+				gf_feed_processor()->save()->dispatch_on_shutdown();
 			}
 		}
 
@@ -1863,7 +1863,7 @@ class GFFormsModel {
 				 */
 
 			if ( has_action( 'gform_delete_lead' ) ) {
-				trigger_error( 'The gform_delete_lead action is deprecated and will be removed in 3.0. Use gform_delete_entry instead.', E_USER_DEPRECATED );
+				trigger_error( 'The gform_delete_lead action is deprecated and will be removed in 3.0. Use gform_delete_entry instead.', E_USER_DEPRECATED ); // phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound
 			}
 				do_action( 'gform_delete_lead', $entry_id );
 
@@ -2097,7 +2097,7 @@ class GFFormsModel {
          */
 
 		if ( has_action( 'gform_after_duplicate_form' ) ) {
-			trigger_error( 'The gform_after_duplicate_form action is deprecated and will be removed in 3.0. Use gform_post_form_duplicated instead.', E_USER_DEPRECATED );
+			trigger_error( 'The gform_after_duplicate_form action is deprecated and will be removed in 3.0. Use gform_post_form_duplicated instead.', E_USER_DEPRECATED ); // phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound
 		}
         do_action( 'gform_after_duplicate_form', $form_id, $new_id );
 
@@ -2321,8 +2321,12 @@ class GFFormsModel {
 
 		if ( is_array( $fields ) ) {
 			foreach ( $fields as $field ) {
-
-				if ( $field->multipleFiles ) {
+				if ( $field instanceof GF_Field_FileUpload ) {
+					$files = $field->to_array( self::get_lead_field_value( $lead, $field ) );
+					foreach ( $files as $file ) {
+						self::delete_physical_file( $file, $lead_id );
+					}
+				} elseif ( $field->multipleFiles ) {
 					$value_json = self::get_lead_field_value( $lead, $field );
 					if ( ! empty( $value_json ) ) {
 						$files = json_decode( $value_json, true );
@@ -2441,19 +2445,34 @@ class GFFormsModel {
 			return;
 		}
 
-		$entry          = self::get_lead( $entry_id );
+		$entry = self::get_lead( $entry_id );
+		if ( empty( $entry ) ) {
+			return;
+		}
+
+		$entry_value = rgar( $entry, $field_id );
+		if ( empty( $entry_value ) ) {
+			return;
+		}
+
 		$form_id        = $entry['form_id'];
 		$form           = self::get_form_meta( $form_id );
 		$field          = self::get_field( $form, $field_id );
 		$multiple_files = $field->multipleFiles;
-		if ( $multiple_files ) {
-			$file_urls = json_decode( $entry[ $field_id ], true );
+
+		if ( $field instanceof GF_Field_FileUpload ) {
+			$files    = $field->to_array( $entry_value );
+			$file_url = rgar( $files, $file_index );
+			unset( $files[ $file_index ] );
+			$field_value = $field->to_string( $files );
+		} elseif ( $multiple_files ) {
+			$file_urls = json_decode( $entry_value, true );
 			$file_url  = $file_urls[ $file_index ];
 			unset( $file_urls[ $file_index ] );
 			$file_urls   = array_values( $file_urls );
 			$field_value = empty( $file_urls ) ? '' : json_encode( $file_urls );
 		} else {
-			$file_url    = $entry[ $field_id ];
+			$file_url    = $entry_value;
 			$field_value = '';
 		}
 
@@ -2488,12 +2507,25 @@ class GFFormsModel {
 		 */
 		$file_path = apply_filters( 'gform_file_path_pre_delete_file', $file_path, $url );
 
-		if ( file_exists( $file_path ) ) {
-			unlink( $file_path );
-			gform_delete_meta( $entry_id, GF_Field_FileUpload::get_file_upload_path_meta_key_hash( $url ) );
+		// If the file is outside the uploads folder, something nefarious is up, so bail.
+		if ( ! GFCommon::is_file_in_uploads( $url ) ) {
+			GFCommon::log_debug( __METHOD__ . sprintf( '(): Not deleting file from URL: %s', $file_path ) );
+			return;
 		}
 
+		if ( file_exists( $file_path ) ) {
+			$result = unlink( $file_path );
 
+			if ( $result ) {
+				GFCommon::log_debug( __METHOD__ . "(): File {$file_path} for entry #{$entry_id} was successfully deleted." );
+			} else {
+				GFCommon::log_debug( __METHOD__ . "(): File {$file_path} for entry #{$entry_id} could not be deleted even though it exists. This is likely due to server permissions, ownership, or another file system error." );
+			}
+
+			gform_delete_meta( $entry_id, GF_Field_FileUpload::get_file_upload_path_meta_key_hash( $url ) );
+		} else {
+			GFCommon::log_debug( __METHOD__ . "(): File {$file_path} for entry #{$entry_id} is inaccessible, likely because it no longer exists or due to issues with server permissions or ownership, or another file system error." );
+		}
 	}
 
 	/**
@@ -2810,7 +2842,7 @@ class GFFormsModel {
 		 */
 
 		if ( has_action( 'gform_delete_lead' ) ) {
-			trigger_error( 'The gform_delete_lead action is deprecated and will be removed in version 3.0. Use gform_delete_entry instead.', E_USER_DEPRECATED );
+			trigger_error( 'The gform_delete_lead action is deprecated and will be removed in version 3.0. Use gform_delete_entry instead.', E_USER_DEPRECATED ); // phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound
 		}
 		do_action( 'gform_delete_lead', $entry_id );
 
@@ -3124,7 +3156,7 @@ class GFFormsModel {
 			 * @param array $form The form currently being processed.
 			 *
 			 */
-			$currency = gf_apply_filters( array( 'gform_currency_pre_save_entry', $form['id'] ), GFCommon::get_currency(), $form );
+			$currency = gf_apply_filters( array( 'gform_currency_pre_save_entry', $form['id'] ), GFCommon::get_submission_currency(), $form );
 
 			$ip        = rgars( $form, 'personalData/preventIP' ) ? '' : self::get_ip();
 			$source_id = self::get_source_id( $form );
@@ -3535,7 +3567,7 @@ class GFFormsModel {
 		 * @param array $form The form currently being processed.
 		 *
 		 */
-		$lead['currency'] = gf_apply_filters( array( 'gform_currency_pre_save_entry', $form_id ), GFCommon::get_currency(), $form );
+		$lead['currency'] = gf_apply_filters( array( 'gform_currency_pre_save_entry', $form_id ), GFCommon::get_submission_currency(), $form );
 
 		foreach ( $form['fields'] as $field ) {
 			/* @var $field GF_Field */
@@ -3812,17 +3844,36 @@ class GFFormsModel {
 	 * Determines if the submit button was supposed to be hidden by conditional logic. This function helps ensure that
 	 *  the form doesn't get submitted when the submit button is hidden by conditional logic.
 	 *
-	 * @param $form The Form object
+	 * @param array $form The Form object
 	 *
 	 * @return bool Returns true if the submit button is hidden by conditional logic, false otherwise.
 	 */
 	public static function is_submit_button_hidden( $form ) {
-
-		if( ! isset( $form['button']['conditionalLogic'] ) ){
+		if ( ! isset( $form['button']['conditionalLogic'] ) ) {
 			return false;
 		}
 
 		$is_visible = self::evaluate_conditional_logic( $form, $form['button']['conditionalLogic'], array() );
+
+		return ! $is_visible;
+	}
+
+	/**
+	 * Determines if the next button was supposed to be hidden by conditional logic.
+	 *
+	 * @since 2.9.25
+	 *
+	 * @param GF_Field $field The page field containing the next button logic.
+	 * @param array    $form  The current form.
+	 *
+	 * @return bool
+	 */
+	public static function is_next_button_hidden( $field, $form ) {
+		if ( ! $field instanceof GF_Field_Page || ! rgars( $field->nextButton, 'conditionalLogic/enabled' ) ) {
+			return false;
+		}
+
+		$is_visible = self::evaluate_conditional_logic( $form, $field->nextButton['conditionalLogic'], array() );
 
 		return ! $is_visible;
 	}
@@ -3931,7 +3982,7 @@ class GFFormsModel {
 	/*
 	 * @deprecated 2.9.1.  Use GFCommon::maybe_format_numeric instead.
 	 *
-	 * @remove-in 3.1
+	 * @remove-in 4.0
 	 */
 	private static function try_convert_float( $text ) {
 		_deprecated_function( __METHOD__, '2.9.1', 'GFCommon::maybe_format_numeric' );
@@ -3962,7 +4013,7 @@ class GFFormsModel {
 	/*
 	 * @deprecated 2.9.1.  Use GFFormsModel::matches_conditional_operation instead.
 	 *
-	 * @remove-in 3.1
+	 * @remove-in 4.0
 	 */
 	public static function matches_operation( $val1, $val2, $operation ) {
 		_deprecated_function( __METHOD__, '2.9.1', 'GFFormsModel::matches_conditional_operation' );
@@ -4791,9 +4842,11 @@ class GFFormsModel {
 
 				case 'post_custom_field' :
 
-					$type = self::get_input_type( $field );
-					if ( 'fileupload' === $type && $field->multipleFiles ) {
-						$value = json_decode( $value, true );
+					if ( $field instanceof GF_Field_FileUpload ) {
+						$value = $field->to_array( $value );
+						if ( ! $field->multipleFiles ) {
+							$value = rgar( $value, 0 );
+						}
 					}
 
 					$meta_name = $field->postCustomFieldName;
@@ -4957,9 +5010,7 @@ class GFFormsModel {
 
 		//do not save price fields with blank price
 		if ( $field->enablePrice ) {
-			$ary   = explode( '|', $value );
-			$label = count( $ary ) > 0 ? $ary[0] : '';
-			$price = count( $ary ) > 1 ? $ary[1] : '';
+			list( $label, $price ) = rgexplode( '|', $value, 2, true );
 
 			$is_empty = ( strlen( trim( $price ) ) <= 0 );
 			if ( $is_empty ) {
@@ -4986,9 +5037,7 @@ class GFFormsModel {
 							if ( $choice['value'] == $lead[ $field_id ] ) {
 								return $choice['value'];
 							} else if ( $field->enablePrice ) {
-								$ary   = explode( '|', $lead[ $field_id ] );
-								$val   = count( $ary ) > 0 ? $ary[0] : '';
-								$price = count( $ary ) > 1 ? $ary[1] : '';
+								list( $val, $price ) = rgexplode( '|', $lead[ $field_id ], 2, true );
 
 								if ( $val == $choice['value'] ) {
 									return $choice['value'];
@@ -5058,7 +5107,7 @@ class GFFormsModel {
 
 	/**
 	 * @depecated 2.9.18
-	 * @remove-in 3.1
+	 * @remove-in 4.0
 	 */
 	public static function get_temp_filename( $form_id, $input_name ) {
 		_deprecated_function( __METHOD__, '2.9.18', '$file_upload_field->get_tmp_file_details( $file_or_name )' );
@@ -5110,12 +5159,9 @@ class GFFormsModel {
 		if ( $choice_value == $value || $choice_value == $sanitized_value ) {
 			return true;
 		} else if ( $field->enablePrice ) {
-			$ary = explode( '|', $value );
+			list( $val, $price ) = rgexplode( '|', $value, 2, true );
 
-			$val           = count( $ary ) > 0 ? $ary[0] : '';
 			$sanitized_val = wp_kses( $val, $allowed_html );
-
-			$price = count( $ary ) > 1 ? $ary[1] : '';
 
 			if ( $choice['value'] == $val || $choice['value'] == $sanitized_val ) {
 				return true;
@@ -5238,7 +5284,7 @@ class GFFormsModel {
 					$field = RGFormsModel::get_field( $form, $image['field_id'] );
 					if ( $field->postFeaturedImage ) {
 						$result = set_post_thumbnail( $post_id, $media_id );
-						GFCommon::log_debug( __METHOD__ . '(): Setting the featured image. Result from set_post_thumbnail(): ' . var_export( $result, 1 ) );
+						GFCommon::log_debug( __METHOD__ . '(): Setting the featured image. Result from set_post_thumbnail(): ' . var_export( $result, 1 ) ); // phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound
 					}
 				}
 			}
@@ -5592,7 +5638,7 @@ class GFFormsModel {
 					if ( intval( $current_field->meta_key ) == $sub_field->id && ! isset( $current_field->update ) ) {
 						$current_field->delete = true;
 						$result = self::queue_batch_field_operation( $form, $lead, $sub_field, $current_field->id, $current_field->meta_key, '', $current_field->item_index );
-						GFCommon::log_debug( __METHOD__ . "(): Deleting: {$field->label}(#{$sub_field->id}{$current_field->item_index} - {$field->type}). Result: " . var_export( $result, 1 ) );
+						GFCommon::log_debug( __METHOD__ . "(): Deleting: {$field->label}(#{$sub_field->id}{$current_field->item_index} - {$field->type}). Result: " . var_export( $result, 1 ) ); // phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound
 					}
 				}
 			}
@@ -5668,7 +5714,7 @@ class GFFormsModel {
 
 				$lead_detail_id               = self::get_lead_detail_id( $current_fields, $input_id, $new_item_index );
 				$result                       = self::queue_batch_field_operation( $form, $lead, $field, $lead_detail_id, $input_id, $v, $new_item_index );
-				GFCommon::log_debug( __METHOD__ . "(): Saving: {$field->label}(#{$input_id}{$item_index} - {$field->type}). Result: " . var_export( $result, 1 ) );
+				GFCommon::log_debug( __METHOD__ . "(): Saving: {$field->label}(#{$input_id}{$item_index} - {$field->type}). Result: " . var_export( $result, 1 ) ); // phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound
 				foreach ( $current_fields as $current_field ) {
 					if ( (string) $current_field->meta_key === (string) $input_id && $current_field->item_index == $new_item_index ) {
 						$current_field->update = true;
@@ -7159,7 +7205,7 @@ class GFFormsModel {
 	public static function get_field( $form_or_id, $field_id ) {
 		$form = is_numeric( $form_or_id ) ? self::get_form_meta( $form_or_id ) : $form_or_id;
 
-		if ( ! isset( $form['fields'] ) || ! isset( $form['id'] ) || ! is_array( $form['fields'] ) ) {
+		if ( ! isset( $form['fields'] ) || ! isset( $form['id'] ) || ! is_array( $form['fields'] ) || empty( $field_id ) ) {
 			return null;
 		}
 
@@ -7311,8 +7357,9 @@ class GFFormsModel {
 	 * Returns a default confirmation.
 	 *
 	 * @since 2.4.15
+	 * @since 2.10.0 Updated to include the default spam confirmation.
 	 *
-	 * @param string $event The confirmation event. form_saved, form_save_email_sent, or an empty string for the default form submission event.
+	 * @param string $event The confirmation event. form_saved, form_save_email_sent, spam, or an empty string for the default form submission event.
 	 *
 	 * @return array
 	 */
@@ -7354,6 +7401,12 @@ class GFFormsModel {
 					'queryString' => '',
 				);
 
+			case 'spam':
+				$confirmation          = self::get_default_confirmation();
+				$confirmation['name']  = __( 'Spam Confirmation', 'gravityforms' );
+				$confirmation['event'] = 'spam';
+
+				return $confirmation;
 			default:
 				return array(
 					'id'          => uniqid(),

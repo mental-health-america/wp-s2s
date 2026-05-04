@@ -1247,6 +1247,11 @@ final class GF_Entry_List_Table extends WP_List_Table {
 					'link'  => '<a href="' . esc_url( $detail_url ) . '">' . esc_html__( 'View', 'gravityforms' ) . '</a>',
 				);
 				if ( GFCommon::current_user_can_any( 'gravityforms_edit_entries' ) ) {
+					$actions['edit'] = array(
+						'class' => 'edit',
+						'link'  => '<a href="' . esc_url( add_query_arg( 'screen_mode', 'edit', $detail_url ) ) . '">' . esc_html__( 'Edit', 'gravityforms' ) . '</a>',
+					);
+
 					$actions['mark_read'] = array(
 						'class' => 'edit',
 						'link'  => '<a id="mark_read_' . esc_attr( $entry['id'] ) . '" aria-label="Mark this entry as read" href="javascript:ToggleRead(\'' . esc_js( $entry['id'] ) . '\', \'' . esc_js( $this->filter ) . '\');" style="display:' . ( $entry['is_read'] ? 'none' : 'inline' ) . '">' . esc_html__( 'Mark read', 'gravityforms' ) . '</a><a id="mark_unread_' . absint( $entry['id'] ) . '" aria-label="' . esc_attr__( 'Mark this entry as unread', 'gravityforms' ) . '" href="javascript:ToggleRead(\'' . esc_js( $entry['id'] ) . '\', \'' . esc_js( $this->filter ) . '\');" style="display:' . ( $entry['is_read'] ? 'inline' : 'none' ) . '">' . esc_html__( 'Mark unread', 'gravityforms' ) . '</a>',
@@ -2066,7 +2071,9 @@ final class GF_Entry_List_Table extends WP_List_Table {
 				jQuery('#entry_filters').gfFilterUI(gformFieldFilters, gformInitFilter, false);
 				jQuery("#entry_filters").on("keypress", ".gform-filter-value", (function (event) {
 					if (event.keyCode == 13) {
-						Search(<?php echo json_encode( $orderby ); ?>, <?php echo json_encode( $order ); ?>, <?php echo absint( $form_id ) ?>, jQuery('.gform-filter-value').val(), <?php echo json_encode( $filter ); ?>, jQuery('.gform-filter-field').val(), jQuery('.gform-filter-operator').val());
+						var urlParams = new URLSearchParams(window.location.search);
+						var currentFilter = urlParams.get('filter') || '';
+						Search(<?php echo json_encode( $orderby ); ?>, <?php echo json_encode( $order ); ?>, <?php echo absint( $form_id ) ?>, jQuery('.gform-filter-value').val(), currentFilter, jQuery('.gform-filter-field').val(), jQuery('.gform-filter-operator').val());
 						event.preventDefault();
 					}
 				}));
