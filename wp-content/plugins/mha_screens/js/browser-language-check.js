@@ -8,16 +8,45 @@
  */
 
 /**
+ * Two-letter language code from Google Translate URL (?_x_tr_tl=), or empty.
+ * Uses PHP-localized config and falls back to the current query string.
+ *
+ * @return {string}
+ */
+function mhaGetGoogleTranslateLangCode() {
+    var c = '';
+    if (typeof mhaBrowserLanguageConfig !== 'undefined' && mhaBrowserLanguageConfig.googleTranslateLang) {
+        c = String(mhaBrowserLanguageConfig.googleTranslateLang).toLowerCase().substring(0, 2);
+    }
+    if (!c || !/^[a-z]{2}$/.test(c)) {
+        try {
+            var p = new URLSearchParams(window.location.search).get('_x_tr_tl');
+            if (p) {
+                c = String(p).substring(0, 2).toLowerCase();
+            }
+        } catch (e) {
+            c = '';
+        }
+    }
+    return /^[a-z]{2}$/.test(c) ? c : '';
+}
+
+/**
  * Update Gravity Forms field with label "Language" when language changes
  * 
  * Searches for fields with values starting with "lang--" prefix (e.g., "lang--en")
  * This works for hidden fields that don't have visible labels.
  * 
+ * When ?_x_tr_tl= is present (Google Translate), uses that language and "lang--xx-google"
+ * so server-rendered values are not overwritten with a plain two-letter code.
+ * 
  * @param {string} languageCode - Two-letter language code to set (e.g., 'en', 'es')
- * @param {boolean} addBrowserSuffix - If true, adds "-browser" suffix (e.g., "lang--fr-browser")
+ * @param {boolean} addBrowserSuffix - If true, adds "-browser" suffix (e.g., "lang--fr-browser"); ignored if Google Translate URL is active
  */
 function mhaUpdateGravityFormsLanguageField(languageCode, addBrowserSuffix) {
-    if (!languageCode) {
+    var googleCode = mhaGetGoogleTranslateLangCode();
+    var baseCode = googleCode || languageCode;
+    if (!baseCode) {
         //console.log('[MHA Browser Language] No language code provided for Gravity Forms update');
         return;
     }
@@ -31,8 +60,10 @@ function mhaUpdateGravityFormsLanguageField(languageCode, addBrowserSuffix) {
     }
     
     var fieldUpdated = false;
-    var newValue = 'lang--' + languageCode;
-    if (addBrowserSuffix) {
+    var newValue = 'lang--' + baseCode;
+    if (googleCode) {
+        newValue += '-google';
+    } else if (addBrowserSuffix) {
         newValue += '-browser';
     }
     

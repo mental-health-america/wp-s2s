@@ -50,10 +50,11 @@ function mha_parse_browser_language( $accept_language ) {
 function mha_get_current_language_code() {
 
     // Check for URL parameter override first (e.g., from Google Translate)
-    if ( isset( $_GET['_x_tr_tl'] ) && !empty( $_GET['_x_tr_tl'] ) ) {
-        $url_language = sanitize_text_field( $_GET['_x_tr_tl'] );
-        // Convert to language code format if needed (e.g., 'en_US' -> 'en')
-        return substr( $url_language, 0, 2 );
+    if ( isset( $_GET['_x_tr_tl'] ) && ! empty( $_GET['_x_tr_tl'] ) ) {
+        $url_language = strtolower( substr( sanitize_text_field( wp_unslash( $_GET['_x_tr_tl'] ) ), 0, 2 ) );
+        if ( strlen( $url_language ) === 2 && ctype_alpha( $url_language ) ) {
+            return $url_language . '-google';
+        }
     }
     
     // Check if TranslatePress is active and get current language
@@ -85,6 +86,56 @@ function mha_get_current_language_code() {
     return 'en-default';
     
 }
+
+/**
+ * Normalize a language code for shortcode comparison (two-letter prefix, lowercase).
+ *
+ * @param string $code Raw code from TranslatePress, locale, etc.
+ * @return string
+ */
+function mha_normalize_lang_code( $code ) {
+    $code = strtolower( trim( (string) $code ) );
+    if ( $code === '' ) {
+        return '';
+    }
+    if ( strlen( $code ) >= 2 && ctype_alpha( substr( $code, 0, 2 ) ) ) {
+        return substr( $code, 0, 2 );
+    }
+    return $code;
+}
+
+/**
+ * Show inner content only when the current language matches the `is` attribute.
+ *
+ * Example: [mha_lang is="es"]Spanish only[/mha_lang]
+ *
+ * @param array  $atts    Shortcode attributes.
+ * @param string $content Enclosed content.
+ * @return string
+ */
+function mha_lang_shortcode( $atts, $content = null ) {
+    $atts = shortcode_atts(
+        array(
+            'is' => '',
+        ),
+        $atts,
+        'mha_lang'
+    );
+
+    if ( $atts['is'] === '' ) {
+        return '';
+    }
+
+    $target  = mha_normalize_lang_code( sanitize_text_field( $atts['is'] ) );
+    $current = mha_normalize_lang_code( mha_get_current_language_code() );
+
+    if ( $target !== '' && $target === $current ) {
+        return do_shortcode( (string) $content );
+    }
+
+    return '';
+}
+add_shortcode( 'mha_lang', 'mha_lang_shortcode' );
 
 /**
  * Pre-render handler to populate language field in forms using TranslatePress
@@ -359,9 +410,9 @@ function mha_enqueue_browser_language_check() {
     // Enqueue the JavaScript file
     wp_enqueue_script(
         'mha-browser-language-check',
-        $plugin_url . 'assets/browser-language-check.js',
+        $plugin_url . 'js/browser-language-check.js',
         array(), // No dependencies
-        '1.0.1',
+        '1.0.2',
         true // Load in footer
     );
     
@@ -379,6 +430,15 @@ function mha_enqueue_browser_language_check() {
     
     // Allow filtering of auto-redirect setting
     $auto_redirect = apply_filters( 'mha_browser_language_auto_redirect', false );
+
+    // Two-letter code from Google Translate URL param (matches mha_get_current_language_code Google branch)
+    $google_translate_lang = '';
+    if ( isset( $_GET['_x_tr_tl'] ) && ! empty( $_GET['_x_tr_tl'] ) ) {
+        $gt = strtolower( substr( sanitize_text_field( wp_unslash( $_GET['_x_tr_tl'] ) ), 0, 2 ) );
+        if ( strlen( $gt ) === 2 && ctype_alpha( $gt ) ) {
+            $google_translate_lang = $gt;
+        }
+    }
     
     // Localize script with configuration
     wp_localize_script(
@@ -389,6 +449,7 @@ function mha_enqueue_browser_language_check() {
             'availableLanguages' => $available_languages,
             'defaultLanguage' => $default_language,
             'currentLanguage' => $current_language,
+            'googleTranslateLang' => $google_translate_lang,
         )
     );
 }
