@@ -643,9 +643,14 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
                             $add_scores = get_sub_field('scores');
                             $add_score_total = 0;
                             $add_score_max = 0;
-                            foreach($add_scores as $score){
-                                $add_score_total = $general_score_data[$score['question_id']] + $add_score_total;
-                                $add_score_max = $add_score_max + $general_score_data['max_values'][$score['question_id']];
+                            foreach ( $add_scores as $score ) {
+                                $qid = isset( $score['question_id'] ) ? $score['question_id'] : null;
+                                if ( null !== $qid ) {
+                                    $add_score_total += mha_screens_score_int( $general_score_data, $qid );
+                                    if ( isset( $general_score_data['max_values'][ $qid ] ) ) {
+                                        $add_score_max += (int) $general_score_data['max_values'][ $qid ];
+                                    }
+                                }
                             }
 
                             $header .= '<strong>'.get_sub_field('title').'</strong> '.intval($add_score_total).' / '.intval($add_score_max).'<br />';
@@ -668,6 +673,16 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
 
 }
 
+/**
+ * Int score for a GF field ID. Missing keys are treated as 0 (empty answers are omitted in getScreenAnswers()).
+ *
+ * @param array $general_score_data
+ * @param int|string $field_id
+ * @return int
+ */
+function mha_screens_score_int( $general_score_data, $field_id ) {
+	return (int) ( $general_score_data[ $field_id ] ?? 0 );
+}
 
 /**
  * Custom Logic Overrides
@@ -681,7 +696,7 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 
 		$results = [];
 
-		$total_score = ($general_score_data[49] + $general_score_data[47] + $general_score_data[48] + $general_score_data[50] + $general_score_data[51]) / 5;
+		$total_score = ( mha_screens_score_int( $general_score_data, 49 ) + mha_screens_score_int( $general_score_data, 47 ) + mha_screens_score_int( $general_score_data, 48 ) + mha_screens_score_int( $general_score_data, 50 ) + mha_screens_score_int( $general_score_data, 51 ) ) / 5;
 		$total_score = round($total_score, 2);
 		$results['total_score'] = $total_score;
         $results['admin_user_result'] = 0;
@@ -714,7 +729,7 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
         // BMI Calculation
         if( $height_final != null xor $weight != null){
             $bmi = NULL; // Height/Weight are optional, don't calculate BMI in this instance
-        } else if($general_score_data[49] > 0 && $weight){
+        } else if ( mha_screens_score_int( $general_score_data, 49 ) > 0 && $weight ) {
             $bmi = $height_final / $weight / ( $weight * 703 );
 		} else {
 			$bmi = 0;
@@ -727,37 +742,37 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 		$results['height_calcs'] = "Choice:$height_choice, FT:$height_ft, IN: $height_in, CM: $height_cm";
 		
         // Test Scoring
-        if (($bmi !== NULL && $bmi < 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+        if ( ( $bmi !== null && $bmi < 18.5 && mha_screens_score_int( $general_score_data, 60 ) === 1 ) && ( $total_score >= 47 || mha_screens_score_int( $general_score_data, 47 ) >= 75 ) && ( $total_score >= 47 || mha_screens_score_int( $general_score_data, 50 ) >= 66.7 ) ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Anorexia Nervosa'; // 1. At Risk for Anorexia Nervosa
-        } elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+        } elseif ( ( mha_screens_score_int( $general_score_data, 53 ) > 1 ) && ( ( mha_screens_score_int( $general_score_data, 55 ) + mha_screens_score_int( $general_score_data, 57 ) + mha_screens_score_int( $general_score_data, 58 ) + mha_screens_score_int( $general_score_data, 59 ) ) > 1 ) && ( mha_screens_score_int( $general_score_data, 53 ) >= 12 && ( mha_screens_score_int( $general_score_data, 55 ) + mha_screens_score_int( $general_score_data, 57 ) + mha_screens_score_int( $general_score_data, 58 ) + mha_screens_score_int( $general_score_data, 59 ) ) >= 12 ) && ( $total_score >= 47 || mha_screens_score_int( $general_score_data, 50 ) >= 66.7 ) ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Bulimia Nervosa'; // 2. At Risk for Bulimia Nervosa
-        } elseif (($general_score_data[53] > 1) && (($general_score_data[70] + $general_score_data[71] + $general_score_data[72] + $general_score_data[73] + $general_score_data[74]) >= 3) && ($general_score_data[75] >= 4) && (($general_score_data[53] >= 12) && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 3)) {
+        } elseif ( ( mha_screens_score_int( $general_score_data, 53 ) > 1 ) && ( ( mha_screens_score_int( $general_score_data, 70 ) + mha_screens_score_int( $general_score_data, 71 ) + mha_screens_score_int( $general_score_data, 72 ) + mha_screens_score_int( $general_score_data, 73 ) + mha_screens_score_int( $general_score_data, 74 ) ) >= 3 ) && ( mha_screens_score_int( $general_score_data, 75 ) >= 4 ) && ( ( mha_screens_score_int( $general_score_data, 53 ) >= 12 ) && ( mha_screens_score_int( $general_score_data, 55 ) + mha_screens_score_int( $general_score_data, 57 ) + mha_screens_score_int( $general_score_data, 58 ) + mha_screens_score_int( $general_score_data, 59 ) ) < 3 ) ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Binge Eating Disorder'; // 3. At Risk for Binge Eating Disorder
-        } elseif (($bmi !== NULL && $bmi >= 18.5 && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+        } elseif ( ( $bmi !== null && $bmi >= 18.5 && mha_screens_score_int( $general_score_data, 60 ) === 1 ) && ( $total_score >= 47 || mha_screens_score_int( $general_score_data, 47 ) >= 75 ) && ( $total_score >= 47 || mha_screens_score_int( $general_score_data, 50 ) >= 66.7 ) ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Atypical Anorexia Nervosa'; // 4. At Risk for Atypical Anorexia Nervosa
-        } elseif (($bmi == NULL && $general_score_data[60] == 1) && ($total_score >= 47 || $general_score_data[47] >= 75) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+        } elseif ( ( $bmi === null && mha_screens_score_int( $general_score_data, 60 ) === 1 ) && ( $total_score >= 47 || mha_screens_score_int( $general_score_data, 47 ) >= 75 ) && ( $total_score >= 47 || mha_screens_score_int( $general_score_data, 50 ) >= 66.7 ) ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Anorexia Nervosa (no BMI info)'; // 5. At Risk for Anorexia Nervosa (no BMI info)
-        } elseif (($general_score_data[53] > 1) && (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) > 1) && ($general_score_data[53] >= 3 && $general_score_data[53] < 12 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 3 && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 12) && ($total_score >= 47 || $general_score_data[50] >= 66.7)) {
+        } elseif ( ( mha_screens_score_int( $general_score_data, 53 ) > 1 ) && ( ( mha_screens_score_int( $general_score_data, 55 ) + mha_screens_score_int( $general_score_data, 57 ) + mha_screens_score_int( $general_score_data, 58 ) + mha_screens_score_int( $general_score_data, 59 ) ) > 1 ) && ( mha_screens_score_int( $general_score_data, 53 ) >= 3 && mha_screens_score_int( $general_score_data, 53 ) < 12 && ( mha_screens_score_int( $general_score_data, 55 ) + mha_screens_score_int( $general_score_data, 57 ) + mha_screens_score_int( $general_score_data, 58 ) + mha_screens_score_int( $general_score_data, 59 ) ) >= 3 && ( mha_screens_score_int( $general_score_data, 55 ) + mha_screens_score_int( $general_score_data, 57 ) + mha_screens_score_int( $general_score_data, 58 ) + mha_screens_score_int( $general_score_data, 59 ) ) < 12 ) && ( $total_score >= 47 || mha_screens_score_int( $general_score_data, 50 ) >= 66.7 ) ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Subclinical Bulimia Nervosa'; // 6. At Risk for Subclinical Bulimia Nervosa
-        } elseif (($general_score_data[53] > 1) && (($general_score_data[70] + $general_score_data[71] + $general_score_data[72] + $general_score_data[73] + $general_score_data[74]) >= 3) && ($general_score_data[75] >= 4) && (($general_score_data[53] >= 3 && $general_score_data[53] < 12) && ($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) < 3)) {
+        } elseif ( ( mha_screens_score_int( $general_score_data, 53 ) > 1 ) && ( ( mha_screens_score_int( $general_score_data, 70 ) + mha_screens_score_int( $general_score_data, 71 ) + mha_screens_score_int( $general_score_data, 72 ) + mha_screens_score_int( $general_score_data, 73 ) + mha_screens_score_int( $general_score_data, 74 ) ) >= 3 ) && ( mha_screens_score_int( $general_score_data, 75 ) >= 4 ) && ( ( mha_screens_score_int( $general_score_data, 53 ) >= 3 && mha_screens_score_int( $general_score_data, 53 ) < 12 ) && ( mha_screens_score_int( $general_score_data, 55 ) + mha_screens_score_int( $general_score_data, 57 ) + mha_screens_score_int( $general_score_data, 58 ) + mha_screens_score_int( $general_score_data, 59 ) ) < 3 ) ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Subclinical Binge Eating Disorder'; // 7. At Risk for Subclinical Binge Eating Disorder
-        } elseif (($general_score_data[53] == 0) && (($general_score_data[55] + $general_score_data[57]) >= 12)) {
+        } elseif ( ( mha_screens_score_int( $general_score_data, 53 ) === 0 ) && ( ( mha_screens_score_int( $general_score_data, 55 ) + mha_screens_score_int( $general_score_data, 57 ) ) >= 12 ) ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Purging Disorder'; // 8. At Risk for Purging Disorder
-        } elseif (($general_score_data[53] >= 3) || (($general_score_data[55] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59]) >= 3)) {
+        } elseif ( ( mha_screens_score_int( $general_score_data, 53 ) >= 3 ) || ( ( mha_screens_score_int( $general_score_data, 55 ) + mha_screens_score_int( $general_score_data, 57 ) + mha_screens_score_int( $general_score_data, 58 ) + mha_screens_score_int( $general_score_data, 59 ) ) >= 3 ) ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Unspecified Feeding or Eating Disorder (UFED)'; // 9. At Risk for Unspecified Feeding or Eating Disorder (UFED)
-        } elseif ($total_score >= 47 || $general_score_data[50] >= 66.7 || $general_score_data[47] >= 75) {
+        } elseif ( $total_score >= 47 || mha_screens_score_int( $general_score_data, 50 ) >= 66.7 || mha_screens_score_int( $general_score_data, 47 ) >= 75 ) {
             $custom_result_row = 1; // At Risk for Eating Disorder
             $results['admin_user_result'] = 'At Risk for Eating Disorder'; // 10. At Risk for Eating Disorder
-        } elseif ($general_score_data[61] == 1 || $general_score_data[62] == 1 || $general_score_data[63] == 1) {
+        } elseif ( mha_screens_score_int( $general_score_data, 61 ) === 1 || mha_screens_score_int( $general_score_data, 62 ) === 1 || mha_screens_score_int( $general_score_data, 63 ) === 1 ) {
             $custom_result_row = 2; // At Risk for Avoidant/Restrictive Food Intake Disorder (ARFID)
             $results['admin_user_result'] = 'Avoidant/Restrictive Food Intake Disorder (ARFID)'; // 11. Avoidant/Restrictive Food Intake Disorder (ARFID)
         } else {
@@ -774,14 +789,18 @@ function custom_logic_checker($general_score_data, $custom_results_logic) {
 
 		$results = [];
 
-        // Question 1
-		$any_time = $general_score_data[47] + $general_score_data[50] + $general_score_data[51] + $general_score_data[52] + $general_score_data[53] + $general_score_data[54] + $general_score_data[55] + $general_score_data[56] + $general_score_data[57] + $general_score_data[58] + $general_score_data[59] + $general_score_data[60];
-		
+        // Question 1 (missing keys: empty GF answers are not stored in $general_score_data)
+		$bipolar_symptom_ids = array( 47, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60 );
+		$any_time            = 0;
+		foreach ( $bipolar_symptom_ids as $bid ) {
+			$any_time += mha_screens_score_int( $general_score_data, $bid );
+		}
+
         // Question 2
-        $same_period = $general_score_data[61];
+        $same_period = mha_screens_score_int( $general_score_data, 61 );
 
         // Question 3
-        $problem = $general_score_data[62];
+        $problem = mha_screens_score_int( $general_score_data, 62 );
 
         // Results
         $results['total_score'] = $any_time + $same_period + $problem;
