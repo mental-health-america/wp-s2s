@@ -4,7 +4,7 @@
     "fields": [
         {
             "key": "field_6960101f1287c",
-            "label": "Screens",
+            "label": "Screen",
             "name": "screens",
             "aria-label": "",
             "type": "post_object",
@@ -23,7 +23,7 @@
             "post_status": "",
             "taxonomy": "",
             "return_format": "id",
-            "multiple": 1,
+            "multiple": 0,
             "save_custom": 0,
             "save_post_status": "publish",
             "acfe_bidirectional": {
@@ -172,11 +172,13 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
+    "allow_ai_access": false,
+    "ai_description": "",
     "acfe_autosync": [
         "json"
     ],
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1767910080
+    "modified": 1777930863
 }

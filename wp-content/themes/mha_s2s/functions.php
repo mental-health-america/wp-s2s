@@ -533,6 +533,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'state'; // Used for SSO logins; passed from Google to contain additional data
     $qvars[] = 'form'; // Used for optional questions page to get the previous form ID
     $qvars[] = 'org'; // Used for Screen Collection page to get the organization ID
+    $qvars[] = 'sc'; // Used for Screen Collection page to get the screen collection ID, page number, and start page
 
 	// Resource filters
 	$qvars[] = 'treatment';
@@ -643,88 +644,105 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 
 	$current_page = GFFormDisplay::get_current_page( $form['id'] );
 	$page_count = GFFormDisplay::get_max_page_number( $form ) + 1;
-	
-	// Helpers
-	$form_fields = isset($form['fields']) ? $form['fields'] : false;
-	$form_classes = isset($form['cssClass']) ? $form['cssClass'] : '';
 
-	// Get max pages
-	$form_pages = [];
-	/*
-	foreach($form_fields as $ff){
-		if(isset($ff['cssClass']) && str_contains($ff['cssClass'], 'page-label')){
-			$form_pages[$ff['pageNumber']] = $ff['label'];
+	$layout = get_layout_array( get_query_var( 'layout' ) );
+
+	$progress_bar = '';
+
+	$prescreen_nav = function_exists( 'mha_screen_collection_prescreen_progress_links_html' )
+		? mha_screen_collection_prescreen_progress_links_html( $form, $current_page, $layout )
+		: '';
+
+	$form_id_int = isset( $form['id'] ) ? (int) $form['id'] : 0;
+	$suppress_embedded_prescreen = (bool) apply_filters( 'mha_screen_collection_suppress_embedded_prescreen_progress', false, $form_id_int );
+
+	if ( $prescreen_nav !== '' && $suppress_embedded_prescreen ) {
+		return '';
+	}
+
+	if ( $prescreen_nav !== '' ) {
+		$progress_bar = $prescreen_nav;
+		if ( $confirmation_message !== '' && isset( $form['cssClass'] ) && str_contains( $form['cssClass'], 'full-pager' ) ) {
+			$progress_bar .= '<div class="form-confirmation-container">' . $confirmation_message . '</div>';
 		}
-	}
-	*/
-	
-	foreach($form['pagination']['pages'] as $k => $v){
-		$form_pages[ ($k + 1) ] = $v;
-	}
+	} else {
 
-    $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
-	
-	$last_progress_label = get_field('survey') ? 'Submit<br /> Survey' : 'Your<br />Results';
+		// Helpers
+		$form_fields = isset( $form['fields'] ) ? $form['fields'] : false;
+		$form_classes = isset( $form['cssClass'] ) ? $form['cssClass'] : '';
 
-	if( in_array('show_progress', $layout) && !in_array('hide_progress', $layout) || !in_array('hide_progress', $layout) ){
+		// Get max pages
+		$form_pages = array();
+		/*
+		foreach($form_fields as $ff){
+			if(isset($ff['cssClass']) && str_contains($ff['cssClass'], 'page-label')){
+				$form_pages[$ff['pageNumber']] = $ff['label'];
+			}
+		}
+		*/
 
-		if(isset($form['cssClass']) && str_contains($form['cssClass'], 'full-pager')){
+		foreach ( $form['pagination']['pages'] as $k => $v ) {
+			$form_pages[ ( $k + 1 ) ] = $v;
+		}
 
-			// Custom progress bar (all pages)			
-			$progress_bar = '<ol class="full-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">';
-			foreach($form_pages as $k => $v){
-				$pager_class = '';
-				if($current_page == $k){
-					$pager_class = 'active';
-				} elseif($current_page > $k) {
-					$pager_class = 'filled';
-				} else {
-					$pager_class = 'empty';
+		$last_progress_label = get_field( 'survey' ) ? 'Submit<br /> Survey' : 'Your<br />Results';
+
+		if ( in_array( 'show_progress', $layout ) && ! in_array( 'hide_progress', $layout ) || ! in_array( 'hide_progress', $layout ) ) {
+
+			if ( isset( $form['cssClass'] ) && str_contains( $form['cssClass'], 'full-pager' ) ) {
+
+				// Custom progress bar (all pages)
+				$progress_bar = '<ol class="full-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">';
+				foreach ( $form_pages as $k => $v ) {
+					$pager_class = '';
+					if ( $current_page === $k ) {
+						$pager_class = 'active';
+					} elseif ( $current_page > $k ) {
+						$pager_class = 'filled';
+					} else {
+						$pager_class = 'empty';
+					}
+					$progress_bar .= '<li class="step-' . $k . ' ' . $pager_class . '"><span>' . $v . '</span></li>';
 				}
-				$progress_bar .= '<li class="step-'.$k.' '.$pager_class.'"><span>'.$v.'</span></li>';
-			}
-			// $progress_bar .= '<li class="step-'.(count($form_pages) + 1).'"><span>'.$last_progress_label.'</span></li>';
-			$progress_bar .= '</ol>';
+				// $progress_bar .= '<li class="step-'.(count($form_pages) + 1).'"><span>'.$last_progress_label.'</span></li>';
+				$progress_bar .= '</ol>';
 
-			if($confirmation_message != ''){
-				$progress_bar .= '<div class="form-confirmation-container">'.$confirmation_message.'</div>';
-			}
+				if ( $confirmation_message !== '' ) {
+					$progress_bar .= '<div class="form-confirmation-container">' . $confirmation_message . '</div>';
+				}
+			} else {
 
+				// Test progress bar
+				$progress_bar = '';
 
-		} else {
+				if ( in_array( 'side_progress', $layout ) ) {
+					$progress_bar .= '<div class="progress-container sticky">';
+				}
 
-			// Test progress bar
-			$progress_bar = '';
-	
-			if( in_array('side_progress', $layout) ){
-				$progress_bar .= '<div class="progress-container sticky">';
-			}
-	
-			if(get_field('espanol')){
-				$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+				if ( get_field( 'espanol' ) ) {
+					$progress_bar .= '<ol class="screen-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">
 					<li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
 					<li class="step-2"><span>Preguntas<br />Opcionales</span></li>
 					<li class="step-3"><span>Sus<br />Resultados</span></li>
 				</ol>';
-			} else {
-				$demo_label = in_array('alt_demo_label', $layout) ? 'Optional<br />Questions' : 'Optional<br />Questions';
-				$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+				} else {
+					$demo_label = in_array( 'alt_demo_label', $layout ) ? 'Optional<br />Questions' : 'Optional<br />Questions';
+					$progress_bar .= '<ol class="screen-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">
 					<li class="step-1"><span>Test<br />Questions</span></li>
-					<li class="step-2"><span>'.$demo_label.'</span></li>
-					<li class="step-3"><span>'.$last_progress_label.'</span></li>
+					<li class="step-2"><span>' . $demo_label . '</span></li>
+					<li class="step-3"><span>' . $last_progress_label . '</span></li>
 				</ol>';
+				}
+
+				if ( in_array( 'side_progress', $layout ) ) {
+					$progress_bar .= '</div>';
+				}
 			}
-	
-			if( in_array('side_progress', $layout) ){
-				$progress_bar .= '</div>';
-			}
+		} else {
+
+			$progress_bar = '';
 
 		}
-
-	} else {
-
-		$progress_bar = '';
-
 	}
 
 	/**
@@ -805,8 +823,11 @@ function front_end_login_fail( $username ) {
 			// Custom Referral Check
 			$ref_query = parse_url($referrer, PHP_URL_QUERY);
 			parse_str($ref_query, $ref_query_params);
-			if(isset($ref_query_params['redirect_to']) && $ref_query_params['redirect_to'] != ''){
-				$query_args['redirect_to'] = $ref_query_params['redirect_to'];
+			if ( isset( $ref_query_params['redirect_to'] ) && $ref_query_params['redirect_to'] !== '' ) {
+				$safe_redirect = wp_validate_redirect( $ref_query_params['redirect_to'], false );
+				if ( $safe_redirect ) {
+					$query_args['redirect_to'] = $safe_redirect;
+				}
 			}
 
 			// Set our URL parameters
@@ -839,8 +860,11 @@ function check_username_password( $login, $username, $password ) {
 			// Custom Referral Check
 			$ref_query = parse_url($referrer, PHP_URL_QUERY);
 			parse_str($ref_query, $ref_query_params);
-			if(isset($ref_query_params['redirect_to']) && $ref_query_params['redirect_to'] != ''){
-				$query_args['redirect_to'] = $ref_query_params['redirect_to'];
+			if ( isset( $ref_query_params['redirect_to'] ) && $ref_query_params['redirect_to'] !== '' ) {
+				$safe_redirect = wp_validate_redirect( $ref_query_params['redirect_to'], false );
+				if ( $safe_redirect ) {
+					$query_args['redirect_to'] = $safe_redirect;
+				}
 			}
 	
 			// Set our URL parameters

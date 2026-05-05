@@ -1,0 +1,289 @@
+/**
+ * Prescreen: sync GF hidden "Prescreen Answers" from collection localStorage.
+ * Also reorder .prescreen-section-nav to match Yes-first/No-second result ordering.
+ */
+(function ($) {
+	'use strict';
+
+	function orderedCsv(sectionPages, answers) {
+		var yes = [];
+		var no = [];
+		var i;
+		var p;
+		var v;
+		for (i = 0; i < sectionPages.length; i++) {
+			p = sectionPages[i];
+			v = answers[String(p)];
+			if (v === 'yes') {
+				yes.push(p);
+			} else if (v === 'no') {
+				no.push(p);
+			}
+		}
+		return yes.concat(no).join(',');
+	}
+
+	function orderedPages(sectionPages, answers) {
+		var yes = [];
+		var no = [];
+		var i;
+		var p;
+		var v;
+		for (i = 0; i < sectionPages.length; i++) {
+			p = parseInt(sectionPages[i], 10);
+			v = answers[String(p)];
+			if (v === 'yes') {
+				yes.push(p);
+			} else if (v === 'no') {
+				no.push(p);
+			}
+		}
+		return yes.concat(no);
+	}
+
+	function reorderPrescreenNav(sectionPages, answers) {
+		var ordered = orderedPages(sectionPages, answers);
+		if (!ordered.length) {
+			return;
+		}
+		$('.prescreen-section-nav').each(function () {
+			var $nav = $(this);
+			var $items = $nav.children('li');
+			if (!$items.length) {
+				return;
+			}
+			var byPage = {};
+			$items.each(function () {
+				var cls = this.className || '';
+				var m = cls.match(/(?:^|\s)step-(\d+)(?:\s|$)/);
+				if (!m) {
+					return;
+				}
+				byPage[parseInt(m[1], 10)] = $(this);
+			});
+			var used = {};
+			ordered.forEach(function (pageNum) {
+				if (!used[pageNum] && byPage[pageNum]) {
+					$nav.append(byPage[pageNum]);
+					used[pageNum] = true;
+				}
+			});
+			$items.each(function () {
+				var cls = this.className || '';
+				var m = cls.match(/(?:^|\s)step-(\d+)(?:\s|$)/);
+				var pageNum = m ? parseInt(m[1], 10) : 0;
+				if (!pageNum || !used[pageNum]) {
+					$nav.append($(this));
+				}
+			});
+		});
+	}
+
+	function prescreenAnswersCookieName(formId) {
+		return 'mha_prescreen_answers_' + formId;
+	}
+
+	function scPrescreenJsonCookieName(screenId, formId) {
+		return 'mha_sc_prescreen_json_' + screenId + '_' + formId;
+	}
+
+	function buildScPrescreenJsonPayload(sectionPages, answers) {
+		var arr = [];
+		var i;
+		var page;
+		var v;
+		var answer;
+		for (i = 0; i < sectionPages.length; i++) {
+			page = parseInt(sectionPages[i], 10);
+			if (!page) {
+				continue;
+			}
+			v = answers[String(page)];
+			answer = v === 'yes' ? 1 : (v === 'no' ? 0 : null);
+			if (answer === null) {
+				continue;
+			}
+			arr.push({ page: page, answer: answer });
+		}
+		arr.sort(function (a, b) {
+			return a.page - b.page;
+		});
+		return arr.length ? JSON.stringify(arr) : '';
+	}
+
+	function setScPrescreenJsonCookie(screenId, formId, sectionPages, answers) {
+		var sid = parseInt(screenId, 10);
+		var fid = parseInt(formId, 10);
+		if (!sid || !fid || !answers) {
+			return;
+		}
+		var json = buildScPrescreenJsonPayload(sectionPages, answers);
+		if (!json) {
+			return;
+		}
+		var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+		document.cookie = scPrescreenJsonCookieName(sid, fid) + '=' + encodeURIComponent(json) + '; Max-Age=86400; Path=/; SameSite=Lax' + secure;
+	}
+
+	function clearScPrescreenJsonCookie(screenId, formId) {
+		var sid = parseInt(screenId, 10);
+		var fid = parseInt(formId, 10);
+		if (!sid || !fid) {
+			return;
+		}
+		var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+		document.cookie = scPrescreenJsonCookieName(sid, fid) + '=; Max-Age=0; Path=/; SameSite=Lax' + secure;
+	}
+
+	function setPrescreenAnswersCookie(formId, csv) {
+		if (!csv) {
+			return;
+		}
+		var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+		document.cookie = prescreenAnswersCookieName(formId) + '=' + encodeURIComponent(csv) + '; Max-Age=86400; Path=/; SameSite=Lax' + secure;
+	}
+
+	function clearPrescreenAnswersCookie(formId) {
+		var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+		document.cookie = prescreenAnswersCookieName(formId) + '=; Max-Age=0; Path=/; SameSite=Lax' + secure;
+	}
+
+	/**
+	 * After GF AJAX multipage navigation, template pager (.mha-prescreen-template-pager) stays outside the replaced DOM;
+	 * refresh filled/active/empty from hidden Prescreen Answers CSV and gform_source_page_number.
+	 */
+	function syncPrescreenSectionNavPager(formId, fieldId) {
+		var $input = $('#input_' + formId + '_' + fieldId);
+		if (!$input.length) {
+			$input = $('#gform_' + formId).find('input[name="input_' + fieldId + '"]');
+		}
+		var csv = ($input.val() || '').trim();
+		if (!csv || !/^[\d,]+$/.test(csv)) {
+			return;
+		}
+		var order = csv.split(',').map(function (x) {
+			return parseInt(x, 10);
+		}).filter(function (n) {
+			return n > 0;
+		});
+		if (!order.length) {
+			return;
+		}
+		var $src = $('#gform_source_page_number_' + formId);
+		var cur = $src.length ? parseInt($src.val(), 10) : 0;
+		if (!cur || cur < 1) {
+			cur = 1;
+		}
+		var currentIdx = order.indexOf(cur);
+		if (currentIdx < 0) {
+			return;
+		}
+		var stepCount = order.length;
+		var stepPos = currentIdx + 1;
+		$('.prescreen-section-nav').each(function () {
+			var $ol = $(this);
+			var olClass = ($ol.attr('class') || '').replace(/\bstep-\d+-of-\d+\b/g, '').trim();
+			$ol.attr('class', (olClass + ' step-' + stepPos + '-of-' + stepCount).replace(/\s+/g, ' ').trim());
+			$ol.children('li').each(function () {
+				var $li = $(this);
+				var cls = this.className || '';
+				var m = cls.match(/(?:^|\s)step-(\d+)(?:\s|$)/);
+				var pageNum = m ? parseInt(m[1], 10) : 0;
+				var idx = pageNum ? order.indexOf(pageNum) : -1;
+				var pagerClass = 'empty';
+				if (idx >= 0) {
+					if (idx < currentIdx) {
+						pagerClass = 'filled';
+					} else if (idx === currentIdx) {
+						pagerClass = 'active';
+					}
+				} else if (pageNum === cur) {
+					pagerClass = 'active';
+				}
+				var base = cls.replace(/\b(filled|active|empty)\b/g, '').replace(/\s+/g, ' ').trim();
+				$li.attr('class', (base + ' ' + pagerClass).replace(/\s+/g, ' ').trim());
+			});
+		});
+	}
+
+	function loadAnswers(storageKey) {
+		try {
+			var raw = localStorage.getItem(storageKey);
+			if (!raw) {
+				return null;
+			}
+			var st = JSON.parse(raw);
+			if (!st || st.v !== 1 || !st.answers || typeof st.answers !== 'object') {
+				return null;
+			}
+			return st.answers;
+		} catch (e) {
+			return null;
+		}
+	}
+
+	function syncScreenCollectionUserCookieFromStorage() {
+		try {
+			var scUid = window.localStorage.getItem('mha_screen_collection_user_id');
+			if (!scUid || !String(scUid).trim()) {
+				return;
+			}
+			var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+			document.cookie = 'mha_screen_collection_uid=' + encodeURIComponent(String(scUid).trim()) + '; Max-Age=86400; Path=/; SameSite=Lax' + secure;
+		} catch (e) {}
+	}
+
+	function run() {
+		var cfg = window.mhaPrescreenFormNav;
+		if (!cfg || !cfg.formId || !cfg.fieldId || !cfg.sectionPages || !cfg.sectionPages.length) {
+			return;
+		}
+		syncScreenCollectionUserCookieFromStorage();
+		var formId = cfg.formId;
+		var fid = cfg.fieldId;
+		var $input = $('#input_' + formId + '_' + fid);
+		if (!$input.length) {
+			$input = $('#gform_' + formId).find('input[name="input_' + fid + '"]');
+		}
+		if (!$input.length) {
+			return;
+		}
+
+		var csvFromField = $input.val() ? String($input.val()).trim() : '';
+		var answers = loadAnswers(cfg.storageKey);
+		if (answers) {
+			reorderPrescreenNav(cfg.sectionPages, answers);
+		}
+		var csvFromLs = answers ? orderedCsv(cfg.sectionPages, answers) : '';
+		if (csvFromField) {
+			syncPrescreenSectionNavPager(formId, fid);
+			return;
+		}
+		if (csvFromLs) {
+			$input.val(csvFromLs);
+			setPrescreenAnswersCookie(formId, csvFromLs);
+			if (cfg.screenId && answers) {
+				setScPrescreenJsonCookie(cfg.screenId, formId, cfg.sectionPages, answers);
+			}
+			syncPrescreenSectionNavPager(formId, fid);
+			return;
+		}
+		clearPrescreenAnswersCookie(formId);
+		if (cfg.screenId) {
+			clearScPrescreenJsonCookie(cfg.screenId, formId);
+		}
+		syncPrescreenSectionNavPager(formId, fid);
+	}
+
+	$(function () {
+		run();
+	});
+
+	$(document).on('gform_post_render', function (e, formId) {
+		var cfg = window.mhaPrescreenFormNav;
+		if (!cfg || parseInt(formId, 10) !== parseInt(cfg.formId, 10)) {
+			return;
+		}
+		run();
+	});
+})(jQuery);

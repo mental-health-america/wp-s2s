@@ -14,12 +14,20 @@ if ( is_wp_error( $entry_id ) || !$entry_id ):
     // Entry doesn't exist, display an error
     echo '<div class="wrap narrow mb-5"><div id="message" class="error text-center"><p>This screen result does not exist.</p></div></div>';
 
+elseif(get_field('hide_results_content', $user_screen_result['screen_id'])):
+
+    echo '<div class="wrap normal">';
+    echo get_field('result_page_content', $user_screen_result['screen_id']);
+    echo '</div>';
+
 else:
 
     // Entry exists, continue
 
     // Get Screen Results
     $user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
+
+
     //pre($user_screen_result);
     // Update featured links based on result page attributes
     // To debug, comment this out to not lock in answers so refreshing works

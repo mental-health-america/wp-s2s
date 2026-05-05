@@ -26,7 +26,7 @@ $wrap_width = get_field('page_content_width') ? get_field('page_content_width') 
 
 		<div class="wrap normal">
 			<div class="page-intro">
-				<?php the_content(); ?>				
+				<?php the_content(); ?>
 			</div>
 		</div>
 

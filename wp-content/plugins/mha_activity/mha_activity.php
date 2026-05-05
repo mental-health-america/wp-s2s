@@ -969,8 +969,8 @@ function hideThought(){
 		// Vars
 		$table = 'thoughts_hidden';	
 
-		// Check if liked previously
-		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");			
+		// Check if hidden previously
+		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid AND pid != 0");			
 		
 		
 		if($db_hidden && $db_hidden[0]->unliked == 0){
@@ -1029,8 +1029,8 @@ function hideScreen(){
     $result = array();
 	
 	// Make serialized data readable
-	parse_str($_POST['data'], $data);  
-    $isAuthentic = wp_verify_nonce( $data['nonce'], 'hideScreen');
+	parse_str( isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : '', $data );
+	$isAuthentic = wp_verify_nonce( $data['nonce'] ?? '', 'hideScreen' );
 	
 	// Submission is good, proceed
 	if($isAuthentic && is_user_logged_in()){
@@ -1038,43 +1038,60 @@ function hideScreen(){
 		// Organize our data
 		$result['response'] = $data;
 		$uid = get_current_user_id();
-		$pid = $data['pid'];	
+		$pid = isset( $data['pid'] ) ? absint( $data['pid'] ) : 0;
 
 		// Vars
-		$table = 'screens_hidden';	
+		$table = 'screens_hidden';
 
-		// Check if liked previously
-		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");			
-		
-		if($db_hidden && $db_hidden[0]->unliked == 0){
+		if ( $pid < 1 ) {
+			$result['error'] = 'invalid_pid';
+		} else {
 
-			// Result found, let's unlike it!
-			$db_update = $wpdb->update(
-				$table, 
-				array('unhidden' => 1), 
-				array('id' => $db_hidden[0]->id)
-			);			
+		// One row at most: fetch only columns we need
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT id, unliked FROM $table WHERE uid = %d AND pid = %d LIMIT 1",
+			$uid,
+			$pid
+		) );
+
+		if ( $row && (int) $row->unliked === 0 ) {
+
+			// Result found, toggle to "unhidden" state in UI terms
+			$wpdb->update(
+				$table,
+				array( 'unhidden' => 1 ),
+				array( 'id' => $row->id ),
+				array( '%d' ),
+				array( '%d' )
+			);
 			$result['unhidden'] = 0;
 
-		} else if($db_hidden && $db_hidden[0]->unliked == 1){
+		} else if ( $row && (int) $row->unliked === 1 ) {
 
-			// Thought was previously hidden, so lets hide it again!
-			$db_update = $wpdb->update(
-				$table, 
-				array('unhidden' => 0), 
-				array('id' => $db_hidden[0]->id)
-			);			
+			// Was hidden before, hide again
+			$wpdb->update(
+				$table,
+				array( 'unhidden' => 0 ),
+				array( 'id' => $row->id ),
+				array( '%d' ),
+				array( '%d' )
+			);
 			$result['unhidden'] = 2;
 
 		} else {
 
-			// No results, hide it for the first time!
-			$response =	array( 
-				'uid' => $uid,
-				'pid' => $pid
-			);	
-			$db_insert = $wpdb->insert($table, $response);
+			// No results, hide it for the first time
+			$wpdb->insert(
+				$table,
+				array(
+					'uid' => $uid,
+					'pid' => $pid,
+				),
+				array( '%d', '%d' )
+			);
 			$result['unhidden'] = 1;
+
+		}
 
 		}
 

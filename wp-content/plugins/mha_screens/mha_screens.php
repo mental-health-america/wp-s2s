@@ -1033,4 +1033,4 @@ include_once 'featured_next_steps.php';
 include_once 'related_articles.php';
 include_once 'admin_screen_tester.php';
 include_once 'multilingual.php';
-#include_once 'screen_collection.php';
+include_once 'screen_collection.php';

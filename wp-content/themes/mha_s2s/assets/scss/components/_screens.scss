@@ -839,6 +839,18 @@ ol.full-progress-bar {
 
 }
 
+ol.full-progress-bar.prescreen-section-nav {
+    li a {
+        color: inherit;
+        text-decoration: none;
+        display: block;
+        &:hover,
+        &:focus {
+            text-decoration: underline;
+        }
+    }
+}
+
 .gfield_validation_message {
     margin-top: 5px;
 }

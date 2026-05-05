@@ -14,7 +14,25 @@ $org_display = '';
 $org_id = '';
 
 $org_approved = false;
-$screens = get_field('screens');
+$screens = get_field( 'screens' );
+if ( is_array( $screens ) ) {
+	$screens = array_map(
+		static function ( $s ) {
+			if ( is_object( $s ) && isset( $s->ID ) ) {
+				return (int) $s->ID;
+			}
+			return absint( $s );
+		},
+		$screens
+	);
+	$screens = array_values( array_filter( $screens ) );
+} elseif ( is_object( $screens ) && isset( $screens->ID ) ) {
+	$screens = array( (int) $screens->ID );
+} elseif ( $screens !== null && $screens !== '' && false !== $screens ) {
+	$screens = array( absint( $screens ) );
+} else {
+	$screens = array();
+}
 $screen_order = get_field('force_screen_order');
 $require_user_id = get_field('ask_for_user_id');
 
@@ -88,11 +106,42 @@ $iframe_mode = get_query_var('iframe');
 				</form>
 
 				<?php
-					// Get user_id from POST or set empty (will be set via JavaScript if needed)
-					$user_id_param = isset($_POST['user_id']) ? sanitize_text_field($_POST['user_id']) : '';
-					
-					// Use shortcode to render screenings list
-					echo do_shortcode('[screen_collection_list screens="'.implode(',', $screens).'" screen_order="'.($screen_order ? 'true' : 'false').'" org_id="'.$org_id.'" user_id="'.$user_id_param.'" referrer="'.$referrer.'" iframe_mode="'.($iframe_mode ? 'true' : 'false').'"]');
+				if ( ! empty( $screens ) && is_array( $screens ) ) :
+					?>
+					<div id="screen-collection-prescreens-wrap" class="screen-collection-prescreens-wrap mb-4 d-none" aria-hidden="true">
+						<button type="button" class="button round screen-collection-prescreens-start d-none mb-3" aria-expanded="false" aria-controls="screen-collection-prescreens-inner">
+							<?php esc_html_e( 'Start prescreen', 'mha_s2s' ); ?>
+						</button>
+						<div id="screen-collection-prescreens-inner" class="screen-collection-prescreens-inner d-none">
+							<div class="screen-collection-prescreens">
+								<?php
+								foreach ( $screens as $prescreen_screen_id ) :
+									$prescreen_screen_id = absint( $prescreen_screen_id );
+									if ( ! $prescreen_screen_id ) {
+										continue;
+									}
+									echo do_shortcode(
+										sprintf(
+											'[screen_collection_prescreen screen="%d" org_id="%s" referrer="%s" iframe_mode="%s"]',
+											$prescreen_screen_id,
+											esc_attr( $org_id ),
+											esc_attr( $referrer ),
+											$iframe_mode ? 'true' : 'false'
+										)
+									);
+								endforeach;
+								?>
+							</div>
+						</div>
+					</div>
+					<?php
+				endif;
+
+				// Get user_id from POST or set empty (will be set via JavaScript if needed)
+				$user_id_param = isset($_POST['user_id']) ? sanitize_text_field($_POST['user_id']) : '';
+
+				// Use shortcode to render screenings list
+				// echo do_shortcode('[screen_collection_list screens="'.implode(',', $screens).'" screen_order="'.($screen_order ? 'true' : 'false').'" org_id="'.$org_id.'" user_id="'.$user_id_param.'" referrer="'.$referrer.'" iframe_mode="'.($iframe_mode ? 'true' : 'false').'"]');
 				endif;
 			?>
 		</div>
