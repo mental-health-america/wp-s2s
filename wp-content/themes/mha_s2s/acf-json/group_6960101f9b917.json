@@ -109,7 +109,7 @@
                     "label": "Organization ID",
                     "name": "organization_id",
                     "aria-label": "",
-                    "type": "text",
+                    "type": "acfe_taxonomy_terms",
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
@@ -119,12 +119,28 @@
                         "id": ""
                     },
                     "relevanssi_exclude": 0,
-                    "default_value": "",
-                    "maxlength": "",
+                    "taxonomy": [
+                        "organization"
+                    ],
+                    "allow_terms": "",
+                    "allow_level": "",
+                    "field_type": "select",
+                    "default_value": [],
+                    "return_format": "name",
+                    "ui": 0,
+                    "allow_null": 0,
+                    "multiple": 0,
+                    "save_terms": 0,
+                    "load_terms": 0,
                     "allow_in_bindings": 0,
+                    "choices": [],
+                    "ajax": 0,
                     "placeholder": "",
-                    "prepend": "",
-                    "append": "",
+                    "search_placeholder": "",
+                    "layout": "",
+                    "toggle": 0,
+                    "allow_custom": 0,
+                    "other_choice": 0,
                     "parent_repeater": "field_69602a80b969d"
                 },
                 {
@@ -180,5 +196,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1777930863
+    "modified": 1778019126
 }

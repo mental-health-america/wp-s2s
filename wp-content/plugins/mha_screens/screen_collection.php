@@ -6,7 +6,16 @@
 add_action('wp_enqueue_scripts', 'mhaScreenCollectionScripts');
 function mhaScreenCollectionScripts() {
 	wp_enqueue_script('mha_screen_collection', plugin_dir_url( __FILE__ ).'js/screen-collection.js', array('jquery'), MHASCREENS_VERSION, true);
-	wp_localize_script('mha_screen_collection', 'mhaScreenCollection', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+	wp_localize_script(
+		'mha_screen_collection',
+		'mhaScreenCollection',
+		array(
+			'ajaxurl'      => admin_url( 'admin-ajax.php' ),
+			'scUserNonce'  => wp_create_nonce( 'mha_screen_collection_sc' ),
+			'screenPostId' => is_singular() ? (int) get_queried_object_id() : 0,
+			'scUserHash'   => function_exists( 'mha_screen_collection_sc_user_merge_value' ) ? mha_screen_collection_sc_user_merge_value() : '',
+		)
+	);
 }
 
 /**
@@ -1084,7 +1093,9 @@ add_filter( 'gform_confirmation', 'mha_screen_collection_prescreen_confirmation_
 
 /**
  * Replace prescreen merge tags in field defaults / messages:
- * `{prescreen_answers}` (nav CSV), `{prescreen_sc}`, `{sc_prescreen_answers}` (JSON page/answer), `{sc_user}` (hashed user id).
+ * `{prescreen_answers}` (nav CSV), `{prescreen_sc}`.
+ *
+ * `{sc_prescreen_answers}` and `{sc_user}` are left as placeholders for theme JS (see global.js), like `{datetime}`.
  *
  * @param string     $text       Text with merge tags.
  * @param array      $form       Form.
@@ -1101,9 +1112,7 @@ function mha_screen_collection_prescreen_replace_merge_tags( $text, $form, $entr
 	}
 	$has_legacy_csv = strpos( $text, '{prescreen_answers}' ) !== false;
 	$has_sc         = strpos( $text, '{prescreen_sc}' ) !== false;
-	$has_sc_pa      = strpos( $text, '{sc_prescreen_answers}' ) !== false;
-	$has_sc_user    = strpos( $text, '{sc_user}' ) !== false;
-	if ( ! $has_legacy_csv && ! $has_sc && ! $has_sc_pa && ! $has_sc_user ) {
+	if ( ! $has_legacy_csv && ! $has_sc ) {
 		return $text;
 	}
 	if ( empty( $form ) || ! is_array( $form ) ) {
@@ -1112,12 +1121,6 @@ function mha_screen_collection_prescreen_replace_merge_tags( $text, $form, $entr
 		}
 		if ( $has_sc ) {
 			$text = str_replace( '{prescreen_sc}', '', $text );
-		}
-		if ( $has_sc_pa ) {
-			$text = str_replace( '{sc_prescreen_answers}', '', $text );
-		}
-		if ( $has_sc_user ) {
-			$text = str_replace( '{sc_user}', '', $text );
 		}
 		return $text;
 	}
@@ -1134,17 +1137,24 @@ function mha_screen_collection_prescreen_replace_merge_tags( $text, $form, $entr
 		}
 		$text = str_replace( '{prescreen_sc}', $token, $text );
 	}
-	if ( $has_sc_pa ) {
-		$json = mha_screen_collection_prescreen_sc_answers_json_resolved( $form );
-		$text = str_replace( '{sc_prescreen_answers}', $url_encode ? rawurlencode( $json ) : $json, $text );
-	}
-	if ( $has_sc_user ) {
-		$user_token = mha_screen_collection_sc_user_merge_value();
-		$text       = str_replace( '{sc_user}', $url_encode ? rawurlencode( $user_token ) : $user_token, $text );
-	}
 	return $text;
 }
 add_filter( 'gform_replace_merge_tags', 'mha_screen_collection_prescreen_replace_merge_tags', 10, 7 );
+
+/**
+ * AJAX: return HMAC-SHA256 for screen-collection user id (theme JS fills `{sc_user}` hidden default).
+ */
+function mha_screen_collection_ajax_sc_user_hash() {
+	check_ajax_referer( 'mha_screen_collection_sc', 'nonce' );
+	$uid = isset( $_POST['user_id'] ) ? sanitize_text_field( wp_unslash( $_POST['user_id'] ) ) : '';
+	if ( $uid === '' || strlen( $uid ) > 256 ) {
+		wp_send_json_error( array( 'message' => 'invalid' ) );
+	}
+	$hash = hash_hmac( 'sha256', $uid, wp_salt( 'mha_screen_collection_sc_user' ) );
+	wp_send_json_success( array( 'hash' => $hash ) );
+}
+add_action( 'wp_ajax_mha_screen_collection_sc_user_hash', 'mha_screen_collection_ajax_sc_user_hash' );
+add_action( 'wp_ajax_nopriv_mha_screen_collection_sc_user_hash', 'mha_screen_collection_ajax_sc_user_hash' );
 
 /**
  * Fill hidden "Prescreen sc" from request so multipage POST keeps collection + form + page context.

@@ -484,5 +484,132 @@ jQuery(function ($) {
 		});
 	}
 
+	/**
+	 * Build prescreen JSON [{page,answer},…] from collection prescreen localStorage answers (yes=1, no=0).
+	 *
+	 * @param {Object} answers Keys are GF page numbers as strings.
+	 * @returns {string} JSON or ''.
+	 */
+	function mhaBuildPrescreenJsonFromAnswers(answers) {
+		var arr = [];
+		if (!answers || typeof answers !== 'object') {
+			return '';
+		}
+		Object.keys(answers).forEach(function (k) {
+			var page = parseInt(k, 10);
+			if (!page) {
+				return;
+			}
+			var v = answers[k];
+			var answer = v === 'yes' ? 1 : (v === 'no' ? 0 : null);
+			if (answer === null) {
+				return;
+			}
+			arr.push({ page: page, answer: answer });
+		});
+		arr.sort(function (a, b) {
+			return a.page - b.page;
+		});
+		return arr.length ? JSON.stringify(arr) : '';
+	}
+
+	function mhaGetPrescreenJsonCookie(screenId, formId) {
+		var name = 'mha_sc_prescreen_json_' + screenId + '_' + formId + '=';
+		var parts = document.cookie.split(';');
+		var i;
+		var c;
+		for (i = 0; i < parts.length; i++) {
+			c = parts[i].trim();
+			if (c.indexOf(name) === 0) {
+				try {
+					return decodeURIComponent(c.substring(name.length));
+				} catch (e) {
+					return '';
+				}
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Fill GF hidden defaults still set to {sc_prescreen_answers} / {sc_user} (gform_page_loaded / gform_post_render).
+	 *
+	 * @param {number|string} form_id
+	 * @param {number|string} current_page
+	 */
+	function mhaFillScreenCollectionPrescreenPlaceholders(form_id, current_page) {
+		var cfg = window.mhaScreenCollection;
+		var fid = parseInt(form_id, 10);
+		if (!fid) {
+			return;
+		}
+		var $ctx = $('#gform_wrapper_' + fid);
+		if (!$ctx.length) {
+			$ctx = $(document);
+		}
+
+		var screenId = 0;
+		if (cfg && parseInt(cfg.screenPostId, 10)) {
+			screenId = parseInt(cfg.screenPostId, 10);
+		}
+		if (!screenId && document.body && document.body.className) {
+			var m = document.body.className.match(/\bpostid-(\d+)\b/);
+			if (m) {
+				screenId = parseInt(m[1], 10) || 0;
+			}
+		}
+
+		var jsonPayload = '';
+		if (screenId && fid) {
+			try {
+				var key = 'mha_screen_prescreen_' + screenId + '_' + fid;
+				var raw = window.localStorage.getItem(key);
+				if (raw) {
+					var st = JSON.parse(raw);
+					if (st && st.v === 1 && st.answers && st.submitted) {
+						jsonPayload = mhaBuildPrescreenJsonFromAnswers(st.answers);
+					}
+				}
+			} catch (e1) {}
+			if (!jsonPayload) {
+				jsonPayload = mhaGetPrescreenJsonCookie(screenId, fid);
+			}
+		}
+
+		$ctx.find('input[type="hidden"]').each(function () {
+			var $inp = $(this);
+			var v = $.trim($inp.val());
+			if (v === '{sc_prescreen_answers}') {
+				if (jsonPayload) {
+					$inp.val(jsonPayload).trigger('change');
+				}
+			} else if (v === '{sc_user}') {
+				if (cfg && cfg.scUserHash) {
+					$inp.val(cfg.scUserHash).trigger('change');
+					return;
+				}
+				var uid = '';
+				try {
+					uid = (window.localStorage.getItem('mha_screen_collection_user_id') || '').trim();
+				} catch (e2) {}
+				if (uid && cfg && cfg.ajaxurl && cfg.scUserNonce) {
+					$.post(cfg.ajaxurl, {
+						action: 'mha_screen_collection_sc_user_hash',
+						nonce: cfg.scUserNonce,
+						user_id: uid
+					}).done(function (res) {
+						if (res && res.success && res.data && res.data.hash && $.trim($inp.val()) === '{sc_user}') {
+							$inp.val(res.data.hash).trigger('change');
+						}
+					});
+				}
+			}
+		});
+	}
+
+	$(document).on('gform_page_loaded gform_post_render', function (event, form_id, current_page) {
+		mhaFillScreenCollectionPrescreenPlaceholders(form_id, current_page);
+	});
+
 	initScreenCollectionPrescreen();
 });

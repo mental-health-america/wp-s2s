@@ -37,6 +37,7 @@ else:
     }
     wp_reset_query();
 
+    /*
     // Screen Collection: Check if Screen Collection field contains &&& and display screen list
     $screen_collection_value = '';
     
@@ -103,6 +104,7 @@ else:
             wp_reset_postdata();
         }
     }
+    */
     
     $excluded_ids = [];
     $result_cta = [];

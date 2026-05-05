@@ -1635,3 +1635,307 @@ function mha_partner_banner($referer = null) {
 	return $partner_banner_info;
 
 }
+
+/**
+ * Normalize ACF `screens` post object field to a list of screen post IDs.
+ *
+ * @param mixed $screens Raw field value.
+ * @return int[]
+ */
+function mha_s2s_normalize_screen_collection_screens( $screens ) {
+	if ( is_array( $screens ) ) {
+		return array_values(
+			array_filter(
+				array_map(
+					static function ( $s ) {
+						if ( is_object( $s ) && isset( $s->ID ) ) {
+							return (int) $s->ID;
+						}
+						return absint( $s );
+					},
+					$screens
+				)
+			)
+		);
+	}
+	if ( is_object( $screens ) && isset( $screens->ID ) ) {
+		return array( (int) $screens->ID );
+	}
+	if ( null !== $screens && '' !== $screens && false !== $screens ) {
+		return array( absint( $screens ) );
+	}
+	return array();
+}
+
+/**
+ * Whether an `allowed_organizations` repeater row matches the given organization term ID.
+ *
+ * @param array<string,mixed> $row Repeater sub-row.
+ * @param int                 $term_id Organization term ID.
+ */
+function mha_s2s_screen_collection_allowed_org_row_matches_term( array $row, $term_id ) {
+	$term_id = absint( $term_id );
+	if ( ! $term_id ) {
+		return false;
+	}
+	$term = get_term( $term_id, 'organization' );
+	if ( ! $term || is_wp_error( $term ) ) {
+		return false;
+	}
+	$raw = isset( $row['organization_id'] ) ? $row['organization_id'] : null;
+	if ( null === $raw || '' === $raw ) {
+		return false;
+	}
+	if ( is_numeric( $raw ) && absint( $raw ) === $term_id ) {
+		return true;
+	}
+	$raw_s = is_scalar( $raw ) ? trim( (string) $raw ) : '';
+	if ( '' === $raw_s ) {
+		return false;
+	}
+	if ( $raw_s === $term->name || strcasecmp( $raw_s, $term->slug ) === 0 ) {
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Gravity Forms field ID whose admin label or label is "SC Organization".
+ *
+ * @param array<string,mixed> $form Form array from GFAPI::get_form.
+ * @return int|null
+ */
+function mha_s2s_gf_form_sc_organization_field_id( $form ) {
+	if ( empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
+		return null;
+	}
+	foreach ( $form['fields'] as $field ) {
+		if ( ! is_object( $field ) ) {
+			continue;
+		}
+		$admin = isset( $field->adminLabel ) ? trim( (string) $field->adminLabel ) : '';
+		$label = isset( $field->label ) ? trim( (string) $field->label ) : '';
+		if ( strcasecmp( $admin, 'SC Organization' ) === 0 || strcasecmp( $label, 'SC Organization' ) === 0 ) {
+			return (int) $field->id;
+		}
+	}
+	return null;
+}
+
+/**
+ * Gravity Forms field ID whose admin label or label is "SC User".
+ *
+ * @param array<string,mixed> $form Form array from GFAPI::get_form.
+ * @return int|null
+ */
+function mha_s2s_gf_form_sc_user_field_id( $form ) {
+	if ( empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
+		return null;
+	}
+	foreach ( $form['fields'] as $field ) {
+		if ( ! is_object( $field ) ) {
+			continue;
+		}
+		$admin = isset( $field->adminLabel ) ? trim( (string) $field->adminLabel ) : '';
+		$label = isset( $field->label ) ? trim( (string) $field->label ) : '';
+		if ( strcasecmp( $admin, 'SC User' ) === 0 || strcasecmp( $label, 'SC User' ) === 0 ) {
+			return (int) $field->id;
+		}
+	}
+	return null;
+}
+
+/**
+ * Entries for screen collections that allow the user's organization, limited to screens on those
+ * collections whose GF form has "SC Organization" matching the org display name (or term name).
+ *
+ * @param int|null $user_id Defaults to current user.
+ * @return array{ok:bool,term_id:int,term_name:string,org_match_values:string[],rows:array<int,array<string,mixed>>,message:string}
+ */
+function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
+	$empty = array(
+		'ok'               => false,
+		'term_id'          => 0,
+		'term_name'        => '',
+		'org_match_values' => array(),
+		'rows'             => array(),
+		'message'          => '',
+	);
+
+	$user_id = $user_id ? absint( $user_id ) : get_current_user_id();
+	if ( ! $user_id || ! function_exists( 'get_field' ) || ! class_exists( 'GFAPI' ) || ! function_exists( 'mha_screen_collection_parse_gravity_form_id_from_screen' ) ) {
+		$empty['message'] = 'unavailable';
+		return $empty;
+	}
+
+	$term_id = (int) get_field( 'screen_collection_organization', 'user_' . $user_id );
+	if ( ! $term_id ) {
+		$empty['message'] = 'no_organization';
+		return $empty;
+	}
+
+	$term = get_term( $term_id, 'organization' );
+	if ( ! $term || is_wp_error( $term ) ) {
+		$empty['message'] = 'invalid_term';
+		return $empty;
+	}
+
+	$collections = get_posts(
+		array(
+			'post_type'      => 'screen-collection',
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		)
+	);
+
+	$form_jobs = array();
+	foreach ( $collections as $collection_id ) {
+		$allowed = get_field( 'allowed_organizations', $collection_id );
+		if ( ! is_array( $allowed ) ) {
+			continue;
+		}
+		$matched_display  = '';
+		$allowed_for_user = false;
+		foreach ( $allowed as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			if ( ! mha_s2s_screen_collection_allowed_org_row_matches_term( $row, $term_id ) ) {
+				continue;
+			}
+			$allowed_for_user = true;
+			if ( ! empty( $row['organization_display_name'] ) ) {
+				$matched_display = trim( (string) $row['organization_display_name'] );
+			}
+			break;
+		}
+		if ( ! $allowed_for_user ) {
+			continue;
+		}
+
+		$screens = mha_s2s_normalize_screen_collection_screens( get_field( 'screens', $collection_id ) );
+		foreach ( $screens as $screen_id ) {
+			$form_id = mha_screen_collection_parse_gravity_form_id_from_screen( $screen_id );
+			if ( ! $form_id ) {
+				continue;
+			}
+			$key = $collection_id . ':' . $screen_id . ':' . $form_id;
+			if ( isset( $form_jobs[ $key ] ) ) {
+				continue;
+			}
+			$form = GFAPI::get_form( $form_id );
+			if ( ! $form || is_wp_error( $form ) ) {
+				continue;
+			}
+			$org_field_id = mha_s2s_gf_form_sc_organization_field_id( $form );
+			if ( ! $org_field_id ) {
+				continue;
+			}
+			$sc_user_field_id = mha_s2s_gf_form_sc_user_field_id( $form );
+			$form_jobs[ $key ] = array(
+				'collection_id'    => (int) $collection_id,
+				'collection_title' => get_the_title( $collection_id ),
+				'screen_id'        => (int) $screen_id,
+				'screen_title'     => get_the_title( $screen_id ),
+				'form_id'          => (int) $form_id,
+				'form_title'       => isset( $form['title'] ) ? (string) $form['title'] : '',
+				'org_field_id'     => (int) $org_field_id,
+				'sc_user_field_id' => $sc_user_field_id ? (int) $sc_user_field_id : 0,
+				'org_display'      => $matched_display,
+			);
+		}
+	}
+
+	if ( ! $form_jobs ) {
+		return array(
+			'ok'               => true,
+			'term_id'          => $term_id,
+			'term_name'        => $term->name,
+			'org_match_values' => array_unique( array_filter( array( $term->name ) ) ),
+			'rows'             => array(),
+			'message'          => 'no_collections',
+		);
+	}
+
+	$org_values = array( $term->name );
+	foreach ( $form_jobs as $job ) {
+		if ( ! empty( $job['org_display'] ) ) {
+			$org_values[] = $job['org_display'];
+		}
+	}
+	$org_values = array_values( array_unique( array_filter( array_map( 'trim', $org_values ) ) ) );
+
+	$rows       = array();
+	$paging     = array( 'offset' => 0, 'page_size' => 400 );
+	$sorting    = array( 'key' => 'date_created', 'direction' => 'DESC' );
+	$seen_entry = array();
+
+	foreach ( $form_jobs as $job ) {
+		foreach ( $org_values as $org_val ) {
+			$search_criteria = array(
+				'status'        => 'active',
+				'field_filters' => array(
+					array(
+						'key'      => (string) $job['org_field_id'],
+						'value'    => $org_val,
+						'operator' => 'is',
+					),
+				),
+			);
+			$entries = GFAPI::get_entries( $job['form_id'], $search_criteria, $sorting, $paging );
+			if ( is_wp_error( $entries ) || ! is_array( $entries ) ) {
+				continue;
+			}
+			foreach ( $entries as $entry ) {
+				if ( empty( $entry['id'] ) ) {
+					continue;
+				}
+				$eid = (int) $entry['id'];
+				if ( isset( $seen_entry[ $eid ] ) ) {
+					continue;
+				}
+				$seen_entry[ $eid ] = true;
+				$fid          = (string) $job['org_field_id'];
+				$org_in_entry = isset( $entry[ $fid ] ) ? (string) $entry[ $fid ] : '';
+
+				$sc_user_val = '';
+				if ( ! empty( $job['sc_user_field_id'] ) ) {
+					$uid_key = (string) $job['sc_user_field_id'];
+					if ( isset( $entry[ $uid_key ] ) ) {
+						$sc_user_val = is_string( $entry[ $uid_key ] ) ? $entry[ $uid_key ] : (string) $entry[ $uid_key ];
+					}
+				}
+
+				$rows[] = array(
+					'collection_title' => $job['collection_title'],
+					'screen_title'     => $job['screen_title'],
+					'form_id'          => $job['form_id'],
+					'form_title'       => $job['form_title'],
+					'entry_id'         => $eid,
+					'date_created'     => isset( $entry['date_created'] ) ? (string) $entry['date_created'] : '',
+					'sc_organization'  => $org_in_entry,
+					'sc_user'            => $sc_user_val,
+				);
+			}
+		}
+	}
+
+	usort(
+		$rows,
+		static function ( $a, $b ) {
+			return strcmp( (string) $b['date_created'], (string) $a['date_created'] );
+		}
+	);
+
+	return array(
+		'ok'               => true,
+		'term_id'          => $term_id,
+		'term_name'        => $term->name,
+		'org_match_values' => $org_values,
+		'rows'             => $rows,
+		'message'          => '',
+	);
+}
