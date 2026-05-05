@@ -740,6 +740,67 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 }
 
 /**
+ * Custom progress steps (GF “steps” / progress steps markup).
+ * With form class `full-pager-links`, step labels are GP Multi-Page Navigation page links (`href="#N"` + `gpmpn-page-link`).
+ * When `sc` resolves to a screen collection (via mha_screens), a back link is output above the step list.
+ * No espanol / side_progress variants.
+ *
+ * @see https://docs.gravityforms.com/gform_progress_steps/
+ * @see https://gravitywiz.com/documentation/gravity-forms-multi-page-navigation/
+ */
+add_filter( 'gform_progress_steps', 'custom_screen_progress_steps', 10, 3 );
+function custom_screen_progress_steps( $progress_steps, $form, $page ) {
+
+	if ( empty( $form['cssClass'] ) || ! str_contains( (string) $form['cssClass'], 'full-pager-links' ) ) {
+		return $progress_steps;
+	}
+
+	$layout = get_layout_array( get_query_var( 'layout' ) );
+	if ( ! ( in_array( 'show_progress', $layout ) && ! in_array( 'hide_progress', $layout ) || ! in_array( 'hide_progress', $layout ) ) ) {
+		return '';
+	}
+
+	if ( empty( $form['pagination']['pages'] ) || ! is_array( $form['pagination']['pages'] ) ) {
+		return $progress_steps;
+	}
+
+	$form_pages = array();
+	foreach ( $form['pagination']['pages'] as $k => $v ) {
+		$form_pages[ ( $k + 1 ) ] = $v;
+	}
+
+	$current_page = max( 1, (int) $page );
+	$page_count   = (int) GFFormDisplay::get_max_page_number( $form ) + 1;
+
+	$back_html = '';
+	if ( function_exists( 'mha_screen_collection_prescreen_back_to_collection_url' ) ) {
+		$screen_id = function_exists( 'get_queried_object_id' ) ? (int) get_queried_object_id() : 0;
+		$back_url  = mha_screen_collection_prescreen_back_to_collection_url( $screen_id );
+		if ( $back_url !== '' ) {
+			$back_html = '<p class="mha-progress-steps-back-wrap"><a class="button round-tl thin teal mha-back-to-screen-collection" href="' . esc_url( $back_url ) . '">' . esc_html__( 'Back to Screen Collection', 'mha_s2s' ) . '</a></p>';
+		}
+	}
+
+	$out = $back_html . '<ol class="full-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">';
+	foreach ( $form_pages as $k => $v ) {
+		$pager_class = '';
+		if ( $current_page === $k ) {
+			$pager_class = 'active';
+		} elseif ( $current_page > $k ) {
+			$pager_class = 'filled';
+		} else {
+			$pager_class = 'empty';
+		}
+		$page_num = (int) $k;
+		$label_link = '<a href="' . esc_attr( '#' . (string) $page_num ) . '" class="gpmpn-page-link">' . $v . '</a>';
+		$out       .= '<li class="step-' . esc_attr( (string) $k ) . ' ' . esc_attr( $pager_class ) . '"><span>' . $label_link . '</span></li>';
+	}
+	$out .= '</ol>';
+
+	return $out;
+}
+
+/**
  * Gravity Forms <form> tag overrides
  */
 add_filter( 'gform_form_tag', function ( $form_tag, $form ) {
