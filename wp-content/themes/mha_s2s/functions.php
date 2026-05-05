@@ -742,6 +742,7 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 /**
  * Custom progress steps (GF “steps” / progress steps markup).
  * With form class `full-pager-links`, step labels are GP Multi-Page Navigation page links (`href="#N"` + `gpmpn-page-link`).
+ * Steps use prescreen JSON (mha_screens): pages answered "no" get the `not-interested` class on the list item.
  * When `sc` resolves to a screen collection (via mha_screens), a back link is output above the step list.
  * No espanol / side_progress variants.
  *
@@ -764,9 +765,33 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 		return $progress_steps;
 	}
 
+	$prescreen_no_pages = array();
+	if ( function_exists( 'mha_screen_collection_prescreen_sc_answers_json_resolved' ) ) {
+		$prescreen_json = mha_screen_collection_prescreen_sc_answers_json_resolved( $form );
+		if ( is_string( $prescreen_json ) && $prescreen_json !== '' ) {
+			$rows = json_decode( $prescreen_json, true );
+			if ( is_array( $rows ) ) {
+				foreach ( $rows as $row ) {
+					if ( ! is_array( $row ) ) {
+						continue;
+					}
+					$p = isset( $row['page'] ) ? absint( $row['page'] ) : 0;
+					$a = isset( $row['answer'] ) ? (int) $row['answer'] : -1;
+					if ( $p > 0 && 0 === $a ) {
+						$prescreen_no_pages[ $p ] = true;
+					}
+				}
+			}
+		}
+	}
+
 	$form_pages = array();
 	foreach ( $form['pagination']['pages'] as $k => $v ) {
-		$form_pages[ ( $k + 1 ) ] = $v;
+		$page_num                = (int) ( $k + 1 );
+		$form_pages[ $page_num ] = array(
+			'label'          => $v,
+			'not_interested' => ! empty( $prescreen_no_pages[ $page_num ] ),
+		);
 	}
 
 	$current_page = max( 1, (int) $page );
@@ -782,18 +807,26 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 	}
 
 	$out = $back_html . '<ol class="full-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">';
-	foreach ( $form_pages as $k => $v ) {
-		$pager_class = '';
-		if ( $current_page === $k ) {
-			$pager_class = 'active';
-		} elseif ( $current_page > $k ) {
-			$pager_class = 'filled';
-		} else {
-			$pager_class = 'empty';
+	foreach ( $form_pages as $k => $info ) {
+		$v           = $info['label'];
+		if($v != ''){
+			$pager_class = '';
+			if ( $current_page === $k ) {
+				$pager_class = 'active';
+			} elseif ( $current_page > $k ) {
+				$pager_class = 'filled';
+			} else {
+				$pager_class = 'empty';
+			}
+			$li_classes   = array( 'step-' . (string) (int) $k, $pager_class );
+			if ( ! empty( $info['not_interested'] ) ) {
+				$li_classes[] = 'not-interested';
+			}
+			$li_class   = implode( ' ', array_filter( $li_classes ) );
+			$page_num   = (int) $k;
+			$label_link = '<a href="' . esc_attr( '#' . (string) $page_num ) . '" class="gpmpn-page-link">' . $v . '</a>';
+			$out       .= '<li class="' . esc_attr( $li_class ) . '"><span>' . $label_link . '</span></li>';
 		}
-		$page_num = (int) $k;
-		$label_link = '<a href="' . esc_attr( '#' . (string) $page_num ) . '" class="gpmpn-page-link">' . $v . '</a>';
-		$out       .= '<li class="step-' . esc_attr( (string) $k ) . ' ' . esc_attr( $pager_class ) . '"><span>' . $label_link . '</span></li>';
 	}
 	$out .= '</ol>';
 

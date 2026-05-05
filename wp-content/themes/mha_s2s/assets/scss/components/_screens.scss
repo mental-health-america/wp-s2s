@@ -800,6 +800,26 @@ ol.full-progress-bar {
             }
         }
 
+        &.not-interested {
+            &:before {
+                background-color: $grayLight;
+                border-color: $grayLight;
+            }
+            a {
+                color: $grayLight;
+            }
+            &.empty {
+                &:before {
+                    background-color: $white;
+                    border-color: $grayLight;
+                }
+            }
+        }
+
+        a {
+            font-weight: inherit;
+        }
+
         &:last-child,
         &:first-child {
             &:after {

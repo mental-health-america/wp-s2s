@@ -8,6 +8,7 @@ $user_screen_id = str_replace('_ref', '', get_query_var('sid')); // Remove _ref 
 
 // Get the gravity forms entry ID for easier lookups
 $entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
+$user_screen_result = is_wp_error( $entry_id ) || !$entry_id ? null : mha_get_user_screen_results( $entry_id, true ); 
 
 if ( is_wp_error( $entry_id ) || !$entry_id ):
 
@@ -15,7 +16,7 @@ if ( is_wp_error( $entry_id ) || !$entry_id ):
     echo '<div class="wrap narrow mb-5"><div id="message" class="error text-center"><p>This screen result does not exist.</p></div></div>';
 
 elseif(get_field('hide_results_content', $user_screen_result['screen_id'])):
-
+    
     echo '<div class="wrap normal">';
     echo get_field('result_page_content', $user_screen_result['screen_id']);
     echo '</div>';
@@ -24,11 +25,6 @@ else:
 
     // Entry exists, continue
 
-    // Get Screen Results
-    $user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
-
-
-    //pre($user_screen_result);
     // Update featured links based on result page attributes
     // To debug, comment this out to not lock in answers so refreshing works
     if($user_screen_result['featured_next_steps_data'] && str_contains(get_query_var('layout'), 'mhats')){
