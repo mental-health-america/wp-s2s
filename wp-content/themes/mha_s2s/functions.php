@@ -649,100 +649,81 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 
 	$progress_bar = '';
 
-	$prescreen_nav = function_exists( 'mha_screen_collection_prescreen_progress_links_html' )
-		? mha_screen_collection_prescreen_progress_links_html( $form, $current_page, $layout )
-		: '';
+	// Helpers
+	$form_fields = isset( $form['fields'] ) ? $form['fields'] : false;
+	$form_classes = isset( $form['cssClass'] ) ? $form['cssClass'] : '';
 
-	$form_id_int = isset( $form['id'] ) ? (int) $form['id'] : 0;
-	$suppress_embedded_prescreen = (bool) apply_filters( 'mha_screen_collection_suppress_embedded_prescreen_progress', false, $form_id_int );
+	// Get max pages
+	$form_pages = array();
+	/*
+	foreach($form_fields as $ff){
+		if(isset($ff['cssClass']) && str_contains($ff['cssClass'], 'page-label')){
+			$form_pages[$ff['pageNumber']] = $ff['label'];
+		}
+	}
+	*/
 
-	if ( $prescreen_nav !== '' && $suppress_embedded_prescreen ) {
-		return '';
+	foreach ( $form['pagination']['pages'] as $k => $v ) {
+		$form_pages[ ( $k + 1 ) ] = $v;
 	}
 
-	if ( $prescreen_nav !== '' ) {
-		$progress_bar = $prescreen_nav;
-		if ( $confirmation_message !== '' && isset( $form['cssClass'] ) && str_contains( $form['cssClass'], 'full-pager' ) ) {
-			$progress_bar .= '<div class="form-confirmation-container">' . $confirmation_message . '</div>';
-		}
-	} else {
+	$last_progress_label = get_field( 'survey' ) ? 'Submit<br /> Survey' : 'Your<br />Results';
 
-		// Helpers
-		$form_fields = isset( $form['fields'] ) ? $form['fields'] : false;
-		$form_classes = isset( $form['cssClass'] ) ? $form['cssClass'] : '';
+	if ( in_array( 'show_progress', $layout ) && ! in_array( 'hide_progress', $layout ) || ! in_array( 'hide_progress', $layout ) ) {
 
-		// Get max pages
-		$form_pages = array();
-		/*
-		foreach($form_fields as $ff){
-			if(isset($ff['cssClass']) && str_contains($ff['cssClass'], 'page-label')){
-				$form_pages[$ff['pageNumber']] = $ff['label'];
+		if ( isset( $form['cssClass'] ) && str_contains( $form['cssClass'], 'full-pager' ) ) {
+
+			// Custom progress bar (all pages)
+			$progress_bar = '<ol class="full-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">';
+			foreach ( $form_pages as $k => $v ) {
+				$pager_class = '';
+				if ( $current_page === $k ) {
+					$pager_class = 'active';
+				} elseif ( $current_page > $k ) {
+					$pager_class = 'filled';
+				} else {
+					$pager_class = 'empty';
+				}
+				$progress_bar .= '<li class="step-' . $k . ' ' . $pager_class . '"><span>' . $v . '</span></li>';
 			}
-		}
-		*/
+			// $progress_bar .= '<li class="step-'.(count($form_pages) + 1).'"><span>'.$last_progress_label.'</span></li>';
+			$progress_bar .= '</ol>';
 
-		foreach ( $form['pagination']['pages'] as $k => $v ) {
-			$form_pages[ ( $k + 1 ) ] = $v;
-		}
+			if ( $confirmation_message !== '' ) {
+				$progress_bar .= '<div class="form-confirmation-container">' . $confirmation_message . '</div>';
+			}
+		} else {
 
-		$last_progress_label = get_field( 'survey' ) ? 'Submit<br /> Survey' : 'Your<br />Results';
+			// Test progress bar
+			$progress_bar = '';
 
-		if ( in_array( 'show_progress', $layout ) && ! in_array( 'hide_progress', $layout ) || ! in_array( 'hide_progress', $layout ) ) {
+			if ( in_array( 'side_progress', $layout ) ) {
+				$progress_bar .= '<div class="progress-container sticky">';
+			}
 
-			if ( isset( $form['cssClass'] ) && str_contains( $form['cssClass'], 'full-pager' ) ) {
-
-				// Custom progress bar (all pages)
-				$progress_bar = '<ol class="full-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">';
-				foreach ( $form_pages as $k => $v ) {
-					$pager_class = '';
-					if ( $current_page === $k ) {
-						$pager_class = 'active';
-					} elseif ( $current_page > $k ) {
-						$pager_class = 'filled';
-					} else {
-						$pager_class = 'empty';
-					}
-					$progress_bar .= '<li class="step-' . $k . ' ' . $pager_class . '"><span>' . $v . '</span></li>';
-				}
-				// $progress_bar .= '<li class="step-'.(count($form_pages) + 1).'"><span>'.$last_progress_label.'</span></li>';
-				$progress_bar .= '</ol>';
-
-				if ( $confirmation_message !== '' ) {
-					$progress_bar .= '<div class="form-confirmation-container">' . $confirmation_message . '</div>';
-				}
-			} else {
-
-				// Test progress bar
-				$progress_bar = '';
-
-				if ( in_array( 'side_progress', $layout ) ) {
-					$progress_bar .= '<div class="progress-container sticky">';
-				}
-
-				if ( get_field( 'espanol' ) ) {
-					$progress_bar .= '<ol class="screen-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">
+			if ( get_field( 'espanol' ) ) {
+				$progress_bar .= '<ol class="screen-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">
 					<li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
 					<li class="step-2"><span>Preguntas<br />Opcionales</span></li>
 					<li class="step-3"><span>Sus<br />Resultados</span></li>
 				</ol>';
-				} else {
-					$demo_label = in_array( 'alt_demo_label', $layout ) ? 'Optional<br />Questions' : 'Optional<br />Questions';
-					$progress_bar .= '<ol class="screen-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">
+			} else {
+				$demo_label = in_array( 'alt_demo_label', $layout ) ? 'Optional<br />Questions' : 'Optional<br />Questions';
+				$progress_bar .= '<ol class="screen-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">
 					<li class="step-1"><span>Test<br />Questions</span></li>
 					<li class="step-2"><span>' . $demo_label . '</span></li>
 					<li class="step-3"><span>' . $last_progress_label . '</span></li>
 				</ol>';
-				}
-
-				if ( in_array( 'side_progress', $layout ) ) {
-					$progress_bar .= '</div>';
-				}
 			}
-		} else {
 
-			$progress_bar = '';
-
+			if ( in_array( 'side_progress', $layout ) ) {
+				$progress_bar .= '</div>';
+			}
 		}
+	} else {
+
+		$progress_bar = '';
+
 	}
 
 	/**

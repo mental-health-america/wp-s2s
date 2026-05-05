@@ -11,13 +11,6 @@ jQuery(function ($) {
 		return String(text).replace(/[&<>"']/g, function (m) { return map[m]; });
 	}
 
-	function escapeAttr(s) {
-		return String(s)
-			.replace(/&/g, '&amp;')
-			.replace(/"/g, '&quot;')
-			.replace(/</g, '&lt;');
-	}
-
 	var PREENSCREENS_SESSION_KEY = 'mha_screen_collection_prescreens_opened';
 
 	/**
@@ -428,32 +421,7 @@ jQuery(function ($) {
 			var formIdAttr = parseInt($root.attr('data-form-id'), 10) || 0;
 			var screenIdAttr = parseInt($root.attr('data-screen-id'), 10) || 0;
 			var $qForm = $root.find('.mha-prescreen-form');
-			var $results = $root.find('.mha-prescreen-results');
-			var $resultsList = $results.find('.mha-prescreen-results-list');
-
-			function orderedPages(answers) {
-				var yes = [];
-				var no = [];
-				pages.forEach(function (p) {
-					var v = answers[String(p.page)];
-					if (v === 'yes') {
-						yes.push(p);
-					} else if (v === 'no') {
-						no.push(p);
-					}
-				});
-				return yes.concat(no);
-			}
-
-			function renderLinks(answers) {
-				var html = '';
-				orderedPages(answers).forEach(function (p) {
-					var isNo = answers[String(p.page)] === 'no';
-					var cls = isNo ? 'mha-prescreen-link mha-prescreen-link--demoted' : 'mha-prescreen-link';
-					html += '<li class="mb-2"><a class="' + cls + '" href="' + escapeAttr(p.href) + '">' + escapeHtml(p.label) + '</a></li>';
-				});
-				$resultsList.html(html);
-			}
+			var $continue = $root.find('.mha-prescreen-continue');
 
 			function saveState(answers, submitted) {
 				try {
@@ -480,17 +448,16 @@ jQuery(function ($) {
 				});
 			}
 
-			function showResults() {
+			function showContinue() {
 				$qForm.addClass('d-none').attr('aria-hidden', 'true');
-				$results.removeClass('d-none').removeAttr('hidden').attr('aria-hidden', 'false');
+				$continue.removeClass('d-none').removeAttr('hidden').attr('aria-hidden', 'false');
 			}
 
 			var st = loadState();
 			if (st && st.v === 1 && st.answers) {
 				applyAnswersToRadios(st.answers);
 				if (st.submitted) {
-					renderLinks(st.answers);
-					showResults();
+					showContinue();
 					setPrescreenAnswersCookieForForm(screenIdAttr, formIdAttr, st.answers, pages);
 				}
 			}
@@ -510,8 +477,7 @@ jQuery(function ($) {
 				if (!valid) {
 					return;
 				}
-				renderLinks(answers);
-				showResults();
+				showContinue();
 				saveState(answers, true);
 				setPrescreenAnswersCookieForForm(screenIdAttr, formIdAttr, answers, pages);
 			});

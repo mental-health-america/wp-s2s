@@ -736,145 +736,6 @@ function mha_screen_collection_prescreen_reorder_pages( $pages, $csv ) {
 }
 
 /**
- * GF page order from Prescreen Answers CSV (comma-separated page numbers).
- *
- * @param string $csv Resolved CSV.
- * @return int[]
- */
-function mha_screen_collection_prescreen_csv_to_page_order( $csv ) {
-	$csv = trim( (string) $csv );
-	if ( $csv === '' ) {
-		return array();
-	}
-	return array_values( array_filter( array_map( 'absint', explode( ',', $csv ) ) ) );
-}
-
-/**
- * Whether Next/Previous should follow Prescreen Answers CSV order (screen collection prescreen multipage).
- *
- * @param array $form GF form array.
- * @return bool
- */
-function mha_screen_collection_prescreen_custom_paging_active( $form ) {
-	if ( empty( $form['id'] ) || ! is_array( $form ) ) {
-		return false;
-	}
-	if ( ! mha_screen_collection_prescreen_answers_field_id( $form ) ) {
-		return false;
-	}
-	$form_id = (int) $form['id'];
-	if ( ! mha_screen_collection_prescreen_progress_mode_active( $form_id ) ) {
-		return false;
-	}
-	return mha_screen_collection_prescreen_nav_csv_resolved( $form ) !== '';
-}
-
-/**
- * Step target page forward/back through CSV order, skipping GF-hidden pages.
- *
- * @param array    $form         GF form.
- * @param int      $new_page     Proposed GF page number.
- * @param int      $source_page  Submitted source page.
- * @param array    $field_values Dynamic population values.
- * @return int Target page or 0 when submitting past last page.
- */
-function mha_screen_collection_prescreen_adjust_target_skip_hidden( $form, $new_page, $source_page, $field_values ) {
-	$new_page     = (int) $new_page;
-	$source_page  = (int) $source_page;
-	$max          = class_exists( 'GFFormDisplay' ) ? (int) GFFormDisplay::get_max_page_number( $form ) : $new_page;
-	if ( $max < 1 ) {
-		$max = 1;
-	}
-	if ( $new_page < 1 ) {
-		return 1;
-	}
-	$direction = $new_page >= $source_page ? 1 : -1;
-	if ( class_exists( 'GFFormsModel' ) ) {
-		$guard = 0;
-		while ( $new_page > 0 && $new_page <= $max && GFFormsModel::is_page_hidden( $form, $new_page, $field_values ) && $guard < $max + 5 ) {
-			$new_page += $direction;
-			++$guard;
-		}
-	}
-	if ( $new_page > $max ) {
-		return 0;
-	}
-	if ( $new_page < 1 ) {
-		return 1;
-	}
-	return $new_page;
-}
-
-/**
- * Route multipage Next/Previous along Prescreen Answers CSV order.
- *
- * @param int   $target_page  GF target page from request (after GF hidden-page pass).
- * @param array $form         Form.
- * @param int   $source_page  Source page submitted from.
- * @param array $field_values Field values.
- * @return int
- */
-function mha_screen_collection_prescreen_filter_gform_target_page( $target_page, $form, $source_page, $field_values ) {
-	if ( ! is_array( $form ) || empty( $form['id'] ) ) {
-		return $target_page;
-	}
-	if ( ! mha_screen_collection_prescreen_custom_paging_active( $form ) ) {
-		return $target_page;
-	}
-	if ( (int) $target_page === 0 ) {
-		return $target_page;
-	}
-	$csv   = mha_screen_collection_prescreen_nav_csv_resolved( $form );
-	$order = mha_screen_collection_prescreen_csv_to_page_order( $csv );
-	if ( empty( $order ) ) {
-		return $target_page;
-	}
-	$source_page = (int) $source_page;
-	$target_page = (int) $target_page;
-	$idx         = array_search( $source_page, $order, true );
-	if ( false === $idx ) {
-		return $target_page;
-	}
-	$new_page = null;
-	if ( $target_page > $source_page ) {
-		if ( isset( $order[ $idx + 1 ] ) ) {
-			$new_page = (int) $order[ $idx + 1 ];
-		}
-	} elseif ( $target_page < $source_page ) {
-		if ( $idx > 0 && isset( $order[ $idx - 1 ] ) ) {
-			$new_page = (int) $order[ $idx - 1 ];
-		}
-	}
-	if ( null === $new_page ) {
-		return $target_page;
-	}
-	return mha_screen_collection_prescreen_adjust_target_skip_hidden( $form, $new_page, $source_page, is_array( $field_values ) ? $field_values : array() );
-}
-add_filter( 'gform_target_page', 'mha_screen_collection_prescreen_filter_gform_target_page', 10, 4 );
-
-/**
- * Mark forms that use CSV-ordered multipage navigation (styling / JS hooks).
- *
- * @param array $form GF form.
- * @return array
- */
-function mha_screen_collection_prescreen_append_form_css_class( $form ) {
-	if ( ! is_array( $form ) || empty( $form['id'] ) ) {
-		return $form;
-	}
-	if ( ! mha_screen_collection_prescreen_custom_paging_active( $form ) ) {
-		return $form;
-	}
-	$class = isset( $form['cssClass'] ) ? trim( (string) $form['cssClass'] ) : '';
-	if ( strpos( $class, 'mha-prescreen-multipage-form' ) !== false ) {
-		return $form;
-	}
-	$form['cssClass'] = trim( $class . ' mha-prescreen-multipage-form' );
-	return $form;
-}
-add_filter( 'gform_pre_render', 'mha_screen_collection_prescreen_append_form_css_class', 8 );
-
-/**
  * org / ref / iframe / partner args for collection permalinks (current request).
  *
  * @return array<string, string>
@@ -1687,7 +1548,7 @@ function mha_screen_collection_list_shortcode($atts) {
 }
 
 /**
- * Prescreen: Yes/No interest per GF page, then links (No demoted). Usage:
+ * Prescreen: Yes/No interest per GF page, then a single link to the first screening page. Usage:
  * [screen_collection_prescreen screen="123" collection_id="..." org_id="..." referrer="..." iframe_mode="false" form_url="https://..."]
  */
 add_shortcode( 'screen_collection_prescreen', 'mha_screen_collection_prescreen_shortcode' );
@@ -1760,6 +1621,8 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 		return '';
 	}
 
+	$form_start_href = ! empty( $pages[0]['href'] ) ? $pages[0]['href'] : $base_url;
+
 	$storage_key = 'mha_screen_prescreen_' . $screen_id . '_' . $form_id;
 	$config      = array(
 		'storageKey' => $storage_key,
@@ -1789,9 +1652,8 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 			?>
 			<button type="submit" class="button round"><?php esc_html_e( 'Continue', 'mha_screens' ); ?></button>
 		</form>
-		<div class="mha-prescreen-results d-none" aria-hidden="true" hidden>
-			<p class="mha-prescreen-results-intro"><?php esc_html_e( 'Choose a section to begin:', 'mha_screens' ); ?></p>
-			<ul class="mha-prescreen-results-list list-unstyled"></ul>
+		<div class="mha-prescreen-continue d-none" aria-hidden="true" hidden>
+			<p><a class="button round" href="<?php echo esc_url( $form_start_href ); ?>"><?php esc_html_e( 'Continue to screening', 'mha_screens' ); ?></a></p>
 		</div>
 	</div>
 	<?php
