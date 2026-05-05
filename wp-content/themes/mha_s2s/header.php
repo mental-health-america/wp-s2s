@@ -216,7 +216,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 							<div class="clear text-center pt-3 center">
 								<hr class="mt-0 mb-3" />
 								<?php
+								if ( function_exists( 'mha_sso_google' ) ) {
 									echo mha_sso_google();
+								}
 								?>
 							</div>
 						</div>

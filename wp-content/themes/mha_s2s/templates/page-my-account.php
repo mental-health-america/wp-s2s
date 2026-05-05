@@ -191,7 +191,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
             <h2 class="pt-3 mb-4 heading">Recent Test Results</h2>
             <?php
-                $hidden_screens_check = $wpdb->get_results("SELECT pid FROM screens_hidden WHERE uid = $uid", ARRAY_N);
+                $hidden_screens_check = $wpdb->get_results("SELECT pid FROM screens_hidden WHERE uid = $uid and pid != 0", ARRAY_N);
                 $hide_screens = [];
                 foreach($hidden_screens_check as $pid){
                     $hide_screens[] = $pid[0];
