@@ -1746,20 +1746,185 @@ function mha_s2s_gf_form_sc_user_field_id( $form ) {
 }
 
 /**
+ * Gravity Forms field ID whose admin label or label is "Start Time".
+ *
+ * @param array<string,mixed> $form Form array from GFAPI::get_form.
+ * @return int|null
+ */
+function mha_s2s_gf_form_start_time_field_id( $form ) {
+	if ( empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
+		return null;
+	}
+	foreach ( $form['fields'] as $field ) {
+		if ( ! is_object( $field ) ) {
+			continue;
+		}
+		$admin = isset( $field->adminLabel ) ? trim( (string) $field->adminLabel ) : '';
+		$label = isset( $field->label ) ? trim( (string) $field->label ) : '';
+		if ( strcasecmp( $admin, 'Start Time' ) === 0 || strcasecmp( $label, 'Start Time' ) === 0 ) {
+			return (int) $field->id;
+		}
+	}
+	return null;
+}
+
+/**
+ * Format Gravity Forms entry date_created for dashboard display.
+ * GF stores date_created as MySQL datetime in UTC (see GF forms model docs).
+ *
+ * @param mixed $raw Entry date_created string.
+ * @return string Empty if no value; otherwise site-local date+time via wp_date().
+ */
+function mha_s2s_dashboard_format_gf_date_created_display( $raw ) {
+	if ( null === $raw || '' === $raw ) {
+		return '';
+	}
+	$s = is_string( $raw ) ? trim( $raw ) : ( is_scalar( $raw ) ? trim( (string) $raw ) : '' );
+	if ( '' === $s ) {
+		return '';
+	}
+	try {
+		$utc = new DateTimeZone( 'UTC' );
+		$dt  = new DateTimeImmutable( $s, $utc );
+	} catch ( Exception $e ) {
+		return $s;
+	}
+	return wp_date(
+		get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+		$dt->getTimestamp(),
+		wp_timezone()
+	);
+}
+
+/**
+ * Format a form field datetime string for dashboard display as site-local wall clock.
+ * (Unlike GF date_created, field values are not UTC.)
+ *
+ * @param mixed $raw Field value.
+ * @return string Empty if no value; otherwise localized date+time or original string if not parseable.
+ */
+function mha_s2s_dashboard_format_form_datetime_display( $raw ) {
+	if ( null === $raw || '' === $raw ) {
+		return '';
+	}
+	$s = is_string( $raw ) ? trim( $raw ) : ( is_scalar( $raw ) ? trim( (string) $raw ) : '' );
+	if ( '' === $s ) {
+		return '';
+	}
+	$tz = wp_timezone();
+	$fmts = array(
+		'Y-m-d H:i:s',
+		'Y-m-d H:i',
+		'Y-m-d',
+		'm/d/Y H:i:s',
+		'm/d/Y H:i',
+		'm/d/Y g:i a',
+		'm/d/Y G:i',
+		'm/d/Y',
+	);
+	foreach ( $fmts as $fmt ) {
+		$dt = DateTimeImmutable::createFromFormat( $fmt, $s, $tz );
+		if ( $dt instanceof DateTimeImmutable ) {
+			return wp_date(
+				get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+				$dt->getTimestamp(),
+				$tz
+			);
+		}
+	}
+	try {
+		$dt = new DateTimeImmutable( $s, $tz );
+	} catch ( Exception $e ) {
+		return $s;
+	}
+	return wp_date(
+		get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+		$dt->getTimestamp(),
+		$tz
+	);
+}
+
+/**
+ * Whether a GF field label or admin label ends with "Score" or "Result" (case-insensitive).
+ *
+ * @param object $field GF field object.
+ * @return bool
+ */
+function mha_s2s_gf_field_label_ends_with_score_or_result( $field ) {
+	if ( ! is_object( $field ) ) {
+		return false;
+	}
+	$admin = isset( $field->adminLabel ) ? trim( (string) $field->adminLabel ) : '';
+	$label = isset( $field->label ) ? trim( (string) $field->label ) : '';
+	foreach ( array( $label, $admin ) as $text ) {
+		if ( '' === $text ) {
+			continue;
+		}
+		if ( preg_match( '/score$/i', $text ) || preg_match( '/result$/i', $text ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Map of Gravity Forms field ID => column title for fields whose label or admin label ends with
+ * "Score" or "Result". Column title prefers the public label when it matches; otherwise the admin label.
+ *
+ * @param array<string,mixed> $form Form array from GFAPI::get_form.
+ * @return array<int,string>
+ */
+function mha_s2s_gf_form_score_result_field_map( $form ) {
+	$map = array();
+	if ( empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
+		return $map;
+	}
+	$skip_types = array( 'section', 'html', 'page', 'captcha' );
+	foreach ( $form['fields'] as $field ) {
+		if ( ! is_object( $field ) || empty( $field->id ) ) {
+			continue;
+		}
+		if ( isset( $field->type ) && in_array( $field->type, $skip_types, true ) ) {
+			continue;
+		}
+		if ( ! mha_s2s_gf_field_label_ends_with_score_or_result( $field ) ) {
+			continue;
+		}
+		$admin = isset( $field->adminLabel ) ? trim( (string) $field->adminLabel ) : '';
+		$label = isset( $field->label ) ? trim( (string) $field->label ) : '';
+		$column = '';
+		if ( '' !== $label && ( preg_match( '/score$/i', $label ) || preg_match( '/result$/i', $label ) ) ) {
+			$column = $label;
+		} elseif ( '' !== $admin && ( preg_match( '/score$/i', $admin ) || preg_match( '/result$/i', $admin ) ) ) {
+			$column = $admin;
+		} else {
+			$column = '' !== $label ? $label : $admin;
+		}
+		if ( '' === $column ) {
+			continue;
+		}
+		$map[ (int) $field->id ] = $column;
+	}
+	return $map;
+}
+
+/**
  * Entries for screen collections that allow the user's organization, limited to screens on those
  * collections whose GF form has "SC Organization" matching the org display name (or term name).
  *
  * @param int|null $user_id Defaults to current user.
- * @return array{ok:bool,term_id:int,term_name:string,org_match_values:string[],rows:array<int,array<string,mixed>>,message:string}
+ * @return array{ok:bool,term_id:int,term_name:string,org_match_values:string[],rows:array<int,array<string,mixed>>,score_result_columns:string[],has_start_time_column:bool,message:string}
  */
 function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
 	$empty = array(
-		'ok'               => false,
-		'term_id'          => 0,
-		'term_name'        => '',
-		'org_match_values' => array(),
-		'rows'             => array(),
-		'message'          => '',
+		'ok'                     => false,
+		'term_id'                => 0,
+		'term_name'              => '',
+		'org_match_values'       => array(),
+		'rows'                   => array(),
+		'score_result_columns'   => array(),
+		'has_start_time_column'  => false,
+		'message'                => '',
 	);
 
 	$user_id = $user_id ? absint( $user_id ) : get_current_user_id();
@@ -1834,29 +1999,50 @@ function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
 			if ( ! $org_field_id ) {
 				continue;
 			}
-			$sc_user_field_id = mha_s2s_gf_form_sc_user_field_id( $form );
-			$form_jobs[ $key ] = array(
-				'collection_id'    => (int) $collection_id,
-				'collection_title' => get_the_title( $collection_id ),
-				'screen_id'        => (int) $screen_id,
-				'screen_title'     => get_the_title( $screen_id ),
-				'form_id'          => (int) $form_id,
-				'form_title'       => isset( $form['title'] ) ? (string) $form['title'] : '',
-				'org_field_id'     => (int) $org_field_id,
-				'sc_user_field_id' => $sc_user_field_id ? (int) $sc_user_field_id : 0,
-				'org_display'      => $matched_display,
+			$sc_user_field_id      = mha_s2s_gf_form_sc_user_field_id( $form );
+			$start_time_field_id   = mha_s2s_gf_form_start_time_field_id( $form );
+			$form_jobs[ $key ]     = array(
+				'collection_id'        => (int) $collection_id,
+				'collection_title'     => get_the_title( $collection_id ),
+				'screen_id'            => (int) $screen_id,
+				'screen_title'         => get_the_title( $screen_id ),
+				'form_id'              => (int) $form_id,
+				'form_title'           => isset( $form['title'] ) ? (string) $form['title'] : '',
+				'org_field_id'         => (int) $org_field_id,
+				'sc_user_field_id'     => $sc_user_field_id ? (int) $sc_user_field_id : 0,
+				'start_time_field_id'  => $start_time_field_id ? (int) $start_time_field_id : 0,
+				'score_result_fields'  => mha_s2s_gf_form_score_result_field_map( $form ),
+				'org_display'          => $matched_display,
 			);
+		}
+	}
+
+	$score_result_columns = array();
+	$has_start_time_column = false;
+	foreach ( $form_jobs as $fj ) {
+		if ( ! empty( $fj['start_time_field_id'] ) ) {
+			$has_start_time_column = true;
+		}
+		if ( empty( $fj['score_result_fields'] ) || ! is_array( $fj['score_result_fields'] ) ) {
+			continue;
+		}
+		foreach ( $fj['score_result_fields'] as $col_label ) {
+			if ( ! in_array( $col_label, $score_result_columns, true ) ) {
+				$score_result_columns[] = $col_label;
+			}
 		}
 	}
 
 	if ( ! $form_jobs ) {
 		return array(
-			'ok'               => true,
-			'term_id'          => $term_id,
-			'term_name'        => $term->name,
-			'org_match_values' => array_unique( array_filter( array( $term->name ) ) ),
-			'rows'             => array(),
-			'message'          => 'no_collections',
+			'ok'                    => true,
+			'term_id'               => $term_id,
+			'term_name'             => $term->name,
+			'org_match_values'      => array_unique( array_filter( array( $term->name ) ) ),
+			'rows'                  => array(),
+			'score_result_columns'  => array(),
+			'has_start_time_column' => false,
+			'message'               => 'no_collections',
 		);
 	}
 
@@ -1909,15 +2095,66 @@ function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
 					}
 				}
 
+				$start_time_raw = '';
+				if ( ! empty( $job['start_time_field_id'] ) ) {
+					$st_key = (string) $job['start_time_field_id'];
+					if ( isset( $entry[ $st_key ] ) ) {
+						$st_raw = $entry[ $st_key ];
+						if ( is_array( $st_raw ) ) {
+							$start_time_raw = implode(
+								', ',
+								array_map(
+									static function ( $v ) {
+										return is_scalar( $v ) ? (string) $v : '';
+									},
+									$st_raw
+								)
+							);
+						} else {
+							$start_time_raw = is_string( $st_raw ) ? $st_raw : (string) $st_raw;
+						}
+					}
+				}
+
+				$score_result = array();
+				if ( ! empty( $job['score_result_fields'] ) && is_array( $job['score_result_fields'] ) ) {
+					foreach ( $job['score_result_fields'] as $sr_fid => $sr_label ) {
+						$sr_key = (string) $sr_fid;
+						if ( ! isset( $entry[ $sr_key ] ) ) {
+							$score_result[ $sr_label ] = '';
+							continue;
+						}
+						$sr_raw = $entry[ $sr_key ];
+						if ( is_array( $sr_raw ) ) {
+							$score_result[ $sr_label ] = implode(
+								', ',
+								array_map(
+									static function ( $v ) {
+										return is_scalar( $v ) ? (string) $v : '';
+									},
+									$sr_raw
+								)
+							);
+						} else {
+							$score_result[ $sr_label ] = is_string( $sr_raw ) ? $sr_raw : (string) $sr_raw;
+						}
+					}
+				}
+
+				$date_created = isset( $entry['date_created'] ) ? (string) $entry['date_created'] : '';
+
 				$rows[] = array(
-					'collection_title' => $job['collection_title'],
-					'screen_title'     => $job['screen_title'],
-					'form_id'          => $job['form_id'],
-					'form_title'       => $job['form_title'],
-					'entry_id'         => $eid,
-					'date_created'     => isset( $entry['date_created'] ) ? (string) $entry['date_created'] : '',
-					'sc_organization'  => $org_in_entry,
-					'sc_user'            => $sc_user_val,
+					'collection_title'      => $job['collection_title'],
+					'screen_title'          => $job['screen_title'],
+					'form_id'               => $job['form_id'],
+					'form_title'            => $job['form_title'],
+					'entry_id'              => $eid,
+					'date_created'          => $date_created,
+					'date_created_display'  => mha_s2s_dashboard_format_gf_date_created_display( $date_created ),
+					'start_time_display'    => mha_s2s_dashboard_format_form_datetime_display( $start_time_raw ),
+					'sc_organization'       => $org_in_entry,
+					'sc_user'               => $sc_user_val,
+					'score_result'          => $score_result,
 				);
 			}
 		}
@@ -1931,11 +2168,13 @@ function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
 	);
 
 	return array(
-		'ok'               => true,
-		'term_id'          => $term_id,
-		'term_name'        => $term->name,
-		'org_match_values' => $org_values,
-		'rows'             => $rows,
-		'message'          => '',
+		'ok'                    => true,
+		'term_id'               => $term_id,
+		'term_name'             => $term->name,
+		'org_match_values'      => $org_values,
+		'rows'                  => $rows,
+		'score_result_columns'  => $score_result_columns,
+		'has_start_time_column' => $has_start_time_column,
+		'message'               => '',
 	);
 }
