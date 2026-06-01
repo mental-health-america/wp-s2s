@@ -78,7 +78,7 @@
                     else if($t == 'condition'){
 
                         echo '<a class="crumb crumb-custom" href="/learn"><span class="text">';
-                        echo _e('Mental Health Information', 'mhas2s');
+                        echo esc_html( __( 'Mental Health Information', 'mha_s2s' ) );
                         echo '</span></a>';
                         
                         $primary_condition = get_field('primary_condition');
@@ -137,7 +137,7 @@
                 
                 // General                            
                 echo '<a class="crumb crumb-custom" href="/learn"><span class="text">';
-                echo _e('Mental Health Resources', 'mhas2s');
+                echo esc_html( __( 'Mental Health Resources', 'mha_s2s' ) );
                 echo '</span></a>';
                 
             }

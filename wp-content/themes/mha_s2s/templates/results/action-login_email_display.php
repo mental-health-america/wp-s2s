@@ -16,13 +16,15 @@
                     }
                 ?>
 
-                <p>To save your results, create an account. With an MHA Screening account, you can track your symptoms and scores over time. All your results remain completely confidential! You can also save articles and other resources to revisit later.</p>
+                <p><?php esc_html_e( 'To save your results, create an account. With an MHA Screening account, you can track your symptoms and scores over time. All your results remain completely confidential! You can also save articles and other resources to revisit later.', 'mha_s2s' ); ?></p>
 
                 <?php if($args['with_email'] == true): ?>
-                <p>Or, you can enter an email address and have us email your results to you.</p>
+                <p><?php esc_html_e( 'Or, you can enter an email address and have us email your results to you.', 'mha_s2s' ); ?></p>
                 <?php endif; ?>
 
-                <a class="append-thought-id button navy round"<?php echo $login_target; ?> href="/sign-up/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$args['id'] ?>">Register or log in to save results</a>
+                <a class="append-thought-id button navy round"<?php echo $login_target; ?> href="/sign-up/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$args['id'] ?>">
+                    <?php esc_html_e( 'Register or log in to save results', 'mha_s2s' ); ?>
+                </a>
             </div>
             </div>
         </div>

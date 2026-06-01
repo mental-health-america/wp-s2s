@@ -161,7 +161,7 @@
                         </p>
                         <p class="mb-4">
                             <a class="button <?php echo $button_color; ?> round-tl thin wide" href="<?php echo esc_url( $link_url ); ?>" target="<?php echo esc_attr( $link_target ); ?>">
-                                <?php echo _e('Download printable worksheet', 'mhas2s'); ?>
+                                <?php esc_html_e( 'Download printable worksheet', 'mha_s2s' ); ?>
                             </a>
                         </p>
                     <?php endif; ?>

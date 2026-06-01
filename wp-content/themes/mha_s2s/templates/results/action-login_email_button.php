@@ -3,13 +3,25 @@
     <?php 
     if(!is_user_logged_in()):
         if($args['with_email'] == true){
-            echo ((isset($args['espanol']) && $args['espanol'] == 1) ? 'Grabar o enviar sus respuestas por correo electrónico' : 'Save or Email Results'); 
+            if ( isset( $args['espanol'] ) && $args['espanol'] == 1 ) {
+                esc_html_e( 'Grabar o enviar sus respuestas por correo electrónico', 'mha_s2s' );
+            } else {
+                esc_html_e( 'Save or Email Results', 'mha_s2s' );
+            }
         } else {
-            echo ((isset($args['espanol']) && $args['espanol'] == 1) ? 'Grabar o enviar sus respuestas por correo electrónico' : 'Log in to Save Results'); 
+            if ( isset( $args['espanol'] ) && $args['espanol'] == 1 ) {
+                esc_html_e( 'Grabar o enviar sus respuestas por correo electrónico', 'mha_s2s' );
+            } else {
+                esc_html_e( 'Log in to Save Results', 'mha_s2s' );
+            }
         }
     else:
         if($args['with_email'] == true){
-            echo ((isset($args['espanol']) && $args['espanol'] == 1) ? 'Enviar sus respuestas por correo electrónico' : 'Email Results'); 
+            if ( isset( $args['espanol'] ) && $args['espanol'] == 1 ) {
+                esc_html_e( 'Enviar sus respuestas por correo electrónico', 'mha_s2s' );
+            } else {
+                esc_html_e( 'Email Results', 'mha_s2s' );
+            }
         }
     endif;
     ?>

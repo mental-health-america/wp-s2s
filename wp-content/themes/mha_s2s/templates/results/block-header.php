@@ -8,7 +8,7 @@
             <?php 
                 if(in_array('results_header_v1', $layout)):       
                     if(isset($args['espanol']) && $args['espanol'] == 1){
-                        echo '<h1 class="entry-title">Sus Resultados</h1>';
+                        echo '<h1 class="entry-title">' . esc_html( __( 'Sus Resultados', 'mha_s2s' ) ) . '</h1>';
                     } else {
                         the_title( '<h1 class="entry-title">', '</h1>' ); 
                     }

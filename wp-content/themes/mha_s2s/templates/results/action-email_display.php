@@ -26,10 +26,10 @@
                 <input type="hidden" name="screen_id" value="<?php echo $args['screen_id']; ?>" />
                 <input type="hidden" name="entry_id" value="<?php echo $args['entry_id']; ?>" />
                 <input type="hidden" name="screen_user_id" value="<?php echo $args['user_screen_id']; ?>" />                                                
-                <?php if($args['espanol']): ?>
-                    <input type="submit" class="submit button teal gform_button espanol" value="Enviar" />
-                <?php else: ?>
-                    <input type="submit" class="submit button teal gform_button" value="Send Results" />
+                <?php if ( $args['espanol'] ) : ?>
+                    <input type="submit" class="submit button teal gform_button espanol" value="<?php echo esc_attr__( 'Enviar', 'mha_s2s' ); ?>" />
+                <?php else : ?>
+                    <input type="submit" class="submit button teal gform_button" value="<?php echo esc_attr__( 'Send Results', 'mha_s2s' ); ?>" />
                 <?php endif; ?>
             </div>
 

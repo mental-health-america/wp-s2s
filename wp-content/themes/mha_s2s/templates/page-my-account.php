@@ -153,7 +153,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
 			
 			<div class="bubble narrow round-small-bl blue width-50" id="account-settings">
 			<div class="inner">
-				<div class="caps montserrat"><?php _e('Welcome', 'mhas2s'); ?>,</div>
+				<div class="caps montserrat"><?php esc_html_e( 'Welcome', 'mha_s2s' ); ?>,</div>
 				<?php 
                     $display_name = $current_user->first_name ? $current_user->first_name : $current_user->display_name;
                     echo '<h3 class="text-white text-truncate">'.$display_name.'</h3>'; 
@@ -481,10 +481,20 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                                 <a href="/screening-results/?sid=<?php echo $result['test_link']; ?>" class="bubble mint thinner round-small bubble-link text-dark-blue">
                                                     <span class="inner result caps text-center bold montserrat block">
                                                         <?php 
-                                                            if(!get_field('hide_result_score', $result['screen_id'])){
-                                                                echo 'About your score: '.$result['total_score']; ?> / <?php echo $result['max_score']; 
+                                                            $result_espanol = get_field( 'espanol', $result['screen_id'] );
+                                                            if ( ! get_field( 'hide_result_score', $result['screen_id'] ) ) {
+                                                                if ( $result_espanol ) {
+                                                                    esc_html_e( 'Sobre su puntuación', 'mha_s2s' );
+                                                                } else {
+                                                                    esc_html_e( 'About your score', 'mha_s2s' );
+                                                                }
+                                                                echo ': ' . esc_html( $result['total_score'] ) . ' / ' . esc_html( $result['max_score'] );
                                                             } else {
-                                                                echo 'About your result'; 
+                                                                if ( $result_espanol ) {
+                                                                    esc_html_e( 'Sobre su resultado', 'mha_s2s' );
+                                                                } else {
+                                                                    esc_html_e( 'About your result', 'mha_s2s' );
+                                                                }
                                                             }
                                                         ?>
                                                     </span>

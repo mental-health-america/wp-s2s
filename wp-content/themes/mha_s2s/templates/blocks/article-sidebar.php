@@ -273,11 +273,11 @@
             ?>
                 <div id="article--test<?php echo $placement; ?>" class="bubble orange thin round-big-tl mb-4 hide-mobile">
                 <div class="inner">                
-                    <h4><?php echo _e('Take a Mental Health Test', 'mhas2s'); ?></h4>
+                    <h4><?php esc_html_e( 'Take a Mental Health Test', 'mha_s2s' ); ?></h4>
                     <div class="excerpt font-weight-normal">
                         <?php echo strip_tags(get_field('hero_introduction', 36), '<p>'); ?>
                     </div>
-                    <div class="text-center pb-3"><a href="/screening-tools/" class="button white round text-orange"><?php echo _e('Take a Mental Health Test', 'mhas2s'); ?></a></div>
+                    <div class="text-center pb-3"><a href="/screening-tools/" class="button white round text-orange"><?php esc_html_e( 'Take a Mental Health Test', 'mha_s2s' ); ?></a></div>
                 </div>
                 </div>
             <?php 

@@ -22,7 +22,7 @@ get_header();
     <div id="filters-container">
 
         <div class="dropdown text-right pr-0 pr-md-4 mb-4">
-            <label class="inline text-dark-blue small bold"><?php echo _e('Sort by:', 'mhas2s'); ?> &nbsp; </label>
+            <label class="inline text-dark-blue small bold"><?php esc_html_e( 'Sort by:', 'mha_s2s' ); ?> &nbsp; </label>
             <?php echo facetwp_display( 'facet', 'sort_by_location' ); ?>
         </div>
         
@@ -33,24 +33,24 @@ get_header();
 
             <div id="providers-filter" class="search-filters form-container collapse show-md">
 
-                <a href="<?php echo get_the_permalink(); ?>" class="right plain pt-1 red small bold"><?php echo _e('Clear All', 'mhas2s'); ?></a>
-                <p class="bold text-dark-blue caps nb-3 intro-label montserrat"><?php echo _e('Filters', 'mhas2s'); ?></p>
+                <a href="<?php echo get_the_permalink(); ?>" class="right plain pt-1 red small bold"><?php esc_html_e( 'Clear All', 'mha_s2s' ); ?></a>
+                <p class="bold text-dark-blue caps nb-3 intro-label montserrat"><?php esc_html_e( 'Filters', 'mha_s2s' ); ?></p>
 
                 <?php echo facetwp_display( 'facet', 'search' ); ?>
                 
-                <label for="zip-code-search" class="text-blue-dark"><?php echo _e('Search for resources near you', 'mhas2s'); ?></label>
+                <label for="zip-code-search" class="text-blue-dark"><?php esc_html_e( 'Search for resources near you', 'mha_s2s' ); ?></label>
                 <div class="facetwp-facet facetwp-facet-custom facetwp-type-custom">
                     <?php echo facetwp_display( 'facet', 'location_search' ); ?>
                 </div>
                 
                 <div class="d-none2">
-                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#areaServed" aria-expanded="true" aria-controls="areaServed"><?php echo _e('Area Served', 'mhas2s'); ?></button>
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#areaServed" aria-expanded="true" aria-controls="areaServed"><?php esc_html_e( 'Area Served', 'mha_s2s' ); ?></button>
                 <div id="areaServed" class="collapse show filter-checkboxes">
                     <?php echo facetwp_display( 'facet', 'area_served' ); ?>
                 </div>
                 </div>
 
-                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#serviceType" aria-expanded="true" aria-controls="serviceType"><?php echo _e('Service Type', 'mhas2s'); ?></button>
+                <button class="bold text-gray caps accordion-button mb-3" type="button" data-toggle="collapse" data-target="#serviceType" aria-expanded="true" aria-controls="serviceType"><?php esc_html_e( 'Service Type', 'mha_s2s' ); ?></button>
                 <div id="serviceType" class="collapse show filter-checkboxes">
                     <?php echo facetwp_display( 'facet', 'service_type' ); ?>
                 </div>
