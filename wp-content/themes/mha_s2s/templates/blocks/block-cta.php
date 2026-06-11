@@ -3,13 +3,13 @@
 
     // Styles
     $id = isset($args['id']) ? $args['id'] : get_the_ID();
+    $id = is_object($id) ? $id->ID : (int) $id;
     $style = get_field('style', $id);
     $color = get_field('color', $id);
     $rounded = get_field('corner_style', $id);
     $padding = get_field('padding', $id);
     $custom = get_field('custom_classes', $id);
 
-    $cta_title = html_entity_decode( addslashes(get_the_title()).' (#'.$id.')' );
     $headline = get_field('headline', $id) ? get_field('headline', $id) : null;
     $content = get_field('content', $id);
 
@@ -27,17 +27,20 @@
         $content = isset($partner_content['content']) && $partner_content['content'] != '' ? $partner_content['content'] : null; 
     }
 
+    $label = $headline ? wp_strip_all_tags($headline) : get_the_title($id);
+    $cta_title = $label . ' (#' . $id . ')';
+
     if($content != ''):
 ?>
 
 <script>
     window.dataLayer.push({
         'event': 'cta_visible',
-        'cta_title': "<?php echo $cta_title; ?>"
+        'cta_title': <?php echo wp_json_encode($cta_title); ?>
     });
 </script>
 
-<div class="content-block block-text block-cta <?php echo $custom; ?> mb-5 mt-4" data-cta-title="<?php echo $cta_title; ?>">
+<div class="content-block block-text block-cta <?php echo $custom; ?> mb-5 mt-4" data-cta-title="<?php echo esc_attr($cta_title); ?>">
         
     <?php
         // Open Wrappers

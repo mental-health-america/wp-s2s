@@ -6,7 +6,7 @@ if($actions){
     foreach($actions as $pid){
         $post = get_post($pid); 
         setup_postdata($post);
-        get_template_part( 'templates/blocks/block', 'cta' );  
+        get_template_part( 'templates/blocks/block', 'cta', array( 'id' => $pid ) );  
     }
 }
 

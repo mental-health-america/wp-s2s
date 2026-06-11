@@ -905,7 +905,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
             while( have_rows('actions', 'option') ) : the_row();  
                 $post = get_post(get_sub_field('action')); 
                 setup_postdata($post);
-                get_template_part( 'templates/blocks/block', 'cta' );  
+                get_template_part( 'templates/blocks/block', 'cta', array( 'id' => get_sub_field('action') ) );  
             endwhile;
             endif;
             wp_reset_query();
