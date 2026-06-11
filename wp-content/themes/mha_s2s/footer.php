@@ -153,10 +153,10 @@
 	<ul id="mobile-menu-footer" class="menu last secondary">
 		
 		<?php if(is_user_logged_in()): ?>						
-			<li class="menu-item"><a href="/my-account">My Account</a></li>
-			<li class="menu-item"><a href="<?php echo wp_logout_url(); ?>">Log Out</a></li>
+			<li class="menu-item"><a href="/my-account"><?php _e('My Account', 'mhas2s'); ?></a></li>
+			<li class="menu-item"><a href="<?php echo wp_logout_url(); ?>"><?php _e('Log Out', 'mhas2s'); ?></a></li>
 		<?php else: ?>						
-			<li class="menu-item"><a href="/log-in">Log In</a></li>
+			<li class="menu-item"><a href="/log-in"><?php _e('Log In', 'mhas2s'); ?></a></li>
 		<?php endif; ?>
 	</ul>
 	
@@ -182,8 +182,8 @@
 			<?php echo get_field('cookie_banner_text', 'options'); ?>
 		</div>
 		<div class="cookie-banner-buttons">
-			<button id="cookie-deny" class="button small thin ghost purple cookie-btn-deny">Deny</button>
-			<button id="cookie-accept" class="button small thin ghost teal cookie-btn-accept">Accept</button>
+			<button id="cookie-deny" class="button small thin ghost purple cookie-btn-deny"><?php _e('Deny', 'mhas2s'); ?></button>
+			<button id="cookie-accept" class="button small thin ghost teal cookie-btn-accept"><?php _e('Accept', 'mhas2s'); ?></button>
 		</div>
 	</div>
 	</div>
@@ -203,17 +203,6 @@
 		});
 	</script>
 <?php endif; ?>
-
-<!-- SiteImprove -->
-<script type="text/javascript">
-/*<![CDATA[*/
-(function() {
-var sz = document.createElement('script'); sz.type = 'text/javascript'; sz.async = true;
-sz.src = '//siteimproveanalytics.com/js/siteanalyze_6229968.js';
-var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sz, s);
-})();
-/*]]>*/
-</script>
 
 </body>
 </html>

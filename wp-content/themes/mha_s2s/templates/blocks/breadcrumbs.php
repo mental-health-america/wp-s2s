@@ -9,7 +9,7 @@
         if(get_field('espanol')):
 
             // Spanish Breadcrumbs
-            echo '<span class="crumb">La salud mental—información y recursos</span>';
+            echo '<span class="crumb">'. _e('La salud mental—información y recursos', 'mhas2s') .'</span>';
 
         else:
 
@@ -60,25 +60,25 @@
                 $type = get_field('type');            
                 foreach($type as $t){
                     if($t == 'provider'){
-                        echo '<a class="crumb crumb-type" href="/get-help"><span class="text">Treatment Resources</span></a>';
+                        echo '<a class="crumb crumb-type" href="/get-help"><span class="text">'. _e('Treatment Resources', 'mhas2s') .'</span></a>';
                         break;
                     }
                     else if($t == 'diy'){
-                        echo '<a class="crumb crumb-type" href="/diy-tools"><span class="text">DIY Tools</span></a>';
+                        echo '<a class="crumb crumb-type" href="/diy-tools"><span class="text">'. _e('DIY Tools', 'mhas2s') .'</span></a>';
                         break;
                     }
                     else if($t == 'connect'){
-                        echo '<a class="crumb crumb-type" href="/connect"><span class="text">Connect Tools</span></a>';
+                        echo '<a class="crumb crumb-type" href="/connect"><span class="text">'. _e('Connect Tools', 'mhas2s') .'</span></a>';
                         break;
                     }
                     else if($t == 'treatment'){
-                        echo '<a class="crumb crumb-type" href="/treatment"><span class="text">Treatment Info</span></a>';
+                        echo '<a class="crumb crumb-type" href="/treatment"><span class="text">'. _e('Treatment Info', 'mhas2s') .'</span></a>';
                         break;
                     }
                     else if($t == 'condition'){
 
                         echo '<a class="crumb crumb-custom" href="/learn"><span class="text">';
-                        echo esc_html( __( 'Mental Health Information', 'mha_s2s' ) );
+                        echo _e('Mental Health Information', 'mhas2s');
                         echo '</span></a>';
                         
                         $primary_condition = get_field('primary_condition');
@@ -137,7 +137,7 @@
                 
                 // General                            
                 echo '<a class="crumb crumb-custom" href="/learn"><span class="text">';
-                echo esc_html( __( 'Mental Health Resources', 'mha_s2s' ) );
+                echo _e('Mental Health Resources', 'mhas2s');
                 echo '</span></a>';
                 
             }
