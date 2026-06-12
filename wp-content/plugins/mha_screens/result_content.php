@@ -258,10 +258,21 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
         // Your Answers HTML
         $merged_answers = mergeDuplicates($your_answers_temp);
         $user_screen_results['your_answers_temp'] = $merged_answers;
+
+        $form = GFFormsModel::get_form_meta( (int) $data['form_id'] );
+        $form_classes = ! empty( $form['cssClass'] ) ? preg_split( '/\s+/', trim( $form['cssClass'] ) ) : array();
+        $use_trp_answers = in_array( 'trp-answers', $form_classes, true );
+        if ( $use_trp_answers ) {
+            $trp_screen_slug = sanitize_title( trim( preg_replace( '/\btest\b/i', '', get_the_title( $user_screen_results['screen_id'] ) ) ) );
+        }
+
         foreach($merged_answers as $ya){     
             $temp_answer = isset($ya['answer']) ? removeTextBetween($ya['answer'], ' (e.g.', ')') : '';
             if($ya['type'] == 'extra'){
                 $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-12 text-gray">'.$temp_answer.'</div></div>';
+            } else if ( $use_trp_answers ) {
+                $display_answer = mha_trp_format_result_answer( $temp_answer, $trp_screen_slug );
+                $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-sm-7 col-12 text-gray">'.$ya['question'].'</div><div class="col-sm-5 col-12 bold text-dark-blue">'.$display_answer.'</div></div>';
             } else {
                 $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-sm-7 col-12 text-gray">'.$ya['question'].'</div><div class="col-sm-5 col-12 bold text-dark-blue">'.$temp_answer.'</div></div>';
             }
@@ -562,4 +573,46 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
     // Return what we got
     return $user_screen_results;
 
+}
+
+/**
+ * Wrap result answer labels for TranslatePress when trp-answers is enabled.
+ *
+ * @param string $answer      Answer text, optionally with a trailing " (score)".
+ * @param string $screen_slug Slug derived from the screen title.
+ * @return string
+ */
+function mha_trp_format_result_answer( $answer, $screen_slug ) {
+	$answer = trim( (string) $answer );
+	if ( '' === $answer ) {
+		return '';
+	}
+
+	$parts = preg_split( '/,\s*/', $answer );
+	foreach ( $parts as $i => $part ) {
+		$part = trim( $part );
+		if ( '' === $part ) {
+			unset( $parts[ $i ] );
+			continue;
+		}
+
+		$label_text   = $part;
+		$score_suffix = '';
+
+		if ( preg_match( '/^(.*)\s\((\d+)\)$/', $part, $matches ) ) {
+			$label_text   = trim( $matches[1] );
+			$score_suffix = ' (' . $matches[2] . ')';
+		}
+
+		$choice_slug = sanitize_title( wp_strip_all_tags( $label_text ) );
+		if ( '' === $choice_slug ) {
+			$parts[ $i ] = esc_html( $part );
+			continue;
+		}
+
+		$context_class = 'trp-' . $screen_slug . '-' . $choice_slug;
+		$parts[ $i ]   = mha_trp_gf_build_translation_block_markup( $context_class, esc_html( $label_text ) ) . $score_suffix;
+	}
+
+	return implode( ', ', $parts );
 }
