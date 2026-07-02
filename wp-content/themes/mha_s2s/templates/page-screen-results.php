@@ -9,10 +9,10 @@ $user_screen_id = str_replace('_ref', '', get_query_var('sid')); // Remove _ref 
 // Get the gravity forms entry ID for easier lookups
 $entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
 
-if ( is_wp_error( $entry_id ) || !$entry_id ):
+if ( empty( $user_screen_id ) || ! $entry_id ):
 
     // Entry doesn't exist, display an error
-    echo '<div class="wrap narrow mb-5"><div id="message" class="error text-center"><p>This screen result does not exist.</p></div></div>';
+    echo '<div class="wrap narrow mb-5"><div id="message" class="error">'.get_field('screen_results_not_found_message', 'options').'</div></div>';
 
 else:
 
