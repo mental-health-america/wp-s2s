@@ -278,6 +278,7 @@
             "max": 0,
             "layout": "table",
             "button_label": "Add Location",
+            "rows_per_page": 20,
             "sub_fields": [
                 {
                     "key": "field_5fd3efa1c74a4",
@@ -293,12 +294,14 @@
                         "class": "",
                         "id": ""
                     },
+                    "relevanssi_exclude": 0,
                     "default_value": "",
-                    "placeholder": "",
-                    "maxlength": "",
-                    "rows": 4,
-                    "new_lines": "",
                     "acfe_textarea_code": 0,
+                    "maxlength": "",
+                    "allow_in_bindings": 0,
+                    "rows": "",
+                    "placeholder": "",
+                    "new_lines": "",
                     "parent_repeater": "field_5fd3ef47dab98"
                 },
                 {
@@ -405,9 +408,30 @@
                     "append": "",
                     "maxlength": "",
                     "parent_repeater": "field_5fd3ef47dab98"
+                },
+                {
+                    "key": "field_6933355022097",
+                    "label": "Address (Full)",
+                    "name": "address_full",
+                    "aria-label": "",
+                    "type": "google_map",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "center_lat": "",
+                    "center_lng": "",
+                    "zoom": "",
+                    "height": "",
+                    "allow_in_bindings": 0,
+                    "parent_repeater": "field_5fd3ef47dab98"
                 }
-            ],
-            "rows_per_page": 20
+            ]
         },
         {
             "key": "field_6008b40cc7ec1",
@@ -490,6 +514,7 @@
             "max": 0,
             "layout": "table",
             "button_label": "Add Row",
+            "rows_per_page": 20,
             "sub_fields": [
                 {
                     "key": "field_5fdb9d90962fd",
@@ -548,8 +573,7 @@
                     "maxlength": "",
                     "parent_repeater": "field_5fdb9d86962fc"
                 }
-            ],
-            "rows_per_page": 20
+            ]
         },
         {
             "key": "field_6021bc785b6fa",
@@ -609,12 +633,11 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-    "acfe_display_title": "",
     "acfe_autosync": [
         "json"
     ],
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1760028254
+    "modified": 1764963706
 }
