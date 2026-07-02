@@ -263,7 +263,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
         $form_classes = ! empty( $form['cssClass'] ) ? preg_split( '/\s+/', trim( $form['cssClass'] ) ) : array();
         $use_trp_answers = in_array( 'trp-answers', $form_classes, true );
         if ( $use_trp_answers ) {
-            $trp_screen_slug = sanitize_title( trim( preg_replace( '/\btest\b/i', '', get_the_title( $user_screen_results['screen_id'] ) ) ) );
+            $trp_context_slug = mha_trp_gf_parse_context_slug( $form['cssClass'] ?? '', (int) $data['form_id'] );
         }
 
         foreach($merged_answers as $ya){     
@@ -271,7 +271,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
             if($ya['type'] == 'extra'){
                 $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-12 text-gray">'.$temp_answer.'</div></div>';
             } else if ( $use_trp_answers ) {
-                $display_answer = mha_trp_format_result_answer( $temp_answer, $trp_screen_slug );
+                $display_answer = mha_trp_format_result_answer( $temp_answer, $trp_context_slug );
                 $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-sm-7 col-12 text-gray">'.$ya['question'].'</div><div class="col-sm-5 col-12 bold text-dark-blue">'.$display_answer.'</div></div>';
             } else {
                 $your_answers[] = '<div class="'.$ya['css'].'"><div class="col-sm-7 col-12 text-gray">'.$ya['question'].'</div><div class="col-sm-5 col-12 bold text-dark-blue">'.$temp_answer.'</div></div>';
@@ -578,11 +578,11 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
 /**
  * Wrap result answer labels for TranslatePress when trp-answers is enabled.
  *
- * @param string $answer      Answer text, optionally with a trailing " (score)".
- * @param string $screen_slug Slug derived from the screen title.
+ * @param string $answer       Answer text, optionally with a trailing " (score)".
+ * @param string $context_slug Context slug from trp-ctx-{slug} or form-{id} fallback.
  * @return string
  */
-function mha_trp_format_result_answer( $answer, $screen_slug ) {
+function mha_trp_format_result_answer( $answer, $context_slug ) {
 	$answer = trim( (string) $answer );
 	if ( '' === $answer ) {
 		return '';
@@ -604,13 +604,13 @@ function mha_trp_format_result_answer( $answer, $screen_slug ) {
 			$score_suffix = ' (' . $matches[2] . ')';
 		}
 
-		$choice_slug = sanitize_title( wp_strip_all_tags( $label_text ) );
-		if ( '' === $choice_slug ) {
+		$choice_key = mha_trp_gf_build_choice_key( array( 'text' => $label_text ) );
+		if ( '' === $choice_key ) {
 			$parts[ $i ] = esc_html( $part );
 			continue;
 		}
 
-		$context_class = 'trp-' . $screen_slug . '-' . $choice_slug;
+		$context_class = 'trp-ctx-' . $context_slug . '-' . $choice_key;
 		$parts[ $i ]   = mha_trp_gf_build_translation_block_markup( $context_class, esc_html( $label_text ) ) . $score_suffix;
 	}
 
