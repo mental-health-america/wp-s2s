@@ -19,7 +19,28 @@ else:
     // Entry exists, continue
 
     // Get Screen Results
-    $user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
+    $user_screen_result = mha_get_user_screen_results( $entry_id, true );
+
+    mha_set_condition_context(
+        array(
+            'result_title'       => $user_screen_result['result_title'] ?? '',
+            'answered_demos'     => $user_screen_result['answered_demos'] ?? array(),
+            'general_score_data' => $user_screen_result['general_score_data'] ?? array(),
+            'user_screen_result' => $user_screen_result,
+            'screen_id'          => $user_screen_result['screen_id'] ?? '',
+            'referer'            => $user_screen_result['referer'] ?? '',
+        )
+    );
+
+    if ( mha_condition_debug_enabled() ) {
+        mha_featured_next_steps_data(
+            array(
+                'user_screen_result' => $user_screen_result,
+                'result_title'       => $user_screen_result['result_title'] ?? '',
+                'answered_demos'     => $user_screen_result['answered_demos'] ?? array(),
+            )
+        );
+    }
     
     // Update featured links based on result page attributes
     // To debug, comment this out to not lock in answers so refreshing works
@@ -299,6 +320,7 @@ else:
     ?>
 
     <div class="wrap narrow">
+    <?php mha_featured_next_steps_render_debug_log(); ?>
     <article class="screen screen-result">
 
         <?php 

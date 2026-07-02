@@ -490,19 +490,20 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
 
 
     // Featured Next Step Links
-    if(!$user_screen_results['featured_next_steps_data'] && $with_related_articles){
+    $featured_next_steps_args = array(
+        'user_screen_result' => $user_screen_results,
+        'result_title'       => $user_screen_results['result_title'],
+        'answered_demos'     => $user_screen_results['answered_demos'],
+    );
 
-        $featured_next_steps_args = array(
-            'user_screen_result' => $user_screen_results,
-            'result_title'       => $user_screen_results['result_title'],
-            'answered_demos'     => $user_screen_results['answered_demos']
-        );            
-        $featured_next_steps_data = mha_featured_next_steps_data($featured_next_steps_args);
-        if($featured_next_steps_data):
-            
+    if ( ! $user_screen_results['featured_next_steps_data'] && $with_related_articles ) {
+
+        $featured_next_steps_data = mha_featured_next_steps_data( $featured_next_steps_args );
+        if ( $featured_next_steps_data ) :
+
             $user_screen_results['featured_next_steps_data'] = $featured_next_steps_data;
 
-        else:
+        else :
 
             $demo_steps = [];
             $espanol = get_field('espanol', $user_screen_results['screen_id']); // Spanish page
@@ -568,6 +569,9 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
 
         endif;
 
+    } elseif ( $with_related_articles && mha_condition_debug_enabled() ) {
+        // Cached Featured Link Data skips scoring; re-run evaluation for debug output only.
+        mha_featured_next_steps_data( $featured_next_steps_args );
     }
 
     // Return what we got

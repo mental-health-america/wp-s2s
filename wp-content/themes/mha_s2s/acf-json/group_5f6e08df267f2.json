@@ -228,6 +228,7 @@
             "max": 0,
             "layout": "table",
             "button_label": "Add Supporter",
+            "rows_per_page": 20,
             "sub_fields": [
                 {
                     "key": "field_5fd9444e58002",
@@ -275,8 +276,7 @@
                     "placeholder": "",
                     "parent_repeater": "field_5fd9443d58001"
                 }
-            ],
-            "rows_per_page": 20
+            ]
         },
         {
             "key": "field_5ff6232c56bce",
@@ -316,6 +316,7 @@
             "max": 0,
             "layout": "row",
             "button_label": "Add Row",
+            "rows_per_page": 20,
             "sub_fields": [
                 {
                     "key": "field_5ff6235656bd0",
@@ -348,8 +349,7 @@
                     "save_post_type": "",
                     "parent_repeater": "field_5ff6233956bcf"
                 }
-            ],
-            "rows_per_page": 20
+            ]
         },
         {
             "key": "field_6076103e04965",
@@ -389,6 +389,7 @@
             "max": 0,
             "layout": "row",
             "button_label": "Add Row",
+            "rows_per_page": 20,
             "sub_fields": [
                 {
                     "key": "field_6076105804968",
@@ -422,8 +423,7 @@
                     "bidirectional_target": [],
                     "parent_repeater": "field_6076105804967"
                 }
-            ],
-            "rows_per_page": 20
+            ]
         },
         {
             "key": "field_6168937baf709",
@@ -560,6 +560,8 @@
                     "max": 0,
                     "layout": "table",
                     "button_label": "Add Row",
+                    "rows_per_page": 20,
+                    "parent_repeater": "field_6168937baf709",
                     "sub_fields": [
                         {
                             "key": "field_6168946eaf70e",
@@ -666,9 +668,7 @@
                             "ui": 1,
                             "parent_repeater": "field_61689463af70d"
                         }
-                    ],
-                    "rows_per_page": 20,
-                    "parent_repeater": "field_6168937baf709"
+                    ]
                 }
             ]
         },
@@ -1266,11 +1266,41 @@
             "ui": 1
         },
         {
-            "key": "field_6a467e50c52fa",
-            "label": "Help Bar Text",
-            "name": "help_bar_text",
+            "key": "field_6a46dd2d071c3",
+            "label": "Translation Help Bar Text",
+            "name": "translation_help_bar_text",
             "aria-label": "",
-            "type": "repeater",
+            "type": "wysiwyg",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_6a467cb31d1ee",
+                        "operator": "==",
+                        "value": "1"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "",
+            "allow_in_bindings": 0,
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_6865c1d010001",
+            "label": "Condition Blocks",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
             "instructions": "",
             "required": 0,
             "conditional_logic": 0,
@@ -1280,67 +1310,130 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
+            "placement": "top",
+            "endpoint": 0,
+            "selected": 0
+        },
+        {
+            "key": "field_6865c1d010002",
+            "label": "Condition Blocks Debug",
+            "name": "mha_condition_debug",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "Log condition block evaluation details when debugging Featured Next Steps or shortcodes.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "message": "Enable condition block debug logging",
+            "default_value": 0,
+            "allow_in_bindings": 0,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
+        },
+        {
+            "key": "field_6865c1d010003",
+            "label": "Condition Blocks",
+            "name": "mha_condition_blocks",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "Reusable nested condition logic referenced by Featured Next Steps and the [mha_conditional] shortcode.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
             "acfe_repeater_stylised_button": 0,
-            "layout": "table",
+            "layout": "row",
             "pagination": 0,
             "min": 0,
             "max": 0,
-            "collapsed": "",
-            "button_label": "Add Language",
+            "collapsed": "field_6865c1d010005",
+            "button_label": "Add Condition Block",
             "rows_per_page": 20,
             "sub_fields": [
                 {
-                    "key": "field_6a467e78c52fc",
-                    "label": "Active",
-                    "name": "active",
-                    "aria-label": "",
-                    "type": "true_false",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "relevanssi_exclude": 0,
-                    "message": "",
-                    "default_value": 0,
-                    "allow_in_bindings": 0,
-                    "ui_on_text": "",
-                    "ui_off_text": "",
-                    "ui": 1,
-                    "parent_repeater": "field_6a467e50c52fa"
-                },
-                {
-                    "key": "field_6a467e6cc52fb",
-                    "label": "Language",
-                    "name": "language",
+                    "key": "field_6865c1d010004",
+                    "label": "Slug",
+                    "name": "slug",
                     "aria-label": "",
                     "type": "text",
-                    "instructions": "",
-                    "required": 0,
+                    "instructions": "Unique ID (lowercase letters, numbers, hyphens). Used in shortcodes and Featured Next Steps references.",
+                    "required": 1,
                     "conditional_logic": 0,
                     "wrapper": {
-                        "width": "",
+                        "width": "25",
                         "class": "",
                         "id": ""
                     },
                     "relevanssi_exclude": 0,
                     "default_value": "",
                     "maxlength": "",
-                    "allow_in_bindings": 0,
+                    "allow_in_bindings": 1,
+                    "placeholder": "psychosis-ab-eligible",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_6865c1d010003"
+                },
+                {
+                    "key": "field_6865c1d010005",
+                    "label": "Title",
+                    "name": "title",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Admin only title for this block",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "35",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 1,
                     "placeholder": "",
                     "prepend": "",
                     "append": "",
-                    "parent_repeater": "field_6a467e50c52fa"
+                    "parent_repeater": "field_6865c1d010003"
                 },
                 {
-                    "key": "field_6a467f6b7c534",
-                    "label": "Text",
-                    "name": "text",
+                    "key": "field_6865c1d010006",
+                    "label": "Debug Mode",
+                    "name": "debug_mode",
                     "aria-label": "",
-                    "type": "wysiwyg",
+                    "type": "true_false",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "message": "",
+                    "default_value": 0,
+                    "ui": 1,
+                    "ui_on_text": "",
+                    "ui_off_text": "",
+                    "parent_repeater": "field_6865c1d010003"
+                },
+                {
+                    "key": "field_6865c1d010007",
+                    "label": "Notes",
+                    "name": "notes",
+                    "aria-label": "",
+                    "type": "textarea",
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
@@ -1351,12 +1444,36 @@
                     },
                     "relevanssi_exclude": 0,
                     "default_value": "",
-                    "allow_in_bindings": 0,
-                    "tabs": "all",
-                    "toolbar": "full",
-                    "media_upload": 1,
-                    "delay": 0,
-                    "parent_repeater": "field_6a467e50c52fa"
+                    "acfe_textarea_code": 0,
+                    "maxlength": "",
+                    "rows": 3,
+                    "placeholder": "",
+                    "new_lines": "",
+                    "parent_repeater": "field_6865c1d010003"
+                },
+                {
+                    "key": "field_6865c1d010008",
+                    "label": "Definition (JSON)",
+                    "name": "definition",
+                    "aria-label": "",
+                    "type": "textarea",
+                    "instructions": "Nested condition JSON. Group nodes use operator + conditions. Leaf nodes use type, condition, key, and value.",
+                    "required": 1,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "acfe_textarea_code": 1,
+                    "maxlength": "",
+                    "allow_in_bindings": 1,
+                    "rows": 16,
+                    "placeholder": "",
+                    "new_lines": "",
+                    "parent_repeater": "field_6865c1d010003"
                 }
             ]
         }
@@ -1387,5 +1504,5 @@
             "json"
         ]
     },
-    "modified": 1783005100
+    "modified": 1783029069
 }
