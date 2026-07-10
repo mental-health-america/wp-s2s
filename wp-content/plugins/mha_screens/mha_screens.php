@@ -1035,4 +1035,4 @@ include_once 'related_articles.php';
 include_once 'admin_screen_tester.php';
 include_once 'multilingual.php';
 include_once 'translatepress-gravity-forms.php';
-#include_once 'screen_collection.php';
+include_once 'screen_collection.php';

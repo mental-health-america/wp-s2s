@@ -10,19 +10,61 @@ if ( ! is_user_logged_in() ) {
 	return;
 }
 
-$dash = function_exists( 'mha_s2s_dashboard_screen_collection_org_entries' )
-	? mha_s2s_dashboard_screen_collection_org_entries()
+$date_range = function_exists( 'mha_s2s_dashboard_resolve_org_date_range' )
+	? mha_s2s_dashboard_resolve_org_date_range()
 	: array(
-		'ok'      => false,
-		'message' => 'unavailable',
-		'rows'    => array(),
+		'start_date' => wp_date( 'Y' ) . '-01-01',
+		'end_date'   => wp_date( 'Y' ) . '-12-31',
 	);
 
-if ( 'no_organization' !== $dash['message'] && get_field('view_organization_dashboard', 'user_' . get_current_user_id()) ) :
-?>
+$dash = function_exists( 'mha_s2s_dashboard_screen_collection_org_entries' )
+	? mha_s2s_dashboard_screen_collection_org_entries( null, $date_range )
+	: array(
+		'ok'         => false,
+		'message'    => 'unavailable',
+		'rows'       => array(),
+		'start_date' => $date_range['start_date'],
+		'end_date'   => $date_range['end_date'],
+	);
+
+$dash_start = isset( $dash['start_date'] ) ? (string) $dash['start_date'] : $date_range['start_date'];
+$dash_end   = isset( $dash['end_date'] ) ? (string) $dash['end_date'] : $date_range['end_date'];
+
+if ( 'no_organization' !== $dash['message'] && get_field( 'view_organization_dashboard', 'user_' . get_current_user_id() ) ) :
+	$show_aggregated = (bool) get_field( 'display_aggregated_data', 'user_' . get_current_user_id() );
+	?>
 <div id="dashboard-screen-collection" class="pt-5 mt-5">
 
-	<h2 class="pt-3 mb-4 heading"><?php esc_html_e( 'Organization dashboard', 'mhas2s' ); ?></h2>
+	<span class="button round small teal"><?php echo esc_html( $dash['term_name'] ); ?></span>
+	<h2 class="pt-3 mb-4 heading"><?php esc_html_e( 'Organization Dashboard', 'mhas2s' ); ?></h2>
+
+	<form method="get" class="form-inline flex-wrap align-items-end mb-4 org-dashboard-date-filter" action="">
+		<?php
+		// Preserve other query vars on My Account if present.
+		foreach ( $_GET as $qk => $qv ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( in_array( $qk, array( 'org_dash_start', 'org_dash_end' ), true ) ) {
+				continue;
+			}
+			if ( ! is_scalar( $qv ) ) {
+				continue;
+			}
+			printf(
+				'<input type="hidden" name="%s" value="%s" />',
+				esc_attr( (string) $qk ),
+				esc_attr( (string) $qv )
+			);
+		}
+		?>
+		<div class="form-group mr-3 mb-2">
+			<label class="mr-2" for="org_dash_start"><?php esc_html_e( 'From', 'mhas2s' ); ?></label>
+			<input type="date" class="form-control" id="org_dash_start" name="org_dash_start" value="<?php echo esc_attr( $dash_start ); ?>" />
+		</div>
+		<div class="form-group mr-3 mb-2">
+			<label class="mr-2" for="org_dash_end"><?php esc_html_e( 'To', 'mhas2s' ); ?></label>
+			<input type="date" class="form-control" id="org_dash_end" name="org_dash_end" value="<?php echo esc_attr( $dash_end ); ?>" />
+		</div>
+		<button type="submit" class="button cerulean tiny mb-2 round-bl"><?php esc_html_e( 'Apply', 'mhas2s' ); ?></button>
+	</form>
 
 	<?php if ( ! empty( $dash['message'] ) && 'unavailable' === $dash['message'] ) : ?>
 		<p class="text-muted"><?php esc_html_e( 'This section is temporarily unavailable.', 'mhas2s' ); ?></p>
@@ -42,9 +84,11 @@ if ( 'no_organization' !== $dash['message'] && get_field('view_organization_dash
 		<p class="mb-2">
 			<?php
 			printf(
-				/* translators: %s: organization term name */
-				esc_html__( 'No form submissions were found where “SC Organization” matches your organization (%s).', 'mhas2s' ),
-				esc_html( $dash['term_name'] )
+				/* translators: 1: organization term name, 2: start date, 3: end date */
+				esc_html__( 'No form submissions were found where “SC Organization” matches your organization (%1$s) between %2$s and %3$s.', 'mhas2s' ),
+				esc_html( $dash['term_name'] ),
+				esc_html( $dash_start ),
+				esc_html( $dash_end )
 			);
 			?>
 		</p>
@@ -53,13 +97,123 @@ if ( 'no_organization' !== $dash['message'] && get_field('view_organization_dash
 			? $dash['score_result_columns']
 			: array();
 		$has_start_time_column = ! empty( $dash['has_start_time_column'] );
-		?>
+
+		if ( $show_aggregated && function_exists( 'mha_s2s_dashboard_aggregate_per_test_scores' ) ) :
+			$agg = mha_s2s_dashboard_aggregate_per_test_scores( $dash );
+			?>
+
+		<div id="org-dashboard-aggregated" class="org-dashboard-aggregated">
+			<div class="row">
+				<?php foreach ( $agg['tests'] as $test ) : ?>
+					<?php
+					$test_id    = isset( $test['id'] ) ? (string) $test['id'] : '';
+					$test_title = isset( $test['title'] ) ? (string) $test['title'] : '';
+					$test_n     = isset( $test['n'] ) ? (int) $test['n'] : 0;
+					$test_mean  = isset( $test['mean'] ) && null !== $test['mean'] ? $test['mean'] : null;
+					$canvas_id  = 'org-agg-' . sanitize_html_class( $test_id );
+					?>
+					<div class="col-md-3 mb-4">
+						<div class="org-agg-test-card h-100">
+							<h3 class="h6 mb-1"><?php echo esc_html( $test_title ); ?></h3>
+							<?php if ( $test_n > 0 && null !== $test_mean ) : ?>
+								<p class="small text-muted mb-2">
+									<?php
+									printf(
+										/* translators: %s: average score */
+										esc_html__( 'Average: %s', 'mhas2s' ),
+										esc_html( (string) $test_mean )
+									);
+									?>
+								</p>
+								<div class="position-relative" style="height: 180px;">
+									<canvas id="<?php echo esc_attr( $canvas_id ); ?>" aria-label="<?php echo esc_attr( $test_title ); ?>"></canvas>
+								</div>
+							<?php else : ?>
+								<p class="small text-muted mb-0"><?php esc_html_e( 'No score data in this range.', 'mhas2s' ); ?></p>
+							<?php endif; ?>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+		<script>
+		(function () {
+			if (typeof Chart === 'undefined') {
+				return;
+			}
+			var agg = <?php echo wp_json_encode( $agg ); ?>;
+			var brandTeal = '#199aa0';
+			var brandBlue = '#055596';
+			var gridColor = '#aec7dc';
+			var tickOpts = {
+				fontFamily: 'Montserrat',
+				fontColor: brandBlue,
+				fontStyle: 'bold',
+				fontSize: 10
+			};
+			(agg.tests || []).forEach(function (test) {
+				if (!test || !test.n || !test.labels || !test.labels.length) {
+					return;
+				}
+				var el = document.getElementById('org-agg-' + test.id);
+				if (!el) {
+					return;
+				}
+				new Chart(el.getContext('2d'), {
+					type: 'bar',
+					data: {
+						labels: test.labels,
+						datasets: [{
+							label: 'Count',
+							data: test.counts,
+							backgroundColor: brandTeal,
+							borderColor: brandTeal,
+							borderWidth: 0
+						}]
+					},
+					options: {
+						title: { display: false },
+						legend: { display: false },
+						responsive: true,
+						maintainAspectRatio: false,
+						scales: {
+							xAxes: [{
+								gridLines: { display: false, color: gridColor },
+								ticks: tickOpts,
+								scaleLabel: {
+									display: true,
+									labelString: 'Score',
+									fontFamily: 'Montserrat',
+									fontColor: brandBlue,
+									fontSize: 10
+								}
+							}],
+							yAxes: [{
+								gridLines: { color: gridColor, drawBorder: false },
+								ticks: Object.assign({ beginAtZero: true, precision: 0, padding: 6 }, tickOpts),
+								scaleLabel: {
+									display: true,
+									labelString: 'Count',
+									fontFamily: 'Montserrat',
+									fontColor: brandBlue,
+									fontSize: 10
+								}
+							}]
+						}
+					}
+				});
+			});
+		})();
+		</script>
+		<?php else : ?>
 		<p class="mb-3 text-muted">
 			<?php
 			printf(
-				/* translators: %s: organization term name */
-				esc_html__( 'Showing submissions for organization: %s', 'mhas2s' ),
-				esc_html( $dash['term_name'] )
+				/* translators: 1: organization term name, 2: start date, 3: end date */
+				esc_html__( 'Showing submissions for organization: %1$s (%2$s to %3$s)', 'mhas2s' ),
+				esc_html( $dash['term_name'] ),
+				esc_html( $dash_start ),
+				esc_html( $dash_end )
 			);
 			?>
 		</p>
@@ -98,6 +252,7 @@ if ( 'no_organization' !== $dash['message'] && get_field('view_organization_dash
 				</tbody>
 			</table>
 		</div>
+		<?php endif; ?>
 	<?php else : ?>
 		<p class="text-muted"><?php esc_html_e( 'Unable to load organization dashboard data.', 'mhas2s' ); ?></p>
 	<?php endif; ?>

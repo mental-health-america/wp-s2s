@@ -1913,14 +1913,55 @@ function mha_s2s_gf_form_score_result_field_map( $form ) {
 }
 
 /**
+ * Resolve org dashboard date range from GET (or explicit args), defaulting to the current calendar year.
+ *
+ * @param array<string,mixed> $args Optional overrides: start_date, end_date (Y-m-d).
+ * @return array{start_date: string, end_date: string}
+ */
+function mha_s2s_dashboard_resolve_org_date_range( array $args = array() ) {
+	$year          = (int) wp_date( 'Y' );
+	$default_start = sprintf( '%04d-01-01', $year );
+	$default_end   = sprintf( '%04d-12-31', $year );
+
+	$raw_start = '';
+	$raw_end   = '';
+	if ( isset( $args['start_date'] ) && is_string( $args['start_date'] ) ) {
+		$raw_start = trim( $args['start_date'] );
+	} elseif ( isset( $_GET['org_dash_start'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$raw_start = sanitize_text_field( wp_unslash( (string) $_GET['org_dash_start'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
+	if ( isset( $args['end_date'] ) && is_string( $args['end_date'] ) ) {
+		$raw_end = trim( $args['end_date'] );
+	} elseif ( isset( $_GET['org_dash_end'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$raw_end = sanitize_text_field( wp_unslash( (string) $_GET['org_dash_end'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
+
+	$start = preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw_start ) ? $raw_start : $default_start;
+	$end   = preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw_end ) ? $raw_end : $default_end;
+
+	if ( strcmp( $start, $end ) > 0 ) {
+		$tmp   = $start;
+		$start = $end;
+		$end   = $tmp;
+	}
+
+	return array(
+		'start_date' => $start,
+		'end_date'   => $end,
+	);
+}
+
+/**
  * Entries for screen collections that allow the user's organization, limited to screens on those
  * collections whose GF form has "SC Organization" matching the org display name (or term name).
  *
- * @param int|null $user_id Defaults to current user.
- * @return array{ok:bool,term_id:int,term_name:string,org_match_values:string[],rows:array<int,array<string,mixed>>,score_result_columns:string[],has_start_time_column:bool,message:string}
+ * @param int|null            $user_id Defaults to current user.
+ * @param array<string,mixed> $args    Optional: start_date, end_date (Y-m-d). Defaults to current year from GET/args.
+ * @return array{ok:bool,term_id:int,term_name:string,org_match_values:string[],rows:array<int,array<string,mixed>>,score_result_columns:string[],has_start_time_column:bool,start_date:string,end_date:string,message:string}
  */
-function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
-	$empty = array(
+function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null, $args = array() ) {
+	$date_range = mha_s2s_dashboard_resolve_org_date_range( is_array( $args ) ? $args : array() );
+	$empty      = array(
 		'ok'                     => false,
 		'term_id'                => 0,
 		'term_name'              => '',
@@ -1928,6 +1969,8 @@ function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
 		'rows'                   => array(),
 		'score_result_columns'   => array(),
 		'has_start_time_column'  => false,
+		'start_date'             => $date_range['start_date'],
+		'end_date'               => $date_range['end_date'],
 		'message'                => '',
 	);
 
@@ -2046,6 +2089,8 @@ function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
 			'rows'                  => array(),
 			'score_result_columns'  => array(),
 			'has_start_time_column' => false,
+			'start_date'            => $date_range['start_date'],
+			'end_date'              => $date_range['end_date'],
 			'message'               => 'no_collections',
 		);
 	}
@@ -2067,6 +2112,8 @@ function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
 		foreach ( $org_values as $org_val ) {
 			$search_criteria = array(
 				'status'        => 'active',
+				'start_date'    => $date_range['start_date'],
+				'end_date'      => $date_range['end_date'] . ' 23:59:59',
 				'field_filters' => array(
 					array(
 						'key'      => (string) $job['org_field_id'],
@@ -2179,6 +2226,187 @@ function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null ) {
 		'rows'                  => $rows,
 		'score_result_columns'  => $score_result_columns,
 		'has_start_time_column' => $has_start_time_column,
+		'start_date'            => $date_range['start_date'],
+		'end_date'              => $date_range['end_date'],
 		'message'               => '',
+	);
+}
+
+/**
+ * Fixed per-test score field definitions for the aggregated org dashboard.
+ *
+ * @return array<int,array{id: string, title: string, field_labels: string[]}>
+ */
+function mha_s2s_dashboard_aggregate_per_test_definitions() {
+	return array(
+		array(
+			'id'           => 'social_phobia',
+			'title'        => 'Social Phobia',
+			'field_labels' => array( 'Social Phobia Score' ),
+		),
+		array(
+			'id'           => 'separation_anxiety',
+			'title'        => 'Separation Anxiety',
+			'field_labels' => array( 'Separation Anxiety Score' ),
+		),
+		array(
+			'id'           => 'agoraphobia',
+			'title'        => 'Agoraphobia',
+			'field_labels' => array( 'Agoraphobia Score' ),
+		),
+		array(
+			'id'           => 'panic_attacks',
+			'title'        => 'Panic Attacks',
+			'field_labels' => array( 'Panic Attacks Score' ),
+		),
+		array(
+			'id'           => 'generalized_anxiety',
+			'title'        => 'Generalized Anxiety',
+			'field_labels' => array( 'Generalized Anxiety Score' ),
+		),
+		array(
+			'id'           => 'specific_phobia',
+			'title'        => 'Specific Phobia',
+			'field_labels' => array( 'Specific Phobia Score' ),
+		),
+		array(
+			'id'           => 'ocd',
+			'title'        => 'OCD',
+			'field_labels' => array( 'Obsessions and Compulsions Score', 'OCD Score' ),
+		),
+		array(
+			'id'           => 'ptsd',
+			'title'        => 'PTSD',
+			'field_labels' => array( 'PTSD Score' ),
+		),
+		array(
+			'id'           => 'eating_disorder',
+			'title'        => 'Eating Disorder',
+			'field_labels' => array( 'Eating Disorder Score' ),
+		),
+		array(
+			'id'           => 'depression',
+			'title'        => 'Depression',
+			'field_labels' => array( 'Depression Score' ),
+		),
+		array(
+			'id'           => 'mania',
+			'title'        => 'Mania',
+			'field_labels' => array( 'Mania Score' ),
+		),
+		array(
+			'id'           => 'adhd',
+			'title'        => 'ADHD',
+			'field_labels' => array( 'ADHD Score' ),
+		),
+	);
+}
+
+/**
+ * Aggregate org dashboard rows into per-test score distributions for Chart.js.
+ *
+ * @param array<string,mixed> $dash Return value of mha_s2s_dashboard_screen_collection_org_entries().
+ * @return array{
+ *   tests: array<int,array{id:string,title:string,field_labels:string[],labels:string[],counts:int[],mean:float|null,n:int}>,
+ *   submission_count: int,
+ *   start_date: string,
+ *   end_date: string
+ * }
+ */
+function mha_s2s_dashboard_aggregate_per_test_scores( array $dash ) {
+	$rows       = isset( $dash['rows'] ) && is_array( $dash['rows'] ) ? $dash['rows'] : array();
+	$start_date = isset( $dash['start_date'] ) ? (string) $dash['start_date'] : '';
+	$end_date   = isset( $dash['end_date'] ) ? (string) $dash['end_date'] : '';
+	$defs       = mha_s2s_dashboard_aggregate_per_test_definitions();
+
+	$tests_raw = array();
+	foreach ( $defs as $def ) {
+		$tests_raw[ $def['id'] ] = array(
+			'id'           => $def['id'],
+			'title'        => $def['title'],
+			'field_labels' => $def['field_labels'],
+			'values'       => array(),
+		);
+	}
+
+	$label_to_test = array();
+	foreach ( $defs as $def ) {
+		foreach ( $def['field_labels'] as $fl ) {
+			$label_to_test[ strtolower( $fl ) ] = $def['id'];
+		}
+	}
+
+	foreach ( $rows as $row ) {
+		$cells = isset( $row['score_result'] ) && is_array( $row['score_result'] )
+			? $row['score_result']
+			: array();
+		foreach ( $cells as $raw_label => $raw_val ) {
+			$key = strtolower( trim( (string) $raw_label ) );
+			if ( ! isset( $label_to_test[ $key ] ) ) {
+				continue;
+			}
+			$val = is_string( $raw_val ) ? trim( $raw_val ) : ( is_scalar( $raw_val ) ? trim( (string) $raw_val ) : '' );
+			if ( '' === $val || ! is_numeric( $val ) ) {
+				continue;
+			}
+			$tid = $label_to_test[ $key ];
+			$tests_raw[ $tid ]['values'][] = (float) $val;
+		}
+	}
+
+	$tests = array();
+	foreach ( $defs as $def ) {
+		$raw    = $tests_raw[ $def['id'] ];
+		$values = $raw['values'];
+		$n      = count( $values );
+		$mean   = null;
+		$labels = array();
+		$counts = array();
+
+		if ( $n > 0 ) {
+			$mean           = round( array_sum( $values ) / $n, 2 );
+			$use_one_decimal = false;
+			foreach ( $values as $v ) {
+				if ( abs( $v - round( $v ) ) > 0.0001 ) {
+					$use_one_decimal = true;
+					break;
+				}
+			}
+			$bins = array();
+			foreach ( $values as $v ) {
+				$bin_key = $use_one_decimal
+					? number_format( round( $v, 1 ), 1, '.', '' )
+					: (string) (int) round( $v );
+				if ( ! isset( $bins[ $bin_key ] ) ) {
+					$bins[ $bin_key ] = 0;
+				}
+				$bins[ $bin_key ]++;
+			}
+			uksort(
+				$bins,
+				static function ( $a, $b ) {
+					return ( (float) $a < (float) $b ) ? -1 : ( ( (float) $a > (float) $b ) ? 1 : 0 );
+				}
+			);
+			$labels = array_map( 'strval', array_keys( $bins ) );
+			$counts = array_map( 'intval', array_values( $bins ) );
+		}
+
+		$tests[] = array(
+			'id'           => $def['id'],
+			'title'        => $def['title'],
+			'field_labels' => $def['field_labels'],
+			'labels'       => $labels,
+			'counts'       => $counts,
+			'mean'         => $mean,
+			'n'            => $n,
+		);
+	}
+
+	return array(
+		'tests'            => $tests,
+		'submission_count' => count( $rows ),
+		'start_date'       => $start_date,
+		'end_date'         => $end_date,
 	);
 }
