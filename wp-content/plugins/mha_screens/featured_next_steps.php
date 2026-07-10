@@ -14,6 +14,178 @@ function shuffle_assoc($list) {
     return $random; 
 } 
 
+/**
+ * Human-readable debug label for a Featured Next Steps condition row.
+ * Hidden ACF fields (key/condition/value) can retain stale values when type changes — do not rely on them for all types.
+ *
+ * @param array<string, mixed> $args
+ * @param array<string, mixed> $extras
+ */
+function mha_featured_next_steps_condition_debug_label( $con_type, $con_condition, $con_key, $con_value, $args, $extras = array() ) {
+	$block_slug = isset( $extras['block_slug'] ) ? (string) $extras['block_slug'] : '';
+	$get_param  = $extras['get_param'] ?? null;
+	$con_value  = is_scalar( $con_value ) ? (string) $con_value : wp_json_encode( $con_value );
+
+	switch ( $con_type ) {
+		case 'condition_block':
+			return 'ref: ' . ( $block_slug !== '' ? $block_slug : '(none selected)' );
+		case 'condition_json':
+			return 'inline JSON definition';
+		case 'test_result':
+			$result_title = (string) ( $args['result_title'] ?? '' );
+			return sprintf( '%s (actual result: "%s", expected: "%s")', $con_condition, $result_title, $con_value );
+		case 'url_parameter':
+			return sprintf(
+				'%s (URL param "%s" = "%s", expected: "%s")',
+				$con_condition,
+				$con_key,
+				(string) ( $get_param ?? '' ),
+				$con_value
+			);
+		case 'question_response':
+			$actual = $args['user_screen_result']['general_score_data'][ $con_key ] ?? '(not set)';
+			return sprintf( '%s (question %s = "%s", expected: "%s")', $con_condition, $con_key, $actual, $con_value );
+		case 'demographic_response':
+			$demo_val = '(not set)';
+			if ( isset( $args['answered_demos'][ $con_key ] ) ) {
+				$demo_val = implode( ', ', array_map( 'strval', (array) $args['answered_demos'][ $con_key ] ) );
+			}
+			return sprintf( '%s (demographic "%s" = "%s", expected: "%s")', $con_condition, $con_key, $demo_val, $con_value );
+		default:
+			return sprintf( '%s (key: %s, value: %s)', $con_condition, $con_key, $con_value );
+	}
+}
+
+/**
+ * Build context lines for the featured next steps debug header.
+ *
+ * @param array<string, mixed> $args
+ * @return array<int, string>
+ */
+function mha_featured_next_steps_debug_context_lines( $args ) {
+	$screen_id    = $args['user_screen_result']['screen_id'] ?? '';
+	$result_title = (string) ( $args['result_title'] ?? '' );
+	$referer      = (string) ( $args['user_screen_result']['referer'] ?? '' );
+	$layout       = get_query_var( 'layout' );
+	$sid          = get_query_var( 'sid' );
+	$lines        = array(
+		'=== Condition Debug Context ===',
+		'Result: "' . $result_title . '"',
+		'Screen ID: ' . $screen_id . ( $screen_id ? ' (' . get_the_title( $screen_id ) . ')' : '' ),
+	);
+
+	if ( $referer !== '' ) {
+		$lines[] = 'Referer: ' . $referer;
+	}
+	if ( $layout ) {
+		$lines[] = 'Layout: ' . $layout;
+	}
+	if ( $sid ) {
+		$lines[] = 'SID: ' . $sid;
+	}
+
+	$url_params = array( 'layout', 'partner', 'iframe', 'ref' );
+	foreach ( $url_params as $param ) {
+		$value = get_query_var( $param );
+		if ( $value && $param !== 'layout' ) {
+			$lines[] = ucfirst( $param ) . ': ' . $value;
+		}
+	}
+
+	return $lines;
+}
+
+/**
+ * Store featured next steps debug output for inline rendering on the results page.
+ *
+ * @param array<int, mixed> $debug_log
+ */
+function mha_featured_next_steps_print_debug_log( $debug_log ) {
+	if ( empty( $debug_log ) || ! mha_condition_debug_enabled() ) {
+		return;
+	}
+
+	global $mha_featured_next_steps_debug_log;
+	$mha_featured_next_steps_debug_log = $debug_log;
+}
+
+/**
+ * Format a single debug log line with pass/fail color coding.
+ *
+ * @param mixed $entry
+ */
+function mha_featured_next_steps_format_debug_log_line( $entry ) {
+	if ( is_array( $entry ) ) {
+		$entry = print_r( $entry, true );
+	}
+
+	$line  = (string) $entry;
+	$class = 'mha-condition-debug-neutral';
+
+	if ( str_starts_with( $line, '=== ' ) ) {
+		$class = 'mha-condition-debug-header';
+	} elseif ( str_starts_with( $line, '--- Group ' ) ) {
+		$class = 'mha-condition-debug-group';
+	} elseif ( preg_match( '/→\s*FAIL(\s|\[|$)/', $line ) || str_contains( $line, 'NOT MATCHED' ) ) {
+		$class = 'mha-condition-debug-fail';
+	} elseif ( preg_match( '/→\s*PASS(\s|\[|$)/', $line ) || preg_match( '/\bSuccess\s*$/', $line ) || str_contains( $line, 'MATCHED' ) ) {
+		$class = 'mha-condition-debug-pass';
+	} elseif ( preg_match( '/"matched"\s*:\s*false\b/', $line ) ) {
+		$class = 'mha-condition-debug-fail';
+	} elseif ( preg_match( '/"matched"\s*:\s*true\b/', $line ) ) {
+		$class = 'mha-condition-debug-pass';
+	} elseif ( str_starts_with( $line, '  ' ) && preg_match( '/→\s*FAIL\s*$/', $line ) ) {
+		$class = 'mha-condition-debug-fail';
+	} elseif ( str_starts_with( $line, '  ' ) && preg_match( '/→\s*PASS\s*$/', $line ) ) {
+		$class = 'mha-condition-debug-pass';
+	}
+
+	$escaped = esc_html( $line );
+	$escaped = preg_replace( '/→\s*(PASS|FAIL)/', '→ <strong>$1</strong>', $escaped );
+
+	return sprintf( '<div class="%s">%s</div>', esc_attr( $class ), $escaped );
+}
+
+/**
+ * Render queued condition / featured next steps debug near the top of the results page.
+ */
+function mha_featured_next_steps_render_debug_log() {
+	global $mha_featured_next_steps_debug_log;
+
+	if ( empty( $mha_featured_next_steps_debug_log ) || ! is_array( $mha_featured_next_steps_debug_log ) ) {
+		return;
+	}
+
+	if ( ! mha_condition_debug_visible() ) {
+		return;
+	}
+	?>
+	<div class="mha-condition-debug container py-4">
+		<button class="button btn btn-secondary mb-2" type="button" data-toggle="collapse" data-target="#mhaConditionDebug" aria-expanded="false" aria-controls="mhaConditionDebug">
+			Condition Blocks Debug
+		</button>
+		<div class="collapse" id="mhaConditionDebug">
+			<div class="card card-body bg-light">
+				<div class="mha-condition-debug-log mb-0 small" style="white-space: pre-wrap; word-break: break-word; max-height: 70vh; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+					<style>
+						.mha-condition-debug-header { font-weight: 700; color: #1f2937; background: #eef2ff; padding: 6px 8px; border-radius: 3px; margin-bottom: 4px; }
+						.mha-condition-debug-group { font-weight: 600; color: #374151; background: #f3f4f6; padding: 4px 8px; border-radius: 3px; margin: 8px 0 4px; border-left: 3px solid #9ca3af; }
+						.mha-condition-debug-pass { color: #00857c; background: #f0faf9; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; }
+						.mha-condition-debug-fail { color: #c0392b; background: #fef6f6; padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; }
+						.mha-condition-debug-neutral { padding: 2px 6px; margin-bottom: 2px; }
+					</style>
+					<?php
+					foreach ( $mha_featured_next_steps_debug_log as $entry ) {
+						echo mha_featured_next_steps_format_debug_log_line( $entry ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					}
+					?>
+				</div>
+			</div>
+		</div>
+	</div>
+	<?php
+}
+
 function mha_featured_next_steps_data( $args ){                        
 
     // Args
@@ -29,8 +201,22 @@ function mha_featured_next_steps_data( $args ){
     $return = [];
     $return['additional_result_text'] = []; // Initialize as array
 
-    $debug = false;
-    $debug_log = [];
+    mha_set_condition_context(
+        array(
+            'result_title'       => $args['result_title'],
+            'answered_demos'     => $args['answered_demos'],
+            'general_score_data' => $args['user_screen_result']['general_score_data'] ?? array(),
+            'user_screen_result' => $args['user_screen_result'],
+            'screen_id'          => $args['user_screen_result']['screen_id'] ?? '',
+            'referer'            => $args['user_screen_result']['referer'] ?? '',
+        )
+    );
+
+    $debug = mha_condition_debug_enabled();
+    $debug_log = $debug ? mha_featured_next_steps_debug_context_lines( $args ) : array();
+    if ( $debug ) {
+        $debug_log[] = '';
+    }
     
     // Check for screen_id's featured_next_steps field first (takes precedence)
     $screen_id = isset($args['user_screen_result']['screen_id']) ? $args['user_screen_result']['screen_id'] : null;
@@ -122,6 +308,15 @@ function mha_featured_next_steps_data( $args ){
             $proceed = false;
             $i = 0;
             $con_score = 0;
+
+            if ( $debug ) {
+                $debug_log[] = sprintf(
+                    '--- Group #%d: %s (%s) ---',
+                    $row_index,
+                    $group_title !== '' ? $group_title : '(untitled)',
+                    strtoupper( (string) $next_step_test_operator )
+                );
+            }
             
             if( have_rows('conditions') ):
             while( have_rows('conditions') ) : the_row();
@@ -135,63 +330,80 @@ function mha_featured_next_steps_data( $args ){
                 //echo "Condition checker: $con_type - $con_condition - $con_key - $get_key - $con_value<br />";
 
                 $con_score_before = $con_score;
+                $condition_block_slug = '';
+                $block_trace = array();
+                $block_slug = '';
 
                 switch($con_type):
+
+                    case 'condition_block':
+                        $condition_block_slug = get_sub_field( 'condition_block_slug' );
+                        $block_slug           = sanitize_title( (string) $condition_block_slug );
+                        $block                = $block_slug !== '' ? mha_get_condition_block( $block_slug ) : new WP_Error( 'mha_condition_invalid_slug', 'Condition block slug is required.' );
+                        if ( ! is_wp_error( $block ) ) {
+                            $block_debug = $debug || ! empty( $block['debug_mode'] );
+                            if ( mha_evaluate_condition_tree( $block, mha_get_condition_context(), $block_debug, array(), $block_trace ) ) {
+                                $con_score++;
+                            }
+                        }
+                        break;
+
+                    case 'condition_json':
+                        $json_definition = get_sub_field( 'condition_json_definition' );
+                        $block           = mha_prepare_condition_tree_from_definition( $json_definition );
+                        $block_slug      = 'inline-json';
+                        if ( ! is_wp_error( $block ) ) {
+                            if ( mha_evaluate_condition_tree( $block, mha_get_condition_context(), $debug, array(), $block_trace ) ) {
+                                $con_score++;
+                            }
+                        }
+                        break;
 
                     case 'test_result':
                         switch($con_condition):
                             case 'equals':
                                 if($args['result_title'] == $con_value){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'contains':
                                 if( $args['result_title'] && str_contains($args['result_title'], $con_value) ){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                
                                 break;
                             case 'starts with':
                                 if( $args['result_title'] && str_starts_with($args['result_title'], $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                     
                                 break;
                             case 'ends with':
                                 if( $args['result_title'] && str_ends_with($args['result_title'], $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                      
                                 break;
                             case 'does not equal':
                                 if($args['result_title'] != $con_value){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                
                                 break;
                             case 'does not contain':
                                 if( $args['result_title'] && !str_contains($args['result_title'], $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                           
                                 break;
                             case 'does not start with':
                                 if( $args['result_title'] && !str_starts_with($args['result_title'], $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                         
                                 break;
                             case 'does not end with':
                                 if( $args['result_title'] && !str_ends_with($args['result_title'], $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                     
                                 break;
                             case 'exists':
                                 if($args['result_title']){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                     
                                 break;
                             case 'none of':
@@ -204,7 +416,6 @@ function mha_featured_next_steps_data( $args ){
                                 }
                                 if($con_value_counter == 0){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'one of':
@@ -217,31 +428,26 @@ function mha_featured_next_steps_data( $args ){
                                 }
                                 if($con_value_counter > 0){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'not null':
                                 if($args['result_title']){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'is null':
                                 if(!$args['result_title']){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'greater than':
                                 if($args['result_title'] > $con_value){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'less than':
                                 if($args['result_title'] < $con_value){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                         endswitch;
@@ -252,55 +458,46 @@ function mha_featured_next_steps_data( $args ){
                             case 'equals':
                                 if($get_key == $con_value){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'contains':
                                 if( $get_key && str_contains($get_key, $con_value) ){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                
                                 break;
                             case 'starts with':
                                 if( $get_key && str_starts_with($get_key, $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                     
                                 break;
                             case 'ends with':
                                 if( $get_key && str_ends_with($get_key, $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                      
                                 break;
                             case 'does not equal':
                                 if($get_key != $con_value){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                
                                 break;
                             case 'does not contain':
                                 if( $get_key && !str_contains($get_key, $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                           
                                 break;
                             case 'does not start with':
                                 if( $get_key && !str_starts_with($get_key, $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                         
                                 break;
                             case 'does not end with':
                                 if( $get_key && !str_ends_with($get_key, $con_value)){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                     
                                 break;
                             case 'exists':
                                 if($get_key){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }                                     
                                 break;
                             case 'none of':
@@ -316,7 +513,6 @@ function mha_featured_next_steps_data( $args ){
                                 }
                                 if($con_value_counter == 0){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'one of':
@@ -338,35 +534,25 @@ function mha_featured_next_steps_data( $args ){
                                 if($con_value_counter > 0){
                                     $con_score++;
                                 }
-                                if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score [$con_value_counter]"; }
-                                if($debug){ $debug_log[] = "Value Explode:"; }
-                                if($debug){ $debug_log[] = $con_value_exp; }
-                                if($debug){ $debug_log[] = "Key Explode:"; }
-                                if($debug){ $debug_log[] = $get_key_exp; }
-                                if($debug){ $debug_log[] = $gke_explode; }
                                 break;
                             case 'not null':
                                 if($get_key){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'is null':
                                 if($get_key){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'greater than':
                                 if($get_key > $con_value){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                             case 'less than':
                                 if($get_key < $con_value){
                                     $con_score++;
-                                    if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                 }
                                 break;
                         endswitch;
@@ -377,62 +563,52 @@ function mha_featured_next_steps_data( $args ){
                                 case 'equals':
                                     if(isset($args['user_screen_result']['general_score_data'][$con_key]) && $args['user_screen_result']['general_score_data'][$con_key] == $con_value){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }
                                     break;
                                 case 'contains':
                                     if( isset($args['user_screen_result']['general_score_data'][$con_key]) && str_contains($args['user_screen_result']['general_score_data'][$con_key], $con_value) ){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                
                                     break;
                                 case 'starts with':
                                     if( isset($args['user_screen_result']['general_score_data'][$con_key]) && str_starts_with(isset($args['user_screen_result']['general_score_data'][$con_key]), $con_value)){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                     
                                     break;
                                 case 'ends with':
                                     if( isset($args['user_screen_result']['general_score_data'][$con_key]) && str_ends_with($args['user_screen_result']['general_score_data'][$con_key], $con_value)){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                      
                                     break;
                                 case 'does not equal':
                                     if(isset($args['user_screen_result']['general_score_data'][$con_key]) && $args['user_screen_result']['general_score_data'][$con_key] != $con_value){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                
                                     break;
                                 case 'does not contain':
                                     if( isset($args['user_screen_result']['general_score_data'][$con_key]) && !str_contains($args['user_screen_result']['general_score_data'][$con_key], $con_value)){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                           
                                     break;
                                 case 'does not start with':
                                     if( isset($args['user_screen_result']['general_score_data'][$con_key]) && !str_starts_with($args['user_screen_result']['general_score_data'][$con_key], $con_value)){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                         
                                     break;
                                 case 'does not end with':
                                     if( isset($args['user_screen_result']['general_score_data'][$con_key]) && !str_ends_with($args['user_screen_result']['general_score_data'][$con_key], $con_value)){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                     
                                     break;
                                 case 'exists':
                                 case 'not null':
                                     if(isset($args['user_screen_result']['general_score_data'][$con_key])){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                     
                                     break;
                                 case 'is null':
                                     if(!isset($args['user_screen_result']['general_score_data'][$con_key])){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                     
                                     break;
                                 case 'none of':
@@ -445,7 +621,6 @@ function mha_featured_next_steps_data( $args ){
                                     }
                                     if($con_value_counter == 0){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }
                                     break;
                                 case 'one of':
@@ -458,19 +633,16 @@ function mha_featured_next_steps_data( $args ){
                                     }
                                     if($con_value_counter > 0){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }
                                     break;
                                 case 'greater than':
                                     if(isset($args['user_screen_result']['general_score_data'][$con_key]) && $args['user_screen_result']['general_score_data'][$con_key] > $con_value){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }
                                     break;
                                 case 'less than':
                                     if(isset($args['user_screen_result']['general_score_data'][$con_key]) && $args['user_screen_result']['general_score_data'][$con_key] < $con_value){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }
                                     break;
 
@@ -489,7 +661,6 @@ function mha_featured_next_steps_data( $args ){
                                         }
                                         if( $temp_score == 1 ){
                                             $con_score++;
-                                            if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                         }  
                                     }
                                     break;
@@ -498,7 +669,6 @@ function mha_featured_next_steps_data( $args ){
                                         foreach($args['answered_demos'][$con_key] as $dr){
                                             if($dr == $con_value){
                                                 $con_score++;
-                                                if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                             }
                                         }
                                     }                            
@@ -514,7 +684,6 @@ function mha_featured_next_steps_data( $args ){
                                         }
                                         if($total_drs == $temp_score){
                                             $con_score++;
-                                            if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                         }
                                     }                       
                                     break;
@@ -522,13 +691,11 @@ function mha_featured_next_steps_data( $args ){
                                 case 'not null':
                                     if(isset($args['answered_demos'][$con_key])){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                     
                                     break;
                                 case 'is null':
                                     if(!isset($args['answered_demos'][$con_key])){
                                         $con_score++;
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score"; }
                                     }                                     
                                     break;                                    
                                 case 'starts with':
@@ -538,7 +705,6 @@ function mha_featured_next_steps_data( $args ){
                                             if ( $dr !== '' && str_starts_with( $dr, $con_value ) ) {
                                                 $con_score++;
                                                 if ( $debug ) {
-                                                    $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
                                                 }
                                                 break;
                                             }
@@ -552,7 +718,6 @@ function mha_featured_next_steps_data( $args ){
                                             if ( $dr !== '' && str_ends_with( $dr, $con_value ) ) {
                                                 $con_score++;
                                                 if ( $debug ) {
-                                                    $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
                                                 }
                                                 break;
                                             }
@@ -571,7 +736,6 @@ function mha_featured_next_steps_data( $args ){
                                         if ( $all_no_prefix ) {
                                             $con_score++;
                                             if ( $debug ) {
-                                                $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
                                             }
                                         }
                                     }
@@ -588,7 +752,6 @@ function mha_featured_next_steps_data( $args ){
                                         if ( $all_no_suffix ) {
                                             $con_score++;
                                             if ( $debug ) {
-                                                $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
                                             }
                                         }
                                     }
@@ -599,7 +762,6 @@ function mha_featured_next_steps_data( $args ){
                                         // No answer: vacuously not any of the listed values
                                         $con_score++;
                                         if ( $debug ) {
-                                            $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score [no answer]";
                                         }
                                         break;
                                     }
@@ -614,7 +776,6 @@ function mha_featured_next_steps_data( $args ){
                                     if ( $matches_list === 0 ) {
                                         $con_score++;
                                         if ( $debug ) {
-                                            $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score";
                                         }
                                     }
                                     break;
@@ -632,7 +793,6 @@ function mha_featured_next_steps_data( $args ){
                                         if( $temp_score >= 1 ){
                                             $con_score++;
                                         }  
-                                        if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $con_value)  / $con_score VS $temp_score"; }   
                                     }                               
                                     break;
                                 case 'greater than':
@@ -647,7 +807,6 @@ function mha_featured_next_steps_data( $args ){
                                         $con_value_num = is_numeric($con_value) ? (float)$con_value : 0;
                                         if($demo_value > $con_value_num){
                                             $con_score++;
-                                            if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $demo_value > $con_value_num)  / $con_score"; }
                                         }
                                     }
                                     break;
@@ -663,7 +822,6 @@ function mha_featured_next_steps_data( $args ){
                                         $con_value_num = is_numeric($con_value) ? (float)$con_value : 0;
                                         if($demo_value < $con_value_num){
                                             $con_score++;
-                                            if($debug){ $debug_log[] = "#$row_index. $group_title - $con_type / $con_condition ($con_key : $demo_value < $con_value_num)  / $con_score"; }
                                         }
                                     }
                                     break;
@@ -676,20 +834,36 @@ function mha_featured_next_steps_data( $args ){
 
                 if ( $debug ) {
                     $matched = ( $con_score > $con_score_before );
-                    $known_types = array( 'test_result', 'url_parameter', 'question_response', 'demographic_response' );
+                    $known_types = array( 'test_result', 'url_parameter', 'question_response', 'demographic_response', 'condition_block', 'condition_json' );
                     $type_note   = in_array( $con_type, $known_types, true ) ? '' : ' [type not handled in switch]';
                     $debug_log[] = sprintf(
-                        '#%d. %s — condition #%d: %s / %s (key: %s, value: %s) → %s%s',
+                        '  #%d. %s — condition #%d: %s — %s → %s%s',
                         $row_index,
                         $group_title,
                         $i + 1,
                         $con_type,
-                        $con_condition,
-                        $con_key,
-                        is_scalar( $con_value ) ? (string) $con_value : json_encode( $con_value ),
+                        mha_featured_next_steps_condition_debug_label(
+                            $con_type,
+                            $con_condition,
+                            $con_key,
+                            $con_value,
+                            $args,
+                            array(
+                                'block_slug' => $condition_block_slug ?: ( $con_type === 'condition_block' ? $con_value : '' ),
+                                'get_param'  => $get_key,
+                            )
+                        ),
                         $matched ? 'PASS' : 'FAIL',
                         $type_note
                     );
+
+                    if ( ( $con_type === 'condition_block' || $con_type === 'condition_json' ) && ! empty( $block_trace ) ) {
+                        $trace_label = $con_type === 'condition_json' ? 'inline JSON' : $block_slug;
+                        $debug_log[] = '    Block trace (' . $trace_label . '):';
+                        foreach ( mha_format_condition_trace_lines( $block_trace, mha_get_condition_context(), 2 ) as $trace_line ) {
+                            $debug_log[] = '    ' . $trace_line;
+                        }
+                    }
                 }
 
                 $i++;
@@ -704,6 +878,28 @@ function mha_featured_next_steps_data( $args ){
                 $next_step_test_operator == 'or' && $con_score > 0 
             ){
                 $proceed = true;                    
+            }
+
+            if ( $debug ) {
+                $operator_label = strtoupper( (string) $next_step_test_operator );
+                $detail         = ( $next_step_test_operator == 'and' )
+                    ? sprintf( '%d/%d conditions passed', $con_score, $i )
+                    : sprintf( '%d/%d conditions passed (need ≥1)', $con_score, $i );
+
+                $debug_log[] = sprintf(
+                    'Group "%s" — %s %s — %s → %s',
+                    $group_title !== '' ? $group_title : '(untitled)',
+                    $operator_label,
+                    $detail,
+                    $proceed ? 'MATCHED' : 'NOT MATCHED',
+                    $proceed ? 'PASS' : 'FAIL'
+                );
+
+                if ( $proceed ) {
+                    $debug_log[] = '  ↳ Links/additional text displayed for this group';
+                }
+
+                $debug_log[] = '';
             }
 
             if($proceed == true){
@@ -723,7 +919,6 @@ function mha_featured_next_steps_data( $args ){
                     'text'        => get_sub_field('additional_result_text')
                 );   
 
-                if($debug){ $debug_log[] = get_sub_field('link_group_title').' Success'; }
 
                 $ctas = get_sub_field('cta');                 
                 $return['results'][$next_result_index]['ctas'] = $ctas ? $ctas : null;  
@@ -1137,12 +1332,16 @@ function mha_featured_next_steps_data( $args ){
             'overflow_conditional_link_ids' => isset($overflow_conditional_link_ids) ? $overflow_conditional_link_ids : array()
         );
 
-        if($debug){ pre($debug_log); }
+        if ( $debug ) {
+            mha_featured_next_steps_print_debug_log( $debug_log );
+        }
         return json_encode( $results, false, JSON_UNESCAPED_SLASHES );  
 
     endif;
 
-    if($debug){ pre($debug_log); }
+    if ( $debug ) {
+        mha_featured_next_steps_print_debug_log( $debug_log );
+    }
     return false;
 
 }
@@ -1174,9 +1373,10 @@ function display_featured_next_steps( $args ){
         foreach($args['additional_result_text'] as $item){
             // Support both { group_title, text } and legacy plain string
             $addl_text = is_array($item) && isset($item['text']) ? $item['text'] : (is_object($item) && isset($item->text) ? $item->text : $item);
-            // Strip shortcodes and scripts
-            $addl_text = strip_shortcodes($addl_text);
-            $addl_text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $addl_text);
+            $addl_text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', (string) $addl_text);
+            if ( $addl_text !== '' ) {
+                $addl_text = do_shortcode( wp_kses_post( $addl_text ) );
+            }
             if($addl_text != ''){
                 $partner_class = $args['is_partner_source'] ? ' partner-source' : '';
                 $return_html .= '<div class="featured-next-steps-test-additional-text'.$partner_class.'">';

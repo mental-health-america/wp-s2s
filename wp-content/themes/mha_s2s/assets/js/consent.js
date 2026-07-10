@@ -22,7 +22,12 @@ function toggleBanner(show) {
 		banner.style.display = show ? 'block' : 'none';
 		if (show) {
 			document.body.classList.add('cookie-banner-display');
+		} else {
+			document.body.classList.remove('cookie-banner-display');
 		}
+	}
+	if (typeof window.mhaUpdateLanguageHelpBarPosition === 'function') {
+		window.mhaUpdateLanguageHelpBarPosition();
 	}
 }
 

@@ -557,20 +557,97 @@ function moveArrayKeyToLast(&$array, $key){
 }
 
 /**
- * Strip HTML from a string but keep all inner text (e.g. <a href="#">something</a> → something).
- * Handles digital-pathways and dataLayer placeholders.
+ * Find the index of the closing delimiter matching $open at $startPos.
+ */
+function mha_find_balanced_close($text, $startPos, $open, $close) {
+    $depth = 0;
+    $len = strlen($text);
+    for ($i = $startPos; $i < $len; $i++) {
+        if ($text[$i] === $open) {
+            $depth++;
+        } elseif ($text[$i] === $close) {
+            $depth--;
+            if ($depth === 0) {
+                return $i;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Remove repeated occurrences of $prefix followed by a balanced (...), optional trailing semicolon.
+ */
+function mha_remove_js_calls($text, $prefix) {
+    $offset = 0;
+    while (($start = strpos($text, $prefix, $offset)) !== false) {
+        $open = strpos($text, '(', $start);
+        if ($open === false) {
+            break;
+        }
+        $close = mha_find_balanced_close($text, $open, '(', ')');
+        if ($close === false) {
+            break;
+        }
+        $end = $close + 1;
+        if ($end < strlen($text) && $text[$end] === ';') {
+            $end++;
+        }
+        $text = substr($text, 0, $start) . substr($text, $end);
+        $offset = $start;
+    }
+    return $text;
+}
+
+/**
+ * Strip HTML/JS from a string but keep readable inner text (e.g. <a href="#">something</a> → something).
  */
 function stripHtmlKeepText($html) {
     if (! is_string($html)) {
         return $html;
     }
-    if (strpos($html, 'digital-pathways') !== false) {
-        return 'Digital Pathways Content Removed';
+
+    $text = $html;
+
+    // Preserve cta_title values embedded in dataLayer pushes before removing the JS.
+    $cta_titles = [];
+    if (preg_match_all('/[\'"]cta_title[\'"]\s*:\s*(["\'])(.*?)\1/s', $text, $matches)) {
+        $cta_titles = $matches[2];
     }
-    if (strpos($html, 'dataLayer') !== false) {
-        return 'dataLayer Content Removed';
+
+    $text = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $text);
+    $text = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $text);
+    $text = preg_replace('/<!--.*?-->/s', '', $text);
+
+    $text = mha_remove_js_calls($text, 'window.dataLayer.push');
+    $text = mha_remove_js_calls($text, 'gform.initializeOnLoaded');
+
+    // Inline gform bootstrap IIFE: var gform;gform||( ... );
+    if (preg_match('/var gform;gform\|\|/', $text, $m, PREG_OFFSET_CAPTURE)) {
+        $start = $m[0][1];
+        $open = strpos($text, '(', $start);
+        if ($open !== false) {
+            $close = mha_find_balanced_close($text, $open, '(', ')');
+            if ($close !== false) {
+                $end = $close + 1;
+                if ($end < strlen($text) && $text[$end] === ';') {
+                    $end++;
+                }
+                $text = substr($text, 0, $start) . substr($text, $end);
+            }
+        }
     }
-    $text = strip_tags($html);
+
+    // Inline CSS blocks left after tag removal (e.g. #gform_submit_button_69 { ... }).
+    $text = preg_replace('/(?:^|[\s>])[#.][a-zA-Z0-9_-][^{]*\{[^}]*\}/', ' ', $text);
+
+    $text = strip_tags($text);
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    if (! empty($cta_titles)) {
+        $text = implode(' ', $cta_titles) . ' ' . $text;
+    }
+
     $text = str_replace(["\r\n", "\r", "\n"], ' ', $text);
     return trim(preg_replace('/\s+/', ' ', $text));
 }

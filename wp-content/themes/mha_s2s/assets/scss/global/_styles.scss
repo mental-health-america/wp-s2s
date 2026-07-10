@@ -325,6 +325,28 @@ input[type="button"] {
         }
     }
 
+    &.orange {
+        background: $orange;
+        color: $white;
+        .site-content &:visited,
+        &:visited {
+            color: $white;
+        } 
+        .site-content &.button:hover,
+        &.button:hover,
+        &.active,
+        &:focus,
+        &:hover {
+            background-color: $blueDark;
+        }
+        &:disabled,
+        &.disabled,
+        &[disabled]{
+            &,
+            &:hover { background-color: $burntOrange !important; }
+        }
+    }
+
     &.wine {
         background: $wine;
         color: $white;
@@ -760,6 +782,20 @@ button.plain {
         color: $teal;
         &:hover {
             color: $orange;
+        }
+    }
+
+    &.purple {
+        color: $purple;
+        &:hover {
+            color: $blueDark;
+        }
+    }
+
+    &.dark-blue {
+        color: $darkBlue;
+        &:hover {
+            color: $blue;
         }
     }
 

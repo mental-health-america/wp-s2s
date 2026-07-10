@@ -17,7 +17,11 @@
 <div class="inner small">
     <div class="container-fluid p-0 noto">
         <?php 
-            echo ($espanol ? '<h3 class="section-title dark-teal mb-4">Sus respuestas</h3>' : '<h3 class="section-title dark-teal mb-4">Your Answers</h3>');
+            if ( $espanol ) {
+                echo '<h3 class="section-title dark-teal mb-4">' . esc_html( __( 'Sus respuestas', 'mha_s2s' ) ) . '</h3>';
+            } else {
+                echo '<h3 class="section-title dark-teal mb-4">' . esc_html( __( 'Your Answers', 'mha_s2s' ) ) . '</h3>';
+            }
             echo $user_screen_result['your_answers']; 
         ?>
     </div>

@@ -22,6 +22,7 @@ include_once 'inc/users.php';
 
 // Plugin Specific Functions
 include_once 'inc/plugin-overrides.php';
+include_once 'inc/gravityforms-performance.php';
 
 // Content Specific Functions
 include_once 'inc/content.php';

@@ -10,10 +10,10 @@ $user_screen_id = str_replace('_ref', '', get_query_var('sid')); // Remove _ref 
 $entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
 $user_screen_result = is_wp_error( $entry_id ) || !$entry_id ? null : mha_get_user_screen_results( $entry_id, true ); 
 
-if ( is_wp_error( $entry_id ) || !$entry_id ):
+if ( empty( $user_screen_id ) || ! $entry_id ):
 
     // Entry doesn't exist, display an error
-    echo '<div class="wrap narrow mb-5"><div id="message" class="error text-center"><p>This screen result does not exist.</p></div></div>';
+    echo '<div class="wrap narrow mb-5"><div id="message" class="error">'.get_field('screen_results_not_found_message', 'options').'</div></div>';
 
 elseif(get_field('hide_results_content', $user_screen_result['screen_id'])):
     
@@ -25,6 +25,30 @@ else:
 
     // Entry exists, continue
 
+    // Get Screen Results
+    $user_screen_result = mha_get_user_screen_results( $entry_id, true );
+
+    mha_set_condition_context(
+        array(
+            'result_title'       => $user_screen_result['result_title'] ?? '',
+            'answered_demos'     => $user_screen_result['answered_demos'] ?? array(),
+            'general_score_data' => $user_screen_result['general_score_data'] ?? array(),
+            'user_screen_result' => $user_screen_result,
+            'screen_id'          => $user_screen_result['screen_id'] ?? '',
+            'referer'            => $user_screen_result['referer'] ?? '',
+        )
+    );
+
+    if ( mha_condition_debug_enabled() ) {
+        mha_featured_next_steps_data(
+            array(
+                'user_screen_result' => $user_screen_result,
+                'result_title'       => $user_screen_result['result_title'] ?? '',
+                'answered_demos'     => $user_screen_result['answered_demos'] ?? array(),
+            )
+        );
+    }
+    
     // Update featured links based on result page attributes
     // To debug, comment this out to not lock in answers so refreshing works
     if($user_screen_result['featured_next_steps_data'] && str_contains(get_query_var('layout'), 'mhats')){
@@ -36,75 +60,6 @@ else:
         );
     }
     wp_reset_query();
-
-    /*
-    // Screen Collection: Check if Screen Collection field contains &&& and display screen list
-    $screen_collection_value = '';
-    
-    // Check if Screen Collection value exists in answered_demos
-    if (isset($user_screen_result['answered_demos']['Screen Collection'])) {
-        $screen_collection_value = is_array($user_screen_result['answered_demos']['Screen Collection']) 
-            ? $user_screen_result['answered_demos']['Screen Collection'][0] 
-            : $user_screen_result['answered_demos']['Screen Collection'];
-    }
-    
-    // Check if Screen Collection field value contains &&&
-    if (!empty($screen_collection_value) && strpos($screen_collection_value, '&&&') !== false) {
-        // Parse org_id and user_id from the value
-        $parts = explode('&&&', $screen_collection_value);
-        $org_id = !empty($parts[0]) ? trim($parts[0]) : '';
-        $user_id = !empty($parts[1]) ? trim($parts[1]) : '';
-        
-        // Find the screen collection post that contains this screen
-        $current_screen_id = $user_screen_result['screen_id'];
-        // Query for screen-collection posts that contain this screen
-        $screen_collection_args = array(
-            'post_type' => 'screen-collection',
-            'post_status' => 'publish',
-            'posts_per_page' => 1,
-            'meta_query' => array(
-                array(
-                    'key' => 'screens',
-                    'value' => $current_screen_id,
-                    'compare' => 'LIKE'
-                )
-            )
-        );
-        
-        $screen_collection_query = new WP_Query($screen_collection_args);
-        
-        if ($screen_collection_query->have_posts()) {
-            while ($screen_collection_query->have_posts()) {
-                $screen_collection_query->the_post();
-                $collection_id = get_the_ID();
-                $screens = get_field('screens');
-                $screen_order = get_field('force_screen_order');
-                
-                // Get referrer and iframe mode from the result
-                $referrer = isset($user_screen_result['referer']) ? $user_screen_result['referer'] : '';
-                $iframe_mode = get_query_var('iframe') ? 'true' : 'false';
-                
-                // Build link back to screen collection with query parameters
-                $collection_link_args = array();
-                if ($org_id) {
-                    $collection_link_args['org'] = $org_id;
-                }
-                $collection_link = add_query_arg($collection_link_args, get_the_permalink($collection_id));
-                
-                if ($screens && is_array($screens) && !empty($screens)) {
-                    // Display the screen collection list using shortcode (JavaScript will handle the display)
-                    echo '<div class="wrap normal">';
-                    echo '<hr />';
-                    echo '<p class="mb-3"><a href="'.esc_url($collection_link).'" class="">&laquo; Back to Screen Collection</a></p>';
-                    echo do_shortcode('[screen_collection_list screens="'.implode(',', $screens).'" screen_order="'.($screen_order ? 'true' : 'false').'" org_id="'.$org_id.'" user_id="'.$user_id.'" referrer="'.$referrer.'" iframe_mode="'.$iframe_mode.'"]');
-                    echo '<hr />';
-                    echo '</div>';
-                }
-            }
-            wp_reset_postdata();
-        }
-    }
-    */
     
     $excluded_ids = [];
     $result_cta = [];
@@ -372,6 +327,7 @@ else:
     ?>
 
     <div class="wrap narrow">
+    <?php mha_featured_next_steps_render_debug_log(); ?>
     <article class="screen screen-result">
 
         <?php 
@@ -604,7 +560,7 @@ else:
                     global $post;
                     foreach($partner_ctas as $cta){
                         $post = get_post($cta); 
-                        get_template_part( 'templates/blocks/block', 'cta' );
+                        get_template_part( 'templates/blocks/block', 'cta', array( 'id' => $cta ) );
                     } 
                     wp_reset_postdata();                
                 ?>
@@ -847,7 +803,7 @@ else:
                 global $post;
                 foreach($unique_result_cta as $cta){
                     $post = get_post($cta); 
-                    get_template_part( 'templates/blocks/block', 'cta' );
+                    get_template_part( 'templates/blocks/block', 'cta', array( 'id' => $cta ) );
                 } 
                 wp_reset_postdata();                
             ?>

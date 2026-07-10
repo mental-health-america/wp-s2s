@@ -15,10 +15,14 @@
                         $login_target = '';
                     }
                 ?>
-                <a class="append-thought-id text-white"<?php echo $login_target; ?> href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$args['id'] ?>">Log in</a>
-                or
-                <a class="append-thought-id text-white"<?php echo $login_target; ?> href="/sign-up/?action=save_screen_<?php echo $args['id']; ?>">register for an account</a>
-                to save this result to your account.
+                <a class="append-thought-id text-white"<?php echo $login_target; ?> href="/log-in/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$args['id'] ?>">
+                    <?php esc_html_e( 'Log in', 'mha_s2s' ); ?>
+                </a>
+                <?php esc_html_e( 'or', 'mha_s2s' ); ?>
+                <a class="append-thought-id text-white"<?php echo $login_target; ?> href="/sign-up/?action=save_screen_<?php echo $args['id']; ?>">
+                    <?php esc_html_e( 'register for an account', 'mha_s2s' ); ?>
+                </a>
+                <?php esc_html_e( 'to save this result to your account', 'mha_s2s' ); ?>
             </div>
             </div>
         </div>

@@ -14,9 +14,13 @@
         ?>
             <button id="screen-about" class="button mint round thin" type="button" data-toggle="collapse" data-target="#score-interpretation" aria-expanded="false" aria-controls="score-interpretation">       
                 <?php 
-                    echo ($espanol ? 'Sobre su puntuación' : 'About your score'); 
+                    if ( $espanol ) {
+                        esc_html_e( 'Sobre su puntuación', 'mha_s2s' );
+                    } else {
+                        esc_html_e( 'About your score', 'mha_s2s' );
+                    }
                     if(!get_field('hide_result_score', $user_screen_result['screen_id'])){
-                        echo ': '.$user_screen_result['total_score'].' / '.$max_score; 
+                        echo ': ' . esc_html( $user_screen_result['total_score'] ) . ' / ' . esc_html( $max_score ); 
                     }
                 ?>    
             </button>
@@ -33,7 +37,13 @@
     ?>
 
     <button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">
-        <?php echo ($espanol ? 'Sus respuestas' : 'Your Answers'); ?>
+        <?php 
+            if ( $espanol ) {
+                esc_html_e( 'Sus respuestas', 'mha_s2s' );
+            } else {
+                esc_html_e( 'Your Answers', 'mha_s2s' );
+            }
+        ?>
     </button>
     <?php
         if(!count(array_intersect( array('actions_b', 'actions_c', 'actions_d', 'btn_hide_take_test'), $layout))){

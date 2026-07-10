@@ -153,10 +153,10 @@
 	<ul id="mobile-menu-footer" class="menu last secondary">
 		
 		<?php if(is_user_logged_in()): ?>						
-			<li class="menu-item"><a href="/my-account">My Account</a></li>
-			<li class="menu-item"><a href="<?php echo wp_logout_url(); ?>">Log Out</a></li>
+			<li class="menu-item"><a href="/my-account"><?php _e('My Account', 'mhas2s'); ?></a></li>
+			<li class="menu-item"><a href="<?php echo wp_logout_url(); ?>"><?php _e('Log Out', 'mhas2s'); ?></a></li>
 		<?php else: ?>						
-			<li class="menu-item"><a href="/log-in">Log In</a></li>
+			<li class="menu-item"><a href="/log-in"><?php _e('Log In', 'mhas2s'); ?></a></li>
 		<?php endif; ?>
 	</ul>
 	
@@ -182,8 +182,8 @@
 			<?php echo get_field('cookie_banner_text', 'options'); ?>
 		</div>
 		<div class="cookie-banner-buttons">
-			<button id="cookie-deny" class="button small thin ghost purple cookie-btn-deny">Deny</button>
-			<button id="cookie-accept" class="button small thin ghost teal cookie-btn-accept">Accept</button>
+			<button id="cookie-deny" class="button small thin ghost purple cookie-btn-deny"><?php _e('Deny', 'mhas2s'); ?></button>
+			<button id="cookie-accept" class="button small thin ghost teal cookie-btn-accept"><?php _e('Accept', 'mhas2s'); ?></button>
 		</div>
 	</div>
 	</div>
@@ -204,16 +204,35 @@
 	</script>
 <?php endif; ?>
 
-<!-- SiteImprove -->
-<script type="text/javascript">
-/*<![CDATA[*/
-(function() {
-var sz = document.createElement('script'); sz.type = 'text/javascript'; sz.async = true;
-sz.src = '//siteimproveanalytics.com/js/siteanalyze_6229968.js';
-var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sz, s);
-})();
-/*]]>*/
-</script>
+<!-- Language Help Bar -->
+<?php
+if ( get_field( 'display_translation_help_bar', 'options' ) && function_exists( 'mha_is_non_default_language_page' ) && mha_is_non_default_language_page() ) :
+	$language_help_bar_text = get_field( 'translation_help_bar_text', 'options' );
+
+	if ( $language_help_bar_text ) :
+		?>
+	<div id="language-help-bar" class="language-help-bar" style="display: none;" role="region" aria-label="<?php esc_attr_e( 'Language Assistance', 'mhas2s' ); ?>">
+		<div class="language-help-bar-inner">
+			<div class="language-help-bar-content">
+				<div class="language-help-bar-text">
+					<span class="translation-block trp-language-help-bar-text"><?php echo wp_kses_post( $language_help_bar_text ); ?></span>
+				</div>
+				<div class="language-help-bar-buttons">
+					<button id="language-help-bar-dismiss" type="button" class="plain dark-blue bold caps language-help-bar-btn-dismiss">
+						<span class="translation-block trp-language-help-bar-dismiss"><?php esc_html_e( 'Dismiss', 'mhas2s' ); ?></span>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<button id="language-help-bar-toggle" type="button" class="language-help-bar-toggle button small thin purple" style="display: none;" aria-controls="language-help-bar" aria-expanded="false">
+		<span class="translation-block trp-language-help-bar-toggle"><?php esc_html_e( 'Language Assistance', 'mhas2s' ); ?></span>
+	</button>
+		<?php
+	endif;
+endif;
+?>
 
 </body>
 </html>
