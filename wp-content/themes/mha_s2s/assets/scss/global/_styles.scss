@@ -860,6 +860,16 @@ button.bar {
             width: 100%;
         }
     }
+
+    &.teal {
+        &:after {
+            background: $teal;
+        }
+        &:hover {
+            color: $teal;
+            background: transparent;
+        }
+    }
 }
 
 /* Stylish Flourishes */
