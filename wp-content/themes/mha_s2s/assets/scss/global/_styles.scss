@@ -785,6 +785,20 @@ button.plain {
         }
     }
 
+    &.purple {
+        color: $purple;
+        &:hover {
+            color: $blueDark;
+        }
+    }
+
+    &.dark-blue {
+        color: $darkBlue;
+        &:hover {
+            color: $blue;
+        }
+    }
+
 }
 
 button.icon {

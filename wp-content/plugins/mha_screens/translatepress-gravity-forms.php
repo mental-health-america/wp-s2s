@@ -28,6 +28,12 @@
  *
  * If you omit trp-ctx-{slug}, the context falls back to form-{formId} (e.g. form-84).
  *
+ * ## Your Answers on results pages (trp-answers)
+ *
+ * Add `trp-answers` to the same form CSS class list. Result answer labels reuse the
+ * same inner context classes as form choices (trp-ctx-{slug}-{choice-key}), so
+ * translating an option on the form also applies on the Your Answers section.
+ *
  * @package MHA_Screens
  */
 

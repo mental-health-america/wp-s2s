@@ -213,7 +213,9 @@
                                         "test_result": "Test Result",
                                         "url_parameter": "URL Parameter",
                                         "question_response": "Question Response",
-                                        "demographic_response": "Demographic Response"
+                                        "demographic_response": "Demographic Response",
+                                        "condition_block": "Condition Block (reusable)",
+                                        "condition_json": "Condition JSON (inline)"
                                     },
                                     "default_value": false,
                                     "return_format": "value",
@@ -236,7 +238,20 @@
                                     "type": "select",
                                     "instructions": "",
                                     "required": 0,
-                                    "conditional_logic": 0,
+                                    "conditional_logic": [
+                                        [
+                                            {
+                                                "field": "field_651eeeb160882",
+                                                "operator": "!=",
+                                                "value": "condition_block"
+                                            },
+                                            {
+                                                "field": "field_651eeeb160882",
+                                                "operator": "!=",
+                                                "value": "condition_json"
+                                            }
+                                        ]
+                                    ],
                                     "wrapper": {
                                         "width": "",
                                         "class": "",
@@ -328,6 +343,16 @@
                                     "conditional_logic": [
                                         [
                                             {
+                                                "field": "field_651eeeb160882",
+                                                "operator": "!=",
+                                                "value": "condition_block"
+                                            },
+                                            {
+                                                "field": "field_651eeeb160882",
+                                                "operator": "!=",
+                                                "value": "condition_json"
+                                            },
+                                            {
                                                 "field": "field_651eef0660883",
                                                 "operator": "!=",
                                                 "value": "exists"
@@ -345,6 +370,73 @@
                                     "placeholder": "",
                                     "prepend": "",
                                     "append": "",
+                                    "parent_repeater": "field_651eee5560881"
+                                },
+                                {
+                                    "key": "field_6865c1d010009",
+                                    "label": "Condition Block",
+                                    "name": "condition_block_slug",
+                                    "aria-label": "",
+                                    "type": "select",
+                                    "instructions": "Select a reusable condition block from MHA Global Options. The list updates automatically when blocks are added or changed.",
+                                    "required": 0,
+                                    "conditional_logic": [
+                                        [
+                                            {
+                                                "field": "field_651eeeb160882",
+                                                "operator": "==",
+                                                "value": "condition_block"
+                                            }
+                                        ]
+                                    ],
+                                    "wrapper": {
+                                        "width": "",
+                                        "class": "",
+                                        "id": ""
+                                    },
+                                    "relevanssi_exclude": 0,
+                                    "choices": [],
+                                    "default_value": false,
+                                    "return_format": "value",
+                                    "multiple": 0,
+                                    "allow_null": 1,
+                                    "ui": 1,
+                                    "ajax": 0,
+                                    "placeholder": "Select a condition block",
+                                    "allow_custom": 1,
+                                    "search_placeholder": "",
+                                    "parent_repeater": "field_651eee5560881",
+                                    "create_options": 0,
+                                    "save_options": 0
+                                },
+                                {
+                                    "key": "field_6865c1d010010",
+                                    "label": "Condition JSON",
+                                    "name": "condition_json_definition",
+                                    "aria-label": "",
+                                    "type": "textarea",
+                                    "instructions": "Nested condition logic JSON using the same format as Global Options condition blocks.",
+                                    "required": 0,
+                                    "conditional_logic": [
+                                        [
+                                            {
+                                                "field": "field_651eeeb160882",
+                                                "operator": "==",
+                                                "value": "condition_json"
+                                            }
+                                        ]
+                                    ],
+                                    "wrapper": {
+                                        "width": "",
+                                        "class": "",
+                                        "id": ""
+                                    },
+                                    "relevanssi_exclude": 0,
+                                    "default_value": "",
+                                    "maxlength": "",
+                                    "rows": 8,
+                                    "placeholder": "{\n  \"operator\": \"and\",\n  \"conditions\": []\n}",
+                                    "new_lines": "",
                                     "parent_repeater": "field_651eee5560881"
                                 }
                             ]
@@ -524,5 +616,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1760028334
+    "modified": 1783025500
 }

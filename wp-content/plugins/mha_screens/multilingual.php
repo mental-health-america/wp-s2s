@@ -372,6 +372,96 @@ function mha_get_translatepress_default_language() {
 }
 
 /**
+ * Resolve TranslatePress language from the request URL subdirectory slug.
+ *
+ * @return string Locale code (e.g. es_ES) or empty string when not found.
+ */
+function mha_get_translatepress_language_from_url() {
+    if ( empty( $_SERVER['REQUEST_URI'] ) ) {
+        return '';
+    }
+
+    $trp_settings = get_option( 'trp_settings', array() );
+    if ( empty( $trp_settings['url-slugs'] ) || ! is_array( $trp_settings['url-slugs'] ) ) {
+        return '';
+    }
+
+    $path = trim( (string) parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ), '/' );
+    if ( '' === $path ) {
+        return '';
+    }
+
+    $slug = strtok( $path, '/' );
+    if ( ! $slug ) {
+        return '';
+    }
+
+    foreach ( $trp_settings['url-slugs'] as $locale => $url_slug ) {
+        if ( (string) $url_slug === $slug ) {
+            return $locale;
+        }
+    }
+
+    return '';
+}
+
+/**
+ * Get the language of the page being viewed in TranslatePress.
+ *
+ * Uses TRP globals, filters, and URL slug detection. Does not use the browser
+ * Accept-Language header, which can incorrectly report English on /es/ URLs.
+ *
+ * @return string Language or locale code.
+ */
+function mha_get_translatepress_current_language() {
+    global $TRP_LANGUAGE;
+
+    if ( ! empty( $TRP_LANGUAGE ) ) {
+        return $TRP_LANGUAGE;
+    }
+
+    if ( function_exists( 'trp_get_current_language' ) ) {
+        $language = trp_get_current_language();
+        if ( ! empty( $language ) ) {
+            return $language;
+        }
+    }
+
+    $filtered_language = apply_filters( 'trp_user_language', '' );
+    if ( ! empty( $filtered_language ) ) {
+        return $filtered_language;
+    }
+
+    $language_from_url = mha_get_translatepress_language_from_url();
+    if ( '' !== $language_from_url ) {
+        return $language_from_url;
+    }
+
+    if ( function_exists( 'trp_get_default_language' ) ) {
+        return trp_get_default_language();
+    }
+
+    $trp_settings = get_option( 'trp_settings', array() );
+    if ( ! empty( $trp_settings['default-language'] ) ) {
+        return $trp_settings['default-language'];
+    }
+
+    return 'en_US';
+}
+
+/**
+ * Whether the current page is rendered in a non-default TranslatePress language.
+ *
+ * @return bool
+ */
+function mha_is_non_default_language_page() {
+    $default = mha_normalize_lang_code( mha_get_translatepress_default_language() );
+    $current = mha_normalize_lang_code( mha_get_translatepress_current_language() );
+
+    return $current !== '' && $default !== '' && $current !== $default;
+}
+
+/**
  * Enqueue browser language check JavaScript
  * 
  * This function enqueues a JavaScript file that checks if the browser's language

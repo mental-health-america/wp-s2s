@@ -204,5 +204,35 @@
 	</script>
 <?php endif; ?>
 
+<!-- Language Help Bar -->
+<?php
+if ( get_field( 'display_translation_help_bar', 'options' ) && function_exists( 'mha_is_non_default_language_page' ) && mha_is_non_default_language_page() ) :
+	$language_help_bar_text = get_field( 'translation_help_bar_text', 'options' );
+
+	if ( $language_help_bar_text ) :
+		?>
+	<div id="language-help-bar" class="language-help-bar" style="display: none;" role="region" aria-label="<?php esc_attr_e( 'Language Assistance', 'mhas2s' ); ?>">
+		<div class="language-help-bar-inner">
+			<div class="language-help-bar-content">
+				<div class="language-help-bar-text">
+					<span class="translation-block trp-language-help-bar-text"><?php echo wp_kses_post( $language_help_bar_text ); ?></span>
+				</div>
+				<div class="language-help-bar-buttons">
+					<button id="language-help-bar-dismiss" type="button" class="plain dark-blue bold caps language-help-bar-btn-dismiss">
+						<span class="translation-block trp-language-help-bar-dismiss"><?php esc_html_e( 'Dismiss', 'mhas2s' ); ?></span>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<button id="language-help-bar-toggle" type="button" class="language-help-bar-toggle button small thin purple" style="display: none;" aria-controls="language-help-bar" aria-expanded="false">
+		<span class="translation-block trp-language-help-bar-toggle"><?php esc_html_e( 'Language Assistance', 'mhas2s' ); ?></span>
+	</button>
+		<?php
+	endif;
+endif;
+?>
+
 </body>
 </html>
