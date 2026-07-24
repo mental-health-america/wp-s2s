@@ -752,6 +752,42 @@ add_shortcode( 'mha_iframe', 'mha_flexible_iframe_shortcode' );
  * Shortcode - Bootstrap Language Switcher
  * Display a Bootstrap-style dropdown for language switching
  */
+/**
+ * Native short label for a language code (e.g. es_MX → Español, not "Español de México").
+ *
+ * @param string $code Locale / language code.
+ * @param string $fallback TranslatePress language_name fallback.
+ * @return string
+ */
+function mha_language_switcher_native_label( $code, $fallback = '' ) {
+	$code = (string) $code;
+
+	$labels = apply_filters(
+		'mha_language_switcher_native_labels',
+		array(
+			'en_US' => 'English',
+			'es_MX' => 'Español',
+		)
+	);
+
+	if ( isset( $labels[ $code ] ) && '' !== $labels[ $code ] ) {
+		return (string) $labels[ $code ];
+	}
+
+	// Locale::getDisplayLanguage( 'es_MX', 'es_MX' ) => "español" (no country).
+	if ( class_exists( 'Locale' ) ) {
+		$native = \Locale::getDisplayLanguage( $code, $code );
+		if ( is_string( $native ) && '' !== $native && 0 !== strcasecmp( $native, $code ) ) {
+			if ( function_exists( 'mb_substr' ) && function_exists( 'mb_strtoupper' ) ) {
+				return mb_strtoupper( mb_substr( $native, 0, 1, 'UTF-8' ), 'UTF-8' ) . mb_substr( $native, 1, null, 'UTF-8' );
+			}
+			return ucfirst( $native );
+		}
+	}
+
+	return '' !== $fallback ? (string) $fallback : $code;
+}
+
 function mha_language_switcher() {
     if (!function_exists('trp_custom_language_switcher')) {
         return '';
@@ -768,13 +804,14 @@ function mha_language_switcher() {
     }
 
     $current_language = get_locale();
-    $output = '<div class="trp_language_switcher_shortcode">';
+    // data-no-translation: keep labels fixed (English / Español) regardless of page language.
+    $output = '<div class="trp_language_switcher_shortcode" data-no-translation>';
     $output .= '<div class="dropdown">';
     $output .= '<button class="dropdown-toggle trp-language-switcher" type="button" id="languageDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-globe"></i> ';
     
     foreach ($languages as $code => $item) {
         if ($code === $current_language) {
-            $output .= esc_html($item['language_name']);
+            $output .= esc_html( mha_language_switcher_native_label( $code, isset( $item['language_name'] ) ? $item['language_name'] : '' ) );
             break;
         }
     }
@@ -784,10 +821,12 @@ function mha_language_switcher() {
     
     foreach ($languages as $code => $item) {
         if ($code !== $current_language) {
+            // data-no-translation-href: skip "Force language in custom links" rewriting
+            // so default-language URLs are not forced back to the current language.
             $output .= sprintf(
-                '<a class="dropdown-item" href="%s"><i class="fa-solid fa-globe"></i> %s</a>',
-                esc_url($item['current_page_url']),
-                esc_html($item['language_name'])
+                '<a class="dropdown-item" href="%s" data-no-translation-href><i class="fa-solid fa-globe"></i> %s</a>',
+                esc_url( isset( $item['current_page_url'] ) ? $item['current_page_url'] : '' ),
+                esc_html( mha_language_switcher_native_label( $code, isset( $item['language_name'] ) ? $item['language_name'] : '' ) )
             );
         }
     }

@@ -229,13 +229,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				?>
 			</span>
 			
-			<?php if(current_user_can( 'edit_pages' )): ?>
 			<span class="header-language">
-				<?php
-					echo do_shortcode( '[mha_language_switcher]' );
-				?>
+				<?php echo do_shortcode( '[mha_language_switcher]' ); ?>
 			</span>
-			<?php endif; ?>
 		</span>
 
 		</div>
