@@ -55,9 +55,9 @@ if (strpos($account_action, 'save_diy_') !== false) {
         // Confirmation of saving message
         if($update_diy){
         ?>
-            <div class="wrap narrow mb-4 <?php echo $width; ?>">
+            <div class="wrap narrow mb-4">
                 <div id="screen-save">
-                    <div class="bubble round green thin mb-1 <?php echo $corners; ?>">
+                    <div class="bubble round green thin mb-1">
                     <div class="inner bold text-center">
                         Your <?php echo get_the_title( get_field('activity_id', $update_diy) ); ?> activity was successfully saved to this account. 
                     </div>
