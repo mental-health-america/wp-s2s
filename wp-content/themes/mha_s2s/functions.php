@@ -1398,7 +1398,8 @@ function it_is_all_spam( $is_spam, $form, $entry ) {
 */
 add_filter( 'gform_entry_is_spam', 'gf_admin_is_not_spam', 10, 3 );
 function gf_admin_is_not_spam( $is_spam, $form, $entry ) {
-	if ( strpos($form['cssClass'], 'auto-submit') !== false ) {
+	$form_css_class = isset( $form['cssClass'] ) ? $form['cssClass'] : '';
+	if ( strpos($form_css_class, 'auto-submit') !== false ) {
         //$is_spam = false;
 	}
     return $is_spam;
