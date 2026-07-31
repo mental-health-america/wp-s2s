@@ -3,6 +3,9 @@
 // Custom Admin Javascript
 function mha_admin_scripts($hook) {
     wp_enqueue_script('mythril_shard_scripts', plugin_dir_url(__FILE__) . 'js/mha_admin.js', array(), '1.0');
+    wp_localize_script('mythril_shard_scripts', 'mhaAdmin', array(
+        'apiLogNonce' => wp_create_nonce( 'mha_api_log_entries' ),
+    ) );
     wp_enqueue_style( 'mythril_shard_scripts', plugin_dir_url(__FILE__) . 'css/mythril_shard.css', array(), '1.1' );
 }
 

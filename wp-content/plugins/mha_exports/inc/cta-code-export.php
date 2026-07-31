@@ -23,6 +23,8 @@ function mhactaCodesExportScripts($hook) {
 add_action( 'wp_ajax_mha_export_cta_codes', 'mha_export_cta_codes' );
 function mha_export_cta_codes(){
 
+    mha_exports_verify_ajax_request( 'mhactacodes' );
+
 	// General variables
     global $wpdb;
     $timezone = new DateTimeZone('America/New_York');

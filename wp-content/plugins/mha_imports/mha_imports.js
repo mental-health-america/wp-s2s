@@ -21,6 +21,7 @@ jQuery(function ($) {
         var form_data = new FormData();
         form_data.append('file', file_data);
         form_data.append('action', 'mhaImporterUploader');
+        form_data.append('nonce', do_mhaImports.nonce);
 
         $.ajax({
             type: "POST",
@@ -68,7 +69,8 @@ jQuery(function ($) {
                     url: do_mhaImports.ajaxurl,
                     data: { 
                         action: 'mhaImporterLooper',
-                        data: args
+                        data: args,
+                        nonce: do_mhaImports.nonce
                     },
                     success: function( results ) {  
                         //console.log(results);
@@ -121,6 +123,7 @@ jQuery(function ($) {
         var form_data = new FormData();
         form_data.append('file', file_data);
         form_data.append('action', 'mhaImporterUploader');
+        form_data.append('nonce', do_mhaImports.nonce);
 
         $.ajax({
             type: "POST",
@@ -167,7 +170,8 @@ jQuery(function ($) {
                     url: do_mhaImports.ajaxurl,
                     data: { 
                         action: 'mhaCtaCodeImporter',
-                        data: args
+                        data: args,
+                        nonce: do_mhaImports.nonce
                     },
                     success: function( results ) {  
                         var res2 = JSON.parse(results);	

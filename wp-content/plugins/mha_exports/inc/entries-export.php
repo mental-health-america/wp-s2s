@@ -25,6 +25,8 @@ function sortArrayByArray($array,$orderArray) {
 add_action( 'wp_ajax_mha_export_screen_data', 'mha_export_screen_data' );
 function mha_export_screen_data(){
 
+    mha_exports_verify_ajax_request( 'mhathoughtexport' );
+
 	// General variables
     $timezone = new DateTimeZone('America/New_York');
 	

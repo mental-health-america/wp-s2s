@@ -30,6 +30,8 @@ function removeMhaTooltip($input) {
 add_action( 'wp_ajax_mha_export_diy_tool_data', 'mha_export_diy_tool_data' );
 function mha_export_diy_tool_data(){
 
+    mha_exports_verify_ajax_request( 'mhadiyexport' );
+
 	// General variables
     global $wpdb;
     $timezone = new DateTimeZone('America/New_York');

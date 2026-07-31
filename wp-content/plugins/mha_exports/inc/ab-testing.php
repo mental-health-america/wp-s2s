@@ -23,6 +23,8 @@ function mhaAbTestingExportScripts($hook) {
 add_action( 'wp_ajax_mha_export_ab_testing_data', 'mha_export_ab_testing_data' );
 function mha_export_ab_testing_data(){
 
+    mha_exports_verify_ajax_request( 'mhaabtesting' );
+
 	// General variables
     global $wpdb;
     $timezone = new DateTimeZone('America/New_York');

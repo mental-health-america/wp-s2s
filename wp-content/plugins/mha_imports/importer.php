@@ -11,8 +11,100 @@ add_action('init', 'mhaImportScripts');
 function mhaImportScripts() {
     if(current_user_can('manage_options')){
         wp_enqueue_script('process_mhaImporters', plugin_dir_url(__FILE__) . 'mha_imports.js', array('jquery'), time(), true );
-        wp_localize_script('process_mhaImporters', 'do_mhaImports', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+        wp_localize_script('process_mhaImporters', 'do_mhaImports', array(
+            'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'mha_imports_ajax' ),
+        ) );
     }
+}
+
+
+/**
+ * Authorization guard for the import AJAX endpoints.
+ *
+ * A `wp_ajax_` hook only requires the request to be authenticated, not authorized, so
+ * every callback has to check capability itself. Sends a 403 and exits when the request
+ * is not permitted.
+ */
+function mha_imports_verify_ajax_request() {
+
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( array( 'error' => 'You do not have permission to run this import.' ), 403 );
+    }
+
+    if ( ! check_ajax_referer( 'mha_imports_ajax', 'nonce', false ) ) {
+        wp_send_json_error( array( 'error' => 'Security check failed. Refresh the page and try again.' ), 403 );
+    }
+}
+
+
+/**
+ * Directory holding in-progress CSV uploads.
+ */
+function mha_imports_tmp_dir() {
+    return plugin_dir_path( __FILE__ ) . 'tmp/';
+}
+
+
+/**
+ * Create the tmp directory and its access guards if they are missing.
+ *
+ * The guards are written from here rather than committed because `tmp/` is gitignored,
+ * so anything placed in it by hand never reaches the server. The .htaccess only applies
+ * on Apache; on nginx the equivalent rule has to be set at the server level.
+ *
+ * @return bool False when the directory could not be created.
+ */
+function mha_imports_prepare_tmp_dir() {
+
+    $dir = mha_imports_tmp_dir();
+
+    if ( ! wp_mkdir_p( $dir ) ) {
+        return false;
+    }
+
+    if ( ! file_exists( $dir . 'index.php' ) ) {
+        file_put_contents( $dir . 'index.php', "<?php // Silence is golden." . PHP_EOL );
+    }
+
+    if ( ! file_exists( $dir . '.htaccess' ) ) {
+        $rules  = "# Staged CSV imports are never meant to be fetched over HTTP." . PHP_EOL;
+        $rules .= "<IfModule mod_authz_core.c>" . PHP_EOL;
+        $rules .= "    Require all denied" . PHP_EOL;
+        $rules .= "</IfModule>" . PHP_EOL;
+        $rules .= "<IfModule !mod_authz_core.c>" . PHP_EOL;
+        $rules .= "    Order allow,deny" . PHP_EOL;
+        $rules .= "    Deny from all" . PHP_EOL;
+        $rules .= "</IfModule>" . PHP_EOL;
+        file_put_contents( $dir . '.htaccess', $rules );
+    }
+
+    return true;
+}
+
+
+/**
+ * Resolve an uploaded CSV back to a real path inside the tmp directory.
+ *
+ * The filename round-trips through the browser between the upload request and each paged
+ * import request, so on the way back in it is untrusted and must not be able to escape
+ * the tmp directory.
+ *
+ * @return string|false
+ */
+function mha_imports_resolve_tmp_file( $filename ) {
+
+    // basename() drops any directory portion, and the .csv requirement keeps the lookup
+    // from reaching anything else that happens to live in the tmp directory.
+    $filename = basename( (string) $filename );
+
+    if ( ! preg_match( '/^[A-Za-z0-9._-]+\.csv$/', $filename ) ) {
+        return false;
+    }
+
+    $path = mha_imports_tmp_dir() . $filename;
+
+    return file_exists( $path ) ? $path : false;
 }
 
 
@@ -21,31 +113,52 @@ function mhaImportScripts() {
  */
 add_action( 'wp_ajax_mhaImporterUploader', 'mhaImporterUploader' );
 function mhaImporterUploader(){
-    
+
+    mha_imports_verify_ajax_request();
+
     // General Vars
     $result = [];
 
-    // Confirm WP file upload is available here
-    /*
-    if (!function_exists('wp_handle_upload')) {
-        require_once(ABSPATH . 'wp-admin/includes/file.php');
+    if ( empty( $_FILES['file'] ) || empty( $_FILES['file']['tmp_name'] ) || ! is_uploaded_file( $_FILES['file']['tmp_name'] ) ) {
+        $result['file']  = false;
+        $result['error'] = 'No file was received. Please choose a CSV and try again.';
+        echo json_encode($result);
+        die();
     }
-    */
 
-    // Upload the file
-    $filename = date('U').'_'.$_FILES['file']['name'];
-    //$uploadedfile = $_FILES['import_provider_file'];
-    //$movefile = wp_handle_upload($uploadedfile, array('test_form' => false, 'mimes' => array('csv' => 'text/csv')));
-    $uploadedfile = plugin_dir_path(__FILE__)."/tmp/".$filename;
-    $movefile = move_uploaded_file( $_FILES['file']['tmp_name'], $uploadedfile );
+    if ( ! empty( $_FILES['file']['error'] ) ) {
+        $result['file']  = false;
+        $result['error'] = 'The upload did not complete (error code '.intval( $_FILES['file']['error'] ).').';
+        echo json_encode($result);
+        die();
+    }
 
-    if ($movefile && !isset($movefile['error'])) {
+    if ( strtolower( pathinfo( $_FILES['file']['name'], PATHINFO_EXTENSION ) ) !== 'csv' ) {
+        $result['file']  = false;
+        $result['error'] = 'Only .csv files can be imported.';
+        echo json_encode($result);
+        die();
+    }
+
+    // The stored name is generated rather than taken from the client, and the extension is
+    // forced, so an upload can never land as an executable file in this directory.
+    $filename     = date('U').'_'.wp_generate_password( 12, false ).'.csv';
+    $uploadedfile = mha_imports_tmp_dir().$filename;
+
+    if ( ! mha_imports_prepare_tmp_dir() ) {
+        $result['file']  = false;
+        $result['error'] = 'The import directory is not writable.';
+        echo json_encode($result);
+        die();
+    }
+
+    if ( move_uploaded_file( $_FILES['file']['tmp_name'], $uploadedfile ) ) {
         $result['file'] = urlencode($filename); 
         $result['page'] = 0;
         $result['error'] = false;
     } else {
         $result['file'] = false;
-        $result['error'] = $movefile['error'];
+        $result['error'] = 'The uploaded file could not be saved.';
     }
     
     echo json_encode($result);
@@ -73,6 +186,8 @@ function convert_smart_quotes($string) {
 add_action( 'wp_ajax_mhaImporterLooper', 'mhaImporterLooper' );
 function mhaImporterLooper( $data = null ) {
 
+    mha_imports_verify_ajax_request();
+
     // Defaults
     $pager = 50;
 
@@ -87,8 +202,14 @@ function mhaImporterLooper( $data = null ) {
         $filename = urldecode($data['file']);
     }
 
+    $filepath = mha_imports_resolve_tmp_file( $filename );
+    if ( ! $filepath ) {
+        echo json_encode( array( 'error' => 'The import file could not be found. Please upload it again.' ) );
+        exit();
+    }
+
     // Load CSV and get data
-    $csv = Reader::createFromPath(__DIR__.'/tmp/'.$filename, 'r');
+    $csv = Reader::createFromPath($filepath, 'r');
     $csv->setHeaderOffset(0);
 
     //$records = Statement::create()->process($csv);
@@ -226,6 +347,8 @@ function mhaImporterLooper( $data = null ) {
 add_action( 'wp_ajax_mhaCtaCodeImporter', 'mhaCtaCodeImporter' );
 function mhaCtaCodeImporter(){
 
+    mha_imports_verify_ajax_request();
+
     // Defaults
     $defaults = array(
         'file'                       => null,
@@ -241,7 +364,12 @@ function mhaCtaCodeImporter(){
     $result = $args;
     
     // Load CSV and get data
-    $filepath = WP_PLUGIN_DIR . '/mha_imports/tmp/'.$result['file'];
+    $filepath = mha_imports_resolve_tmp_file( urldecode( $result['file'] ) );
+    if ( ! $filepath ) {
+        $result['error'] = 'The import file could not be found. Please upload it again.';
+        echo json_encode($result);
+        exit();
+    }
     $csv = Reader::createFromPath($filepath, 'r');
     $csv->setHeaderOffset(0);
     $records = iterator_to_array($csv->getRecords());

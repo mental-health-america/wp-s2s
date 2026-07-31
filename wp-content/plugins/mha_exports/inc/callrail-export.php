@@ -23,6 +23,8 @@ function mhacallrailctaCodesExportScripts($hook) {
 add_action( 'wp_ajax_mha_export_callrailcta', 'mha_export_callrailcta' );
 function mha_export_callrailcta(){
 
+    mha_exports_verify_ajax_request( 'mhacallrailcta' );
+
 	// General variables
     global $wpdb;
     $timezone = new DateTimeZone('America/New_York');
