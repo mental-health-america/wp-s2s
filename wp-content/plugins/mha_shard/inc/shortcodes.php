@@ -80,8 +80,10 @@ function mha_popular_articles( $options ) {
 			$pop_json = json_encode($articles);
 				
 			$fp = fopen($json, 'w');
-			fwrite($fp, json_encode($pop_json));
-			fclose($fp);
+			if ( $fp ) {
+				fwrite($fp, json_encode($pop_json));
+				fclose($fp);
+			}
 
 		}
 
@@ -127,8 +129,10 @@ function mha_popular_articles( $options ) {
 			$pop_json = json_encode($articles);
 				
 			$fp = fopen($json, 'w');
-			fwrite($fp, json_encode($pop_json));
-			fclose($fp);
+			if ( $fp ) {
+				fwrite($fp, json_encode($pop_json));
+				fclose($fp);
+			}
 
 		}
 		

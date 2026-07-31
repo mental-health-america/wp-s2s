@@ -44,10 +44,7 @@ function mha_api_get_user_screen_result_by_sid( WP_REST_Request $request )
   $user_screen_id     = str_replace( '_ref', '', $requested_sid ); // Remove _ref in case of chained forms
 
   // Find the entry ID by searching for the SID in the meta table
-  $entry_id = $wpdb->get_var( $wpdb->prepare(
-    "SELECT entry_id FROM {$wpdb->prefix}gf_entry_meta WHERE meta_value = %s ORDER BY id DESC LIMIT 1",
-    $user_screen_id
-  ) );
+  $entry_id = mha_get_gf_entry_id_by_sid( $requested_sid );
 
   $_log_entry = new ApiLogEntry(
     $requesting_api_key_label,

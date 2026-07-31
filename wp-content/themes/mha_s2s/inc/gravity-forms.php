@@ -82,9 +82,7 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
         }
 
 		// Get the test data
-		global $wpdb;
-		$user_screen_id = str_replace('_ref', '', $sid); // Remove _ref in case of chained forms
-		$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
+		$entry_id = mha_get_gf_entry_id_by_sid( $sid );
 		$user_screen_result = mha_get_user_screen_results( $entry_id, false );
 
         GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $entry => ' . print_r($entry, true) );

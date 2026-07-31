@@ -488,10 +488,11 @@ function getDiyCrowdsource(){
         $show_next_previews = 0;
     }
     
-    // Better caching strategy using WordPress transients
-    // Create a stable cache key that excludes user-specific parameters
+    // Better caching strategy using WordPress transients.
+    // Exclude user-specific and pagination params from the key so we score once,
+    // cache the full ranked list, then slice for the requested page.
     $cache_args = $args;
-    unset($cache_args['current']); // Remove user-specific current post ID
+    unset($cache_args['current'], $cache_args['page']);
     $cache_key = 'diy_crowdsource_' . $args['activity_id'] . '_' . md5(serialize($cache_args));
     // Remove cache group - some cache backends don't handle groups properly
     $cache_group = '';
@@ -523,7 +524,6 @@ function getDiyCrowdsource(){
     
     // Try to get from cache using transients (more reliable than object cache)
     $cached_data = get_transient($cache_key);
-    $result['cached_data'] = $cached_data;
     if ($enable_cache_debugging && current_user_can('manage_options')) {
         $result['cache_debug']['cache_get_result'] = $cached_data;
     }
@@ -531,7 +531,6 @@ function getDiyCrowdsource(){
     if ($cached_data !== false) {
         $responses = $cached_data['responses'] ?? [];
         $result['total_pages'] = $cached_data['total_pages'] ?? 0;
-        $result['has_next_page'] = $cached_data['has_next_page'] ?? false;
         $result['use_cache'] = 'true';
         $use_cache = true;
     }
@@ -539,14 +538,14 @@ function getDiyCrowdsource(){
     if (!$use_cache) {
         $result['use_cache'] = 'false';
         
-        // Test cache functionality using transients
-        $test_key = 'diy_test_' . time();
-        $test_data = ['test' => 'data'];
-        set_transient($test_key, $test_data, 60);
-        $test_retrieved = get_transient($test_key);
-        delete_transient($test_key);
-        
         if ($enable_cache_debugging && current_user_can('manage_options')) {
+            // Test cache functionality using transients
+            $test_key = 'diy_test_' . time();
+            $test_data = ['test' => 'data'];
+            set_transient($test_key, $test_data, 60);
+            $test_retrieved = get_transient($test_key);
+            delete_transient($test_key);
+
             $result['cache_debug']['cache_test'] = [
                 'set_success' => ($test_retrieved === $test_data),
                 'test_retrieved' => $test_retrieved
@@ -574,7 +573,7 @@ function getDiyCrowdsource(){
             
         $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $args['activity_id']);
         
-        // Get flagged posts to exclude
+        // Get flagged posts to exclude (one query for flags, one for admin notes)
         global $wpdb;
         $flagged_posts = [];
         $flagged_query = $wpdb->get_results($wpdb->prepare("
@@ -586,11 +585,24 @@ function getDiyCrowdsource(){
         ", $args['activity_id']));
         
         if ($flagged_query) {
-            foreach ($flagged_query as $flag) {
+            $flagged_pids = array_map( 'intval', wp_list_pluck( $flagged_query, 'pid' ) );
+            $admin_notes_by_pid = array();
+            if ( $flagged_pids ) {
+                $placeholders = implode( ',', array_fill( 0, count( $flagged_pids ), '%d' ) );
+                $notes_sql = $wpdb->prepare(
+                    "SELECT post_id, meta_value FROM {$wpdb->postmeta}
+                     WHERE meta_key = 'admin_notes' AND post_id IN ($placeholders)",
+                    ...$flagged_pids
+                );
+                foreach ( (array) $wpdb->get_results( $notes_sql ) as $note_row ) {
+                    $admin_notes_by_pid[ (int) $note_row->post_id ] = $note_row->meta_value;
+                }
+            }
+            foreach ( $flagged_pids as $flagged_pid ) {
+                $admin_note = $admin_notes_by_pid[ $flagged_pid ] ?? '';
                 // Only exclude if no admin note (admin reviewed and approved)
-                $admin_note = get_field('admin_notes', $flag->pid);
-                if (!$admin_note || $admin_note == '') {
-                    $flagged_posts[] = $flag->pid;
+                if ( $admin_note === '' || $admin_note === null ) {
+                    $flagged_posts[] = $flagged_pid;
                 }
             }
         }
@@ -677,25 +689,16 @@ function getDiyCrowdsource(){
             return $b['score'] <=> $a['score'];
         });
         
-        // Calculate pagination
+        // Calculate pagination from the full ranked list
         $total_posts = count($responses);
         $result['total_pages'] = max(1, ceil($total_posts / $per_page));
         
-        // Check if next page would have content
-        $next_page_start = $args['page'] * $per_page;
-        $result['has_next_page'] = ($next_page_start < $total_posts);
-        
-        // Apply pagination to responses
-        $start_index = ($args['page'] - 1) * $per_page;
-        $responses = array_slice($responses, $start_index, $per_page);
-        
-        // Cache the results using WordPress transients (24 hours)
+        // Cache the full ranked list (pagination is applied after cache get/set)
         $cache_data = [
             'responses' => $responses,
             'total_pages' => $result['total_pages'],
-            'has_next_page' => $result['has_next_page'] ?? false,
             'cached_at' => current_time('mysql'),
-            'cache_version' => '1.0'
+            'cache_version' => '1.1'
         ];
         
         $cache_set_result = set_transient($cache_key, $cache_data, DAY_IN_SECONDS);
@@ -703,18 +706,15 @@ function getDiyCrowdsource(){
             $result['cache_debug']['cache_set_result'] = $cache_set_result;
             $result['cache_debug']['cache_data_size'] = strlen(serialize($cache_data));
         }
-        
-        // Test if cache can be retrieved immediately after setting
-        $immediate_retrieval = get_transient($cache_key);
-        if ($enable_cache_debugging && current_user_can('manage_options')) {
-            $result['cache_debug']['cache_storage_test']['cache_key_after_set'] = [
-                'retrieved' => $immediate_retrieval !== false,
-                'retrieved_data' => $immediate_retrieval,
-                'cache_key' => $cache_key,
-                'cache_group' => 'transient' // Using transients instead of groups
-            ];
-        }
     }
+
+    // Apply pagination after cache hit or rebuild so page flips share one scored list
+    $total_posts = count($responses);
+    $result['total_pages'] = max(1, (int) ( $result['total_pages'] ?: ceil($total_posts / $per_page) ));
+    $next_page_start = $args['page'] * $per_page;
+    $result['has_next_page'] = ($next_page_start < $total_posts);
+    $start_index = ($args['page'] - 1) * $per_page;
+    $responses = array_slice($responses, $start_index, $per_page);
     
     // Get user likes for pre-marking
     $pids_search = array_column($responses, 'pid');

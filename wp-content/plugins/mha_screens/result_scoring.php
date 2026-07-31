@@ -62,7 +62,9 @@ function mha_screen_submission_update_entry_featured_links( $atts ) {
 }
 
 
-// Update featured data JSON field
+// Update featured data JSON field.
+// On-load writes from the screening results template are intentional; skip the GF
+// update only when the merged JSON is identical to what is already stored.
 function mha_update_featured_data( $atts ){
 
     $defaults = array(
@@ -83,14 +85,21 @@ function mha_update_featured_data( $atts ){
 
             // Featured Link Test Data
             if (isset($field->label) && strpos($field->label, 'Featured Link Data') !== false) {                  
-                $featured_json = strval($args['user_screen_result']['featured_next_steps_data']);
+                $featured_json = strval($args['user_screen_result']['featured_next_steps_data'] ?? '');
                 $feature_data = json_decode($featured_json, true);
+                if ( ! is_array( $feature_data ) ) {
+                    $feature_data = array();
+                }
                 if(!empty($args['updates'])){
-                    foreach($args['updates'] as $k => $v){
-                        $feature_data[$k] = $v;
+                    foreach($args['updates'] as $uk => $uv){
+                        $feature_data[$uk] = $uv;
                     }
-                    $entry[$field->id] = json_encode( $feature_data, false, JSON_UNESCAPED_SLASHES );
-                    $updated_featured_data = true;
+                    $new_json = json_encode( $feature_data, false, JSON_UNESCAPED_SLASHES );
+                    // Preserve intentional on-load writes, but avoid rewriting identical JSON.
+                    if ( (string) $entry[$field->id] !== (string) $new_json ) {
+                        $entry[$field->id] = $new_json;
+                        $updated_featured_data = true;
+                    }
                 }
             }
 

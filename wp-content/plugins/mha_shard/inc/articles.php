@@ -64,7 +64,7 @@ function get_condition_articles($tax = null, $tag = null, $search_query = null, 
 
         // Primary or Only Condition (+2)
         $primary_condition = get_field('primary_condition');
-        if($primary_condition && $primary_condition->term_id == $tag || $article_conditions && count($article_conditions) == 1 && $article_conditions[0]->term_id == $tag) {
+        if($primary_condition && $primary_condition->term_id == $tag || is_array($article_conditions) && count($article_conditions) == 1 && $article_conditions[0]->term_id == $tag) {
             $score = $score + 2;
         }
 
@@ -85,7 +85,7 @@ function get_condition_articles($tax = null, $tag = null, $search_query = null, 
 
         // Types
         $article_type = get_field('type');
-        if( in_array( "diy", $article_type) ||  in_array( "connect", $article_type) ){
+        if( is_array($article_type) && ( in_array( "diy", $article_type) ||  in_array( "connect", $article_type) ) ){
             $score--;
         }
 
