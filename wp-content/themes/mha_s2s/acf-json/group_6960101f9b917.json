@@ -37,6 +37,185 @@
             "save_post_type": ""
         },
         {
+            "key": "field_697d394e7c101",
+            "label": "Results Modules",
+            "name": "results_modules",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "Map each results module to a page of the associated Screen's Gravity Form. Module scores and thresholds will be used to build the collection results.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "acfe_repeater_stylised_button": 0,
+            "layout": "block",
+            "pagination": 0,
+            "min": 0,
+            "max": 0,
+            "collapsed": "field_697d394e7c102",
+            "button_label": "Add Module",
+            "rows_per_page": 20,
+            "sub_fields": [
+                {
+                    "key": "field_697d394e7c102",
+                    "label": "Module Label",
+                    "name": "module_label",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "The module name shown in the Your Answers navigation.",
+                    "required": 1,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "ADHD",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_697d394e7c101"
+                },
+                {
+                    "key": "field_697d394e7c103",
+                    "label": "Symptom Label",
+                    "name": "symptom_label",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "A plain-English symptom phrase used in the positive and negative summaries.",
+                    "required": 1,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "trouble staying focused",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_697d394e7c101"
+                },
+                {
+                    "key": "field_697d394e7c104",
+                    "label": "Form Page Number",
+                    "name": "form_page_number",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "The Gravity Forms page containing this module's questions.",
+                    "required": 1,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "33",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "min": 1,
+                    "max": "",
+                    "step": 1,
+                    "parent_repeater": "field_697d394e7c101"
+                },
+                {
+                    "key": "field_697d394e7c105",
+                    "label": "Positive Score Threshold",
+                    "name": "positive_score_threshold",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "The module is positive when its total score is greater than or equal to this value.",
+                    "required": 1,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "33",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "min": 0,
+                    "max": "",
+                    "step": 1,
+                    "parent_repeater": "field_697d394e7c101"
+                },
+                {
+                    "key": "field_697d394e7c106",
+                    "label": "Maximum Score",
+                    "name": "maximum_score",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "The maximum possible module score. It is used as the denominator when ranking modules and is not displayed.",
+                    "required": 1,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "33",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": "",
+                    "min": 0,
+                    "max": "",
+                    "step": 1,
+                    "parent_repeater": "field_697d394e7c101"
+                },
+                {
+                    "key": "field_697d394e7c107",
+                    "label": "Recommended Screen",
+                    "name": "recommended_screen",
+                    "aria-label": "",
+                    "type": "post_object",
+                    "instructions": "The standalone Screen linked from Next Steps when this module is positive.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "post_type": [
+                        "screen"
+                    ],
+                    "post_status": "",
+                    "taxonomy": "",
+                    "return_format": "id",
+                    "multiple": 0,
+                    "save_custom": 0,
+                    "save_post_status": "publish",
+                    "acfe_bidirectional": {
+                        "acfe_bidirectional_enabled": "0"
+                    },
+                    "allow_null": 1,
+                    "allow_in_bindings": 0,
+                    "bidirectional": 0,
+                    "ui": 1,
+                    "bidirectional_target": [],
+                    "save_post_type": "",
+                    "parent_repeater": "field_697d394e7c101"
+                }
+            ]
+        },
+        {
             "key": "field_696011d535ff2",
             "label": "Force Screen Order",
             "name": "force_screen_order",
