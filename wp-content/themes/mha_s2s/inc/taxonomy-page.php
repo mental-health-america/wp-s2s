@@ -1,6 +1,11 @@
 <?php
 get_header();
 $term = get_queried_object();
+if ( ! $term || is_wp_error( $term ) || empty( $term->taxonomy ) || empty( $term->term_id ) ) {
+	echo '<div class="wrap normal"><p>Condition not found.</p></div>';
+	get_footer();
+	return;
+}
 $espanol = get_field('espanol');
 if(get_query_var('search')){
 	$search_query = get_query_var('search');
@@ -193,13 +198,20 @@ wp_reset_query();
 						<div class="inner">		
 
 							<?php 
-								$related_conditions = get_field('related_conditions', $term);
-								if($related_conditions && count($related_conditions) > 0 ){
+								$related_conditions = mha_as_array( get_field('related_conditions', $term) );
+								if( count($related_conditions) > 0 ){
 									echo '<h3>Learn About Other Related Mental Health Conditions</h3>';
 									echo '<div class="conditions-list">';
 									$rc_counter = 1;
 									foreach($related_conditions as $rc){
-										echo '<a class="plain cerulean" href="'.get_term_link($rc).'">'.$rc->name.'</a>';	 
+										if ( ! is_object( $rc ) || empty( $rc->name ) ) {
+											continue;
+										}
+										$rc_link = get_term_link( $rc );
+										if ( is_wp_error( $rc_link ) ) {
+											continue;
+										}
+										echo '<a class="plain cerulean" href="'.$rc_link.'">'.$rc->name.'</a>';	 
 										if($rc_counter < count($related_conditions)){
 											echo ' &nbsp;<span class="noto" role="separator">|</span>&nbsp; ';
 										}
@@ -224,7 +236,7 @@ wp_reset_query();
 										<?php
 											$an_a = 'Take a';
 											$title = get_the_title($test_cta[$tindex]);
-											if($title[$tindex] == 'A'){
+											if( is_string( $title ) && $title !== '' && strtoupper( $title[0] ) === 'A' ){
 												$an_a .= 'n ';
 											}
 											$test_espanol = get_field('espanol',$test_cta[$tindex]);
@@ -254,7 +266,7 @@ wp_reset_query();
 									<?php
 										$an_a = 'Take a';
 										$title = get_the_title($test_cta[$tindex]);
-										if($title[$tindex] == 'A'){
+										if( is_string( $title ) && $title !== '' && strtoupper( $title[0] ) === 'A' ){
 											$an_a .= 'n ';
 										}
 										$test_espanol = get_field('espanol',$test_cta[$tindex]);

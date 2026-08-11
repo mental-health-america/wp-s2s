@@ -551,27 +551,32 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 		while($loop->have_posts()) : $loop->the_post();
 
 			$thought_id = get_the_ID();
-			$thoughts = get_field('responses', $thought_id);	
+			$thoughts = get_field('responses', $thought_id);
+			if ( ! is_array( $thoughts ) ) {
+				continue;
+			}
 
 			// Skip user seeded thoughts (only show the original), and skip thoughts that have been hidden
 			if(
-				$index === 0 && $thoughts[0]['user_pre_seeded_thought'] || 
-				$index === 0 && $thoughts[0]['admin_pre_seeded_thought'] || 
+				$index === 0 && ! empty( $thoughts[0]['user_pre_seeded_thought'] ) || 
+				$index === 0 && ! empty( $thoughts[0]['admin_pre_seeded_thought'] ) || 
 				isset($thoughts[$index]) && isset($thoughts[$index]['hide']) && $thoughts[$index]['hide'] == 1 || 
 				!isset($thoughts[$index]) || 
-				$index > 0 && isset($thoughts[1]) && $thoughts[1]['path'] && $thoughts[1]['path'] != $path
+				$index > 0 && isset($thoughts[1]) && ! empty( $thoughts[1]['path'] ) && $thoughts[1]['path'] != $path
 			){
 				continue;
 			}
 
 			// Get the Thought Row text
-			$thought_text = $thoughts[$index]['response'];
+			$thought_text = isset( $thoughts[$index]['response'] ) ? $thoughts[$index]['response'] : '';
 					
 			// Admin seeded thoughts override
-			if($index === 0 && $thoughts[0]['admin_pre_seeded_thought']){	
+			if($index === 0 && ! empty( $thoughts[0]['admin_pre_seeded_thought'] )){	
 				$admin_thought_text = get_field('pre_generated_responses', $activity_id);
 				$admin_thought_row = intval($thoughts[0]['admin_pre_seeded_thought']);
-				$thought_text = $admin_thought_text[$admin_thought_row]['response']; 				
+				if ( is_array( $admin_thought_text ) && isset( $admin_thought_text[$admin_thought_row]['response'] ) ) {
+					$thought_text = $admin_thought_text[$admin_thought_row]['response'];
+				}
 			}
 
 			// Skip empty thoughts

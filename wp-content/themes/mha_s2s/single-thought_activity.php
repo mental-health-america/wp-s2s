@@ -52,13 +52,14 @@ get_header();
 		$last_admin_seed = '';
 		$last_user_seed = '';
 		if($unfinished_thought){
-			if(get_field('responses', $unfinished_thought)){
-				$previous_responses = get_field('responses', $unfinished_thought);
+			$responses_field = get_field('responses', $unfinished_thought);
+			if(is_array($responses_field) && $responses_field){
+				$previous_responses = $responses_field;
 				$last_response = array_key_last($previous_responses);
-				$last_path = $previous_responses[$last_response]['path'];
-				$last_question = $previous_responses[$last_response]['question'];
-				$last_admin_seed = $previous_responses[0]['admin_pre_seeded_thought'];
-				$last_user_seed = $previous_responses[0]['user_pre_seeded_thought'];
+				$last_path = isset($previous_responses[$last_response]['path']) ? $previous_responses[$last_response]['path'] : '';
+				$last_question = isset($previous_responses[$last_response]['question']) ? $previous_responses[$last_response]['question'] : '';
+				$last_admin_seed = isset($previous_responses[0]['admin_pre_seeded_thought']) ? $previous_responses[0]['admin_pre_seeded_thought'] : '';
+				$last_user_seed = isset($previous_responses[0]['user_pre_seeded_thought']) ? $previous_responses[0]['user_pre_seeded_thought'] : '';
 
 				if(isset($path_questions[$last_path]['questions'][$last_question + 1]['reference'])){
 					$return_ref_1 = $path_questions[$last_path]['questions'][$last_question + 1]['reference'];
@@ -147,11 +148,15 @@ get_header();
 						} else if(is_numeric($last_admin_seed)){
 							// Admin seeded thought
 							$initial_thought = get_field('pre_generated_responses', $activity_id);
-							echo $initial_thought[$previous_responses[0]['admin_pre_seeded_thought']]['response'];
+							if ( is_array( $initial_thought ) && isset( $previous_responses[0]['admin_pre_seeded_thought'], $initial_thought[ $previous_responses[0]['admin_pre_seeded_thought'] ]['response'] ) ) {
+								echo $initial_thought[$previous_responses[0]['admin_pre_seeded_thought']]['response'];
+							}
 						} else if(is_numeric($last_user_seed)){
 							// User seeded thought
 							$initial_thought = get_field('responses', $last_user_seed);
-							echo $initial_thought[0]['response'];
+							if ( is_array( $initial_thought ) && isset( $initial_thought[0]['response'] ) ) {
+								echo $initial_thought[0]['response'];
+							}
 						}
 					?></textarea>
 					<div class="validation"></div>
@@ -235,7 +240,8 @@ get_header();
 					echo '<ol id="form-paths">';
 					while( have_rows('paths') ) : the_row();	
 						$path = get_row_index(); // Path being followed
-						$max = count(get_sub_field('questions')); // Max questions for this path
+						$questions_field = get_sub_field('questions');
+						$max = is_array( $questions_field ) ? count( $questions_field ) : 0; // Max questions for this path
 						
 						echo '<li>';
 
@@ -362,14 +368,17 @@ get_header();
 		<h3 class="wow fadeIn blue">What Others Are Saying</h3>
 		<ol id="thoughts-submitted">
 			<?php 
-				$return = null;
-				if($previous_responses){
-					$return = 1;
+				// Skip expensive initial render when the block is hidden (path selection continue state).
+				if ( $display_other_responses !== 'none' ) {
+					$return = null;
+					if($previous_responses){
+						$return = 1;
+					}
+					if($previous_responses && $last_response > 0){
+						$last_response = $last_response + 1;
+					}
+					echo getThoughtsSubmitted( $activity_id, $last_response, $last_path, $last_admin_seed, $last_user_seed, $return );
 				}
-				if($previous_responses && $last_response > 0){
-					$last_response = $last_response + 1;
-				}
-				echo getThoughtsSubmitted( $activity_id, $last_response, $last_path, $last_admin_seed, $last_user_seed, $return ); 
 			?>
 		</ol>
 	</div>
