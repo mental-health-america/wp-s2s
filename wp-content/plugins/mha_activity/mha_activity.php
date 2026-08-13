@@ -958,10 +958,17 @@ function hideThought(){
 	// General variables
 	global $wpdb;
     $result = array();
+
+	if ( empty( $_POST['data'] ) ) {
+		$result['error'] = 'Missing request data.';
+		echo json_encode( $result );
+		exit();
+	}
 	
 	// Make serialized data readable
-	parse_str($_POST['data'], $data);  
-    $isAuthentic = wp_verify_nonce( $data['nonce'], 'hideThought');
+	parse_str( (string) $_POST['data'], $data );
+	$nonce = isset( $data['nonce'] ) ? $data['nonce'] : '';
+    $isAuthentic = wp_verify_nonce( $nonce, 'hideThought');
 	
 	// Submission is good, proceed
 	if($isAuthentic && is_user_logged_in()){
@@ -969,18 +976,30 @@ function hideThought(){
 		// Organize our data
 		$result['response'] = $data;
 		$uid = get_current_user_id();
-		$pid = $data['pid'];	
+		$pid = isset( $data['pid'] ) ? absint( $data['pid'] ) : 0;
+
+		if ( ! $uid || ! $pid ) {
+			$result['error'] = 'Missing thought id.';
+			echo json_encode( $result );
+			exit();
+		}
 
 		// Vars
 		$table = 'thoughts_hidden';	
 
-		// Check if liked previously
-		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");			
+		// Check if hidden previously
+		$db_hidden = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE uid = %d AND pid = %d",
+				$uid,
+				$pid
+			)
+		);
 		
 		
-		if($db_hidden && $db_hidden[0]->unliked == 0){
+		if($db_hidden && isset( $db_hidden[0]->unhidden ) && (int) $db_hidden[0]->unhidden === 0){
 
-			// Result found, let's unlike it!
+			// Result found, let's unhide it!
 			$db_update = $wpdb->update(
 				$table, 
 				array('unhidden' => 1), 
@@ -988,14 +1007,23 @@ function hideThought(){
 			);			
 			$result['unhidden'] = 0;
 
-		} else if($db_hidden && $db_hidden[0]->unliked == 1){
+		} else if($db_hidden && isset( $db_hidden[0]->unhidden ) && (int) $db_hidden[0]->unhidden === 1){
 
-			// Thought was previously hidden, so lets hide it again!
+			// Thought was previously unhidden, so lets hide it again!
 			$db_update = $wpdb->update(
 				$table, 
 				array('unhidden' => 0), 
 				array('id' => $db_hidden[0]->id)
 			);			
+			$result['unhidden'] = 2;
+
+		} else if ( $db_hidden ) {
+
+			$db_update = $wpdb->update(
+				$table,
+				array( 'unhidden' => 0 ),
+				array( 'id' => $db_hidden[0]->id )
+			);
 			$result['unhidden'] = 2;
 
 		} else {
@@ -1014,7 +1042,9 @@ function hideThought(){
 		$result['updated'] = update_field('abandoned', date('Y-m-d H:i:s'), $pid);
 		$result['user_hidden'] = update_field('hidden', date('Y-m-d H:i:s'), $pid);
 
-    }
+    } else {
+		$result['error'] = 'Unauthorized.';
+	}
 
     echo json_encode($result);
     exit();
@@ -1032,10 +1062,17 @@ function hideScreen(){
 	// General variables
 	global $wpdb;
     $result = array();
+
+	if ( empty( $_POST['data'] ) ) {
+		$result['error'] = 'Missing request data.';
+		echo json_encode( $result );
+		exit();
+	}
 	
 	// Make serialized data readable
-	parse_str($_POST['data'], $data);  
-    $isAuthentic = wp_verify_nonce( $data['nonce'], 'hideScreen');
+	parse_str( (string) $_POST['data'], $data );
+	$nonce = isset( $data['nonce'] ) ? $data['nonce'] : '';
+    $isAuthentic = wp_verify_nonce( $nonce, 'hideScreen');
 	
 	// Submission is good, proceed
 	if($isAuthentic && is_user_logged_in()){
@@ -1043,17 +1080,29 @@ function hideScreen(){
 		// Organize our data
 		$result['response'] = $data;
 		$uid = get_current_user_id();
-		$pid = $data['pid'];	
+		$pid = isset( $data['pid'] ) ? absint( $data['pid'] ) : 0;
+
+		if ( ! $uid || ! $pid ) {
+			$result['error'] = 'Missing screen id.';
+			echo json_encode( $result );
+			exit();
+		}
 
 		// Vars
 		$table = 'screens_hidden';	
 
-		// Check if liked previously
-		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");			
+		// Check if hidden previously
+		$db_hidden = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE uid = %d AND pid = %d",
+				$uid,
+				$pid
+			)
+		);
 		
-		if($db_hidden && $db_hidden[0]->unliked == 0){
+		if($db_hidden && isset( $db_hidden[0]->unhidden ) && (int) $db_hidden[0]->unhidden === 0){
 
-			// Result found, let's unlike it!
+			// Result found, let's unhide it!
 			$db_update = $wpdb->update(
 				$table, 
 				array('unhidden' => 1), 
@@ -1061,14 +1110,24 @@ function hideScreen(){
 			);			
 			$result['unhidden'] = 0;
 
-		} else if($db_hidden && $db_hidden[0]->unliked == 1){
+		} else if($db_hidden && isset( $db_hidden[0]->unhidden ) && (int) $db_hidden[0]->unhidden === 1){
 
-			// Thought was previously hidden, so lets hide it again!
+			// Screen was previously unhidden, so lets hide it again!
 			$db_update = $wpdb->update(
 				$table, 
 				array('unhidden' => 0), 
 				array('id' => $db_hidden[0]->id)
 			);			
+			$result['unhidden'] = 2;
+
+		} else if ( $db_hidden ) {
+
+			// Legacy/odd row without a usable unhidden flag — force hide.
+			$db_update = $wpdb->update(
+				$table,
+				array( 'unhidden' => 0 ),
+				array( 'id' => $db_hidden[0]->id )
+			);
 			$result['unhidden'] = 2;
 
 		} else {
@@ -1083,7 +1142,9 @@ function hideScreen(){
 
 		}
 
-    }
+    } else {
+		$result['error'] = 'Unauthorized.';
+	}
 
     echo json_encode($result);
     exit();

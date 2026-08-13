@@ -23,6 +23,289 @@ function truncate_answer($text, $limit, $id) {
 }
 
 /**
+ * Plain numeric activity id meta used for indexed crowdsource queries.
+ * ACF stores activity_id as a serialized post-object value which cannot use indexes.
+ */
+function mha_diy_set_activity_id_num( $post_id, $activity_id ) {
+	$post_id     = absint( $post_id );
+	$activity_id = absint( $activity_id );
+	if ( ! $post_id || ! $activity_id ) {
+		return false;
+	}
+	return (bool) update_post_meta( $post_id, 'activity_id_num', $activity_id );
+}
+
+/**
+ * Resolve the related activity ID from a diy_responses post.
+ */
+function mha_diy_resolve_activity_id( $post_id ) {
+	$post_id = absint( $post_id );
+	if ( ! $post_id ) {
+		return 0;
+	}
+
+	$existing = absint( get_post_meta( $post_id, 'activity_id_num', true ) );
+	if ( $existing ) {
+		return $existing;
+	}
+
+	$activity = get_field( 'activity_id', $post_id );
+	if ( is_object( $activity ) && ! empty( $activity->ID ) ) {
+		return absint( $activity->ID );
+	}
+	if ( is_array( $activity ) ) {
+		$first = reset( $activity );
+		if ( is_object( $first ) && ! empty( $first->ID ) ) {
+			return absint( $first->ID );
+		}
+		if ( is_numeric( $first ) ) {
+			return absint( $first );
+		}
+	}
+	if ( is_numeric( $activity ) ) {
+		return absint( $activity );
+	}
+
+	$raw = get_post_meta( $post_id, 'activity_id', true );
+	return mha_diy_extract_activity_id_from_raw_meta( $raw );
+}
+
+/**
+ * Backfill activity_id_num for diy_responses belonging to one activity.
+ * Safe to call on cache-miss rebuilds; only touches rows missing the numeric meta.
+ *
+ * @return int Number of posts updated.
+ */
+function mha_diy_backfill_activity_id_num_for_activity( $activity_id, $limit = 500 ) {
+	global $wpdb;
+
+	$activity_id = absint( $activity_id );
+	$limit       = max( 1, min( 2000, absint( $limit ) ) );
+	if ( ! $activity_id ) {
+		return 0;
+	}
+
+	$like = '%"' . $wpdb->esc_like( (string) $activity_id ) . '"%';
+	$sql  = $wpdb->prepare(
+		"SELECT pm.post_id
+		 FROM {$wpdb->postmeta} pm
+		 LEFT JOIN {$wpdb->postmeta} pn
+		   ON pn.post_id = pm.post_id AND pn.meta_key = 'activity_id_num'
+		 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id AND p.post_type = 'diy_responses'
+		 WHERE pm.meta_key = 'activity_id'
+		   AND pm.meta_value LIKE %s
+		   AND (pn.meta_value IS NULL OR pn.meta_value = '' OR pn.meta_value = '0')
+		 LIMIT %d",
+		$like,
+		$limit
+	);
+
+	$post_ids = $wpdb->get_col( $sql );
+	$updated  = 0;
+	foreach ( (array) $post_ids as $post_id ) {
+		if ( mha_diy_set_activity_id_num( $post_id, $activity_id ) ) {
+			$updated++;
+		}
+	}
+
+	return $updated;
+}
+
+/**
+ * Extract a numeric activity id from raw ACF activity_id meta.
+ *
+ * Handles plain IDs and common serialized post-object shapes:
+ * - 108701
+ * - a:1:{i:0;i:108701;}
+ * - a:1:{i:0;s:6:"108701";}
+ */
+function mha_diy_extract_activity_id_from_raw_meta( $raw ) {
+	if ( is_numeric( $raw ) ) {
+		return absint( $raw );
+	}
+	if ( ! is_string( $raw ) || $raw === '' ) {
+		return 0;
+	}
+
+	$unserialized = maybe_unserialize( $raw );
+	if ( is_numeric( $unserialized ) ) {
+		return absint( $unserialized );
+	}
+	if ( is_array( $unserialized ) ) {
+		$first = reset( $unserialized );
+		if ( is_object( $first ) && ! empty( $first->ID ) ) {
+			return absint( $first->ID );
+		}
+		if ( is_numeric( $first ) ) {
+			return absint( $first );
+		}
+	}
+	if ( is_object( $unserialized ) && ! empty( $unserialized->ID ) ) {
+		return absint( $unserialized->ID );
+	}
+
+	if ( preg_match( '/i:0;i:(\d+);/', $raw, $m ) ) {
+		return absint( $m[1] );
+	}
+	if ( preg_match( '/i:0;s:\d+:"(\d+)";/', $raw, $m ) ) {
+		return absint( $m[1] );
+	}
+	if ( preg_match( '/(\d{2,})/', $raw, $m ) ) {
+		return absint( $m[1] );
+	}
+
+	return 0;
+}
+
+/**
+ * Count diy_responses that have activity_id but still lack activity_id_num.
+ */
+function mha_diy_count_missing_activity_id_num() {
+	global $wpdb;
+
+	return (int) $wpdb->get_var(
+		"SELECT COUNT(p.ID)
+		 FROM {$wpdb->posts} p
+		 INNER JOIN {$wpdb->postmeta} pm
+		   ON pm.post_id = p.ID AND pm.meta_key = 'activity_id'
+		 LEFT JOIN {$wpdb->postmeta} pn
+		   ON pn.post_id = p.ID AND pn.meta_key = 'activity_id_num'
+		 WHERE p.post_type = 'diy_responses'
+		   AND (pn.meta_value IS NULL OR pn.meta_value = '' OR pn.meta_value = '0')"
+	);
+}
+
+/**
+ * Fast batch backfill of activity_id_num.
+ * Reads raw meta (no ACF bootstrap) and bulk-inserts numeric values.
+ *
+ * @param int $limit    Max rows to scan this batch.
+ * @param int $after_id Continue after this post ID (cursor).
+ * @return array{updated:int,scanned:int,skipped:int,done:bool,remaining:int,next_after_id:int}
+ */
+function mha_diy_backfill_activity_id_num_batch( $limit = 2000, $after_id = 0 ) {
+	global $wpdb;
+
+	$limit    = max( 1, min( 10000, absint( $limit ) ) );
+	$after_id = absint( $after_id );
+	$rows     = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT p.ID AS post_id, pm.meta_value AS activity_raw
+			 FROM {$wpdb->posts} p
+			 INNER JOIN {$wpdb->postmeta} pm
+			   ON pm.post_id = p.ID AND pm.meta_key = 'activity_id'
+			 LEFT JOIN {$wpdb->postmeta} pn
+			   ON pn.post_id = p.ID AND pn.meta_key = 'activity_id_num'
+			 WHERE p.post_type = 'diy_responses'
+			   AND p.ID > %d
+			   AND (pn.meta_value IS NULL OR pn.meta_value = '' OR pn.meta_value = '0')
+			 ORDER BY p.ID ASC
+			 LIMIT %d",
+			$after_id,
+			$limit
+		)
+	);
+
+	$values       = array();
+	$updated      = 0;
+	$skipped      = 0;
+	$next_after_id = $after_id;
+
+	foreach ( (array) $rows as $row ) {
+		$next_after_id = (int) $row->post_id;
+		$activity_id   = mha_diy_extract_activity_id_from_raw_meta( $row->activity_raw );
+		if ( ! $activity_id ) {
+			$skipped++;
+			continue;
+		}
+		$values[] = $wpdb->prepare( '(%d, %s, %s)', (int) $row->post_id, 'activity_id_num', (string) $activity_id );
+		$updated++;
+	}
+
+	if ( $values ) {
+		// Chunk inserts to keep packet size reasonable.
+		foreach ( array_chunk( $values, 500 ) as $chunk ) {
+			$wpdb->query(
+				"INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value)
+				 VALUES " . implode( ',', $chunk )
+			);
+		}
+	}
+
+	$scanned   = count( (array) $rows );
+	$remaining = mha_diy_count_missing_activity_id_num();
+
+	return array(
+		'updated'        => $updated,
+		'scanned'        => $scanned,
+		'skipped'        => $skipped,
+		'done'           => $scanned === 0 || $remaining === 0,
+		'remaining'      => $remaining,
+		'next_after_id'  => $next_after_id,
+	);
+}
+
+/**
+ * Run fast backfill until complete or max batches reached.
+ *
+ * @return array{batches:int,updated:int,skipped:int,remaining:int,done:bool}
+ */
+function mha_diy_backfill_activity_id_num_all( $batch_size = 5000, $max_batches = 100 ) {
+	$batch_size  = max( 100, min( 10000, absint( $batch_size ) ) );
+	$max_batches = max( 1, min( 500, absint( $max_batches ) ) );
+
+	$batches  = 0;
+	$updated  = 0;
+	$skipped  = 0;
+	$after_id = 0;
+	$last     = array( 'remaining' => mha_diy_count_missing_activity_id_num(), 'done' => false );
+
+	while ( $batches < $max_batches ) {
+		$last = mha_diy_backfill_activity_id_num_batch( $batch_size, $after_id );
+		$batches++;
+		$updated += (int) $last['updated'];
+		$skipped += (int) $last['skipped'];
+		$after_id = (int) $last['next_after_id'];
+
+		if ( ! empty( $last['done'] ) || (int) $last['scanned'] === 0 ) {
+			break;
+		}
+	}
+
+	return array(
+		'batches'   => $batches,
+		'updated'   => $updated,
+		'skipped'   => $skipped,
+		'remaining' => (int) $last['remaining'],
+		'done'      => ! empty( $last['done'] ) && (int) $last['remaining'] === 0,
+	);
+}
+
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	WP_CLI::add_command(
+		'mha diy-backfill-activity-id-num',
+		function ( $args, $assoc_args ) {
+			$batch_size  = isset( $assoc_args['batch'] ) ? absint( $assoc_args['batch'] ) : 5000;
+			$max_batches = isset( $assoc_args['max-batches'] ) ? absint( $assoc_args['max-batches'] ) : 100;
+			$remaining   = mha_diy_count_missing_activity_id_num();
+			WP_CLI::log( "Starting backfill. Remaining: {$remaining}" );
+
+			$result = mha_diy_backfill_activity_id_num_all( $batch_size, $max_batches );
+			WP_CLI::success(
+				sprintf(
+					'Done=%s batches=%d updated=%d skipped=%d remaining=%d',
+					$result['done'] ? 'yes' : 'no',
+					$result['batches'],
+					$result['updated'],
+					$result['skipped'],
+					$result['remaining']
+				)
+			);
+		}
+	);
+}
+
+/**
  * Submitting and Answer
  */
 add_action("wp_ajax_nopriv_mhaDiySubmit", "mhaDiySubmit");
@@ -138,6 +421,7 @@ function mhaDiySubmit(){
         if($result['post_id']){
             
             $result['updated_activity_id'] = update_field('activity_id', array($args['activity_id']), $result['post_id']); // Post object needs an array to submit?
+            mha_diy_set_activity_id_num( $result['post_id'], $args['activity_id'] );
             $result['updated_ipiden'] = update_field('ipiden', $ipiden, $result['post_id']);
             $result['updated_started'] = !get_field('started', $result['post_id']) ? update_field('started', $timestamp, $result['post_id']) : get_field('started', $result['post_id']);
             $result['updated_ref_code'] = update_field('ref_code', sanitize_text_field($args['ref_code']), $result['post_id']);         
@@ -572,81 +856,70 @@ function getDiyCrowdsource(){
             : date('Y-m-d', strtotime('30 days ago'));
             
         $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $args['activity_id']);
-        
-        // Get flagged posts to exclude (one query for flags, one for admin notes)
+        $activity_id  = absint( $args['activity_id'] );
+        $current_pid  = absint( $args['current'] );
+
         global $wpdb;
-        $flagged_posts = [];
-        $flagged_query = $wpdb->get_results($wpdb->prepare("
-            SELECT pid 
-            FROM thoughts_flags 
-            WHERE ref_pid = %d
-            GROUP BY pid
-            HAVING COUNT(pid) >= 1
-        ", $args['activity_id']));
-        
-        if ($flagged_query) {
-            $flagged_pids = array_map( 'intval', wp_list_pluck( $flagged_query, 'pid' ) );
-            $admin_notes_by_pid = array();
-            if ( $flagged_pids ) {
-                $placeholders = implode( ',', array_fill( 0, count( $flagged_pids ), '%d' ) );
-                $notes_sql = $wpdb->prepare(
-                    "SELECT post_id, meta_value FROM {$wpdb->postmeta}
-                     WHERE meta_key = 'admin_notes' AND post_id IN ($placeholders)",
-                    ...$flagged_pids
-                );
-                foreach ( (array) $wpdb->get_results( $notes_sql ) as $note_row ) {
-                    $admin_notes_by_pid[ (int) $note_row->post_id ] = $note_row->meta_value;
-                }
-            }
-            foreach ( $flagged_pids as $flagged_pid ) {
-                $admin_note = $admin_notes_by_pid[ $flagged_pid ] ?? '';
-                // Only exclude if no admin note (admin reviewed and approved)
-                if ( $admin_note === '' || $admin_note === null ) {
-                    $flagged_posts[] = $flagged_pid;
-                }
-            }
+
+        // Ensure legacy serialized activity_id rows have searchable numeric meta.
+        if ( $activity_id ) {
+            mha_diy_backfill_activity_id_num_for_activity( $activity_id, 500 );
         }
-        
-        // Build exclusion list for flagged posts and current post
-        $exclude_posts = $flagged_posts;
-        if ($args['current']) {
-            $exclude_posts[] = $args['current'];
-        }
-        $exclude_clause = '';
-        if (!empty($exclude_posts)) {
-            $exclude_ids = implode(',', array_map('intval', $exclude_posts));
-            $exclude_clause = "AND p.ID NOT IN ($exclude_ids)";
-        }
-        
-        // Single efficient query to get all posts with likes for this activity
-        $posts_query = $wpdb->prepare("
-            SELECT 
+
+        // Indexed activity filter + likes scoped to this activity only (no full thoughts_likes scan).
+        // Flagged responses without admin notes are excluded via NOT EXISTS (no giant NOT IN list).
+        $posts_query = $wpdb->prepare(
+            "SELECT
                 p.ID as pid,
                 p.post_date,
                 p.post_title,
                 COALESCE(l.like_count, 0) as like_count,
                 COALESCE(l.recent_like_count, 0) as recent_like_count
             FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->postmeta} pm_activity
+                ON p.ID = pm_activity.post_id
+                AND pm_activity.meta_key = 'activity_id_num'
+                AND pm_activity.meta_value = %s
             LEFT JOIN (
-                SELECT 
-                    pid,
+                SELECT
+                    tl.pid,
                     COUNT(*) as like_count,
-                    SUM(CASE WHEN date >= %s THEN 1 ELSE 0 END) as recent_like_count
-                FROM thoughts_likes 
-                WHERE unliked = 0
-                GROUP BY pid
+                    SUM(CASE WHEN tl.date >= %s THEN 1 ELSE 0 END) as recent_like_count
+                FROM thoughts_likes tl
+                INNER JOIN {$wpdb->postmeta} pm_like_activity
+                    ON pm_like_activity.post_id = tl.pid
+                    AND pm_like_activity.meta_key = 'activity_id_num'
+                    AND pm_like_activity.meta_value = %s
+                WHERE tl.unliked = 0
+                GROUP BY tl.pid
             ) l ON p.ID = l.pid
-            LEFT JOIN {$wpdb->postmeta} pm_activity ON p.ID = pm_activity.post_id AND pm_activity.meta_key = 'activity_id'
-            LEFT JOIN {$wpdb->postmeta} pm_hidden ON p.ID = pm_hidden.post_id AND pm_hidden.meta_key = 'crowdsource_hidden'
+            LEFT JOIN {$wpdb->postmeta} pm_hidden
+                ON p.ID = pm_hidden.post_id
+                AND pm_hidden.meta_key = 'crowdsource_hidden'
             WHERE p.post_type = 'diy_responses'
             AND p.post_status = 'publish'
-            AND pm_activity.meta_value LIKE %s
             AND (pm_hidden.meta_value != '1' OR pm_hidden.meta_value IS NULL)
-            $exclude_clause
+            AND NOT EXISTS (
+                SELECT 1
+                FROM thoughts_flags tf
+                LEFT JOIN {$wpdb->postmeta} an
+                    ON an.post_id = tf.pid
+                    AND an.meta_key = 'admin_notes'
+                WHERE tf.ref_pid = %d
+                AND tf.pid = p.ID
+                AND (an.meta_id IS NULL OR an.meta_value IS NULL OR an.meta_value = '')
+            )
+            AND ( %d = 0 OR p.ID != %d )
             ORDER BY recent_like_count DESC, p.post_date DESC
-            LIMIT 200
-        ", $date_old, '%"' . $args['activity_id'] . '"%');
-        
+            LIMIT 200",
+            (string) $activity_id,
+            $date_old,
+            (string) $activity_id,
+            $activity_id,
+            $current_pid,
+            $current_pid
+        );
+
         $all_posts = $wpdb->get_results($posts_query);
         
         // Process posts and calculate scores
@@ -698,7 +971,7 @@ function getDiyCrowdsource(){
             'responses' => $responses,
             'total_pages' => $result['total_pages'],
             'cached_at' => current_time('mysql'),
-            'cache_version' => '1.1'
+            'cache_version' => '1.2'
         ];
         
         $cache_set_result = set_transient($cache_key, $cache_data, DAY_IN_SECONDS);
@@ -1068,11 +1341,12 @@ function clear_all_diy_crowdsource_caches() {
  */
 add_action('save_post_diy_responses', 'invalidate_diy_crowdsource_cache_on_save', 10, 2);
 function invalidate_diy_crowdsource_cache_on_save($post_id, $post) {
-    if ($post->post_status === 'publish') {
-        $activity_id = get_field('activity_id', $post_id);
-        if ($activity_id && is_object($activity_id)) {
-            invalidate_diy_crowdsource_cache($activity_id->ID);
-        }
+    $activity_id = mha_diy_resolve_activity_id( $post_id );
+    if ( $activity_id ) {
+        mha_diy_set_activity_id_num( $post_id, $activity_id );
+    }
+    if ($post->post_status === 'publish' && $activity_id) {
+        invalidate_diy_crowdsource_cache($activity_id);
     }
 }
 
@@ -1122,13 +1396,23 @@ function warm_all_diy_crowdsource_caches($pages_to_warm = 3) {
     $activity_ids = $wpdb->get_col("
         SELECT DISTINCT pm.meta_value 
         FROM {$wpdb->postmeta} pm 
-        WHERE pm.meta_key = 'activity_id' 
-        AND pm.meta_value != ''
+        WHERE pm.meta_key = 'activity_id_num' 
+        AND pm.meta_value REGEXP '^[0-9]+$'
     ");
+
+    if ( ! $activity_ids ) {
+        // Fallback while numeric meta is still being backfilled.
+        $activity_ids = $wpdb->get_col("
+            SELECT DISTINCT pm.meta_value 
+            FROM {$wpdb->postmeta} pm 
+            WHERE pm.meta_key = 'activity_id' 
+            AND pm.meta_value != ''
+        ");
+    }
     
     foreach ($activity_ids as $activity_id) {
-        $clean_activity_id = str_replace(['"', "'"], '', $activity_id);
-        if (is_numeric($clean_activity_id)) {
+        $clean_activity_id = absint( preg_replace( '/\D+/', '', (string) $activity_id ) );
+        if ( $clean_activity_id ) {
             warm_diy_crowdsource_cache($clean_activity_id, $pages_to_warm);
         }
     }
@@ -1210,6 +1494,24 @@ function diy_cache_debug_page() {
                 $clear_results = clear_all_diy_crowdsource_caches();
                 echo '<div class="notice notice-success"><p>All DIY caches cleared! Cleared ' . $clear_results['cleared_transients'] . ' transients out of ' . $clear_results['total_found'] . ' found.</p></div>';
                 break;
+
+            case 'backfill_activity_id_num':
+                $batch = mha_diy_backfill_activity_id_num_batch( 5000 );
+                $notice = $batch['done']
+                    ? 'Backfill complete. Updated ' . (int) $batch['updated'] . ' in this batch; none remaining.'
+                    : 'Backfill batch finished. Updated ' . (int) $batch['updated'] . ' / scanned ' . (int) $batch['scanned'] . ' (skipped ' . (int) $batch['skipped'] . '). Remaining without activity_id_num: ' . (int) $batch['remaining'] . '.';
+                echo '<div class="notice notice-success"><p>' . esc_html( $notice ) . '</p></div>';
+                break;
+
+            case 'backfill_activity_id_num_all':
+                // Cap runtime for web request; re-click or use WP-CLI for full run.
+                @set_time_limit( 120 );
+                $all = mha_diy_backfill_activity_id_num_all( 5000, 10 );
+                $notice = $all['done']
+                    ? 'Backfill complete across ' . (int) $all['batches'] . ' batches. Updated ' . (int) $all['updated'] . '.'
+                    : 'Processed ' . (int) $all['batches'] . ' batches. Updated ' . (int) $all['updated'] . ', skipped ' . (int) $all['skipped'] . '. Remaining: ' . (int) $all['remaining'] . '. Click again or use WP-CLI.';
+                echo '<div class="notice notice-success"><p>' . esc_html( $notice ) . '</p></div>';
+                break;
                 
             case 'run_sql_queries':
                 $queries = get_diy_cache_sql_queries();
@@ -1247,6 +1549,23 @@ function diy_cache_debug_page() {
             <form method="post" style="display: inline;">
                 <input type="hidden" name="action" value="clear_cache">
                 <p><input type="submit" class="button button-secondary" value="Clear All DIY Caches" onclick="return confirm('Are you sure?')"></p>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Activity ID Numeric Meta Backfill</h2>
+            <?php $missing_activity_id_num = mha_diy_count_missing_activity_id_num(); ?>
+            <p>Crowdsource queries now use <code>activity_id_num</code> (plain integer meta) instead of a <code>LIKE</code> on serialized ACF <code>activity_id</code>.</p>
+            <p><strong>Remaining without <code>activity_id_num</code>: <?php echo number_format_i18n( $missing_activity_id_num ); ?></strong></p>
+            <p>Preferred: run via WP-CLI so PHP timeouts are not an issue:</p>
+            <pre>wp mha diy-backfill-activity-id-num --batch=5000 --max-batches=50</pre>
+            <form method="post" style="display:inline-block; margin-right: 8px;">
+                <input type="hidden" name="action" value="backfill_activity_id_num">
+                <p><input type="submit" class="button" value="Backfill 5,000"></p>
+            </form>
+            <form method="post" style="display:inline-block;">
+                <input type="hidden" name="action" value="backfill_activity_id_num_all">
+                <p><input type="submit" class="button button-primary" value="Run ~50,000 (10 batches)" onclick="return confirm('This may take up to ~2 minutes. Continue?');"></p>
             </form>
         </div>
         
