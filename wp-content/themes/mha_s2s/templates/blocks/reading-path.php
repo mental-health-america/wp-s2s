@@ -18,7 +18,9 @@ if ( get_post_status( $path_id ) ):
         }
 
         if(isset($args['article_type']) && isset($args['resources'])){
-            if(count(array_intersect($args['article_type'], $args['resources'])) > 0){ 
+            $path_article_type = mha_as_array( $args['article_type'] );
+            $path_resources = mha_as_array( $args['resources'] );
+            if(count(array_intersect($path_article_type, $path_resources)) > 0){ 
                 $path_color = 'red bubble-border';
                 $button_color = 'red';
             }
@@ -47,7 +49,7 @@ if ( get_post_status( $path_id ) ):
                 $spacer_counter_wide = 0;
                 $spacer_counter_narrow = 0;
                 $path = get_field('path', $path_id);
-                $max = $path ? count($path) : 0;
+                $max = is_array( $path ) ? count( $path ) : 0;
                 if( have_rows('path', $path_id) ):
                 while( have_rows('path', $path_id) ) : the_row();
                     $article = get_sub_field('article');

@@ -1,13 +1,12 @@
 <?php 
 /* Template Name: Screen Results */
 get_header(); 
-global $wpdb;
 
 // The user's obfuscated custom ID
 $user_screen_id = str_replace('_ref', '', get_query_var('sid')); // Remove _ref in case of chained forms
 
 // Get the gravity forms entry ID for easier lookups
-$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
+$entry_id = mha_get_gf_entry_id_by_sid( $user_screen_id );
 
 if ( empty( $user_screen_id ) || ! $entry_id ):
 
@@ -574,19 +573,21 @@ else:
         echo '<div class="wrap narrow">';
         // Display the featured links
         $featured_next_steps_data = json_decode($user_screen_result['featured_next_steps_data']);
-        // Hide "Next Steps" heading if partner CTAs already showed a heading above, or layout contains actions_hide_nsh
-        if(!empty($partner_ctas) || in_array('actions_hide_nsh', $layout)){
-            $featured_next_steps_data->show_title = false;
-        }
-        echo display_featured_next_steps( $featured_next_steps_data );
-        // Update excluded links
-        $used_links = $featured_next_steps_data->used_links;
-        if($used_links && count($used_links)){
-            foreach($used_links as $ul){
-                $excluded_ids[] = $ul;
+        if ( is_object( $featured_next_steps_data ) ) {
+            // Hide "Next Steps" heading if partner CTAs already showed a heading above, or layout contains actions_hide_nsh
+            if(!empty($partner_ctas) || in_array('actions_hide_nsh', $layout)){
+                $featured_next_steps_data->show_title = false;
             }
-            // Flag that we've already shown featured links
-            $displayed_featured_links = true;
+            echo display_featured_next_steps( $featured_next_steps_data );
+            // Update excluded links
+            $used_links = isset($featured_next_steps_data->used_links) ? $featured_next_steps_data->used_links : array();
+            if($used_links && count($used_links)){
+                foreach($used_links as $ul){
+                    $excluded_ids[] = $ul;
+                }
+                // Flag that we've already shown featured links
+                $displayed_featured_links = true;
+            }
         }
         echo '</div>';
     endif;           
@@ -749,13 +750,15 @@ else:
                                 if($related_article_args['style'] == 'featured'){
 
                                     $related_articles_decoded = json_decode($related_articles);  
-                                    if(!empty($partner_ctas)){
-                                        $related_articles_decoded->show_title = false;
-                                    } 
-                                    echo display_featured_next_steps( $related_articles_decoded );
-                                    $used_links = $related_articles_decoded->used_links;
-                                    foreach($used_links as $ul){
-                                        $excluded_ids[] = $ul;
+                                    if ( is_object( $related_articles_decoded ) ) {
+                                        if(!empty($partner_ctas)){
+                                            $related_articles_decoded->show_title = false;
+                                        } 
+                                        echo display_featured_next_steps( $related_articles_decoded );
+                                        $used_links = isset($related_articles_decoded->used_links) ? $related_articles_decoded->used_links : array();
+                                        foreach($used_links as $ul){
+                                            $excluded_ids[] = $ul;
+                                        }
                                     }
 
                                 } else {
@@ -763,8 +766,8 @@ else:
                                 <div class="bubble round-tl mb-5 mint">
                                 <div class="inner">
                                     <?php
-                                    echo $related_articles['html'];
-                                    $used_links = $related_articles_decode['excluded_ids'];
+                                    echo is_array($related_articles) && isset($related_articles['html']) ? $related_articles['html'] : '';
+                                    $used_links = is_array($related_articles) && isset($related_articles['excluded_ids']) ? $related_articles['excluded_ids'] : array();
                                     foreach($used_links as $ul){
                                         $excluded_ids[] = $ul;
                                     }

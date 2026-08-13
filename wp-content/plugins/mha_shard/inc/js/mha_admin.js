@@ -59,6 +59,7 @@ jQuery(function ($) {
         data: (dtParams) => {
           dtParams.minDate = $('#min').val();
           dtParams.maxDate = $('#max').val();
+          dtParams._ajax_nonce = window.mhaAdmin ? window.mhaAdmin.apiLogNonce : '';
         }
       },
       // data: displayData,

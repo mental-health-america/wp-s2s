@@ -1,11 +1,54 @@
 <?php
 
 
+/**
+ * Resolve a screening SID (token) to a Gravity Forms entry ID.
+ *
+ * Prepared, prefix-safe, and memoized per request so body_class / partner banner /
+ * the results template do not repeat the same lookup.
+ *
+ * @param string|null $sid Obfuscated screen ID (may include a `_ref` suffix).
+ * @return int|null Entry ID, or null when not found / empty.
+ */
+function mha_get_gf_entry_id_by_sid( $sid = null ) {
+	static $cache = array();
+
+	if ( empty( $sid ) ) {
+		return null;
+	}
+
+	$user_screen_id = str_replace( '_ref', '', (string) $sid );
+
+	if ( array_key_exists( $user_screen_id, $cache ) ) {
+		return $cache[ $user_screen_id ];
+	}
+
+	global $wpdb;
+	$entry_id = $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT entry_id FROM {$wpdb->prefix}gf_entry_meta WHERE meta_value = %s ORDER BY id DESC LIMIT 1",
+			$user_screen_id
+		)
+	);
+
+	$cache[ $user_screen_id ] = $entry_id ? (int) $entry_id : null;
+	return $cache[ $user_screen_id ];
+}
+
+
 function mha_get_user_screen_results( $user_screen_id = null, $related_articles = false ) {
+
+	// Per-request memoization. body_class / partner banner / the results template
+	// previously each re-ran the full scoring path for the same entry.
+	static $results_cache = array();
+	$cache_key = (string) $user_screen_id . '|' . ( $related_articles ? '1' : '0' );
+	if ( array_key_exists( $cache_key, $results_cache ) ) {
+		return $results_cache[ $cache_key ];
+	}
 
     // Return early if no valid user_screen_id provided
     if ( empty( $user_screen_id ) ) {
-        return array(
+        $empty = array(
             'user_screen_id' => null,
             'total_score' => 0,
             'your_answers' => '',
@@ -27,6 +70,8 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
             'featured_next_steps_data' => null,
             'referer' => null
         );
+		$results_cache[ $cache_key ] = $empty;
+		return $empty;
     }
 
     /**
@@ -436,6 +481,21 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
             }
 
 
+            // WYSIWYG fields below expand shortcodes as soon as ACF formats them, so
+            // [mha_conditional] needs the condition context in place before they are read.
+            if( function_exists('mha_set_condition_context') ){
+                mha_set_condition_context(
+                    array(
+                        'result_title'       => $user_screen_results['result_title'],
+                        'answered_demos'     => $user_screen_results['answered_demos'],
+                        'general_score_data' => $user_screen_results['general_score_data'],
+                        'user_screen_result' => $user_screen_results,
+                        'screen_id'          => $user_screen_results['screen_id'],
+                        'referer'            => $user_screen_results['referer'],
+                    )
+                );
+            }
+
             // Result content
             if( get_field('survey', $user_screen_results['screen_id']) && !get_field('show_survey_results', $user_screen_results['screen_id']) ){
                 if(isset($user_screen_results[0])){
@@ -575,6 +635,7 @@ function mha_get_user_screen_results( $user_screen_id = null, $related_articles 
     }
 
     // Return what we got
+	$results_cache[ $cache_key ] = $user_screen_results;
     return $user_screen_results;
 
 }

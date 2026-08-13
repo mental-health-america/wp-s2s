@@ -16,7 +16,8 @@
             if(res.next_page != ''){
 
                 // Continue Paging
-                var args_2 = 'page=' + res.next_page + '&form_id=' + res.form_id;
+                var args_2 = 'page=' + res.next_page + '&form_id=' + res.form_id
+                    + '&nonce=' + $('#mha-update-user-results input[name="nonce"]').val();
                 $.ajax({
                     type: "POST",
                     url: do_mhaUpdateScreenResults.ajaxurl,

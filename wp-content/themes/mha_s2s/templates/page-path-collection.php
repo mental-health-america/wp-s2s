@@ -18,6 +18,7 @@ $term = null;
 		<?php
 			// Popular Articles
 			$tag = get_field('condition');
+			$tax = '';
 			$term_con = get_term_by('term_id', $tag, 'condition');
 			$term_tag = get_term_by('term_id', $tag, 'post_tag');
 			if($term_con){
@@ -28,7 +29,11 @@ $term = null;
 				$tag = $term_tag->term_id;
 				$tax = $term_tag->taxonomy;
 			};
-			$popular = do_shortcode("[mha_popular_articles tag='$tag' tax='$tax' style='inline']");
+			if ( $tax && $tag ) {
+				$popular = do_shortcode("[mha_popular_articles tag='$tag' tax='$tax' style='inline']");
+			} else {
+				$popular = '';
+			}
 			if($popular):
 		?>
 			<div class="wrap normal mb-5">
@@ -45,23 +50,27 @@ $term = null;
 		
 		<div class="wrap normal">
 			<?php
-				$args = array(
-					"post_type" 		=> 'reading_path',
-					"orderby" 			=> 'menu_order',
-					"order"				=> 'ASC',
-					"post_status" 		=> 'publish',
-					"posts_per_page" 	=> 200,
-					"tax_query" 		=> array(
-						array(
-							'taxonomy' => $tax,
-							'field'    => 'id',
-							'terms'    => $tag
-						)
-					)
-				);
-				$loop = new WP_Query($args);
 				$has_reading_path = false;
 				$zebra = 'odd';
+				if ( $tax && $tag ) {
+					$args = array(
+						"post_type" 		=> 'reading_path',
+						"orderby" 			=> 'menu_order',
+						"order"				=> 'ASC',
+						"post_status" 		=> 'publish',
+						"posts_per_page" 	=> 200,
+						"tax_query" 		=> array(
+							array(
+								'taxonomy' => $tax,
+								'field'    => 'id',
+								'terms'    => $tag
+							)
+						)
+					);
+					$loop = new WP_Query($args);
+				} else {
+					$loop = new WP_Query( array( 'post__in' => array( 0 ) ) );
+				}
 				if($loop->have_posts()):
 					
 					$has_reading_path = true;
@@ -175,7 +184,9 @@ $term = null;
 								
 								<?php	
 									// Display related articles
-									echo get_condition_articles($tax, $tag, $search_query);
+									if ( $tax && $tag ) {
+										echo get_condition_articles($tax, $tag, $search_query);
+									}
 								?>
 								
 							</div>
@@ -250,43 +261,45 @@ $term = null;
 
 				<div class="right-col">
 					<?php 
-						$args = array(
-							"post_type"         => 'screen',
-							"order"	            => 'DESC',
-							"post_status"       => 'publish',
-							"posts_per_page"    => 10,
-							'tax_query'      => array(
-								array(
-									'taxonomy' => $tax,
-									'field'    => 'id',
-									'terms'    => $tag
-								),
-							),
-							'fields' => 'ids'
-						);
-						$loop = new WP_Query($args);
 						$cta_count = 0;
 						$test_cta = [];
-						if($loop->have_posts()):
-						while($loop->have_posts()) : $loop->the_post(); 
-							
-							$testid = get_the_ID();
-							$primary_condition_yoast = get_post_meta($testid,'_yoast_wpseo_primary_condition', true);
-							if(
-								get_field('invisible', $testid) || 
-								get_field('survey', $testid) || 
-								$primary_condition_yoast != $tag || 
-								$cta_count > 0 ||
-								!$espanol && get_field('espanol', $testid)
-							){
-								continue;
-							}			
-							$test_cta[] = $testid;
-							$cta_count++;
-							
-						endwhile;
-						endif;
-						wp_reset_query();
+						if ( $tax && $tag ) {
+							$args = array(
+								"post_type"         => 'screen',
+								"order"	            => 'DESC',
+								"post_status"       => 'publish',
+								"posts_per_page"    => 10,
+								'tax_query'      => array(
+									array(
+										'taxonomy' => $tax,
+										'field'    => 'id',
+										'terms'    => $tag
+									),
+								),
+								'fields' => 'ids'
+							);
+							$loop = new WP_Query($args);
+							if($loop->have_posts()):
+							while($loop->have_posts()) : $loop->the_post(); 
+								
+								$testid = get_the_ID();
+								$primary_condition_yoast = get_post_meta($testid,'_yoast_wpseo_primary_condition', true);
+								if(
+									get_field('invisible', $testid) || 
+									get_field('survey', $testid) || 
+									$primary_condition_yoast != $tag || 
+									$cta_count > 0 ||
+									!$espanol && get_field('espanol', $testid)
+								){
+									continue;
+								}			
+								$test_cta[] = $testid;
+								$cta_count++;
+								
+							endwhile;
+							endif;
+							wp_reset_query();
+						}
 
 						// Display randomized matching test CTA
 						if(!empty($test_cta)):
@@ -297,7 +310,7 @@ $term = null;
 									<?php
 										$an_a = 'Take a';
 										$title = get_the_title($test_cta[0]);
-										if($title[0] == 'A'){
+										if( is_string($title) && $title !== '' && strtoupper($title[0]) === 'A' ){
 											$an_a .= 'n ';
 										}
 										$test_espanol = get_field('espanol',$test_cta[0]);

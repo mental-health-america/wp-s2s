@@ -55,9 +55,9 @@ if (strpos($account_action, 'save_diy_') !== false) {
         // Confirmation of saving message
         if($update_diy){
         ?>
-            <div class="wrap narrow mb-4 <?php echo $width; ?>">
+            <div class="wrap narrow mb-4">
                 <div id="screen-save">
-                    <div class="bubble round green thin mb-1 <?php echo $corners; ?>">
+                    <div class="bubble round green thin mb-1">
                     <div class="inner bold text-center">
                         Your <?php echo get_the_title( get_field('activity_id', $update_diy) ); ?> activity was successfully saved to this account. 
                     </div>
@@ -457,23 +457,25 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                                     <div class="result bold large"><?php echo isset($result['result_title']) ? $result['result_title'] : '&ndash;'; ?></div>
 
                                                     
+                                                    <?php if ( ! empty( $result['test_id'] ) ) : ?>
                                                     <button class="hide-screen button teal round" 
-                                                        id="button-<?php echo $result['test_id']; ?>"
+                                                        id="button-<?php echo esc_attr( $result['test_id'] ); ?>"
                                                         data-toggle="tooltip" 
                                                         data-placement="top" 
                                                         title="Hide this screening result from displaying on your account."
                                                         aria-expanded="false" 
-                                                        aria-controls="screen-<?php echo $result['test_id']; ?>">X</button>
+                                                        aria-controls="screen-<?php echo esc_attr( $result['test_id'] ); ?>">X</button>
 
-                                                    <div class="hide-screen-confirm-container text-center hidden" id="screen-<?php echo $result['test_id']; ?>">
+                                                    <div class="hide-screen-confirm-container text-center hidden" id="screen-<?php echo esc_attr( $result['test_id'] ); ?>">
                                                         <div class="pb-2">
                                                             <button class="hide-screen-confirm thin button red round small" 
                                                                 data-toggle="tooltip" 
-                                                                data-pid="<?php echo $result['test_id']; ?>" 
-                                                                data-nonce="<?php echo wp_create_nonce('hideScreen'); ?>" >Are you sure you want to hide this result?</button>
+                                                                data-pid="<?php echo esc_attr( $result['test_id'] ); ?>" 
+                                                                data-nonce="<?php echo esc_attr( wp_create_nonce('hideScreen') ); ?>" >Are you sure you want to hide this result?</button>
                                                         </div>
                                                         <button class="cancel-hide-screen plain text-white round">Nevermind</button>
                                                     </div>
+                                                    <?php endif; ?>
                                                     
                                                 </div>
                                                 </div>

@@ -182,6 +182,16 @@ class ApiLogViewer {
 
   public static function get_log_entries_SSP(): void
   {
+    // A wp_ajax_ hook only requires an authenticated request, not an authorized one, so
+    // the capability has to be checked here as well as on the admin page itself.
+    if ( ! current_user_can( 'manage_options' ) ) {
+      wp_send_json_error( array( 'error' => 'You do not have permission to view the API log.' ), 403 );
+    }
+
+    if ( ! check_ajax_referer( 'mha_api_log_entries', '_ajax_nonce', false ) ) {
+      wp_send_json_error( array( 'error' => 'Security check failed. Refresh the page and try again.' ), 403 );
+    }
+
     // Array of database columns which should be read and sent back to DataTables.
     // The `db` parameter represents the column name in the database, while the `dt`
     // parameter represents the DataTables column identifier. In this case simple

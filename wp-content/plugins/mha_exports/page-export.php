@@ -663,14 +663,15 @@ function mhathoughtexport(){
  */
 add_action( 'wp_ajax_mha_aggregate_data_export', 'mha_aggregate_data_export' );
 function mha_aggregate_data_export(){
-        
+
+    mha_exports_verify_ajax_request( 'mhathoughtexport' );
+
 	// General variables
     $result = array();
     $timezone = new DateTimeZone('America/New_York');
 	
 	// Make serialized data readable
 	parse_str($_POST['data'], $data);  
-    //$isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
     $paged = intval($data['paged']);
 	
     // General Vars
@@ -1004,14 +1005,15 @@ function mha_aggregate_remove_duplicates($filename){
  */
 add_action( 'wp_ajax_mha_nonaggregate_data_export', 'mha_nonaggregate_data_export' );
 function mha_nonaggregate_data_export(){
-        
+
+    mha_exports_verify_ajax_request( 'mhathoughtexport' );
+
 	// General variables
     $result = array();
     $timezone = new DateTimeZone('America/New_York');
 	
 	// Make serialized data readable
 	parse_str($_POST['data'], $data);  
-    //$isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
     $paged = intval($data['paged']);
 	
     // General Vars
@@ -1685,14 +1687,15 @@ function mha_nonaggregate_data_export_original(){
  */
 add_action( 'wp_ajax_mha_user_data_export', 'mha_user_data_export' );
 function mha_user_data_export(){
-        
+
+    mha_exports_verify_ajax_request( 'mhathoughtexport' );
+
 	// General variables
     $result = array();
     $timezone = new DateTimeZone('America/New_York');
 	
 	// Make serialized data readable
 	parse_str($_POST['data'], $data);  
-    //$isAuthentic = wp_verify_nonce( $data['nonce'], 'mhathoughtexport');
     $paged = intval($data['paged']);
 
     // General Vars

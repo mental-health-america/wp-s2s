@@ -5,152 +5,131 @@
  */
 function get_condition_articles($tax = null, $tag = null, $search_query = null, $is_espanol = false){
 
+    if ( ! $tax || ! $tag ) {
+        return '';
+    }
+
     remove_filter( 'posts_request', 'relevanssi_prevent_default_request' );
     remove_filter( 'the_posts', 'relevanssi_query', 99 );
     
     // Default Vars
-    $article_array = [];
     $orderby = get_query_var('orderby');
     $order = get_query_var('order') ? get_query_var('order') : 'DESC';
     $search_query = sanitize_text_field( $search_query );
 
     // Pagination
-    $current_page = (get_query_var('paged')) ? get_query_var('paged') : 1;
+    $current_page = max( 1, (int) ( get_query_var('paged') ? get_query_var('paged') : 1 ) );
     $posts_per_page = 40;
-    
-    // Get Articles and DIY Tools
-    $args = array(
-        "post_type" => array('article', 'diy'),
-        "posts_per_page" => -1,
-        "post_status" => 'publish',
-        "meta_query" => array(
-            array(
-                'key' => 'type',
-                'value' => 'provider',
-                'compare' => 'NOT LIKE'
-            )
-        ),
-        "tax_query" => array(
-            array(
-                'taxonomy' => $tax,
-                'field'    => 'id',
-                'terms'    => $tag
-            )
-        )
-    );
 
-    // Append search query if present
-    if($search_query){
-        $args['s'] = $search_query;
-    }					
+    // Cache the full scored list (sort/pagination applied after). Skip cache for searches.
+    $cache_key = '';
+    $article_array = false;
+    if ( $search_query === '' ) {
+        $cache_key = 'mha_cond_arts_' . md5( serialize( array(
+            'tax' => (string) $tax,
+            'tag' => (string) $tag,
+            'es'  => $is_espanol ? 1 : 0,
+            'v'   => '1.1',
+        ) ) );
+        $article_array = get_transient( $cache_key );
+    }
 
-    // Popular         
-    $popular = do_shortcode("[mha_popular_articles tag='$tag' tax='$tax' style='inline']");
-    $popular_titles = preg_replace(array('/&nbsp;/','/\s{2,}/', '/[\t\n]/'), ' ', strip_tags($popular));
-    $popular_array = explode(' | ', trim($popular_titles));
-    
-    $loop = new WP_Query($args);
-    while($loop->have_posts()) : $loop->the_post();	
+    if ( ! is_array( $article_array ) ) {
+        $article_array = array();
 
-        // Skips
-        if(get_field('invisible') || get_field('survey') || !$is_espanol && get_field('espanol')){
-            continue;
-        }
-
-        // General Vars
-        $score = 1;
-        $article_title = get_the_title();
-        $article_conditions = get_the_terms(get_the_ID(), 'condition');
-
-        // Primary or Only Condition (+2)
-        $primary_condition = get_field('primary_condition');
-        if($primary_condition && $primary_condition->term_id == $tag || $article_conditions && count($article_conditions) == 1 && $article_conditions[0]->term_id == $tag) {
-            $score = $score + 2;
-        }
-
-        // Featured (+1)
-        if(get_field('featured')){
-            $score++;
-        }
-
-        // All Condition when its a "Condition" tag page (-1)
-        if(get_field('all_conditions') && $tax == 'condition'){
-            $score--;
-        }
-
-        // Popular         
-        if(in_array($article_title, $popular_array)){
-            $score++;
-        }
-
-        // Types
-        $article_type = get_field('type');
-        if( in_array( "diy", $article_type) ||  in_array( "connect", $article_type) ){
-            $score--;
-        }
-
-        $article_array[] = array(
-            'id' => get_the_ID(),
-            'title' => $article_title,
-            'link' => get_the_permalink(),
-            'published' => get_the_date('Ymd'),
-            'score' => $score
-        );
-
-    endwhile;
-    wp_reset_query();
-
-    // All condition appended  
-    /*
-    $args = array(
-        "post_type" => 'article',
-        "posts_per_page" => -1,
-        "post_status" => 'publish',        
-        "meta_query" => array(
-            'relation' => 'AND',
-            'all_conditions' => array(
-                array(
-                    'key' => 'all_conditions',
-                    'value' => 1
-                )
-            ),
-            'article_type' => array(
+        // Get Articles and DIY Tools
+        $args = array(
+            "post_type" => array('article', 'diy'),
+            "posts_per_page" => 500, // hard cap to avoid unbounded archive scoring
+            "post_status" => 'publish',
+            "no_found_rows" => true,
+            "update_post_meta_cache" => true,
+            "update_post_term_cache" => true,
+            "meta_query" => array(
                 array(
                     'key' => 'type',
                     'value' => 'provider',
                     'compare' => 'NOT LIKE'
                 )
             ),
-            'language' => array(
-                'relation' => 'OR',
+            "tax_query" => array(
                 array(
-                    'key' => 'espanol',
-                    'value' => '1',
-                    'compare' => '!='
-                ),
-                array(
-                    'key' => 'espanol',
-                    'value' => '1',
-                    'compare' => 'NOT EXISTS'
+                    'taxonomy' => $tax,
+                    'field'    => 'id',
+                    'terms'    => $tag
                 )
-            ),
-        )
-    );
-    $loop = new WP_Query($args);
-    while($loop->have_posts()) : $loop->the_post();	
-        $article_array[] = array(
-            'id' => get_the_ID(),
-            'title' => get_the_title(),
-            'link' => get_the_permalink(),
-            'published' => get_the_date('Ymd'),
-            'score' => -1
+            )
         );
-    endwhile;
-    */
+
+        // Append search query if present
+        if($search_query){
+            $args['s'] = $search_query;
+        }
+
+        // Popular
+        $popular = do_shortcode("[mha_popular_articles tag='$tag' tax='$tax' style='inline']");
+        $popular_titles = preg_replace(array('/&nbsp;/','/\s{2,}/', '/[\t\n]/'), ' ', strip_tags($popular));
+        $popular_array = explode(' | ', trim($popular_titles));
+
+        $loop = new WP_Query($args);
+        while($loop->have_posts()) : $loop->the_post();
+
+            // Skips
+            if(get_field('invisible') || get_field('survey') || !$is_espanol && get_field('espanol')){
+                continue;
+            }
+
+            // General Vars
+            $score = 1;
+            $article_title = get_the_title();
+            $article_conditions = get_the_terms(get_the_ID(), 'condition');
+
+            // Primary or Only Condition (+2)
+            $primary_condition = get_field('primary_condition');
+            if($primary_condition && $primary_condition->term_id == $tag || is_array($article_conditions) && count($article_conditions) == 1 && $article_conditions[0]->term_id == $tag) {
+                $score = $score + 2;
+            }
+
+            // Featured (+1)
+            if(get_field('featured')){
+                $score++;
+            }
+
+            // All Condition when its a "Condition" tag page (-1)
+            if(get_field('all_conditions') && $tax == 'condition'){
+                $score--;
+            }
+
+            // Popular
+            if(in_array($article_title, $popular_array)){
+                $score++;
+            }
+
+            // Types
+            $article_type = mha_as_array( get_field('type') );
+            if( in_array( "diy", $article_type, true ) || in_array( "connect", $article_type, true ) ){
+                $score--;
+            }
+
+            $article_array[] = array(
+                'id' => get_the_ID(),
+                'title' => $article_title,
+                'link' => get_the_permalink(),
+                'published' => get_the_date('Ymd'),
+                'score' => $score
+            );
+
+        endwhile;
+        wp_reset_query();
+
+        if ( $cache_key ) {
+            set_transient( $cache_key, $article_array, HOUR_IN_SECONDS );
+        }
+    }
 
     // Final Pagination    
     $total_posts = count($article_array);
-    $max_pages = ceil($total_posts / $posts_per_page);
+    $max_pages = max( 1, (int) ceil($total_posts / $posts_per_page) );
     $offset = ($current_page - 1) * $posts_per_page;
     $offset_ceil = $current_page * $posts_per_page;
 
@@ -165,8 +144,8 @@ function get_condition_articles($tax = null, $tag = null, $search_query = null, 
     }
 
     // Sort articles unless there was a search query
-    if(!$search_query || $search_query && $sort_type != 'score'):
-        $article_sort = array_column($article_array, $sort_type);									
+    if( $article_array && ( !$search_query || $sort_type != 'score' ) ):
+        $article_sort = array_column($article_array, $sort_type);
         if($order == 'ASC'){
             array_multisort($article_sort, SORT_ASC, $article_array);
         } else {
@@ -281,8 +260,8 @@ function get_articles_by_custom_field($field = null, $search_query = null){
         }
 
         // Types
-        $article_type = get_field('type');
-        if( in_array( "diy", $article_type) ||  in_array( "connect", $article_type) ){
+        $article_type = mha_as_array( get_field('type') );
+        if( in_array( "diy", $article_type, true ) || in_array( "connect", $article_type, true ) ){
             $score--;
         }
 

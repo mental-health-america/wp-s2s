@@ -16,8 +16,8 @@ $customClasses = '';
 $customContentClasses = '';
 //$resources = array('diy','connect','treatment','provider');
 $resources = array('diy','connect','provider');
-$article_type = get_field('type');
-$layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
+$article_type = mha_as_array( get_field('type') );
+$layout = mha_as_array( get_layout_array(get_query_var('layout')) ); // Used for A/B testing
 
 // Custom styling for resources
 if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
@@ -94,7 +94,7 @@ if($type == 'article' && count(array_intersect($article_type, $resources)) > 0){
                         // Locations
                         if(!get_field('hide_locations')){
                             $location = get_field('location');                        
-                            if( $location && $location[0]['address'] != '') {
+                            if( is_array( $location ) && ! empty( $location[0]['address'] ) ) {
 
                                 if(count($location) > 1){ 
 

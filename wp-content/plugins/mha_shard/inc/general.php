@@ -6,6 +6,15 @@
 
 
 /**
+ * Normalize a value to an array for safe count()/array_intersect()/in_array() use.
+ * ACF checkbox/select fields often return null/false when empty.
+ */
+function mha_as_array( $value ) {
+	return is_array( $value ) ? $value : array();
+}
+
+
+/**
  * Debugging Helpers
  */
 function pre($arr){

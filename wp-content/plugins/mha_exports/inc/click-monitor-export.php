@@ -8,6 +8,8 @@ use League\Csv\Writer;
 add_action( 'wp_ajax_mha_export_click_monitor_data', 'mha_export_click_monitor_data' );
 function mha_export_click_monitor_data(){
 
+    mha_exports_verify_ajax_request( 'mhaclickmonitor' );
+
 	// General variables
     $timezone = new DateTimeZone('America/New_York');
     

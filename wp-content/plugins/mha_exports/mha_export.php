@@ -86,6 +86,43 @@ add_action('request', function ($query_vars) {
 
 
 /**
+ * Authorization guard for the export AJAX endpoints.
+ *
+ * A `wp_ajax_` hook only requires the request to be authenticated, not authorized, so
+ * every callback has to check capability itself. The nonce is verified only when the
+ * request carries one, because the paging loops in js/ re-issue continuation requests
+ * without resending the form fields.
+ *
+ * Sends a 403 and exits when the request is not permitted.
+ */
+function mha_exports_verify_ajax_request( $nonce_action = null ) {
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( array( 'error' => 'You do not have permission to run this export.' ), 403 );
+	}
+
+	if ( ! $nonce_action ) {
+		return;
+	}
+
+	// The form data arrives either serialized (first pass) or as an array (continuations).
+	$nonce = null;
+	if ( isset( $_POST['data'] ) ) {
+		if ( is_array( $_POST['data'] ) ) {
+			$nonce = isset( $_POST['data']['nonce'] ) ? $_POST['data']['nonce'] : null;
+		} else {
+			parse_str( (string) $_POST['data'], $parsed_data );
+			$nonce = isset( $parsed_data['nonce'] ) ? $parsed_data['nonce'] : null;
+		}
+	}
+
+	if ( ! empty( $nonce ) && ! wp_verify_nonce( $nonce, $nonce_action ) ) {
+		wp_send_json_error( array( 'error' => 'Security check failed. Refresh the page and try again.' ), 403 );
+	}
+}
+
+
+/**
  * Additional requirements
  */
 

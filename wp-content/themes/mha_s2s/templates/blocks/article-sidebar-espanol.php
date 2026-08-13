@@ -1,9 +1,9 @@
 <?php
     // Placement addendum for desktop/mobile
-    $placement = $args['placement'] ? '_'.$args['placement'] : '';
+    $placement = ! empty( $args['placement'] ) ? '_'.$args['placement'] : '';
     
     // A/B Testing
-    $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
+    $layout = mha_as_array( get_layout_array(get_query_var('layout')) ); // Used for A/B testing
 ?>
 
 <div class="sticky">
@@ -27,7 +27,7 @@
     $article_id = get_the_ID();
     //$resources = array('diy','connect','treatment','provider');
     $resources = array('diy','connect','provider');
-    $article_type = get_field('type');
+    $article_type = mha_as_array( get_field('type') );
     $more_links = get_field('more_links');
     
     // Related content triggers
@@ -232,7 +232,7 @@
                 }
 
                 // Matching Types
-                $rel_score = $rel_score + count(array_intersect($article_type, get_field('type', $new_id)));
+                $rel_score = $rel_score + count(array_intersect($article_type, mha_as_array( get_field('type', $new_id) )));
 
                 // Matching conditions
                 if($new_cond){
