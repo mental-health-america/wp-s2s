@@ -285,30 +285,28 @@ function wp_body_classes( $classes ) {
 
 	elseif($sid):
 
-		// Screening Page Override
-		if($sid){
-			global $wpdb;
-			$user_screen_id = str_replace('_ref', '', $sid);
-			$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
-			if($entry_id){
-				$user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
-				$ref_var = !is_wp_error($user_screen_result) && isset($user_screen_result['referer']) ? $user_screen_result['referer'] : false;
-				if($ref_var){
+		// Screening Page Override — only need referer for partner-mode class.
+		// Use related_articles=false so we do not rebuild featured next steps here;
+		// the results template still runs the full path (and is memoized per request).
+		$entry_id = mha_get_gf_entry_id_by_sid( $sid );
+		if($entry_id){
+			$user_screen_result = mha_get_user_screen_results( $entry_id, false ); 
+			$ref_var = !is_wp_error($user_screen_result) && isset($user_screen_result['referer']) ? $user_screen_result['referer'] : false;
+			if($ref_var){
 
-					$partner_cta_args = array(
-						'post_type' => 'partners',
-						'post_status' => 'publish',
-						'posts_per_page' => -1,
-						'fields' => 'ids',
-					);
-					$partners_cta = get_posts($partner_cta_args);
-					foreach ( $partners_cta as $partner_id ) {
-						$partner_details = get_field('partner_information', $partner_id);
-						if ( !empty($partner_details['partner_code']) ) {
-							if ( $ref_var == $partner_details['partner_code'] && !$partner_details['disable_partner_banner'] ) {
-								$classes[] = 'partner-mode';
-								break;
-							}
+				$partner_cta_args = array(
+					'post_type' => 'partners',
+					'post_status' => 'publish',
+					'posts_per_page' => -1,
+					'fields' => 'ids',
+				);
+				$partners_cta = get_posts($partner_cta_args);
+				foreach ( $partners_cta as $partner_id ) {
+					$partner_details = get_field('partner_information', $partner_id);
+					if ( !empty($partner_details['partner_code']) ) {
+						if ( $ref_var == $partner_details['partner_code'] && !$partner_details['disable_partner_banner'] ) {
+							$classes[] = 'partner-mode';
+							break;
 						}
 					}
 				}
@@ -1497,7 +1495,8 @@ function it_is_all_spam( $is_spam, $form, $entry ) {
 */
 add_filter( 'gform_entry_is_spam', 'gf_admin_is_not_spam', 10, 3 );
 function gf_admin_is_not_spam( $is_spam, $form, $entry ) {
-	if ( strpos($form['cssClass'], 'auto-submit') !== false ) {
+	$form_css_class = isset( $form['cssClass'] ) ? $form['cssClass'] : '';
+	if ( strpos($form_css_class, 'auto-submit') !== false ) {
         //$is_spam = false;
 	}
     return $is_spam;
@@ -1592,13 +1591,15 @@ function mha_partner_banner($referer = null) {
 	$ref_var = $referer ? $referer : get_query_var('ref');
 	$partner_banner_info = false;
 
-	// Screening Page Override
+	// Screening Page Override — only need referer for the banner.
+	// related_articles=false avoids rebuilding featured next steps in the header;
+	// the results template still runs the full path (memoized per request).
 	if(get_query_var('sid')){
-		global $wpdb;
-		$user_screen_id = str_replace('_ref', '', get_query_var('sid'));
-		$entry_id = $wpdb->get_var("SELECT entry_id FROM wp_gf_entry_meta WHERE meta_value = '$user_screen_id' ORDER BY id DESC LIMIT 1"); 
-		$user_screen_result = mha_get_user_screen_results( $entry_id, true ); 
-		$ref_var = $user_screen_result['referer'] ? $user_screen_result['referer'] : $ref_var;
+		$entry_id = mha_get_gf_entry_id_by_sid( get_query_var('sid') );
+		if ( $entry_id ) {
+			$user_screen_result = mha_get_user_screen_results( $entry_id, false ); 
+			$ref_var = !empty($user_screen_result['referer']) ? $user_screen_result['referer'] : $ref_var;
+		}
 	}
 
 	// Otherwise...

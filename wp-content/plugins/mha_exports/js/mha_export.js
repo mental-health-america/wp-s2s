@@ -17,7 +17,8 @@
             if(res.next_page != ''){
 
                 // Continue Paging
-                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&exclude=' + exclude + '&start_date=' + res.start_date + '&end_date=' + res.end_date;
+                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&exclude=' + exclude + '&start_date=' + res.start_date + '&end_date=' + res.end_date
+                    + '&nonce=' + $('#aggregate-data-export input[name="nonce"]').val();
                 $.ajax({
                     type: "POST",
                     url: do_mhaThoughts.ajaxurl,
@@ -278,7 +279,8 @@
             if(res.next_page != ''){
 
                 // Continue Paging
-                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&manual_users=' + res.manual_users + '&start_date=' + res.start_date + '&end_date=' + res.end_date;
+                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename + '&manual_users=' + res.manual_users + '&start_date=' + res.start_date + '&end_date=' + res.end_date
+                    + '&nonce=' + $('#nonaggregate-data-export input[name="nonce"]').val();
                 $.ajax({
                     type: "POST",
                     url: do_mhaThoughts.ajaxurl,
@@ -379,7 +381,8 @@
             if(res.next_page != ''){
 
                 // Continue Paging
-                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename;
+                var args_2 = 'paged=' + res.next_page + '&filename=' + res.filename
+                    + '&nonce=' + $('#mha-user-exports input[name="nonce"]').val();
                 $.ajax({
                     type: "POST",
                     url: do_mhaThoughts.ajaxurl,

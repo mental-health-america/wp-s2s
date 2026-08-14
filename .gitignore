@@ -29,6 +29,9 @@ main.css
 .wpe-pull-ignore
 .wpe-push-ignore
 /wp-content/mu-plugins
+# Allow the MHA error telemetry mu-plugin to be versioned (WP Engine otherwise owns this dir)
+!/wp-content/mu-plugins/
+!/wp-content/mu-plugins/mha-error-telemetry.php
 
 
 # compiled source 

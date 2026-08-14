@@ -45,7 +45,7 @@ get_header();
 		// Reading Path
 		//$resources = array('diy','connect','treatment','provider');
 		$resources = array('diy','connect','provider');
-		$article_type = get_field('type');
+		$article_type = mha_as_array( get_field('type') );
 		$link_skip = [];
 
 		if(get_query_var('pathway')){
@@ -64,7 +64,7 @@ get_header();
 			// Get Next Article in path
 			$next = false;
 			$next_id = false;
-			if(get_field('path', $path_id)){
+			if(is_array($path)){
 				foreach($path as $p){
 					if($next == false){
 						if($current == $p['article']) {
@@ -79,7 +79,7 @@ get_header();
 
 			$bubble_color = 'cerulean';
 			$button_color = 'cerulean';
-			if( is_array($article_type) && count(array_intersect($article_type, $resources)) > 0){ 
+			if( count(array_intersect($article_type, $resources)) > 0){ 
 				$bubble_color = 'red';
 				$button_color = 'red';
 			}

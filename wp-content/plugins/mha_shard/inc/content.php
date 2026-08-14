@@ -1217,6 +1217,17 @@ function term_sort_name($a, $b) {
  * Monthly Popular Article Check
  */
 
+add_filter( 'cron_schedules', 'mha_register_monthly_cron_schedule' );
+function mha_register_monthly_cron_schedule( $schedules ) {
+	if ( ! isset( $schedules['monthly'] ) ) {
+		$schedules['monthly'] = array(
+			'interval' => 30 * DAY_IN_SECONDS,
+			'display'  => 'Once Monthly',
+		);
+	}
+	return $schedules;
+}
+
 add_action( 'init', 'register_monthly_generate_mha_popular_article_json_event');
 
 function register_monthly_generate_mha_popular_article_json_event() {
@@ -1263,8 +1274,10 @@ function mha_monthly_pop_articles( $read = null ){
 	$pop_json = json_encode($pop_articles);
 		
 	$fp = fopen($json, 'w');
-	fwrite($fp, json_encode($pop_json));
-	fclose($fp);
+	if ( $fp ) {
+		fwrite($fp, json_encode($pop_json));
+		fclose($fp);
+	}
 
 	return $pop_articles;
 	

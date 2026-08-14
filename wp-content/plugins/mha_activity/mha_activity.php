@@ -551,27 +551,32 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 		while($loop->have_posts()) : $loop->the_post();
 
 			$thought_id = get_the_ID();
-			$thoughts = get_field('responses', $thought_id);	
+			$thoughts = get_field('responses', $thought_id);
+			if ( ! is_array( $thoughts ) ) {
+				continue;
+			}
 
 			// Skip user seeded thoughts (only show the original), and skip thoughts that have been hidden
 			if(
-				$index === 0 && $thoughts[0]['user_pre_seeded_thought'] || 
-				$index === 0 && $thoughts[0]['admin_pre_seeded_thought'] || 
+				$index === 0 && ! empty( $thoughts[0]['user_pre_seeded_thought'] ) || 
+				$index === 0 && ! empty( $thoughts[0]['admin_pre_seeded_thought'] ) || 
 				isset($thoughts[$index]) && isset($thoughts[$index]['hide']) && $thoughts[$index]['hide'] == 1 || 
 				!isset($thoughts[$index]) || 
-				$index > 0 && isset($thoughts[1]) && $thoughts[1]['path'] && $thoughts[1]['path'] != $path
+				$index > 0 && isset($thoughts[1]) && ! empty( $thoughts[1]['path'] ) && $thoughts[1]['path'] != $path
 			){
 				continue;
 			}
 
 			// Get the Thought Row text
-			$thought_text = $thoughts[$index]['response'];
+			$thought_text = isset( $thoughts[$index]['response'] ) ? $thoughts[$index]['response'] : '';
 					
 			// Admin seeded thoughts override
-			if($index === 0 && $thoughts[0]['admin_pre_seeded_thought']){	
+			if($index === 0 && ! empty( $thoughts[0]['admin_pre_seeded_thought'] )){	
 				$admin_thought_text = get_field('pre_generated_responses', $activity_id);
 				$admin_thought_row = intval($thoughts[0]['admin_pre_seeded_thought']);
-				$thought_text = $admin_thought_text[$admin_thought_row]['response']; 				
+				if ( is_array( $admin_thought_text ) && isset( $admin_thought_text[$admin_thought_row]['response'] ) ) {
+					$thought_text = $admin_thought_text[$admin_thought_row]['response'];
+				}
 			}
 
 			// Skip empty thoughts
@@ -953,10 +958,17 @@ function hideThought(){
 	// General variables
 	global $wpdb;
     $result = array();
+
+	if ( empty( $_POST['data'] ) ) {
+		$result['error'] = 'Missing request data.';
+		echo json_encode( $result );
+		exit();
+	}
 	
 	// Make serialized data readable
-	parse_str($_POST['data'], $data);  
-    $isAuthentic = wp_verify_nonce( $data['nonce'], 'hideThought');
+	parse_str( (string) $_POST['data'], $data );
+	$nonce = isset( $data['nonce'] ) ? $data['nonce'] : '';
+    $isAuthentic = wp_verify_nonce( $nonce, 'hideThought');
 	
 	// Submission is good, proceed
 	if($isAuthentic && is_user_logged_in()){
@@ -964,14 +976,122 @@ function hideThought(){
 		// Organize our data
 		$result['response'] = $data;
 		$uid = get_current_user_id();
-		$pid = $data['pid'];	
+		$pid = isset( $data['pid'] ) ? absint( $data['pid'] ) : 0;
+
+		if ( ! $uid || ! $pid ) {
+			$result['error'] = 'Missing thought id.';
+			echo json_encode( $result );
+			exit();
+		}
 
 		// Vars
 		$table = 'thoughts_hidden';	
 
 		// Check if hidden previously
-		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid AND pid != 0");			
+		$db_hidden = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE uid = %d AND pid = %d",
+				$uid,
+				$pid
+			)
+		);
 		
+		
+		if($db_hidden && isset( $db_hidden[0]->unhidden ) && (int) $db_hidden[0]->unhidden === 0){
+
+			// Result found, let's unhide it!
+			$db_update = $wpdb->update(
+				$table, 
+				array('unhidden' => 1), 
+				array('id' => $db_hidden[0]->id)
+			);			
+			$result['unhidden'] = 0;
+
+		} else if($db_hidden && isset( $db_hidden[0]->unhidden ) && (int) $db_hidden[0]->unhidden === 1){
+
+			// Thought was previously unhidden, so lets hide it again!
+			$db_update = $wpdb->update(
+				$table, 
+				array('unhidden' => 0), 
+				array('id' => $db_hidden[0]->id)
+			);			
+			$result['unhidden'] = 2;
+
+		} else if ( $db_hidden ) {
+
+			$db_update = $wpdb->update(
+				$table,
+				array( 'unhidden' => 0 ),
+				array( 'id' => $db_hidden[0]->id )
+			);
+			$result['unhidden'] = 2;
+
+		} else {
+
+			// No results, hide it for the first time!
+			$response =	array( 
+				'uid' => $uid,
+				'pid' => $pid
+			);	
+			$db_insert = $wpdb->insert($table, $response);
+			$result['unhidden'] = 1;
+
+		}
+
+		// Abandon the thought at the same time
+		$result['updated'] = update_field('abandoned', date('Y-m-d H:i:s'), $pid);
+		$result['user_hidden'] = update_field('hidden', date('Y-m-d H:i:s'), $pid);
+
+    } else {
+		$result['error'] = 'Unauthorized.';
+	}
+
+    echo json_encode($result);
+    exit();
+}
+add_action("wp_ajax_nopriv_hideThought", "hideThought");
+add_action("wp_ajax_hideThought", "hideThought");
+
+
+/**
+ * Hide Screens
+ */
+
+function hideScreen(){
+	
+	// General variables
+	global $wpdb;
+    $result = array();
+
+	if ( empty( $_POST['data'] ) ) {
+		$result['error'] = 'Missing request data.';
+		echo json_encode( $result );
+		exit();
+	}
+	
+	// Make serialized data readable
+	parse_str($_POST['data'], $data);  
+    $isAuthentic = wp_verify_nonce( $data['nonce'], 'hideScreen');
+	
+	// Submission is good, proceed
+	if($isAuthentic && is_user_logged_in()){
+			
+		// Organize our data
+		$result['response'] = $data;
+		$uid = get_current_user_id();
+		$pid = isset( $data['pid'] ) ? absint( $data['pid'] ) : 0;
+
+		if ( ! $uid || ! $pid ) {
+			$result['error'] = 'Missing screen id.';
+			echo json_encode( $result );
+			exit();
+		}
+
+		// Vars
+		$table = 'screens_hidden';
+
+		// Check if liked previously
+		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");			
 		
 		if($db_hidden && $db_hidden[0]->unliked == 0){
 
@@ -993,88 +1113,13 @@ function hideThought(){
 			);			
 			$result['unhidden'] = 2;
 
-		} else {
+		} else if ( $db_hidden ) {
 
-			// No results, hide it for the first time!
-			$response =	array( 
-				'uid' => $uid,
-				'pid' => $pid
-			);	
-			$db_insert = $wpdb->insert($table, $response);
-			$result['unhidden'] = 1;
-
-		}
-
-		// Abandon the thought at the same time
-		$result['updated'] = update_field('abandoned', date('Y-m-d H:i:s'), $pid);
-		$result['user_hidden'] = update_field('hidden', date('Y-m-d H:i:s'), $pid);
-
-    }
-
-    echo json_encode($result);
-    exit();
-}
-add_action("wp_ajax_nopriv_hideThought", "hideThought");
-add_action("wp_ajax_hideThought", "hideThought");
-
-
-/**
- * Hide Screens
- */
-
-function hideScreen(){
-	
-	// General variables
-	global $wpdb;
-    $result = array();
-	
-	// Make serialized data readable
-	parse_str( isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : '', $data );
-	$isAuthentic = wp_verify_nonce( $data['nonce'] ?? '', 'hideScreen' );
-	
-	// Submission is good, proceed
-	if($isAuthentic && is_user_logged_in()){
-			
-		// Organize our data
-		$result['response'] = $data;
-		$uid = get_current_user_id();
-		$pid = isset( $data['pid'] ) ? absint( $data['pid'] ) : 0;
-
-		// Vars
-		$table = 'screens_hidden';
-
-		if ( $pid < 1 ) {
-			$result['error'] = 'invalid_pid';
-		} else {
-
-		// One row at most: fetch only columns we need
-		$row = $wpdb->get_row( $wpdb->prepare(
-			"SELECT id, unliked FROM $table WHERE uid = %d AND pid = %d LIMIT 1",
-			$uid,
-			$pid
-		) );
-
-		if ( $row && (int) $row->unliked === 0 ) {
-
-			// Result found, toggle to "unhidden" state in UI terms
-			$wpdb->update(
-				$table,
-				array( 'unhidden' => 1 ),
-				array( 'id' => $row->id ),
-				array( '%d' ),
-				array( '%d' )
-			);
-			$result['unhidden'] = 0;
-
-		} else if ( $row && (int) $row->unliked === 1 ) {
-
-			// Was hidden before, hide again
-			$wpdb->update(
+			// Legacy/odd row without a usable unhidden flag — force hide.
+			$db_update = $wpdb->update(
 				$table,
 				array( 'unhidden' => 0 ),
-				array( 'id' => $row->id ),
-				array( '%d' ),
-				array( '%d' )
+				array( 'id' => $db_hidden[0]->id )
 			);
 			$result['unhidden'] = 2;
 
@@ -1090,8 +1135,6 @@ function hideScreen(){
 				array( '%d', '%d' )
 			);
 			$result['unhidden'] = 1;
-
-		}
 
 		}
 

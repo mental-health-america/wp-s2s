@@ -23,6 +23,7 @@ function mhaUpdateResults(){
     <p>This tool will scan screens from the last 3 months and look for entries where the final result is blank.</p>
 
     <form id="mha-update-user-results" action="#" method="POST">
+        <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhaupdateresults'); ?>" />
         <div class="acf-columns-2">
         <div class="acf-column-1">
 
@@ -85,6 +86,8 @@ function mhaUpdateResults(){
 
 add_action( 'wp_ajax_mha_result_updater_looper', 'mha_result_updater_looper' );
 function mha_result_updater_looper(){
+
+    mha_exports_verify_ajax_request( 'mhaupdateresults' );
 
     // Init
     $result = array();
