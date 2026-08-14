@@ -8,12 +8,15 @@ $user_screen_id = str_replace('_ref', '', get_query_var('sid')); // Remove _ref 
 // Get the gravity forms entry ID for easier lookups
 $entry_id = mha_get_gf_entry_id_by_sid( $user_screen_id );
 
+// Get Screen Results
+$user_screen_result = $entry_id ? mha_get_user_screen_results( $entry_id, true ) : array();
+
 if ( empty( $user_screen_id ) || ! $entry_id ):
 
     // Entry doesn't exist, display an error
     echo '<div class="wrap narrow mb-5"><div id="message" class="error">'.get_field('screen_results_not_found_message', 'options').'</div></div>';
 
-elseif(get_field('hide_results_content', $user_screen_result['screen_id'])):
+elseif( ! empty( $user_screen_result['screen_id'] ) && get_field('hide_results_content', $user_screen_result['screen_id'])):
     
     echo '<div class="wrap normal">';
     echo get_field('result_page_content', $user_screen_result['screen_id']);
@@ -22,9 +25,6 @@ elseif(get_field('hide_results_content', $user_screen_result['screen_id'])):
 else:
 
     // Entry exists, continue
-
-    // Get Screen Results
-    $user_screen_result = mha_get_user_screen_results( $entry_id, true );
 
     mha_set_condition_context(
         array(
@@ -545,9 +545,12 @@ else:
         if( empty($user_screen_result['featured_next_steps_data']) || in_array('related_v1', $layout) ):
             if( have_rows('featured_next_steps_test', $featured_next_steps_source) ):
             while( have_rows('featured_next_steps_test', $featured_next_steps_source) ) : the_row();  
-                echo '<div class="wrap narrow mt-5">';  
-                echo '<h2 class="section-title dark-blue bold mb-0">'.get_sub_field('next_steps_heading').'</h2>';
-                echo '</div>';
+                $partner_next_steps_heading = trim( (string) get_sub_field('next_steps_heading') );
+                if ( $partner_next_steps_heading !== '' ) {
+                    echo '<div class="wrap narrow mt-5">';
+                    echo '<h2 class="section-title dark-blue bold mb-0">' . esc_html( $partner_next_steps_heading ) . '</h2>';
+                    echo '</div>';
+                }
             endwhile;
             endif;
         endif;

@@ -1642,25 +1642,41 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 
 	ob_start();
 	?>
-	<div class="mha-screen-collection-prescreen" data-screen-id="<?php echo esc_attr( (string) $screen_id ); ?>" data-form-id="<?php echo esc_attr( (string) $form_id ); ?>">
+	<div class="mha-screen-collection-prescreen gform_wrapper gravity-theme" data-screen-id="<?php echo esc_attr( (string) $screen_id ); ?>" data-form-id="<?php echo esc_attr( (string) $form_id ); ?>">
 		<script type="application/json" class="mha-prescreen-config"><?php echo $config_json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
 		<form class="mha-prescreen-form" novalidate>
-			<?php
-			foreach ( $pages as $row ) :
-				$p      = (int) $row['page'];
-				$plabel = $row['label'];
-				?>
-			<fieldset class="mha-prescreen-question mb-3">
-				<legend class="h6"><?php echo esc_html( sprintf( __( 'Are you interested in %s?', 'mha_screens' ), $plabel ) ); ?></legend>
-				<div>
-					<label class="d-inline-block mr-3"><input type="radio" name="prescreen_page_<?php echo esc_attr( (string) $p ); ?>" value="yes" required /> <?php esc_html_e( 'Yes', 'mha_screens' ); ?></label>
-					<label class="d-inline-block"><input type="radio" name="prescreen_page_<?php echo esc_attr( (string) $p ); ?>" value="no" /> <?php esc_html_e( 'No', 'mha_screens' ); ?></label>
-				</div>
-			</fieldset>
+			<div class="gform_fields">
 				<?php
-			endforeach;
-			?>
-			<button type="submit" class="button round"><?php esc_html_e( 'Continue', 'mha_screens' ); ?></button>
+				foreach ( $pages as $row ) :
+					$p       = (int) $row['page'];
+					$plabel  = $row['label'];
+					$name    = 'prescreen_page_' . $p;
+					$id_base = 'mha-prescreen-' . $screen_id . '-' . $form_id . '-' . $p;
+					$choices = array(
+						'yes' => __( 'Yes', 'mha_screens' ),
+						'no'  => __( 'No', 'mha_screens' ),
+					);
+					?>
+				<fieldset class="gfield gfield--type-radio mha-prescreen-question short">
+					<legend class="gfield_label"><?php echo esc_html( sprintf( __( 'Are you interested in %s?', 'mha_screens' ), $plabel ) ); ?></legend>
+					<div class="ginput_container ginput_container_radio">
+						<div class="gfield_radio">
+							<?php foreach ( $choices as $value => $choice_label ) : ?>
+							<div class="gchoice">
+								<input type="radio" id="<?php echo esc_attr( $id_base . '-' . $value ); ?>" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $value ); ?>"<?php echo 'yes' === $value ? ' required' : ''; ?> />
+								<label for="<?php echo esc_attr( $id_base . '-' . $value ); ?>"><?php echo esc_html( $choice_label ); ?></label>
+							</div>
+							<?php endforeach; ?>
+						</div>
+					</div>
+				</fieldset>
+					<?php
+				endforeach;
+				?>
+			</div>
+			<div class="gform_footer">
+				<button type="submit" class="button gform_button"><?php esc_html_e( 'Continue', 'mha_screens' ); ?></button>
+			</div>
 		</form>
 		<div class="mha-prescreen-continue d-none" aria-hidden="true" hidden>
 			<p><a class="button round" href="<?php echo esc_url( $form_start_href ); ?>"><?php esc_html_e( 'Proceed to screening', 'mha_screens' ); ?></a></p>

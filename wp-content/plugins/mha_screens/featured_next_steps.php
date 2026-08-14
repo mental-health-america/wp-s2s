@@ -942,9 +942,6 @@ function mha_featured_next_steps_data( $args ){
             // (screen featured links take precedence)
             if(empty($return['heading']) && !empty($heading)){
                 $return['heading'] = $heading;
-            } elseif(empty($return['heading'])){
-                // Fallback to conditional heading or default
-                $return['heading'] = !empty($heading) ? $heading : 'Next Steps';
             }
             $return['hide_group_titles'] = get_sub_field('hide_group_titles');
             if(!$randomize_group){
@@ -1322,7 +1319,7 @@ function mha_featured_next_steps_data( $args ){
             'total_used_links' => $total_used_links,
             'count_diff' => $count_diff,
             'max_links' => $max_links,
-            'heading' => (!empty($return['heading'])) ? $return['heading'] : 'Next Steps',
+            'heading' => isset($return['heading']) ? $return['heading'] : '',
             'hide_group_titles' => isset($return['hide_group_titles']) ? $return['hide_group_titles'] : 0,
             'link_groups' => $link_groups,
             'additional_result_text' => isset($return['additional_result_text']) ? $return['additional_result_text'] : '',
@@ -1367,6 +1364,8 @@ function display_featured_next_steps( $args ){
 
     $return_html = '';
     $count = 1;
+    $additional_result_has_matching_heading = false;
+    $normalized_heading = sanitize_title( wp_strip_all_tags( (string) $args['heading'] ) );
 
     // Result Text (link_group_title is not shown here — only with featured-next-steps-test-group below)
     if(!empty($args['additional_result_text'])){
@@ -1378,6 +1377,14 @@ function display_featured_next_steps( $args ){
                 $addl_text = do_shortcode( wp_kses_post( $addl_text ) );
             }
             if($addl_text != ''){
+                if ( $normalized_heading !== '' && preg_match_all( '/<h[1-6]\b[^>]*>(.*?)<\/h[1-6]>/is', $addl_text, $additional_headings ) ) {
+                    foreach ( $additional_headings[1] as $additional_heading ) {
+                        if ( sanitize_title( wp_strip_all_tags( $additional_heading ) ) === $normalized_heading ) {
+                            $additional_result_has_matching_heading = true;
+                            break;
+                        }
+                    }
+                }
                 $partner_class = $args['is_partner_source'] ? ' partner-source' : '';
                 $return_html .= '<div class="featured-next-steps-test-additional-text'.$partner_class.'">';
                 if($partner_class){
@@ -1401,7 +1408,7 @@ function display_featured_next_steps( $args ){
         $max_links = $total_result_groups > 1 ? 2 : 4;
 
         $return_html .= '<div class="featured-next-steps-test-container mt-5 mb-5">';
-        if($args['show_title']):
+        if($args['show_title'] && trim((string) $args['heading']) !== '' && !$additional_result_has_matching_heading):
             $return_html .= '<h2 class="section-title featured-results-header dark-blue bold mb-3">'.$args['heading'].'</h2>';
         endif;
         $display_group_keys = array_values(array_filter(array_keys($link_groups), function($key){ return $key !== 'partner_source'; }));
