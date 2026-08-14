@@ -11,10 +11,57 @@ $entry_id = mha_get_gf_entry_id_by_sid( $user_screen_id );
 // Get Screen Results
 $user_screen_result = $entry_id ? mha_get_user_screen_results( $entry_id, true ) : array();
 
+// Related-article scoring uses a secondary WP_Query and can leave the global
+// post pointing at its final article. Restore the results page before template
+// parts call loop-dependent functions such as the_content() and the_title().
+wp_reset_postdata();
+
+// Collection-specific results take precedence over the screen's own results settings,
+// including hide_results_content, which is meant for the standalone screen flow.
+$collection_entry       = ( $entry_id && class_exists( 'GFAPI' ) ) ? GFAPI::get_entry( $entry_id ) : null;
+$collection_id          = 0;
+$collection_modules     = array();
+$has_collection_modules = false;
+
+if ( is_array( $collection_entry ) && function_exists( 'mha_screen_collection_resolve_from_entry' ) ) {
+    $collection_id = mha_screen_collection_resolve_from_entry( $collection_entry );
+
+    if ( $collection_id && function_exists( 'mha_get_collection_module_results' ) ) {
+        $collection_form        = GFAPI::get_form( (int) $collection_entry['form_id'] );
+        $collection_modules     = mha_get_collection_module_results( $collection_id, $collection_entry, $collection_form );
+        $has_collection_modules = ! empty( $collection_modules['modules'] );
+    }
+}
+
 if ( empty( $user_screen_id ) || ! $entry_id ):
 
     // Entry doesn't exist, display an error
     echo '<div class="wrap narrow mb-5"><div id="message" class="error">'.get_field('screen_results_not_found_message', 'options').'</div></div>';
+
+elseif( $has_collection_modules ):
+
+    $collection_settings = function_exists( 'mha_get_collection_results_settings' )
+        ? mha_get_collection_results_settings( $collection_id )
+        : array();
+    $iframe_var          = get_query_var( 'iframe' );
+
+    if ( function_exists( 'mha_enqueue_collection_results_script' ) ) {
+        mha_enqueue_collection_results_script();
+    }
+
+    get_template_part( 'templates/results/block', 'header', array( 'espanol' => false ) );
+    get_template_part(
+        'templates/results/collection',
+        'results',
+        array(
+            'collection_id'      => $collection_id,
+            'module_results'     => $collection_modules,
+            'settings'           => $collection_settings,
+            'user_screen_result' => $user_screen_result,
+            'user_screen_id'     => $user_screen_id,
+            'iframe_var'         => $iframe_var,
+        )
+    );
 
 elseif( ! empty( $user_screen_result['screen_id'] ) && get_field('hide_results_content', $user_screen_result['screen_id'])):
     

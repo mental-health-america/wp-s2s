@@ -1037,3 +1037,4 @@ include_once 'multilingual.php';
 include_once 'translatepress-gravity-forms.php';
 include_once 'screen_collection.php';
 include_once 'organization_dashboard.php';
+include_once 'collection_results.php';

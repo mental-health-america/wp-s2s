@@ -216,6 +216,173 @@
             ]
         },
         {
+            "key": "field_69b8a1010001",
+            "label": "Positive Summary Prefix",
+            "name": "positive_summary_prefix",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "Intro text shown above the list of symptom labels for modules scored positive.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "Here are some things you seem to be struggling with right now:",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "rows": 2,
+            "placeholder": "",
+            "new_lines": ""
+        },
+        {
+            "key": "field_69b8a1010002",
+            "label": "Negative Summary Prefix",
+            "name": "negative_summary_prefix",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "Intro text shown when the collapsed non-positive symptom list is expanded.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "Here are some things you don't seem to be struggling with right now:",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "rows": 2,
+            "placeholder": "",
+            "new_lines": ""
+        },
+        {
+            "key": "field_69b8a1010003",
+            "label": "Empty Positive Message",
+            "name": "empty_positive_message",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "Shown instead of the positive symptom list when no modules scored positive.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "Based on your answers, you don't seem to be struggling with the areas we asked about right now. Still, it's okay to check in with someone you trust if anything feels off.",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "rows": 3,
+            "placeholder": "",
+            "new_lines": ""
+        },
+        {
+            "key": "field_69b8a1010004",
+            "label": "Share Results Message",
+            "name": "share_results_message",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "Always shown in Next Steps part 1.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "rows": 3,
+            "placeholder": "",
+            "new_lines": ""
+        },
+        {
+            "key": "field_69b8a1010005",
+            "label": "Recommended Screens Heading",
+            "name": "recommended_screens_heading",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Heading above the list of recommended standalone screens.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "Screens to take next",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_69b8a1010006",
+            "label": "Show Recommended Screens",
+            "name": "show_recommended_screens",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "When off, the ranked list of screens to take next is hidden (e.g. for school counselor deployments).",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "message": "",
+            "default_value": 1,
+            "allow_in_bindings": 0,
+            "ui_on_text": "Show",
+            "ui_off_text": "Hide",
+            "ui": 1
+        },
+        {
+            "key": "field_69b8a1010007",
+            "label": "Results Resources",
+            "name": "results_resources",
+            "aria-label": "",
+            "type": "post_object",
+            "instructions": "Articles and pages listed in Next Steps part 2 on the collection results page.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "post_type": [
+                "article",
+                "page"
+            ],
+            "post_status": "",
+            "taxonomy": "",
+            "return_format": "id",
+            "multiple": 1,
+            "save_custom": 0,
+            "save_post_status": "publish",
+            "acfe_bidirectional": {
+                "acfe_bidirectional_enabled": "0"
+            },
+            "allow_null": 1,
+            "allow_in_bindings": 0,
+            "bidirectional": 0,
+            "ui": 1,
+            "bidirectional_target": [],
+            "save_post_type": ""
+        },
+        {
             "key": "field_696011d535ff2",
             "label": "Force Screen Order",
             "name": "force_screen_order",
@@ -375,5 +542,5 @@
     "acfe_form": 0,
     "acfe_meta": "",
     "acfe_note": "",
-    "modified": 1778019126
+    "modified": 1778019600
 }
