@@ -1679,7 +1679,8 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 			</div>
 		</form>
 		<div class="mha-prescreen-continue d-none" aria-hidden="true" hidden>
-			<p><a class="button round" href="<?php echo esc_url( $form_start_href ); ?>"><?php esc_html_e( 'Proceed to screening', 'mha_screens' ); ?></a></p>
+			<p>Thank you for completing the prescreen.</p>
+			<p><a class="button round-tr" href="<?php echo esc_url( $form_start_href ); ?>"><?php esc_html_e( 'Proceed to screening', 'mha_screens' ); ?></a></p>
 		</div>
 	</div>
 	<?php

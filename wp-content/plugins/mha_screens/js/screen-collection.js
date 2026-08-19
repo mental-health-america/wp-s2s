@@ -199,7 +199,7 @@ jQuery(function ($) {
 		setScreenCollectionUserCookie(userId);
 
 		var messageHtml = '<div class="screen-collection-user-message">' +
-			'<p><strong>Current User ID:</strong> ' + escapeHtml(userId) + ' <a href="#" class="screen-collection-reset small" data-reset="true">reset</a></p>' +
+			'<p><strong>User ID:</strong> ' + escapeHtml(userId) + ' <a href="#" class="screen-collection-reset small button tiny gray round" data-reset="true">reset</a></p>' +
 			'</div>';
 
 		$('#screenings-list').removeClass('d-none');

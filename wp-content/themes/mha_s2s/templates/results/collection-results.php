@@ -43,13 +43,13 @@ $link_target  = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' : '';
 
 	<div class="bubble thin teal round-small-bl mb-4">
 		<div class="inner">
-			<h1 class="subtitle thin montserrat block pb-1">
-				Your Results &mdash; <span id="screen-name"><?php echo esc_html( $screen_title ); ?></span>
+			<h1 class="white small">
+				Your Results <!--&mdash; <span id="screen-name"><?php echo esc_html( $screen_title ); ?></span>-->
 			</h1>
 			<?php if ( ! empty( $positive ) ) : ?>
 				<div class="collection-keyword-summary white">
 					<p class="mb-2"><?php echo esc_html( $positive_prefix ); ?></p>
-					<ul class="mb-0 pl-3">
+					<ul class="mb-0 ml-3 pl-3">
 						<?php foreach ( $positive as $mod ) : ?>
 							<li><?php echo esc_html( $mod['symptom_label'] ); ?></li>
 						<?php endforeach; ?>
@@ -61,8 +61,19 @@ $link_target  = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' : '';
 		</div>
 	</div>
 
-	<?php if ( ! empty( $negative ) ) : ?>
-		<div class="mb-4">
+	<div id="screen-result-buttons" class="button-grid pt-3 pb-3 pl-0 pr-0 pl-md-5 pr-md-5">
+		<button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">
+			<?php esc_html_e( 'Your Answers', 'mha_s2s' ); ?>
+		</button>
+		<?php
+		get_template_part(
+			'templates/results/action',
+			'email_button',
+			array( 'espanol' => false )
+		);
+		?>
+
+		<?php if ( ! empty( $negative ) ) : ?>
 			<button
 				id="collection-negative-toggle"
 				class="button mint round thin"
@@ -84,20 +95,7 @@ $link_target  = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' : '';
 					</ul>
 				</div>
 			</div>
-		</div>
-	<?php endif; ?>
-
-	<div id="screen-result-buttons" class="button-grid pt-3 pb-3 pl-0 pr-0 pl-md-5 pr-md-5">
-		<button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">
-			<?php esc_html_e( 'Your Answers', 'mha_s2s' ); ?>
-		</button>
-		<?php
-		get_template_part(
-			'templates/results/action',
-			'email_button',
-			array( 'espanol' => false )
-		);
-		?>
+		<?php endif; ?>
 	</div>
 
 	<div id="screen-result-content" class="pt-4">
@@ -179,11 +177,7 @@ $link_target  = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' : '';
 		<h2 class="section-title dark-blue bold"><?php esc_html_e( 'Next Steps', 'mha_s2s' ); ?></h2>
 
 		<?php if ( $share_message !== '' ) : ?>
-			<div class="bubble thick light-blue bubble-border round-tl montserrat mb-4">
-				<div class="inner small">
-					<p class="mb-0"><?php echo esc_html( $share_message ); ?></p>
-				</div>
-			</div>
+			<div class="mb-5"><?php echo esc_html( $share_message ); ?></div>
 		<?php endif; ?>
 
 		<?php if ( $show_rec && ! empty( $recommended ) ) : ?>
@@ -207,8 +201,8 @@ $link_target  = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' : '';
 		<?php endif; ?>
 
 		<?php if ( ! empty( $resources ) ) : ?>
-			<h3 class="section-title cerulean small bold mb-3"><?php esc_html_e( 'Articles and resources', 'mha_s2s' ); ?></h3>
-			<ul class="collection-results-resources mb-5 pl-0 list-unstyled">
+			<h2 class="section-title dark-blue small bold pb-3"><?php esc_html_e( 'Articles and resources', 'mha_s2s' ); ?></h2>
+			<ol class="next-steps masonry">
 				<?php foreach ( $resources as $resource_id ) : ?>
 					<?php
 					$resource_id = absint( $resource_id );
@@ -221,13 +215,13 @@ $link_target  = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' : '';
 						continue;
 					}
 					?>
-					<li class="mb-3">
-						<a class="dark-blue bold" href="<?php echo esc_url( $url ); ?>"<?php echo $link_target; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+					<li>
+						<a class="dark-gray plain rec-auto" href="<?php echo esc_url( $url ); ?>"<?php echo $link_target; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 							<?php echo esc_html( $title ); ?>
 						</a>
 					</li>
 				<?php endforeach; ?>
-			</ul>
+			</ol>
 		<?php endif; ?>
 	</div>
 </div>

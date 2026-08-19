@@ -1344,6 +1344,58 @@ function mha_featured_next_steps_data( $args ){
 }
 
 
+/**
+ * Sanitize admin-authored result text while keeping <style> blocks from CTAs.
+ *
+ * wp_kses_post() drops the style tag but keeps its text, which renders the CSS on
+ * the page. Allowing the tag through kses is not enough either, since kses encodes
+ * characters like ">" and breaks selectors. Complete style blocks are set aside,
+ * then restored with only safe attributes. Unclosed style tags are left to kses.
+ *
+ * @param string $content Raw content.
+ * @return string
+ */
+function mha_screens_kses_result_html( $content ){
+
+    $content = (string) $content;
+    if( $content === '' ){
+        return '';
+    }
+
+    $styles = array();
+    $nonce = substr( md5( uniqid( '', true ) ), 0, 12 );
+
+    $content = preg_replace_callback(
+        '#<style\b([^>]*)>(.*?)</style>#is',
+        function( $matches ) use ( &$styles, $nonce ){
+
+            $attributes = '';
+            foreach( array( 'media', 'type', 'id', 'class' ) as $attribute ){
+                if( preg_match( '/\b' . $attribute . '\s*=\s*("|\')(.*?)\1/i', $matches[1], $found ) ){
+                    $attributes .= ' ' . $attribute . '="' . esc_attr( $found[2] ) . '"';
+                }
+            }
+
+            $placeholder = 'mha-style-block-' . $nonce . '-' . count( $styles );
+            $styles[ $placeholder ] = '<style' . $attributes . '>' . $matches[2] . '</style>';
+
+            return $placeholder;
+
+        },
+        $content
+    );
+
+    $content = wp_kses_post( $content );
+
+    if( $styles ){
+        $content = strtr( $content, $styles );
+    }
+
+    return $content;
+
+}
+
+
 function display_featured_next_steps( $args ){
 
     // Args
@@ -1374,7 +1426,7 @@ function display_featured_next_steps( $args ){
             $addl_text = is_array($item) && isset($item['text']) ? $item['text'] : (is_object($item) && isset($item->text) ? $item->text : $item);
             $addl_text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', (string) $addl_text);
             if ( $addl_text !== '' ) {
-                $addl_text = do_shortcode( wp_kses_post( $addl_text ) );
+                $addl_text = do_shortcode( $addl_text );
             }
             if($addl_text != ''){
                 if ( $normalized_heading !== '' && preg_match_all( '/<h[1-6]\b[^>]*>(.*?)<\/h[1-6]>/is', $addl_text, $additional_headings ) ) {

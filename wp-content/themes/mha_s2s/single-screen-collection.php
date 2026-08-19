@@ -57,28 +57,32 @@ $iframe_mode = get_query_var('iframe');
 		<?php endif; ?>
 
 		<div class="wrap normal">
-			<div class="page-intro">
-				<?php the_content(); ?>				
-			</div>
-			
-			<hr />
 
 			<div id="screen-collection-orgs">
 				<?php 
 					foreach($allowed_orgs as $organization):
 						if($organization['organization_id'] == $org): 
 							$org_display = $organization['organization_display_name'];
-							$org_id = $organization['organization_id'];
-							echo '<p class="mb-0"><strong>Organization:</strong> '.$org_display.'</p>';							
+							$org_id = $organization['organization_id'];						
 							$org_approved = true;
 							break;	
 						endif; 
 				 	endforeach;
 					
 					if(!$org):
-						echo '<p class="mb-0">Please use your approve organization URL to access this.</p>';
+						echo '<p class="mb-0">This tool is only available for approved organizations.</p>';
 					elseif($org && !$org_approved):
 						echo '<p class="mb-0">This organization is not approved to access this collection.</p>';
+					else:
+					?>
+
+						<div class="page-intro">
+							<?php the_content(); ?>	
+							<hr />
+							<p class="mb-0"><strong>Organization:</strong> <?php echo $org_display; ?></p>
+						</div>
+						
+					<?php
 					endif;
 				 ?>
 			</div>
