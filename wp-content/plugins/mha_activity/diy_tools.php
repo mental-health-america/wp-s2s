@@ -6,7 +6,7 @@
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsScripts');
 function mhaDiyToolsScripts() {
-	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20260102', true);
+	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20260820', true);
 	//wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), time(), true);
 	wp_localize_script('process_mhaDiyTools', 'do_mhaDiyTools', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
@@ -72,7 +72,7 @@ function mha_diy_resolve_activity_id( $post_id ) {
 
 /**
  * Backfill activity_id_num for diy_responses belonging to one activity.
- * Safe to call on cache-miss rebuilds; only touches rows missing the numeric meta.
+ * Intended for maintenance jobs, not frontend cache-miss rebuilds.
  *
  * @return int Number of posts updated.
  */
@@ -729,6 +729,41 @@ function admin_debug_diy_cache() {
  */
 add_action("wp_ajax_nopriv_getDiyCrowdsource", "getDiyCrowdsource");
 add_action("wp_ajax_getDiyCrowdsource", "getDiyCrowdsource");
+
+/**
+ * Acquire a short, cross-request lock for a crowdsource cache rebuild.
+ *
+ * add_option() is atomic, unlike a get/set transient pair. Expired locks are
+ * removed so an interrupted PHP request cannot block rebuilding indefinitely.
+ */
+function mha_diy_acquire_crowdsource_lock( $activity_id, $ttl = 30 ) {
+    $lock_key = 'mha_diy_crowdsource_lock_' . absint( $activity_id );
+    $expires  = time() + max( 5, absint( $ttl ) );
+
+    if ( add_option( $lock_key, $expires, '', false ) ) {
+        return $lock_key;
+    }
+
+    if ( (int) get_option( $lock_key ) < time() ) {
+        delete_option( $lock_key );
+        if ( add_option( $lock_key, $expires, '', false ) ) {
+            return $lock_key;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Return the current cache generation for one activity.
+ */
+function mha_diy_crowdsource_cache_generation( $activity_id ) {
+    $global_generation   = max( 1, (int) get_option( 'mha_diy_crowdsource_generation', 1 ) );
+    $activity_generation = max( 1, (int) get_option( 'mha_diy_crowdsource_generation_' . absint( $activity_id ), 1 ) );
+
+    return $global_generation . '_' . $activity_generation;
+}
+
 function getDiyCrowdsource(){
     // Cache debugging control - set to false to disable debugging
     $enable_cache_debugging = false;
@@ -772,12 +807,12 @@ function getDiyCrowdsource(){
         $show_next_previews = 0;
     }
     
-    // Better caching strategy using WordPress transients.
-    // Exclude user-specific and pagination params from the key so we score once,
-    // cache the full ranked list, then slice for the requested page.
-    $cache_args = $args;
-    unset($cache_args['current'], $cache_args['page']);
-    $cache_key = 'diy_crowdsource_' . $args['activity_id'] . '_' . md5(serialize($cache_args));
+    // The ranked list only varies by activity. Presentation, pagination, and
+    // the current response are applied after the shared list is retrieved.
+    $activity_id = absint( $args['activity_id'] );
+    $cache_args  = [ 'activity_id' => $activity_id ];
+    $cache_key   = 'diy_crowdsource_' . $activity_id . '_v2_' . mha_diy_crowdsource_cache_generation( $activity_id );
+    $stale_key   = 'diy_crowdsource_' . $activity_id . '_v2_stale';
     // Remove cache group - some cache backends don't handle groups properly
     $cache_group = '';
     
@@ -821,8 +856,25 @@ function getDiyCrowdsource(){
 
     if (!$use_cache) {
         $result['use_cache'] = 'false';
+
+        $rebuild_lock = mha_diy_acquire_crowdsource_lock( $activity_id, 120 );
+        if ( ! $rebuild_lock ) {
+            // Another request is already rebuilding. Serve the last known-good
+            // list instead of stacking another expensive database query.
+            $cached_data = get_transient( $stale_key );
+            if ( false !== $cached_data ) {
+                $responses            = $cached_data['responses'] ?? [];
+                $result['total_pages'] = $cached_data['total_pages'] ?? 0;
+                $result['use_cache']   = 'stale';
+                $use_cache             = true;
+            } else {
+                $result['use_cache']  = 'rebuild_in_progress';
+                $result['retry_after'] = 3;
+                $use_cache            = true;
+            }
+        }
         
-        if ($enable_cache_debugging && current_user_can('manage_options')) {
+        if (!$use_cache && $enable_cache_debugging && current_user_can('manage_options')) {
             // Test cache functionality using transients
             $test_key = 'diy_test_' . time();
             $test_data = ['test' => 'data'];
@@ -849,22 +901,18 @@ function getDiyCrowdsource(){
             ];
         }
         
-        // Get scoring configuration        
-        $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $args['activity_id']);
+        if ( ! $use_cache ) {
+        // Get scoring configuration
+        $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $activity_id);
         $date_old = $crowdsource_scoring_date_range 
             ? date('Y-m-d', strtotime($crowdsource_scoring_date_range))
             : date('Y-m-d', strtotime('30 days ago'));
             
-        $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $args['activity_id']);
-        $activity_id  = absint( $args['activity_id'] );
-        $current_pid  = absint( $args['current'] );
+        $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $activity_id);
+        $complete_bonus = get_field('crowdsource_scoring_complete_answers_bonus', $activity_id);
+        $recency_check = get_field('crowdsource_scoring_recency_bias', $activity_id);
 
         global $wpdb;
-
-        // Ensure legacy serialized activity_id rows have searchable numeric meta.
-        if ( $activity_id ) {
-            mha_diy_backfill_activity_id_num_for_activity( $activity_id, 500 );
-        }
 
         // Indexed activity filter + likes scoped to this activity only (no full thoughts_likes scan).
         // Flagged responses without admin notes are excluded via NOT EXISTS (no giant NOT IN list).
@@ -909,18 +957,22 @@ function getDiyCrowdsource(){
                 AND tf.pid = p.ID
                 AND (an.meta_id IS NULL OR an.meta_value IS NULL OR an.meta_value = '')
             )
-            AND ( %d = 0 OR p.ID != %d )
             ORDER BY recent_like_count DESC, p.post_date DESC
             LIMIT 200",
             (string) $activity_id,
             $date_old,
             (string) $activity_id,
-            $activity_id,
-            $current_pid,
-            $current_pid
+            $activity_id
         );
 
         $all_posts = $wpdb->get_results($posts_query);
+
+        // Prime all response metadata in one query. Subsequent ACF get_field()
+        // calls are served from WordPress's post-meta cache.
+        $post_ids = array_map( 'absint', wp_list_pluck( $all_posts, 'pid' ) );
+        if ( $post_ids ) {
+            update_meta_cache( 'post', $post_ids );
+        }
         
         // Process posts and calculate scores
         $responses_collection = [];
@@ -948,7 +1000,10 @@ function getDiyCrowdsource(){
                 'args' => $args,
                 'date' => $response_data['date'],
                 'total_questions' => $total_questions,
-                'crowdsource_scoring_id' => $args['activity_id']
+                'crowdsource_scoring_id' => $activity_id,
+                'skip_activity_check' => true,
+                'complete_bonus' => $complete_bonus,
+                'recency_check' => $recency_check
             ];
             
             $display_response = get_diy_response_display($response_args);
@@ -962,28 +1017,37 @@ function getDiyCrowdsource(){
             return $b['score'] <=> $a['score'];
         });
         
-        // Calculate pagination from the full ranked list
-        $total_posts = count($responses);
-        $result['total_pages'] = max(1, ceil($total_posts / $per_page));
-        
         // Cache the full ranked list (pagination is applied after cache get/set)
         $cache_data = [
             'responses' => $responses,
-            'total_pages' => $result['total_pages'],
             'cached_at' => current_time('mysql'),
-            'cache_version' => '1.2'
+            'cache_version' => '2.0'
         ];
         
         $cache_set_result = set_transient($cache_key, $cache_data, DAY_IN_SECONDS);
+        set_transient( $stale_key, $cache_data, 7 * DAY_IN_SECONDS );
+        delete_option( $rebuild_lock );
         if ($enable_cache_debugging && current_user_can('manage_options')) {
             $result['cache_debug']['cache_set_result'] = $cache_set_result;
             $result['cache_debug']['cache_data_size'] = strlen(serialize($cache_data));
         }
+        }
+    }
+
+    // A response should not see itself, but this must not fragment the shared cache.
+    $current_pid = absint( $args['current'] );
+    if ( $current_pid ) {
+        $responses = array_values( array_filter(
+            $responses,
+            static function ( $response ) use ( $current_pid ) {
+                return absint( $response['pid'] ?? 0 ) !== $current_pid;
+            }
+        ) );
     }
 
     // Apply pagination after cache hit or rebuild so page flips share one scored list
     $total_posts = count($responses);
-    $result['total_pages'] = max(1, (int) ( $result['total_pages'] ?: ceil($total_posts / $per_page) ));
+    $result['total_pages'] = max( 1, (int) ceil( $total_posts / $per_page ) );
     $next_page_start = $args['page'] * $per_page;
     $result['has_next_page'] = ($next_page_start < $total_posts);
     $start_index = ($args['page'] - 1) * $per_page;
@@ -1083,9 +1147,9 @@ function build_crowdsource_html($responses, $args, $activity_questions, $user_li
             if (current_user_can('edit_posts')) {
                 $html .= '<div class="col-12 admin-debug px-0 pt-4 small caps bold">';
                 $html .= 'Admin Debug:<br />';
-                $html .= '&bull; Activity ID: ' . get_field('activity_id', $r['pid'])->ID . '<br />';
+                $html .= '&bull; Activity ID: ' . absint( $r['activity_id'] ?? 0 ) . '<br />';
                 $html .= '&bull; Response ID: ' . $r['pid'] . '<br />';
-                $html .= '&bull; Date Started: ' . get_field('started', $r['pid']) . '<br />';
+                $html .= '&bull; Date Started: ' . esc_html( $r['started'] ?? '' ) . '<br />';
                 $html .= '&bull; Question Index: ' . $qid . '<br /><br />';
                 $html .= '&bull; True Likes: ' . $r['true_likes'] . '<br />';
                 $html .= '&bull; Modified Likes: ' . $r['likes'] . '<br />';
@@ -1180,22 +1244,31 @@ function get_diy_response_display( $args ) {
         'args'              => array(),
         'date'              => null,
         'total_questions'   => array(),
-        'crowdsource_scoring_id' => 'options'
+        'crowdsource_scoring_id' => 'options',
+        'skip_activity_check' => false,
+        'complete_bonus'    => null,
+        'recency_check'     => null,
     );    
     $args = wp_parse_args( $args, $defaults ); 
 
     // Scoring options
-    $complete_bonus = get_field('crowdsource_scoring_complete_answers_bonus', $args['crowdsource_scoring_id']);
-    $recency_check = get_field('crowdsource_scoring_recency_bias', $args['crowdsource_scoring_id']);
+    $complete_bonus = null !== $args['complete_bonus']
+        ? $args['complete_bonus']
+        : get_field('crowdsource_scoring_complete_answers_bonus', $args['crowdsource_scoring_id']);
+    $recency_check = null !== $args['recency_check']
+        ? $args['recency_check']
+        : get_field('crowdsource_scoring_recency_bias', $args['crowdsource_scoring_id']);
 
     $response = [];
 
     // Confirm the crowdthought is part of the activity
-    $post_act_id = get_field('activity_id', $args['pid']);
+    $post_act_id = $args['skip_activity_check'] ? null : get_field('activity_id', $args['pid']);
 
-    if($args['pid'] && $post_act_id && $post_act_id->ID == $args['args']['activity_id']){
+    if($args['pid'] && ( $args['skip_activity_check'] || ( $post_act_id && $post_act_id->ID == $args['args']['activity_id'] ) )){
 
         $response['pid'] = $args['pid'];
+        $response['activity_id'] = absint( $args['args']['activity_id'] ?? 0 );
+        $response['started'] = get_field('started', $args['pid']);
         $response['true_likes'] = $args['true_likes'];
         $response['likes'] = $args['likes'];
         $response['qresponses'] = get_field('response', $args['pid']);
@@ -1217,7 +1290,7 @@ function get_diy_response_display( $args ) {
             }
         }
 
-        $total_answers_bonus = $complete_bonus ? get_field('crowdsource_scoring_complete_answers_bonus', $args['crowdsource_scoring_id']) : 0;
+        $total_answers_bonus = $complete_bonus ?: 0;
         $response['score'] = ($response['total_answers'] == $args['total_questions']) ? $args['likes'] + $total_answers_bonus : $args['likes'];
 
         // Additional Recency Bias calculations
@@ -1279,22 +1352,15 @@ function mhaDiyGetConfirmation() {
  * Invalidate crowdsource cache for a specific activity
  */
 function invalidate_diy_crowdsource_cache($activity_id) {
-    // Since we're not using cache groups, we need to clear all DIY cache entries
-    // This is a more aggressive approach but ensures cache invalidation works
-    global $wpdb;
-    
-    // Get all cache keys that start with our DIY prefix
-    $cache_keys = $wpdb->get_col($wpdb->prepare("
-        SELECT option_name 
-        FROM {$wpdb->options} 
-        WHERE option_name LIKE %s
-        AND option_name LIKE '_transient_%'
-    ", 'diy_crowdsource_' . $activity_id . '_%'));
-    
-    foreach ($cache_keys as $cache_key) {
-        $key = str_replace('_transient_', '', $cache_key);
-        delete_transient($key);
+    $activity_id = absint( $activity_id );
+    if ( ! $activity_id ) {
+        return;
     }
+
+    // Versioned keys work whether transients are stored in wp_options or an
+    // external object cache. Keep the static stale key for fail-soft serving.
+    $generation_key = 'mha_diy_crowdsource_generation_' . $activity_id;
+    update_option( $generation_key, max( 1, (int) get_option( $generation_key, 1 ) ) + 1, false );
 }
 
 /**
@@ -1302,6 +1368,9 @@ function invalidate_diy_crowdsource_cache($activity_id) {
  */
 function clear_all_diy_crowdsource_caches() {
     global $wpdb;
+
+    $global_generation = max( 1, (int) get_option( 'mha_diy_crowdsource_generation', 1 ) );
+    update_option( 'mha_diy_crowdsource_generation', $global_generation + 1, false );
     
     // More efficient approach: directly clear all DIY transients
     $cache_keys = $wpdb->get_col("
@@ -1351,14 +1420,22 @@ function invalidate_diy_crowdsource_cache_on_save($post_id, $post) {
 }
 
 /**
- * Hook to invalidate cache when likes are added/removed
+ * Debounce cache invalidation when likes are added/removed.
  */
 add_action('wp_ajax_thoughtLike', 'invalidate_diy_crowdsource_cache_on_like', 1);
 add_action('wp_ajax_nopriv_thoughtLike', 'invalidate_diy_crowdsource_cache_on_like', 1);
 function invalidate_diy_crowdsource_cache_on_like() {
-    // This will be called before the like is processed
-    // We'll invalidate all caches to be safe
-    clear_all_diy_crowdsource_caches();
+    parse_str( wp_unslash( $_POST['data'] ?? '' ), $data );
+    $activity_id = absint( $data['ref_pid'] ?? 0 );
+    if ( ! $activity_id ) {
+        return;
+    }
+
+    $debounce_key = 'diy_crowdsource_like_invalidation_' . $activity_id;
+    if ( false === get_transient( $debounce_key ) ) {
+        invalidate_diy_crowdsource_cache( $activity_id );
+        set_transient( $debounce_key, 1, 10 * MINUTE_IN_SECONDS );
+    }
 }
 
 /**

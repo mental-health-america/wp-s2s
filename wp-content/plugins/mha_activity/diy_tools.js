@@ -373,6 +373,17 @@
 				},
 				success: function( results ) {
 					var res = JSON.parse(results);
+
+					// A different request is rebuilding the shared ranked list.
+					// Keep the loader visible and retry without starting another rebuild.
+					if (res.retry_after) {
+						$diyParent.find('.crowdthoughtsContent').attr('data-loaded', 'rebuilding');
+						window.setTimeout(function() {
+							getMhaDiyCrowdsource(load_page, diyParentRaw);
+						}, parseInt(res.retry_after, 10) * 1000);
+						return;
+					}
+
 					$diyParent.find('.crowdthoughtsContent').removeClass('loading');
 					
 					// The initial population
