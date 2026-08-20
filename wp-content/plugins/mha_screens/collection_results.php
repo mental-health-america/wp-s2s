@@ -476,3 +476,273 @@ function mha_enqueue_collection_results_script() {
 		true
 	);
 }
+
+/**
+ * Sample results_modules and copy for the demo screen collection.
+ *
+ * @return array{modules:array<int,array<string,mixed>>,copy:array<string,mixed>,resource_ids:int[],resource_titles:string[]}
+ */
+function mha_example_collection_results_seed_payload() {
+	return array(
+		'modules'          => array(
+			array(
+				'module_label'             => 'Social Phobia',
+				'symptom_label'            => 'feeling very nervous with groups of children or adults',
+				'form_page_number'         => 1,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 2,
+				'recommended_screen'       => 251896,
+				'recommended_screen_title' => 'Social Anxiety Test',
+			),
+			array(
+				'module_label'             => 'Separation Anxiety',
+				'symptom_label'            => 'trouble being away from home or caregivers',
+				'form_page_number'         => 2,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 7,
+				'recommended_screen'       => '',
+				'recommended_screen_title' => '',
+			),
+			array(
+				'module_label'             => 'Agoraphobia',
+				'symptom_label'            => 'avoiding places where it feels hard to escape or get help',
+				'form_page_number'         => 3,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 8,
+				'recommended_screen'       => '',
+				'recommended_screen_title' => '',
+			),
+			array(
+				'module_label'             => 'Panic Attacks',
+				'symptom_label'            => 'sudden waves of fear or panic',
+				'form_page_number'         => 4,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 4,
+				'recommended_screen'       => '',
+				'recommended_screen_title' => '',
+			),
+			array(
+				'module_label'             => 'Generalized Anxiety',
+				'symptom_label'            => 'feeling nervous a lot of the time',
+				'form_page_number'         => 5,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 4,
+				'recommended_screen'       => 3165,
+				'recommended_screen_title' => 'Anxiety Test',
+			),
+			array(
+				'module_label'             => 'Specific Phobia',
+				'symptom_label'            => 'intense fear of a specific thing or situation',
+				'form_page_number'         => 6,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 7,
+				'recommended_screen'       => '',
+				'recommended_screen_title' => '',
+			),
+			array(
+				'module_label'             => 'OCD',
+				'symptom_label'            => 'unwanted thoughts or repeating habits that are hard to stop',
+				'form_page_number'         => 7,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 9,
+				'recommended_screen'       => 245905,
+				'recommended_screen_title' => 'OCD Test',
+			),
+			array(
+				'module_label'             => 'PTSD',
+				'symptom_label'            => 'upsetting memories or feeling on edge after something scary',
+				'form_page_number'         => 8,
+				'positive_score_threshold' => 4,
+				'maximum_score'            => 17,
+				'recommended_screen'       => 3176,
+				'recommended_screen_title' => 'PTSD Test',
+			),
+			array(
+				'module_label'             => 'Eating Disorder',
+				'symptom_label'            => 'worrying a lot about food, weight, or body shape',
+				'form_page_number'         => 9,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 4,
+				'recommended_screen'       => 3175,
+				'recommended_screen_title' => 'Eating Disorder Test',
+			),
+			array(
+				'module_label'             => 'Depression',
+				'symptom_label'            => 'feeling down, hopeless, or uninterested most days',
+				'form_page_number'         => 10,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 7,
+				'recommended_screen'       => 22,
+				'recommended_screen_title' => 'Depression Test',
+			),
+			array(
+				'module_label'             => 'Mania',
+				'symptom_label'            => 'unusually high energy, racing thoughts, or needing much less sleep',
+				'form_page_number'         => 11,
+				'positive_score_threshold' => 1,
+				'maximum_score'            => 5,
+				'recommended_screen'       => 3168,
+				'recommended_screen_title' => 'Bipolar Test',
+			),
+		),
+		'copy'             => array(
+			'positive_summary_prefix'     => 'Here are some things you seem to be struggling with right now:',
+			'negative_summary_prefix'     => "Here are some things you don't seem to be struggling with right now:",
+			'empty_positive_message'      => "Based on your answers, you don't seem to be struggling with the areas we asked about right now. Still, it's okay to check in with someone you trust if anything feels off.",
+			'share_results_message'       => 'Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.',
+			'recommended_screens_heading' => 'Screens to take next',
+			'show_recommended_screens'    => 1,
+		),
+		'resource_ids'     => array( 125368, 86760, 70636 ),
+		'resource_titles'  => array(
+			'What does peer support look like?',
+			'Should I go to therapy?',
+			'Am I broken?',
+		),
+	);
+}
+
+/**
+ * Resolve a published post ID by ID first, then exact title.
+ *
+ * @param int    $post_id   Preferred ID.
+ * @param string $title     Fallback title.
+ * @param string $post_type Post type.
+ * @return int
+ */
+function mha_example_collection_resolve_post_id( $post_id, $title, $post_type ) {
+	$post_id = absint( $post_id );
+	if ( $post_id && get_post_type( $post_id ) === $post_type ) {
+		return $post_id;
+	}
+	$title = trim( (string) $title );
+	if ( $title === '' ) {
+		return 0;
+	}
+	$found = get_posts(
+		array(
+			'post_type'      => $post_type,
+			'post_status'    => array( 'publish', 'draft', 'private' ),
+			'title'          => $title,
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+		)
+	);
+	return ! empty( $found[0] ) ? (int) $found[0] : 0;
+}
+
+/**
+ * Write sample collection results fields onto a screen-collection post.
+ *
+ * @param int  $collection_id Collection post ID.
+ * @param bool $overwrite     Replace existing results_modules when true.
+ * @return array{ok:bool,message:string,collection_id:int,modules:int,resources:int}
+ */
+function mha_seed_example_collection_results( $collection_id, $overwrite = false ) {
+	$collection_id = absint( $collection_id );
+	$empty         = array(
+		'ok'             => false,
+		'message'        => '',
+		'collection_id'  => $collection_id,
+		'modules'        => 0,
+		'resources'      => 0,
+	);
+
+	if ( ! $collection_id || get_post_type( $collection_id ) !== 'screen-collection' ) {
+		$empty['message'] = 'Collection post not found.';
+		return $empty;
+	}
+	if ( ! function_exists( 'update_field' ) ) {
+		$empty['message'] = 'ACF is not available.';
+		return $empty;
+	}
+
+	$existing = get_field( 'results_modules', $collection_id );
+	if ( ! $overwrite && is_array( $existing ) && ! empty( $existing ) ) {
+		$empty['ok']      = true;
+		$empty['message'] = 'Results modules already exist. Re-run with force=1 to overwrite.';
+		$empty['modules'] = count( $existing );
+		return $empty;
+	}
+
+	$payload = mha_example_collection_results_seed_payload();
+	$modules = array();
+	foreach ( $payload['modules'] as $row ) {
+		$rec_id = mha_example_collection_resolve_post_id(
+			isset( $row['recommended_screen'] ) ? $row['recommended_screen'] : 0,
+			isset( $row['recommended_screen_title'] ) ? $row['recommended_screen_title'] : '',
+			'screen'
+		);
+		$modules[] = array(
+			'module_label'             => $row['module_label'],
+			'symptom_label'            => $row['symptom_label'],
+			'form_page_number'         => $row['form_page_number'],
+			'positive_score_threshold' => $row['positive_score_threshold'],
+			'maximum_score'            => $row['maximum_score'],
+			'recommended_screen'       => $rec_id ? $rec_id : '',
+		);
+	}
+
+	update_field( 'results_modules', $modules, $collection_id );
+	foreach ( $payload['copy'] as $name => $value ) {
+		update_field( $name, $value, $collection_id );
+	}
+
+	$resources = array();
+	foreach ( $payload['resource_ids'] as $i => $rid ) {
+		$title = isset( $payload['resource_titles'][ $i ] ) ? $payload['resource_titles'][ $i ] : '';
+		$resolved = mha_example_collection_resolve_post_id( $rid, $title, 'article' );
+		if ( ! $resolved ) {
+			$resolved = mha_example_collection_resolve_post_id( $rid, $title, 'page' );
+		}
+		if ( $resolved ) {
+			$resources[] = $resolved;
+		}
+	}
+	if ( ! empty( $resources ) ) {
+		update_field( 'results_resources', $resources, $collection_id );
+	}
+
+	return array(
+		'ok'            => true,
+		'message'       => 'Seeded sample collection results fields.',
+		'collection_id' => $collection_id,
+		'modules'       => count( $modules ),
+		'resources'     => count( $resources ),
+	);
+}
+
+/**
+ * Admin flag: visit /wp-admin/?mha_seed_collection_results=1 while logged in as an admin.
+ * Optional: &id=123 to target a specific collection, &force=1 to overwrite existing modules.
+ */
+function mha_maybe_seed_example_collection_results() {
+	if ( ! is_admin() || ! current_user_can( 'manage_options' ) || empty( $_GET['mha_seed_collection_results'] ) ) {
+		return;
+	}
+
+	$requested = absint( wp_unslash( $_GET['id'] ?? 0 ) );
+	if ( ! $requested ) {
+		$flag = wp_unslash( $_GET['mha_seed_collection_results'] );
+		$requested = is_numeric( $flag ) ? absint( $flag ) : 257658;
+	}
+
+	$collection_id = mha_example_collection_resolve_post_id( $requested, 'Example Collection', 'screen-collection' );
+	$overwrite     = ! empty( $_GET['force'] );
+	$result        = mha_seed_example_collection_results( $collection_id, $overwrite );
+
+	wp_die(
+		esc_html(
+			sprintf(
+				'%s Collection ID %d. Modules: %d. Resources: %d.',
+				$result['message'],
+				$result['collection_id'],
+				$result['modules'],
+				$result['resources']
+			)
+		),
+		'Seed collection results',
+		array( 'response' => $result['ok'] ? 200 : 400 )
+	);
+}
+add_action( 'admin_init', 'mha_maybe_seed_example_collection_results' );
