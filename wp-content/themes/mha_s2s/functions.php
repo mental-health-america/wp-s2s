@@ -880,6 +880,48 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 }
 
 /**
+ * Extra Submit on earlier pages of a screen collection's skip-around (full-pager-links) form.
+ * Hidden until JS confirms every visible question is answered; then it uses the same
+ * GF submission path as the last-page Submit (target page 0).
+ *
+ * @param string $button Next button HTML.
+ * @param array  $form   GF form.
+ * @return string
+ */
+add_filter( 'gform_next_button', 'mha_early_submit_beside_next', 10, 2 );
+function mha_early_submit_beside_next( $button, $form ) {
+	if ( ! is_singular( 'screen-collection' ) ) {
+		return $button;
+	}
+	if ( empty( $form['cssClass'] ) || ! str_contains( (string) $form['cssClass'], 'full-pager-links' ) ) {
+		return $button;
+	}
+	if ( ! class_exists( 'GFFormDisplay' ) || $button === '' ) {
+		return $button;
+	}
+	if ( ! preg_match( '/gform_next_button_(\d+)_(\d+)/', $button, $m ) ) {
+		return $button;
+	}
+
+	$form_id  = (int) $m[1];
+	$field_id = (int) $m[2];
+	$gf_button = rgar( $form, 'button', array( 'type' => 'text' ) );
+	$label     = rgar( $gf_button, 'text', __( 'Submit', 'gravityforms' ) );
+
+	$early = GFFormDisplay::get_form_button(
+		$form_id,
+		'gform_submit_button_' . $form_id . '_early_' . $field_id,
+		$gf_button,
+		$label,
+		'gform_button mha-early-submit',
+		$label,
+		0
+	);
+
+	return $button . ' ' . $early;
+}
+
+/**
  * Gravity Forms <form> tag overrides
  */
 add_filter( 'gform_form_tag', function ( $form_tag, $form ) {

@@ -549,7 +549,38 @@ article {
                     }
                 }
 
+                // Screen collections put Submit beside Next once every page is
+                // answered, so the two need to read differently. Covers the
+                // last page's Submit as well, to stay consistent.
+                body.single-screen-collection & {
+                    &.gform_next_button {
+                        background-color: $teal;
+
+                        &:hover {
+                            background-color: $tealDark;
+                        }
+                    }
+
+                    &.gform_button {
+                        background-color: $orange;
+
+                        &:hover {
+                            background-color: $orangeDark;
+                        }
+                    }
+                }
+
+                &.mha-early-submit {
+                    display: none;
+                    float: none;
+                    margin-left: 12px;
+                }
+
             }
+        }
+
+        form.mha-form-ready-to-submit .gform_page_footer .button.mha-early-submit {
+            display: inline-block;
         }
 
         // Validation

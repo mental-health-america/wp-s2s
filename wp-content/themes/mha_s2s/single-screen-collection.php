@@ -3,26 +3,27 @@
  * Screen Collection Template
  */
 
-get_header();
-$layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
-$wrap_width = get_field('page_content_width') ? get_field('page_content_width') : 'normal';
+$layout = get_layout_array( get_query_var( 'layout' ) ); // Used for A/B testing
+$wrap_width = get_field( 'page_content_width' ) ? get_field( 'page_content_width' ) : 'normal';
 
 $screen_collection_id = get_the_ID();
-$org = get_query_var('org') ? get_query_var('org') : false;
-$allowed_orgs = get_field('allowed_organizations');
+$org = get_query_var( 'org' ) ? get_query_var( 'org' ) : false;
+$allowed_orgs = get_field( 'allowed_organizations' );
+if ( ! is_array( $allowed_orgs ) ) {
+	$allowed_orgs = array();
+}
 $org_display = '';
 $org_id = '';
-
 $org_approved = false;
+$org_restricted = ! empty( $allowed_orgs );
+
 $form_id = function_exists( 'mha_screen_collection_get_form_id' )
 	? mha_screen_collection_get_form_id( $screen_collection_id )
 	: absint( get_field( 'form' ) );
-$screen_order = get_field('force_screen_order');
-$require_user_id = get_field('ask_for_user_id');
-$disable_prescreen = (bool) get_field('disable_prescreen');
+$disable_prescreen = (bool) get_field( 'disable_prescreen' );
 
-$referrer =  get_query_var('ref');
-$iframe_mode = get_query_var('iframe');
+$referrer = get_query_var( 'ref' );
+$iframe_mode = get_query_var( 'iframe' );
 
 $taking_form = false;
 if ( $form_id && function_exists( 'mha_screen_collection_get_sc_request_context' ) ) {
@@ -34,20 +35,35 @@ if ( $form_id && function_exists( 'mha_screen_collection_get_sc_request_context'
 if ( ! $taking_form && $form_id && ! empty( $_POST['gform_submit'] ) && (int) $_POST['gform_submit'] === (int) $form_id ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 	$taking_form = true;
 }
+
+// No allowed-orgs list: skip org lock, user ID, and prescreen; open the form at page 1.
+if ( ! $taking_form && ! $org_restricted && $form_id && ( ! isset( $_SERVER['REQUEST_METHOD'] ) || 'POST' !== $_SERVER['REQUEST_METHOD'] ) ) {
+	$public_start = function_exists( 'mha_screen_collection_form_start_url' )
+		? mha_screen_collection_form_start_url( $screen_collection_id, $org ? (string) $org : '', $referrer, (bool) $iframe_mode, 1 )
+		: '';
+	if ( $public_start ) {
+		$public_start = set_url_scheme( $public_start, is_ssl() ? 'https' : 'http' );
+		wp_safe_redirect( $public_start );
+		exit;
+	}
+	$taking_form = true;
+}
+
+get_header();
 ?>
 
 	<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
-		<?php if(in_array('screen_header_v1', $layout)): ?>
+		<?php if ( in_array( 'screen_header_v1', $layout ) ) : ?>
 			<div class="wrap normal">
-				<div class="page-heading plain">			
+				<div class="page-heading plain">
 					<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
 				</div>
 			</div>
-		<?php else: ?>
-			<div class="page-heading mint bar">	
-			<div class="wrap <?php echo $wrap_width; ?>">		
-				<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>			
+		<?php else : ?>
+			<div class="page-heading mint bar">
+			<div class="wrap <?php echo $wrap_width; ?>">
+				<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
 			</div>
 			</div>
 		<?php endif; ?>
@@ -68,35 +84,35 @@ if ( ! $taking_form && $form_id && ! empty( $_POST['gform_submit'] ) && (int) $_
 			<?php else : ?>
 
 			<div id="screen-collection-orgs">
-				<?php 
-					foreach($allowed_orgs as $organization):
-						if($organization['organization_id'] == $org): 
-							$org_display = $organization['organization_display_name'];
-							$org_id = $organization['organization_id'];						
-							$org_approved = true;
-							break;	
-						endif; 
-				 	endforeach;
-					
-					if(!$org):
-						echo '<p class="mb-0">This tool is only available for approved organizations.</p>';
-					elseif($org && !$org_approved):
-						echo '<p class="mb-0">This organization is not approved to access this collection.</p>';
-					else:
+				<?php
+				foreach ( $allowed_orgs as $organization ) :
+					if ( $organization['organization_id'] == $org ) :
+						$org_display = $organization['organization_display_name'];
+						$org_id = $organization['organization_id'];
+						$org_approved = true;
+						break;
+					endif;
+				endforeach;
+
+				if ( ! $org ) :
+					echo '<p class="mb-0">This tool is only available for approved organizations.</p>';
+				elseif ( $org && ! $org_approved ) :
+					echo '<p class="mb-0">This organization is not approved to access this collection.</p>';
+				else :
 					?>
 
 						<div class="page-intro">
-							<?php the_content(); ?>	
+							<?php the_content(); ?>
 							<hr />
 							<p class="mb-0"><strong>Organization:</strong> <?php echo $org_display; ?></p>
 						</div>
-						
+
 					<?php
-					endif;
-				 ?>
+				endif;
+				?>
 			</div>
 
-			<?php if($org_approved): ?>
+			<?php if ( $org_approved ) : ?>
 				<div class="spinner-border my-2" role="status">
 					<span class="sr-only">Loading...</span>
 				</div>
@@ -162,11 +178,11 @@ if ( ! $taking_form && $form_id && ! empty( $_POST['gform_submit'] ) && (int) $_
 					</div>
 					<?php
 				endif;
-				endif;
+			endif;
 			endif;
 			?>
 		</div>
-		
+
 
 	</article>
 
