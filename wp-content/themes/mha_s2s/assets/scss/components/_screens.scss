@@ -782,6 +782,15 @@ ol.full-progress-bar {
             @include radius(50%);
         }
 
+        .gpmpn-page-link {
+            padding-top: 40px;
+            position: relative;
+            z-index: 30;
+            top: -40px;
+            text-align: center;
+            display: block;
+        }
+
         &.active {
             font-weight: 700;
             &:before {
@@ -869,6 +878,177 @@ ol.full-progress-bar.prescreen-section-nav {
         &:hover,
         &:focus {
             text-decoration: underline;
+        }
+    }
+}
+
+/*
+ * Stacked progress steps
+ * Screens with more than a handful of labelled pages crush the horizontal bar,
+ * so below this width it collapses into a summary button (current page name +
+ * "Page X of Y") that expands the full list vertically.
+ */
+
+.mha-progress-steps-summary {
+    display: none;
+}
+
+// The list keeps Bootstrap's .collapse class at every width, so the horizontal
+// bar has to opt back out of `.collapse:not(.show){display:none}`.
+.mha-progress-steps {
+    ol.full-progress-bar {
+        display: flex;
+    }
+}
+
+@media only screen and (max-width: 1080px) {
+
+    .mha-progress-steps {
+        padding: 0 0 40px 0;
+    }
+
+    .mha-progress-steps-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 14px 20px;
+        border: 2px solid $mint;
+        background: $white;
+        color: $darkTeal;
+        text-align: left;
+        text-transform: none;
+        letter-spacing: 0;
+        word-spacing: normal;
+        @include montserrat(400);
+        @include radius(50px);
+
+        &:hover,
+        &:active,
+        &:focus {
+            background: $mint;
+            color: $darkTeal;
+            border: 2px solid $mint;
+        }
+
+        .mha-progress-steps-current {
+            display: block;
+            font-size: 1.05em;
+            line-height: 1.25em;
+            @include montserrat(700);
+        }
+
+        .mha-progress-steps-count {
+            display: block;
+            margin-top: 3px;
+            font-size: .85em;
+            line-height: 1.25em;
+        }
+
+        // Chevron, points down when collapsed and up when expanded
+        .mha-progress-steps-caret {
+            flex: 0 0 auto;
+            width: 11px;
+            height: 11px;
+            margin: 0 3px 6px 15px;
+            border-right: 3px solid $darkTeal;
+            border-bottom: 3px solid $darkTeal;
+            transform: rotate(45deg);
+            @include transitions(transform 150ms ease);
+        }
+
+        &[aria-expanded="true"] {
+            .mha-progress-steps-caret {
+                margin-bottom: 0;
+                margin-top: 6px;
+                transform: rotate(-135deg);
+            }
+        }
+    }
+
+    .mha-progress-steps {
+
+        // Collapsed by default. Bootstrap animates height, so the gap above the
+        // first step lives on that item rather than as padding here, otherwise
+        // border-box leaves it behind at height 0.
+        ol.full-progress-bar {
+            display: none;
+            width: 100%;
+            margin: 0 0 0 20px;
+            padding: 0;
+            text-align: left;
+
+            &.show,
+            &.collapsing {
+                display: block;
+            }
+
+            // Horizontal connector and its white end caps are replaced by a
+            // vertical connector drawn per list item below.
+            &:before {
+                display: none;
+            }
+
+            // Circles stay 30px, so labels clear them at 45px and the connector
+            // sits on their 15px centre line.
+            li {
+                display: block;
+                flex: none;
+                min-height: 30px;
+                margin: 0;
+                padding: 0 0 20px 45px;
+                text-align: left;
+                font-size: .95em;
+                line-height: 1.3em;
+
+                &:before {
+                    left: 0;
+                    right: auto;
+                    margin: 0;
+                }
+
+                // Vertical connector, from this circle down into the next one
+                &:after {
+                    content: "";
+                    display: block;
+                    position: absolute;
+                    z-index: 1;
+                    top: 15px;
+                    bottom: -15px;
+                    left: 13px;
+                    right: auto;
+                    width: 4px;
+                    height: auto;
+                    margin: 0;
+                    background: $darkTeal;
+                }
+
+                &:first-child {
+                    padding-top: 20px;
+
+                    &:before {
+                        top: 20px;
+                    }
+
+                    &:after {
+                        top: 35px;
+                    }
+                }
+
+                &:last-child {
+                    padding-bottom: 0;
+
+                    &:after {
+                        display: none;
+                    }
+                }
+
+                .gpmpn-page-link {
+                    top: 0;
+                    padding: 4px 0 0 0;
+                    text-align: left;
+                }
+            }
         }
     }
 }

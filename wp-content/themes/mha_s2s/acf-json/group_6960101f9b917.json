@@ -235,7 +235,8 @@
             "allow_in_bindings": 0,
             "rows": 2,
             "placeholder": "",
-            "new_lines": ""
+            "new_lines": "",
+            "acfe_textarea_code": 0
         },
         {
             "key": "field_69b8a1010002",
@@ -257,7 +258,8 @@
             "allow_in_bindings": 0,
             "rows": 2,
             "placeholder": "",
-            "new_lines": ""
+            "new_lines": "",
+            "acfe_textarea_code": 0
         },
         {
             "key": "field_69b8a1010003",
@@ -279,11 +281,12 @@
             "allow_in_bindings": 0,
             "rows": 3,
             "placeholder": "",
-            "new_lines": ""
+            "new_lines": "",
+            "acfe_textarea_code": 0
         },
         {
             "key": "field_69b8a1010004",
-            "label": "Share Results Message",
+            "label": "Next Steps language",
             "name": "share_results_message",
             "aria-label": "",
             "type": "textarea",
@@ -297,6 +300,7 @@
             },
             "relevanssi_exclude": 0,
             "default_value": "Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.",
+            "acfe_textarea_code": 0,
             "maxlength": "",
             "allow_in_bindings": 0,
             "rows": 3,
@@ -536,11 +540,10 @@
     "display_title": "",
     "allow_ai_access": false,
     "ai_description": "",
-    "acfe_autosync": [
-        "json"
-    ],
-    "acfe_form": 0,
-    "acfe_meta": "",
-    "acfe_note": "",
-    "modified": 1778019600
+    "acfe": {
+        "autosync": [
+            "json"
+        ]
+    },
+    "modified": 1788972457
 }

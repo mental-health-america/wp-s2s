@@ -808,29 +808,76 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 		}
 	}
 
-	$out = $back_html . '<ol class="full-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">';
+	// Unlabelled GF pages are never rendered, so "Page X of Y" counts the visible
+	// steps rather than the raw GF page numbers.
+	$steps = array();
 	foreach ( $form_pages as $k => $info ) {
-		$v           = $info['label'];
-		if($v != ''){
-			$pager_class = '';
-			if ( $current_page === $k ) {
-				$pager_class = 'active';
-			} elseif ( $current_page > $k ) {
-				$pager_class = 'filled';
-			} else {
-				$pager_class = 'empty';
-			}
-			$li_classes   = array( 'step-' . (string) (int) $k, $pager_class );
-			if ( ! empty( $info['not_interested'] ) ) {
-				$li_classes[] = 'not-interested';
-			}
-			$li_class   = implode( ' ', array_filter( $li_classes ) );
-			$page_num   = (int) $k;
-			$label_link = '<a href="' . esc_attr( '#' . (string) $page_num ) . '" class="gpmpn-page-link">' . $v . '</a>';
-			$out       .= '<li class="' . esc_attr( $li_class ) . '"><span>' . $label_link . '</span></li>';
+		if ( $info['label'] === '' ) {
+			continue;
+		}
+		$steps[] = array(
+			'page'           => (int) $k,
+			'label'          => $info['label'],
+			'not_interested' => ! empty( $info['not_interested'] ),
+		);
+	}
+
+	if ( empty( $steps ) ) {
+		return $back_html;
+	}
+
+	$current_step  = 0;
+	$current_label = '';
+	foreach ( $steps as $i => $step ) {
+		if ( $step['page'] === $current_page ) {
+			$current_step  = $i + 1;
+			$current_label = $step['label'];
+			break;
 		}
 	}
-	$out .= '</ol>';
+
+	$list_id = 'mha-progress-steps-' . (int) rgar( $form, 'id' );
+
+	// Summary is the accordion toggle below the stacking breakpoint and hidden above it.
+	// Bootstrap collapse handles the expand/collapse and keeps aria-expanded in sync.
+	$summary  = '<button type="button" class="mha-progress-steps-summary collapsed" data-toggle="collapse" data-target="#' . esc_attr( $list_id ) . '" aria-expanded="false" aria-controls="' . esc_attr( $list_id ) . '">';
+	$summary .= '<span class="mha-progress-steps-summary-text">';
+	if ( $current_label !== '' ) {
+		$summary .= '<span class="mha-progress-steps-current">' . esc_html( wp_strip_all_tags( $current_label ) ) . '</span>';
+	}
+	if ( $current_step > 0 ) {
+		$summary .= '<span class="mha-progress-steps-count">' . esc_html(
+			sprintf(
+				/* translators: 1: current page number, 2: total number of pages. */
+				__( 'Page %1$d of %2$d', 'mha_s2s' ),
+				$current_step,
+				count( $steps )
+			)
+		) . '</span>';
+	}
+	$summary .= '</span>';
+	$summary .= '<span class="mha-progress-steps-caret" aria-hidden="true"></span>';
+	$summary .= '</button>';
+
+	$out = $back_html . '<div class="mha-progress-steps">' . $summary;
+	$out .= '<ol id="' . esc_attr( $list_id ) . '" class="full-progress-bar collapse clearfix step-' . $current_page . '-of-' . $page_count . '">';
+	foreach ( $steps as $step ) {
+		$k = $step['page'];
+		if ( $current_page === $k ) {
+			$pager_class = 'active';
+		} elseif ( $current_page > $k ) {
+			$pager_class = 'filled';
+		} else {
+			$pager_class = 'empty';
+		}
+		$li_classes = array( 'step-' . (string) $k, $pager_class );
+		if ( $step['not_interested'] ) {
+			$li_classes[] = 'not-interested';
+		}
+		$label_link = '<a href="' . esc_attr( '#' . (string) $k ) . '" class="gpmpn-page-link">' . $step['label'] . '</a>';
+		$out       .= '<li class="' . esc_attr( implode( ' ', $li_classes ) ) . '">' . $label_link . '</li>';
+	}
+	$out .= '</ol></div>';
 
 	return $out;
 }

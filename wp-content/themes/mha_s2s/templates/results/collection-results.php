@@ -34,8 +34,9 @@ $rec_heading     = isset( $settings['recommended_screens_heading'] ) ? $settings
 $show_rec        = ! empty( $settings['show_recommended_screens'] );
 $resources       = isset( $settings['results_resources'] ) && is_array( $settings['results_resources'] ) ? $settings['results_resources'] : array();
 
-$screen_title = ! empty( $user_screen_result['screen_id'] ) ? get_the_title( $user_screen_result['screen_id'] ) : '';
-$link_target  = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' : '';
+$screen_title     = ! empty( $user_screen_result['screen_id'] ) ? get_the_title( $user_screen_result['screen_id'] ) : '';
+$collection_title = $collection_id ? get_the_title( $collection_id ) : '';
+$link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' : '';
 ?>
 
 <div class="wrap narrow">
@@ -44,7 +45,7 @@ $link_target  = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' : '';
 	<div class="bubble thin teal round-small-bl mb-4">
 		<div class="inner">
 			<h1 class="white small">
-				Your Results <!--&mdash; <span id="screen-name"><?php echo esc_html( $screen_title ); ?></span>-->
+				Your Results<?php if ( $collection_title !== '' ) : ?>: <span id="collection-name"><?php echo esc_html( $collection_title ); ?></span><?php endif; ?> <!--&mdash; <span id="screen-name"><?php echo esc_html( $screen_title ); ?></span>-->
 			</h1>
 			<?php if ( ! empty( $positive ) ) : ?>
 				<div class="collection-keyword-summary white">
