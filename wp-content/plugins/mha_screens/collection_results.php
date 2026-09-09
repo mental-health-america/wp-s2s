@@ -478,6 +478,93 @@ function mha_get_collection_results_settings( $collection_id ) {
 }
 
 /**
+ * Build the focused results email for a screen collection.
+ *
+ * This intentionally mirrors the collection summary and next-steps sections,
+ * without including the legacy Screen result copy or the full answer list.
+ *
+ * @param string $user_screen_id Public results token.
+ * @param int    $collection_id  Screen collection post ID.
+ * @param int    $entry_id       Gravity Forms entry ID.
+ * @return string
+ */
+function mha_get_collection_email_body( $user_screen_id, $collection_id, $entry_id ) {
+	$collection_id = absint( $collection_id );
+	$entry_id      = absint( $entry_id );
+
+	if ( ! $collection_id || ! $entry_id || ! class_exists( 'GFAPI' ) ) {
+		return '';
+	}
+
+	$entry = GFAPI::get_entry( $entry_id );
+	if ( ! is_array( $entry ) || is_wp_error( $entry ) ) {
+		return '';
+	}
+
+	$form           = GFAPI::get_form( (int) $entry['form_id'] );
+	$module_results = mha_get_collection_module_results( $collection_id, $entry, $form );
+	$settings       = mha_get_collection_results_settings( $collection_id );
+	$positive       = isset( $module_results['positive'] ) ? $module_results['positive'] : array();
+	$recommended    = isset( $module_results['recommended'] ) ? $module_results['recommended'] : array();
+	$resources      = isset( $settings['results_resources'] ) ? $settings['results_resources'] : array();
+	$results_url    = add_query_arg(
+		'sid',
+		(string) $user_screen_id,
+		set_url_scheme( home_url( '/screening-results/' ), is_ssl() ? 'https' : 'http' )
+	);
+
+	$html  = '<h1 style="margin-top:0;">' . esc_html( get_the_title( $collection_id ) ) . ' Results</h1>';
+	$html .= '<p><a href="' . esc_url( $results_url ) . '">View your results online</a></p>';
+
+	if ( ! empty( $positive ) ) {
+		$html .= '<p><strong>' . esc_html( $settings['positive_summary_prefix'] ) . '</strong></p><ul>';
+		foreach ( $positive as $module ) {
+			$html .= '<li>' . esc_html( $module['symptom_label'] ) . '</li>';
+		}
+		$html .= '</ul>';
+	} else {
+		$html .= '<p>' . esc_html( $settings['empty_positive_message'] ) . '</p>';
+	}
+
+	$html .= '<h2>Next Steps</h2>';
+	if ( '' !== $settings['share_results_message'] ) {
+		$html .= '<p>' . esc_html( $settings['share_results_message'] ) . '</p>';
+	}
+
+	if ( ! empty( $settings['show_recommended_screens'] ) && ! empty( $recommended ) ) {
+		$html .= '<h3>' . esc_html( $settings['recommended_screens_heading'] ) . '</h3><ul>';
+		foreach ( $recommended as $module ) {
+			$screen_id = isset( $module['recommended_screen'] ) ? absint( $module['recommended_screen'] ) : 0;
+			$url       = $screen_id ? get_permalink( $screen_id ) : '';
+			if ( ! $url ) {
+				continue;
+			}
+			$html .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( $module['module_label'] ) . '</a></li>';
+		}
+		$html .= '</ul>';
+	}
+
+	if ( ! empty( $resources ) ) {
+		$html .= '<h3>Articles and resources</h3><ul>';
+		foreach ( $resources as $resource_id ) {
+			$resource_id = absint( $resource_id );
+			if ( ! $resource_id || 'publish' !== get_post_status( $resource_id ) ) {
+				continue;
+			}
+			$url   = get_permalink( $resource_id );
+			$title = get_the_title( $resource_id );
+			if ( ! $url || '' === $title ) {
+				continue;
+			}
+			$html .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a></li>';
+		}
+		$html .= '</ul>';
+	}
+
+	return $html;
+}
+
+/**
  * Enqueue collection results module-tab script.
  */
 function mha_enqueue_collection_results_script() {
