@@ -3,46 +3,12 @@
     "title": "Screen Collection Details",
     "fields": [
         {
-            "key": "field_6960101f1287c",
-            "label": "Screen",
-            "name": "screens",
-            "aria-label": "",
-            "type": "post_object",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "relevanssi_exclude": 0,
-            "post_type": [
-                "screen"
-            ],
-            "post_status": "",
-            "taxonomy": "",
-            "return_format": "id",
-            "multiple": 0,
-            "save_custom": 0,
-            "save_post_status": "publish",
-            "acfe_bidirectional": {
-                "acfe_bidirectional_enabled": "0"
-            },
-            "allow_null": 0,
-            "allow_in_bindings": 0,
-            "bidirectional": 0,
-            "ui": 1,
-            "bidirectional_target": [],
-            "save_post_type": ""
-        },
-        {
             "key": "field_6aa1a6e8b514a",
             "label": "Form",
             "name": "form",
             "aria-label": "",
             "type": "text",
-            "instructions": "",
+            "instructions": "Gravity Forms ID for this collection (e.g. 59). The form is taken on this collection page; a Screen post is no longer required.",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -64,7 +30,7 @@
             "name": "results_modules",
             "aria-label": "",
             "type": "repeater",
-            "instructions": "Map each results module to a page of the associated Screen's Gravity Form. Module scores and thresholds will be used to build the collection results.",
+            "instructions": "Map each results module to a page of the collection's Gravity Form. Module scores and thresholds will be used to build the collection results.",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -453,6 +419,28 @@
             "ui": 1
         },
         {
+            "key": "field_69b8a1010010",
+            "label": "Disable Prescreen",
+            "name": "disable_prescreen",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "Skip the \"Are you interested in...?\" questions and send people straight to the first screening page.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "message": "",
+            "default_value": 0,
+            "allow_in_bindings": 0,
+            "ui_on_text": "Disabled",
+            "ui_off_text": "Enabled",
+            "ui": 1
+        },
+        {
             "key": "field_69602a80b969d",
             "label": "Allowed Organizations",
             "name": "allowed_organizations",
@@ -567,5 +555,5 @@
             "json"
         ]
     },
-    "modified": 1788978953
+    "modified": 1788980400
 }

@@ -59,6 +59,24 @@ function mha_screen_collection_parse_gravity_form_id_from_screen( $screen_id ) {
 }
 
 /**
+ * Gravity Form ID for a screen collection (ACF `form`).
+ *
+ * @param int $collection_id Collection post ID; defaults to the queried collection.
+ * @return int Form ID or 0.
+ */
+function mha_screen_collection_get_form_id( $collection_id = 0 ) {
+	$collection_id = absint( $collection_id );
+	if ( ! $collection_id && is_singular( 'screen-collection' ) ) {
+		$collection_id = (int) get_queried_object_id();
+	}
+	if ( ! $collection_id || get_post_type( $collection_id ) !== 'screen-collection' || ! function_exists( 'get_field' ) ) {
+		return 0;
+	}
+
+	return absint( get_field( 'form', $collection_id ) );
+}
+
+/**
  * Build unified prescreen query token: {screen_collection_id}_{form_id}_{gf_page}.
  *
  * @param int $collection_id Screen collection post ID.
@@ -773,52 +791,18 @@ function mha_screen_collection_query_args_from_request_for_collection() {
 }
 
 /**
- * Permalink to the screen-collection for the current prescreen context (`sc` / hidden), with org/ref/iframe/partner aligned to the request.
+ * Permalink to the screen-collection for the current `sc` context, with org/ref/iframe/partner aligned to the request.
  *
- * @param int $screen_post_id Screen post ID — only used when the WP_Query fallback filter is enabled.
+ * @param int $screen_post_id Unused; kept for call-site compatibility.
  * @return string URL or empty when unknown.
  */
-function mha_screen_collection_prescreen_back_to_collection_url( $screen_post_id = 0 ) {
-	$screen_post_id = absint( $screen_post_id );
-	$ctx            = mha_screen_collection_get_sc_request_context();
-	$collection_id  = ( $ctx && ! empty( $ctx['collection_id'] ) ) ? absint( $ctx['collection_id'] ) : 0;
-	if ( $collection_id && get_post_type( $collection_id ) === 'screen-collection' ) {
-		$permalink = get_permalink( $collection_id );
-		if ( ! $permalink ) {
-			return '';
-		}
-		$args = mha_screen_collection_query_args_from_request_for_collection();
-		return empty( $args ) ? $permalink : add_query_arg( $args, $permalink );
-	}
-
-	if ( ! apply_filters( 'mha_screen_collection_prescreen_back_wp_query_fallback', false, $screen_post_id ) || ! $screen_post_id ) {
+function mha_screen_collection_prescreen_back_to_collection_url( $screen_post_id = 0 ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	$ctx           = mha_screen_collection_get_sc_request_context();
+	$collection_id = ( $ctx && ! empty( $ctx['collection_id'] ) ) ? absint( $ctx['collection_id'] ) : 0;
+	if ( ! $collection_id || get_post_type( $collection_id ) !== 'screen-collection' ) {
 		return '';
 	}
-
-	$q = new WP_Query(
-		array(
-			'post_type'              => 'screen-collection',
-			'post_status'            => 'publish',
-			'posts_per_page'         => 1,
-			'no_found_rows'          => true,
-			'update_post_meta_cache' => false,
-			'update_post_term_cache' => false,
-			'meta_query'             => array(
-				array(
-					'key'     => 'screens',
-					'value'   => (string) $screen_post_id,
-					'compare' => 'LIKE',
-				),
-			),
-		)
-	);
-	if ( ! $q->have_posts() ) {
-		wp_reset_postdata();
-		return '';
-	}
-	$q->the_post();
-	$permalink = get_permalink();
-	wp_reset_postdata();
+	$permalink = get_permalink( $collection_id );
 	if ( ! $permalink ) {
 		return '';
 	}
@@ -1261,6 +1245,9 @@ function mha_screen_collection_prescreen_enqueue_form_nav_script( $form, $ajax )
 	if ( $screen_id <= 0 && function_exists( 'get_the_ID' ) ) {
 		$screen_id = (int) get_the_ID();
 	}
+	if ( $cid ) {
+		$screen_id = (int) $cid;
+	}
 	$ver = defined( 'MHASCREENS_VERSION' ) ? MHASCREENS_VERSION : '1';
 	wp_enqueue_script(
 		'mha-prescreen-form-nav',
@@ -1558,8 +1545,123 @@ function mha_screen_collection_list_shortcode($atts) {
 }
 
 /**
+ * Query args carried from a collection page onto a screen permalink.
+ *
+ * @param string     $org_id        Organization ID.
+ * @param string     $referrer      Referrer slug.
+ * @param string|bool $iframe_mode  "true" or truthy when in iframe mode.
+ * @param int        $collection_id Screen collection post ID; falls back to the queried collection.
+ * @return array<string, string|int>
+ */
+function mha_screen_collection_screen_link_args( $org_id = '', $referrer = '', $iframe_mode = false, $collection_id = 0 ) {
+	$args = array();
+
+	if ( ! empty( $org_id ) ) {
+		$args['org'] = $org_id;
+	}
+	if ( ! empty( $referrer ) ) {
+		$args['ref'] = $referrer;
+	}
+	if ( 'true' === $iframe_mode || true === $iframe_mode ) {
+		$args['iframe'] = 'true';
+	}
+	$partner_var = get_query_var( 'partner' );
+	if ( isset( $_GET['partner'] ) && function_exists( 'mha_approved_partners' ) && in_array( $partner_var, mha_approved_partners() ) ) {
+		$args['partner'] = $partner_var;
+	}
+
+	$collection_id = absint( $collection_id );
+	if ( ! $collection_id && is_singular( 'screen-collection' ) ) {
+		$collection_id = (int) get_queried_object_id();
+	}
+	if ( $collection_id && get_post_type( $collection_id ) !== 'screen-collection' ) {
+		$collection_id = 0;
+	}
+	if ( $collection_id ) {
+		$args['collection_id'] = $collection_id;
+	}
+
+	return $args;
+}
+
+/**
+ * Where a screen starts when its collection has the prescreen turned off.
+ *
+ * Opens page 1 rather than the prescreen's first deep-linkable page: prescreen pages are
+ * limited to those led by a Section field, so page 1 is often skipped even when it holds
+ * real questions. The `sc` token still rides along so the entry records its collection and
+ * the results page can resolve which collection the screening belongs to.
+ *
+ * @param int    $screen_id     Screen post ID.
+ * @param int    $collection_id Screen collection post ID.
+ * @param string $org_id        Organization ID.
+ * @param string $referrer      Referrer slug.
+ * @param bool   $iframe_mode   Iframe mode.
+ * @param int    $page          GF page number.
+ * @return string URL, or empty when the collection has no form.
+ */
+function mha_screen_collection_form_start_url( $collection_id, $org_id = '', $referrer = '', $iframe_mode = false, $page = 1 ) {
+	$collection_id = absint( $collection_id );
+	$form_id       = mha_screen_collection_get_form_id( $collection_id );
+	if ( ! $collection_id || ! $form_id ) {
+		return '';
+	}
+
+	$base_url = get_permalink( $collection_id );
+	if ( ! $base_url ) {
+		return '';
+	}
+
+	$link_args = mha_screen_collection_screen_link_args( $org_id, $referrer, $iframe_mode, $collection_id );
+	unset( $link_args['collection_id'] );
+
+	$sc_token = mha_screen_collection_build_sc( $collection_id, $form_id, max( 1, absint( $page ) ) );
+	if ( '' !== $sc_token ) {
+		$link_args['sc'] = $sc_token;
+	}
+
+	return add_query_arg( $link_args, $base_url );
+}
+
+/**
+ * @deprecated Use mha_screen_collection_form_start_url(). Kept for older call sites that still pass a Screen post ID.
+ */
+function mha_screen_collection_screen_start_url( $screen_id, $collection_id = 0, $org_id = '', $referrer = '', $iframe_mode = false ) {
+	$collection_id = absint( $collection_id );
+	if ( $collection_id && mha_screen_collection_get_form_id( $collection_id ) ) {
+		return mha_screen_collection_form_start_url( $collection_id, $org_id, $referrer, $iframe_mode, 1 );
+	}
+
+	$screen_id = absint( $screen_id );
+	if ( ! $screen_id ) {
+		return '';
+	}
+
+	$form_id = mha_screen_collection_parse_gravity_form_id_from_screen( $screen_id );
+	if ( ! $form_id ) {
+		return '';
+	}
+
+	$base_url = get_permalink( $screen_id );
+	if ( ! $base_url ) {
+		return '';
+	}
+
+	$link_args           = mha_screen_collection_screen_link_args( $org_id, $referrer, $iframe_mode, $collection_id );
+	$resolved_collection = isset( $link_args['collection_id'] ) ? (int) $link_args['collection_id'] : 0;
+	unset( $link_args['collection_id'] );
+
+	$sc_token = mha_screen_collection_build_sc( $resolved_collection, $form_id, 1 );
+	if ( '' !== $sc_token ) {
+		$link_args['sc'] = $sc_token;
+	}
+
+	return add_query_arg( $link_args, $base_url );
+}
+
+/**
  * Prescreen: Yes/No interest per GF page, then a single link to the first screening page. Usage:
- * [screen_collection_prescreen screen="123" collection_id="..." org_id="..." referrer="..." iframe_mode="false" form_url="https://..."]
+ * [screen_collection_prescreen form="59" collection_id="..." org_id="..." referrer="..." iframe_mode="false" form_url="https://..."]
  */
 add_shortcode( 'screen_collection_prescreen', 'mha_screen_collection_prescreen_shortcode' );
 function mha_screen_collection_prescreen_shortcode( $atts ) {
@@ -1570,6 +1672,7 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 	$atts = shortcode_atts(
 		array(
 			'screen'         => '',
+			'form'           => '',
 			'form_url'       => '',
 			'org_id'         => '',
 			'referrer'       => '',
@@ -1580,12 +1683,22 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 		'screen_collection_prescreen'
 	);
 
-	$screen_id = absint( $atts['screen'] );
-	if ( ! $screen_id ) {
-		return '';
+	$collection_for_sc = absint( $atts['collection_id'] );
+	if ( ! $collection_for_sc && is_singular( 'screen-collection' ) ) {
+		$collection_for_sc = (int) get_queried_object_id();
+	}
+	if ( $collection_for_sc && get_post_type( $collection_for_sc ) !== 'screen-collection' ) {
+		$collection_for_sc = 0;
 	}
 
-	$form_id = mha_screen_collection_parse_gravity_form_id_from_screen( $screen_id );
+	$form_id   = absint( $atts['form'] );
+	$screen_id = absint( $atts['screen'] );
+	if ( ! $form_id && $collection_for_sc ) {
+		$form_id = mha_screen_collection_get_form_id( $collection_for_sc );
+	}
+	if ( ! $form_id && $screen_id ) {
+		$form_id = absint( mha_screen_collection_parse_gravity_form_id_from_screen( $screen_id ) );
+	}
 	if ( ! $form_id ) {
 		return '';
 	}
@@ -1595,36 +1708,18 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 		return '';
 	}
 
-	$base_url = ! empty( $atts['form_url'] ) ? esc_url_raw( $atts['form_url'] ) : get_permalink( $screen_id );
+	$base_url = ! empty( $atts['form_url'] ) ? esc_url_raw( $atts['form_url'] ) : '';
+	if ( ! $base_url && $collection_for_sc ) {
+		$base_url = get_permalink( $collection_for_sc );
+	}
+	if ( ! $base_url && $screen_id ) {
+		$base_url = get_permalink( $screen_id );
+	}
 	if ( ! $base_url ) {
 		return '';
 	}
 
-	$screen_link_args = array();
-	if ( ! empty( $atts['org_id'] ) ) {
-		$screen_link_args['org'] = $atts['org_id'];
-	}
-	if ( ! empty( $atts['referrer'] ) ) {
-		$screen_link_args['ref'] = $atts['referrer'];
-	}
-	if ( 'true' === $atts['iframe_mode'] ) {
-		$screen_link_args['iframe'] = 'true';
-	}
-	$partner_var = get_query_var( 'partner' );
-	if ( isset( $_GET['partner'] ) && function_exists( 'mha_approved_partners' ) && in_array( $partner_var, mha_approved_partners() ) ) {
-		$screen_link_args['partner'] = $partner_var;
-	}
-
-	$collection_for_sc = absint( $atts['collection_id'] );
-	if ( ! $collection_for_sc && is_singular( 'screen-collection' ) ) {
-		$collection_for_sc = (int) get_queried_object_id();
-	}
-	if ( $collection_for_sc && get_post_type( $collection_for_sc ) !== 'screen-collection' ) {
-		$collection_for_sc = 0;
-	}
-	if ( $collection_for_sc ) {
-		$screen_link_args['collection_id'] = $collection_for_sc;
-	}
+	$screen_link_args = mha_screen_collection_screen_link_args( $atts['org_id'], $atts['referrer'], $atts['iframe_mode'], $collection_for_sc );
 
 	$pages = mha_screen_collection_prescreen_pages_meta( $form, $base_url, $screen_link_args );
 	if ( empty( $pages ) ) {
@@ -1633,7 +1728,8 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 
 	$form_start_href = ! empty( $pages[0]['href'] ) ? $pages[0]['href'] : $base_url;
 
-	$storage_key = 'mha_screen_prescreen_' . $screen_id . '_' . $form_id;
+	$storage_id  = $collection_for_sc ? $collection_for_sc : $screen_id;
+	$storage_key = 'mha_screen_prescreen_' . $storage_id . '_' . $form_id;
 	$config      = array(
 		'storageKey' => $storage_key,
 		'pages'      => $pages,
@@ -1642,7 +1738,7 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 
 	ob_start();
 	?>
-	<div class="mha-screen-collection-prescreen gform_wrapper gravity-theme" data-screen-id="<?php echo esc_attr( (string) $screen_id ); ?>" data-form-id="<?php echo esc_attr( (string) $form_id ); ?>">
+	<div class="mha-screen-collection-prescreen gform_wrapper gravity-theme" data-screen-id="<?php echo esc_attr( (string) $storage_id ); ?>" data-form-id="<?php echo esc_attr( (string) $form_id ); ?>">
 		<script type="application/json" class="mha-prescreen-config"><?php echo $config_json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
 		<form class="mha-prescreen-form" novalidate>
 			<div class="gform_fields">
@@ -1651,7 +1747,7 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
 					$p       = (int) $row['page'];
 					$plabel  = $row['label'];
 					$name    = 'prescreen_page_' . $p;
-					$id_base = 'mha-prescreen-' . $screen_id . '-' . $form_id . '-' . $p;
+					$id_base = 'mha-prescreen-' . $storage_id . '-' . $form_id . '-' . $p;
 					$choices = array(
 						'yes' => __( 'Yes', 'mha_screens' ),
 						'no'  => __( 'No', 'mha_screens' ),

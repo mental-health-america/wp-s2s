@@ -90,7 +90,7 @@ function mha_screen_collection_matches_sc_organization( $collection_id, $sc_org 
 }
 
 /**
- * Resolve a screen-collection post ID from a GF entry (reverse lookup by Screen ID).
+ * Resolve a screen-collection post ID from a GF entry (`Prescreen sc` token, then Form field).
  *
  * @param array      $entry GF entry.
  * @param array|null $form  Optional form array; loaded from entry if omitted.
@@ -107,9 +107,20 @@ function mha_screen_collection_resolve_from_entry( $entry, $form = null ) {
 		return 0;
 	}
 
-	$screen_id = absint( mha_screen_collection_entry_field_value_by_label( $entry, $form, 'screen id' ) );
-	if ( ! $screen_id ) {
-		return 0;
+	$entry_form_id = (int) $entry['form_id'];
+
+	$sc_raw = mha_screen_collection_entry_field_value_by_label( $entry, $form, 'prescreen sc' );
+	if ( '' === $sc_raw && function_exists( 'mha_screen_collection_prescreen_sc_context_field_id' ) ) {
+		$sc_fid = mha_screen_collection_prescreen_sc_context_field_id( $form );
+		if ( $sc_fid && ! empty( $entry[ (string) $sc_fid ] ) && is_scalar( $entry[ (string) $sc_fid ] ) ) {
+			$sc_raw = (string) $entry[ (string) $sc_fid ];
+		}
+	}
+	if ( '' !== $sc_raw && function_exists( 'mha_screen_collection_parse_sc_token' ) ) {
+		$parsed = mha_screen_collection_parse_sc_token( $sc_raw );
+		if ( $parsed && (int) $parsed['form_id'] === $entry_form_id ) {
+			return (int) $parsed['collection_id'];
+		}
 	}
 
 	$sc_org = mha_screen_collection_entry_field_value_by_label( $entry, $form, 'sc organization' );
@@ -132,14 +143,16 @@ function mha_screen_collection_resolve_from_entry( $entry, $form = null ) {
 		if ( ! function_exists( 'get_field' ) ) {
 			continue;
 		}
-		$screens = function_exists( 'mha_s2s_normalize_screen_collection_screens' )
-			? mha_s2s_normalize_screen_collection_screens( get_field( 'screens', $collection_id ) )
-			: array( absint( get_field( 'screens', $collection_id ) ) );
-		if ( ! in_array( $screen_id, $screens, true ) ) {
-			continue;
+
+		$collection_form_id = function_exists( 'mha_screen_collection_get_form_id' )
+			? mha_screen_collection_get_form_id( $collection_id )
+			: absint( get_field( 'form', $collection_id ) );
+		if ( $collection_form_id && (int) $collection_form_id === $entry_form_id ) {
+			$candidates[] = $collection_id;
 		}
-		$candidates[] = $collection_id;
 	}
+
+	$candidates = array_values( array_unique( $candidates ) );
 
 	if ( empty( $candidates ) ) {
 		return 0;

@@ -71,6 +71,15 @@ jQuery(function ($) {
 			return;
 		}
 		$wrap.removeClass('d-none').attr('aria-hidden', 'false');
+
+		// Prescreen disabled for this collection: no questions to gate behind a
+		// start button, just expose the links to the screenings.
+		if ($wrap.attr('data-prescreen') === 'off') {
+			$start.addClass('d-none');
+			$inner.removeClass('d-none');
+			return;
+		}
+
 		var prescreensDone = hasCompletedAllCollectionPrescreens();
 		if (prescreensDone) {
 			try {

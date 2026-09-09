@@ -14,30 +14,26 @@ $org_display = '';
 $org_id = '';
 
 $org_approved = false;
-$screens = get_field( 'screens' );
-if ( is_array( $screens ) ) {
-	$screens = array_map(
-		static function ( $s ) {
-			if ( is_object( $s ) && isset( $s->ID ) ) {
-				return (int) $s->ID;
-			}
-			return absint( $s );
-		},
-		$screens
-	);
-	$screens = array_values( array_filter( $screens ) );
-} elseif ( is_object( $screens ) && isset( $screens->ID ) ) {
-	$screens = array( (int) $screens->ID );
-} elseif ( $screens !== null && $screens !== '' && false !== $screens ) {
-	$screens = array( absint( $screens ) );
-} else {
-	$screens = array();
-}
+$form_id = function_exists( 'mha_screen_collection_get_form_id' )
+	? mha_screen_collection_get_form_id( $screen_collection_id )
+	: absint( get_field( 'form' ) );
 $screen_order = get_field('force_screen_order');
 $require_user_id = get_field('ask_for_user_id');
+$disable_prescreen = (bool) get_field('disable_prescreen');
 
 $referrer =  get_query_var('ref');
 $iframe_mode = get_query_var('iframe');
+
+$taking_form = false;
+if ( $form_id && function_exists( 'mha_screen_collection_get_sc_request_context' ) ) {
+	$sc_ctx = mha_screen_collection_get_sc_request_context();
+	if ( $sc_ctx && (int) $sc_ctx['collection_id'] === (int) $screen_collection_id && (int) $sc_ctx['form_id'] === (int) $form_id ) {
+		$taking_form = true;
+	}
+}
+if ( ! $taking_form && $form_id && ! empty( $_POST['gform_submit'] ) && (int) $_POST['gform_submit'] === (int) $form_id ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	$taking_form = true;
+}
 ?>
 
 	<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
@@ -57,6 +53,19 @@ $iframe_mode = get_query_var('iframe');
 		<?php endif; ?>
 
 		<div class="wrap normal">
+
+			<?php if ( $taking_form && $form_id ) : ?>
+				<div class="page-intro">
+					<?php
+					echo do_shortcode(
+						sprintf(
+							'[gravityform id="%d" title="false" description="false" ajax="false"]',
+							(int) $form_id
+						)
+					);
+					?>
+				</div>
+			<?php else : ?>
 
 			<div id="screen-collection-orgs">
 				<?php 
@@ -105,48 +114,56 @@ $iframe_mode = get_query_var('iframe');
 					<small id="emailHelp" class="form-text text-muted mb-4">Please provide your user ID to access this collection.</small>
 					<input type="hidden" name="org" value="<?php echo $org_display; ?>" />
 					<input type="hidden" name="org_id" value="<?php echo $org_id; ?>" />
-					<input type="hidden" name="screen_ids" value="<?php echo implode(',', $screens); ?>" />
 					<input type="hidden" name="screen_collection" value="<?php echo $screen_collection_id; ?>" />
 				</form>
 
 				<?php
-				if ( ! empty( $screens ) && is_array( $screens ) ) :
+				if ( $form_id ) :
 					?>
-					<div id="screen-collection-prescreens-wrap" class="screen-collection-prescreens-wrap mb-4 d-none" aria-hidden="true">
+					<div id="screen-collection-prescreens-wrap" class="screen-collection-prescreens-wrap mb-4 d-none" <?php echo $disable_prescreen ? 'data-prescreen="off" ' : ''; ?>aria-hidden="true">
+						<?php if ( ! $disable_prescreen ) : ?>
 						<button type="button" class="button round screen-collection-prescreens-start d-none mb-3" aria-expanded="false" aria-controls="screen-collection-prescreens-inner">
 							<?php esc_html_e( 'Start prescreen', 'mha_s2s' ); ?>
 						</button>
+						<?php endif; ?>
 						<div id="screen-collection-prescreens-inner" class="screen-collection-prescreens-inner d-none">
 							<div class="screen-collection-prescreens">
 								<?php
-								foreach ( $screens as $prescreen_screen_id ) :
-									$prescreen_screen_id = absint( $prescreen_screen_id );
-									if ( ! $prescreen_screen_id ) {
-										continue;
-									}
+								if ( $disable_prescreen ) :
+									$start_url = function_exists( 'mha_screen_collection_form_start_url' )
+										? mha_screen_collection_form_start_url( $screen_collection_id, $org_id, $referrer, (bool) $iframe_mode, 1 )
+										: '';
+									if ( $start_url ) :
+										?>
+										<p class="screen-collection-start mb-3">
+											<a class="button round-tr" href="<?php echo esc_url( $start_url ); ?>">
+												<?php
+												echo esc_html( sprintf( __( 'Begin %s', 'mha_s2s' ), get_the_title( $screen_collection_id ) ) );
+												?>
+											</a>
+										</p>
+										<?php
+									endif;
+								else :
 									echo do_shortcode(
 										sprintf(
-											'[screen_collection_prescreen screen="%d" org_id="%s" referrer="%s" iframe_mode="%s"]',
-											$prescreen_screen_id,
+											'[screen_collection_prescreen form="%d" collection_id="%d" org_id="%s" referrer="%s" iframe_mode="%s"]',
+											(int) $form_id,
+											(int) $screen_collection_id,
 											esc_attr( $org_id ),
 											esc_attr( $referrer ),
 											$iframe_mode ? 'true' : 'false'
 										)
 									);
-								endforeach;
+								endif;
 								?>
 							</div>
 						</div>
 					</div>
 					<?php
 				endif;
-
-				// Get user_id from POST or set empty (will be set via JavaScript if needed)
-				$user_id_param = isset($_POST['user_id']) ? sanitize_text_field($_POST['user_id']) : '';
-
-				// Use shortcode to render screenings list
-				// echo do_shortcode('[screen_collection_list screens="'.implode(',', $screens).'" screen_order="'.($screen_order ? 'true' : 'false').'" org_id="'.$org_id.'" user_id="'.$user_id_param.'" referrer="'.$referrer.'" iframe_mode="'.($iframe_mode ? 'true' : 'false').'"]');
 				endif;
+			endif;
 			?>
 		</div>
 		

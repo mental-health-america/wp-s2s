@@ -7,37 +7,6 @@
  */
 
 /**
- * Normalize ACF `screens` post object field to a list of screen post IDs.
- *
- * @param mixed $screens Raw field value.
- * @return int[]
- */
-function mha_s2s_normalize_screen_collection_screens( $screens ) {
-	if ( is_array( $screens ) ) {
-		return array_values(
-			array_filter(
-				array_map(
-					static function ( $s ) {
-						if ( is_object( $s ) && isset( $s->ID ) ) {
-							return (int) $s->ID;
-						}
-						return absint( $s );
-					},
-					$screens
-				)
-			)
-		);
-	}
-	if ( is_object( $screens ) && isset( $screens->ID ) ) {
-		return array( (int) $screens->ID );
-	}
-	if ( null !== $screens && '' !== $screens && false !== $screens ) {
-		return array( absint( $screens ) );
-	}
-	return array();
-}
-
-/**
  * Whether an `allowed_organizations` repeater row matches the given organization term ID.
  *
  * @param array<string,mixed> $row Repeater sub-row.
@@ -362,7 +331,7 @@ function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null, $args
 	);
 
 	$user_id = $user_id ? absint( $user_id ) : get_current_user_id();
-	if ( ! $user_id || ! function_exists( 'get_field' ) || ! class_exists( 'GFAPI' ) || ! function_exists( 'mha_screen_collection_parse_gravity_form_id_from_screen' ) ) {
+	if ( ! $user_id || ! function_exists( 'get_field' ) || ! class_exists( 'GFAPI' ) ) {
 		$empty['message'] = 'unavailable';
 		return $empty;
 	}
@@ -415,40 +384,39 @@ function mha_s2s_dashboard_screen_collection_org_entries( $user_id = null, $args
 			continue;
 		}
 
-		$screens = mha_s2s_normalize_screen_collection_screens( get_field( 'screens', $collection_id ) );
-		foreach ( $screens as $screen_id ) {
-			$form_id = mha_screen_collection_parse_gravity_form_id_from_screen( $screen_id );
-			if ( ! $form_id ) {
-				continue;
-			}
-			$key = $collection_id . ':' . $screen_id . ':' . $form_id;
-			if ( isset( $form_jobs[ $key ] ) ) {
-				continue;
-			}
-			$form = GFAPI::get_form( $form_id );
-			if ( ! $form || is_wp_error( $form ) ) {
-				continue;
-			}
-			$org_field_id = mha_s2s_gf_form_sc_organization_field_id( $form );
-			if ( ! $org_field_id ) {
-				continue;
-			}
-			$sc_user_field_id      = mha_s2s_gf_form_sc_user_field_id( $form );
-			$start_time_field_id   = mha_s2s_gf_form_start_time_field_id( $form );
-			$form_jobs[ $key ]     = array(
-				'collection_id'        => (int) $collection_id,
-				'collection_title'     => get_the_title( $collection_id ),
-				'screen_id'            => (int) $screen_id,
-				'screen_title'         => get_the_title( $screen_id ),
-				'form_id'              => (int) $form_id,
-				'form_title'           => isset( $form['title'] ) ? (string) $form['title'] : '',
-				'org_field_id'         => (int) $org_field_id,
-				'sc_user_field_id'     => $sc_user_field_id ? (int) $sc_user_field_id : 0,
-				'start_time_field_id'  => $start_time_field_id ? (int) $start_time_field_id : 0,
-				'score_result_fields'  => mha_s2s_gf_form_score_result_field_map( $form ),
-				'org_display'          => $matched_display,
-			);
+		$form_id = function_exists( 'mha_screen_collection_get_form_id' )
+			? mha_screen_collection_get_form_id( $collection_id )
+			: absint( get_field( 'form', $collection_id ) );
+		if ( ! $form_id ) {
+			continue;
 		}
+		$key = $collection_id . ':' . $form_id;
+		if ( isset( $form_jobs[ $key ] ) ) {
+			continue;
+		}
+		$form = GFAPI::get_form( $form_id );
+		if ( ! $form || is_wp_error( $form ) ) {
+			continue;
+		}
+		$org_field_id = mha_s2s_gf_form_sc_organization_field_id( $form );
+		if ( ! $org_field_id ) {
+			continue;
+		}
+		$sc_user_field_id      = mha_s2s_gf_form_sc_user_field_id( $form );
+		$start_time_field_id   = mha_s2s_gf_form_start_time_field_id( $form );
+		$form_jobs[ $key ]     = array(
+			'collection_id'        => (int) $collection_id,
+			'collection_title'     => get_the_title( $collection_id ),
+			'screen_id'            => 0,
+			'screen_title'         => get_the_title( $collection_id ),
+			'form_id'              => (int) $form_id,
+			'form_title'           => isset( $form['title'] ) ? (string) $form['title'] : '',
+			'org_field_id'         => (int) $org_field_id,
+			'sc_user_field_id'     => $sc_user_field_id ? (int) $sc_user_field_id : 0,
+			'start_time_field_id'  => $start_time_field_id ? (int) $start_time_field_id : 0,
+			'score_result_fields'  => mha_s2s_gf_form_score_result_field_map( $form ),
+			'org_display'          => $matched_display,
+		);
 	}
 
 	$score_result_columns = array();
