@@ -568,10 +568,7 @@
 						done = $questions.filter(progressFieldAnswered).length === $questions.length;
 					}
 
-					// The current page keeps its own marker, but still counts toward submit-ready.
-					if(!$step.hasClass('active')){
-						$step.toggleClass('filled', done).toggleClass('empty', !done);
-					}
+					$step.toggleClass('filled', done).toggleClass('empty', !done);
 
 					if(!done){
 						formComplete = false;

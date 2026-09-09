@@ -839,6 +839,14 @@ ol.full-progress-bar {
                 background-position: 3px 5px;
                 background-repeat: no-repeat;
             }
+            // Completing the page you're on still shows the check, but keeps the
+            // active colour so you don't lose track of where you are.
+            &.active {
+                &:before {
+                    background-color: $teal;
+                    border-color: $teal;
+                }
+            }
             &.not-interested {
                 &:before {
                     background-image: url('../images/check-teal.png');
