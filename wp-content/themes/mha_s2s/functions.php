@@ -863,14 +863,11 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 	$out .= '<ol id="' . esc_attr( $list_id ) . '" class="full-progress-bar collapse clearfix step-' . $current_page . '-of-' . $page_count . '">';
 	foreach ( $steps as $step ) {
 		$k = $step['page'];
-		if ( $current_page === $k ) {
-			$pager_class = 'active';
-		} elseif ( $current_page > $k ) {
-			$pager_class = 'filled';
-		} else {
-			$pager_class = 'empty';
-		}
-		$li_classes = array( 'step-' . (string) $k, $pager_class );
+		// Page links let people jump around, so position relative to the current
+		// page says nothing about completion. Steps start empty and global.js
+		// marks the ones whose questions are all answered.
+		$pager_class = ( $current_page === $k ) ? 'active' : 'empty';
+		$li_classes  = array( 'step-' . (string) $k, $pager_class );
 		if ( $step['not_interested'] ) {
 			$li_classes[] = 'not-interested';
 		}

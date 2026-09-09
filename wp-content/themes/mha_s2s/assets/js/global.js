@@ -516,6 +516,59 @@
 
 
 		/**
+		 * Progress step completion
+		 * Every page of the form is in the DOM, so a step gets its checkmark
+		 * once each question still showing on its page has an answer, rather
+		 * than just because it sits before the page you're on.
+		 */
+		var $progressList = $('.mha-progress-steps ol.full-progress-bar');
+
+		if($progressList.length){
+
+			var $progressPages = $progressList.closest('form').find('.gform_page');
+
+			// Conditional logic hides fields inline, which stays readable even
+			// though the page itself is display:none.
+			var progressFieldShowing = function(){
+				return this.style.display !== 'none';
+			};
+
+			var progressFieldAnswered = function(){
+				var $inputs = $(this).find('input, select, textarea');
+
+				if($inputs.filter(':radio, :checkbox').length){
+					return $inputs.filter(':checked').length > 0;
+				}
+
+				return $inputs.filter(function(){
+					return $.trim($(this).val() || '') !== '';
+				}).length > 0;
+			};
+
+			var refreshProgressSteps = function(){
+				$progressList.children('li').each(function(){
+					var $step = $(this),
+						page  = /\bstep-(\d+)\b/.exec($step.attr('class'));
+
+					// The current page keeps its own marker.
+					if(!page || $step.hasClass('active')){
+						return;
+					}
+
+					var $questions = $progressPages.eq(page[1] - 1)
+							.find('.gfield.question, .gfield.question-optional')
+							.filter(progressFieldShowing),
+						done = $questions.length > 0 && $questions.filter(progressFieldAnswered).length === $questions.length;
+
+					$step.toggleClass('filled', done).toggleClass('empty', !done);
+				});
+			};
+
+			refreshProgressSteps();
+			$progressList.closest('form').on('change', 'input, select, textarea', refreshProgressSteps);
+		}
+
+		/**
 		 * Autosubmit .auto-submit Gravity Forms on radio change
 		 */
 		if($('.auto-submit').length){
