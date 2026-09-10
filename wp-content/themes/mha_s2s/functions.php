@@ -97,7 +97,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20260612' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20260909' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
     
 	// Add print CSS.
@@ -131,7 +131,7 @@ function mha_s2s_scripts() {
 	// wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20260417', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20260909', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 
 	// Consent Management
@@ -535,6 +535,7 @@ function mha_s2s_query_vars( $qvars ) {
     $qvars[] = 'state'; // Used for SSO logins; passed from Google to contain additional data
     $qvars[] = 'form'; // Used for optional questions page to get the previous form ID
     $qvars[] = 'org'; // Used for Screen Collection page to get the organization ID
+    $qvars[] = 'sc'; // Used for Screen Collection page to get the screen collection ID, page number, and start page
 
 	// Resource filters
 	$qvars[] = 'treatment';
@@ -645,13 +646,17 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 
 	$current_page = GFFormDisplay::get_current_page( $form['id'] );
 	$page_count = GFFormDisplay::get_max_page_number( $form ) + 1;
-	
+
+	$layout = get_layout_array( get_query_var( 'layout' ) );
+
+	$progress_bar = '';
+
 	// Helpers
-	$form_fields = isset($form['fields']) ? $form['fields'] : false;
-	$form_classes = isset($form['cssClass']) ? $form['cssClass'] : '';
+	$form_fields = isset( $form['fields'] ) ? $form['fields'] : false;
+	$form_classes = isset( $form['cssClass'] ) ? $form['cssClass'] : '';
 
 	// Get max pages
-	$form_pages = [];
+	$form_pages = array();
 	/*
 	foreach($form_fields as $ff){
 		if(isset($ff['cssClass']) && str_contains($ff['cssClass'], 'page-label')){
@@ -659,70 +664,64 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 		}
 	}
 	*/
-	
-	foreach($form['pagination']['pages'] as $k => $v){
-		$form_pages[ ($k + 1) ] = $v;
+
+	foreach ( $form['pagination']['pages'] as $k => $v ) {
+		$form_pages[ ( $k + 1 ) ] = $v;
 	}
 
-    $layout = get_layout_array(get_query_var('layout')); // Used for A/B testing
-	
-	$last_progress_label = get_field('survey') ? 'Submit<br /> Survey' : 'Your<br />Results';
+	$last_progress_label = get_field( 'survey' ) ? 'Submit<br /> Survey' : 'Your<br />Results';
 
-	if( in_array('show_progress', $layout) && !in_array('hide_progress', $layout) || !in_array('hide_progress', $layout) ){
+	if ( in_array( 'show_progress', $layout ) && ! in_array( 'hide_progress', $layout ) || ! in_array( 'hide_progress', $layout ) ) {
 
-		if(isset($form['cssClass']) && str_contains($form['cssClass'], 'full-pager')){
+		if ( isset( $form['cssClass'] ) && str_contains( $form['cssClass'], 'full-pager' ) ) {
 
-			// Custom progress bar (all pages)			
-			$progress_bar = '<ol class="full-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">';
-			foreach($form_pages as $k => $v){
+			// Custom progress bar (all pages)
+			$progress_bar = '<ol class="full-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">';
+			foreach ( $form_pages as $k => $v ) {
 				$pager_class = '';
-				if($current_page == $k){
+				if ( $current_page === $k ) {
 					$pager_class = 'active';
-				} elseif($current_page > $k) {
+				} elseif ( $current_page > $k ) {
 					$pager_class = 'filled';
 				} else {
 					$pager_class = 'empty';
 				}
-				$progress_bar .= '<li class="step-'.$k.' '.$pager_class.'"><span>'.$v.'</span></li>';
+				$progress_bar .= '<li class="step-' . $k . ' ' . $pager_class . '"><span>' . $v . '</span></li>';
 			}
 			// $progress_bar .= '<li class="step-'.(count($form_pages) + 1).'"><span>'.$last_progress_label.'</span></li>';
 			$progress_bar .= '</ol>';
 
-			if($confirmation_message != ''){
-				$progress_bar .= '<div class="form-confirmation-container">'.$confirmation_message.'</div>';
+			if ( $confirmation_message !== '' ) {
+				$progress_bar .= '<div class="form-confirmation-container">' . $confirmation_message . '</div>';
 			}
-
-
 		} else {
 
 			// Test progress bar
 			$progress_bar = '';
-	
-			if( in_array('side_progress', $layout) ){
+
+			if ( in_array( 'side_progress', $layout ) ) {
 				$progress_bar .= '<div class="progress-container sticky">';
 			}
-	
-			if(get_field('espanol')){
-				$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+
+			if ( get_field( 'espanol' ) ) {
+				$progress_bar .= '<ol class="screen-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">
 					<li class="step-1"><span>Preguntas<br />de la Prueba</span></li>
 					<li class="step-2"><span>Preguntas<br />Opcionales</span></li>
 					<li class="step-3"><span>Sus<br />Resultados</span></li>
 				</ol>';
 			} else {
-				$demo_label = in_array('alt_demo_label', $layout) ? 'Optional<br />Questions' : 'Optional<br />Questions';
-				$progress_bar .= '<ol class="screen-progress-bar clearfix step-'.$current_page.'-of-'.$page_count.'">
+				$demo_label = in_array( 'alt_demo_label', $layout ) ? 'Optional<br />Questions' : 'Optional<br />Questions';
+				$progress_bar .= '<ol class="screen-progress-bar clearfix step-' . $current_page . '-of-' . $page_count . '">
 					<li class="step-1"><span>Test<br />Questions</span></li>
-					<li class="step-2"><span>'.$demo_label.'</span></li>
-					<li class="step-3"><span>'.$last_progress_label.'</span></li>
+					<li class="step-2"><span>' . $demo_label . '</span></li>
+					<li class="step-3"><span>' . $last_progress_label . '</span></li>
 				</ol>';
 			}
-	
-			if( in_array('side_progress', $layout) ){
+
+			if ( in_array( 'side_progress', $layout ) ) {
 				$progress_bar .= '</div>';
 			}
-
 		}
-
 	} else {
 
 		$progress_bar = '';
@@ -740,6 +739,186 @@ function custom_screen_progress_bar( $progress_bar, $form, $confirmation_message
 	}
 
     return $progress_bar;
+}
+
+/**
+ * Custom progress steps (GF “steps” / progress steps markup).
+ * With form class `full-pager-links`, step labels are GP Multi-Page Navigation page links (`href="#N"` + `gpmpn-page-link`).
+ * Steps use prescreen JSON (mha_screens): pages answered "no" get the `not-interested` class on the list item.
+ * When `sc` resolves to a screen collection (via mha_screens), a back link is output above the step list.
+ * No espanol / side_progress variants.
+ *
+ * @see https://docs.gravityforms.com/gform_progress_steps/
+ * @see https://gravitywiz.com/documentation/gravity-forms-multi-page-navigation/
+ */
+add_filter( 'gform_progress_steps', 'custom_screen_progress_steps', 10, 3 );
+function custom_screen_progress_steps( $progress_steps, $form, $page ) {
+
+	if ( empty( $form['cssClass'] ) || ! str_contains( (string) $form['cssClass'], 'full-pager-links' ) ) {
+		return $progress_steps;
+	}
+
+	$layout = get_layout_array( get_query_var( 'layout' ) );
+	if ( ! ( in_array( 'show_progress', $layout ) && ! in_array( 'hide_progress', $layout ) || ! in_array( 'hide_progress', $layout ) ) ) {
+		return '';
+	}
+
+	if ( empty( $form['pagination']['pages'] ) || ! is_array( $form['pagination']['pages'] ) ) {
+		return $progress_steps;
+	}
+
+	$prescreen_no_pages = array();
+	if ( function_exists( 'mha_screen_collection_prescreen_sc_answers_json_resolved' ) ) {
+		$prescreen_json = mha_screen_collection_prescreen_sc_answers_json_resolved( $form );
+		if ( is_string( $prescreen_json ) && $prescreen_json !== '' ) {
+			$rows = json_decode( $prescreen_json, true );
+			if ( is_array( $rows ) ) {
+				foreach ( $rows as $row ) {
+					if ( ! is_array( $row ) ) {
+						continue;
+					}
+					$p = isset( $row['page'] ) ? absint( $row['page'] ) : 0;
+					$a = isset( $row['answer'] ) ? (int) $row['answer'] : -1;
+					if ( $p > 0 && 0 === $a ) {
+						$prescreen_no_pages[ $p ] = true;
+					}
+				}
+			}
+		}
+	}
+
+	$form_pages = array();
+	foreach ( $form['pagination']['pages'] as $k => $v ) {
+		$page_num                = (int) ( $k + 1 );
+		$form_pages[ $page_num ] = array(
+			'label'          => $v,
+			'not_interested' => ! empty( $prescreen_no_pages[ $page_num ] ),
+		);
+	}
+
+	$current_page = max( 1, (int) $page );
+	$page_count   = (int) GFFormDisplay::get_max_page_number( $form ) + 1;
+
+	$back_html = '';
+	if ( function_exists( 'mha_screen_collection_prescreen_back_to_collection_url' ) ) {
+		$screen_id = function_exists( 'get_queried_object_id' ) ? (int) get_queried_object_id() : 0;
+		$back_url  = mha_screen_collection_prescreen_back_to_collection_url( $screen_id );
+		if ( $back_url !== '' ) {
+			$back_html = '<p class="mha-progress-steps-back-wrap"><a class="button round-tl thin teal mha-back-to-screen-collection" href="' . esc_url( $back_url ) . '">' . esc_html__( 'Back to Screen Collection', 'mha_s2s' ) . '</a></p>';
+		}
+	}
+
+	// Unlabelled GF pages are never rendered, so "Page X of Y" counts the visible
+	// steps rather than the raw GF page numbers.
+	$steps = array();
+	foreach ( $form_pages as $k => $info ) {
+		if ( $info['label'] === '' ) {
+			continue;
+		}
+		$steps[] = array(
+			'page'           => (int) $k,
+			'label'          => $info['label'],
+			'not_interested' => ! empty( $info['not_interested'] ),
+		);
+	}
+
+	if ( empty( $steps ) ) {
+		return $back_html;
+	}
+
+	$current_step  = 0;
+	$current_label = '';
+	foreach ( $steps as $i => $step ) {
+		if ( $step['page'] === $current_page ) {
+			$current_step  = $i + 1;
+			$current_label = $step['label'];
+			break;
+		}
+	}
+
+	$list_id = 'mha-progress-steps-' . (int) rgar( $form, 'id' );
+
+	// Summary is the accordion toggle below the stacking breakpoint and hidden above it.
+	// Bootstrap collapse handles the expand/collapse and keeps aria-expanded in sync.
+	$summary  = '<button type="button" class="mha-progress-steps-summary collapsed" data-toggle="collapse" data-target="#' . esc_attr( $list_id ) . '" aria-expanded="false" aria-controls="' . esc_attr( $list_id ) . '">';
+	$summary .= '<span class="mha-progress-steps-summary-text">';
+	if ( $current_label !== '' ) {
+		$summary .= '<span class="mha-progress-steps-current">' . esc_html( wp_strip_all_tags( $current_label ) ) . '</span>';
+	}
+	if ( $current_step > 0 ) {
+		$summary .= '<span class="mha-progress-steps-count">' . esc_html(
+			sprintf(
+				/* translators: 1: current page number, 2: total number of pages. */
+				__( 'Page %1$d of %2$d', 'mha_s2s' ),
+				$current_step,
+				count( $steps )
+			)
+		) . '</span>';
+	}
+	$summary .= '</span>';
+	$summary .= '<span class="mha-progress-steps-caret" aria-hidden="true"></span>';
+	$summary .= '</button>';
+
+	$out = $back_html . '<div class="mha-progress-steps">' . $summary;
+	$out .= '<ol id="' . esc_attr( $list_id ) . '" class="full-progress-bar collapse clearfix step-' . $current_page . '-of-' . $page_count . '">';
+	foreach ( $steps as $step ) {
+		$k = $step['page'];
+		// Page links let people jump around, so position relative to the current
+		// page says nothing about completion. Steps start empty and global.js
+		// marks the ones whose questions are all answered.
+		$pager_class = ( $current_page === $k ) ? 'active' : 'empty';
+		$li_classes  = array( 'step-' . (string) $k, $pager_class );
+		if ( $step['not_interested'] ) {
+			$li_classes[] = 'not-interested';
+		}
+		$label_link = '<a href="' . esc_attr( '#' . (string) $k ) . '" class="gpmpn-page-link">' . $step['label'] . '</a>';
+		$out       .= '<li class="' . esc_attr( implode( ' ', $li_classes ) ) . '">' . $label_link . '</li>';
+	}
+	$out .= '</ol></div>';
+
+	return $out;
+}
+
+/**
+ * Extra Submit on earlier pages of a screen collection's skip-around (full-pager-links) form.
+ * Hidden until JS confirms every visible question is answered; then it uses the same
+ * GF submission path as the last-page Submit (target page 0).
+ *
+ * @param string $button Next button HTML.
+ * @param array  $form   GF form.
+ * @return string
+ */
+add_filter( 'gform_next_button', 'mha_early_submit_beside_next', 10, 2 );
+function mha_early_submit_beside_next( $button, $form ) {
+	if ( ! is_singular( 'screen-collection' ) ) {
+		return $button;
+	}
+	if ( empty( $form['cssClass'] ) || ! str_contains( (string) $form['cssClass'], 'full-pager-links' ) ) {
+		return $button;
+	}
+	if ( ! class_exists( 'GFFormDisplay' ) || $button === '' ) {
+		return $button;
+	}
+	if ( ! preg_match( '/gform_next_button_(\d+)_(\d+)/', $button, $m ) ) {
+		return $button;
+	}
+
+	$form_id  = (int) $m[1];
+	$field_id = (int) $m[2];
+	$gf_button = rgar( $form, 'button', array( 'type' => 'text' ) );
+	$label     = rgar( $gf_button, 'text', __( 'Submit', 'gravityforms' ) );
+
+	$early = GFFormDisplay::get_form_button(
+		$form_id,
+		'gform_submit_button_' . $form_id . '_early_' . $field_id,
+		$gf_button,
+		$label,
+		'gform_button mha-early-submit',
+		$label,
+		0
+	);
+
+	return $button . ' ' . $early;
 }
 
 /**
@@ -807,8 +986,11 @@ function front_end_login_fail( $username ) {
 			// Custom Referral Check
 			$ref_query = parse_url($referrer, PHP_URL_QUERY);
 			parse_str($ref_query, $ref_query_params);
-			if(isset($ref_query_params['redirect_to']) && $ref_query_params['redirect_to'] != ''){
-				$query_args['redirect_to'] = $ref_query_params['redirect_to'];
+			if ( isset( $ref_query_params['redirect_to'] ) && $ref_query_params['redirect_to'] !== '' ) {
+				$safe_redirect = wp_validate_redirect( $ref_query_params['redirect_to'], false );
+				if ( $safe_redirect ) {
+					$query_args['redirect_to'] = $safe_redirect;
+				}
 			}
 
 			// Set our URL parameters
@@ -841,8 +1023,11 @@ function check_username_password( $login, $username, $password ) {
 			// Custom Referral Check
 			$ref_query = parse_url($referrer, PHP_URL_QUERY);
 			parse_str($ref_query, $ref_query_params);
-			if(isset($ref_query_params['redirect_to']) && $ref_query_params['redirect_to'] != ''){
-				$query_args['redirect_to'] = $ref_query_params['redirect_to'];
+			if ( isset( $ref_query_params['redirect_to'] ) && $ref_query_params['redirect_to'] !== '' ) {
+				$safe_redirect = wp_validate_redirect( $ref_query_params['redirect_to'], false );
+				if ( $safe_redirect ) {
+					$query_args['redirect_to'] = $safe_redirect;
+				}
 			}
 	
 			// Set our URL parameters
@@ -1541,3 +1726,4 @@ function mha_partner_banner($referer = null) {
 	return $partner_banner_info;
 
 }
+

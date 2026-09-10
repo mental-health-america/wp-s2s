@@ -354,8 +354,21 @@ function mhaScreenEmail(){
 	
 		// Send the email
 		$to = $email;
-		$subject = 'Mental Health America '.get_the_title($screen_id).' Results';
-		$body = mha_get_screen_email_body( $screen_user_id, $screen_id, $entry_id );
+		$collection_id = 0;
+		if ( $entry_id && class_exists( 'GFAPI' ) && function_exists( 'mha_screen_collection_resolve_from_entry' ) ) {
+			$entry = GFAPI::get_entry( $entry_id );
+			if ( is_array( $entry ) ) {
+				$collection_id = mha_screen_collection_resolve_from_entry( $entry );
+			}
+		}
+
+		if ( $collection_id && function_exists( 'mha_get_collection_email_body' ) ) {
+			$subject = 'Mental Health America ' . get_the_title( $collection_id ) . ' Results';
+			$body    = mha_get_collection_email_body( $screen_user_id, $collection_id, $entry_id );
+		} else {
+			$subject = 'Mental Health America ' . get_the_title( $screen_id ) . ' Results';
+			$body    = mha_get_screen_email_body( $screen_user_id, $screen_id, $entry_id );
+		}
 		$headers = array('Content-Type: text/html; charset=UTF-8');	
 		$headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
 
@@ -1035,4 +1048,6 @@ include_once 'related_articles.php';
 include_once 'admin_screen_tester.php';
 include_once 'multilingual.php';
 include_once 'translatepress-gravity-forms.php';
-#include_once 'screen_collection.php';
+include_once 'screen_collection.php';
+include_once 'organization_dashboard.php';
+include_once 'collection_results.php';

@@ -984,7 +984,7 @@ function mha_conditional_shortcode( $atts, $content = null ) {
 		return '';
 	}
 
-	return do_shortcode( wp_kses_post( $content ) );
+	return do_shortcode( $content );
 }
 
 /**

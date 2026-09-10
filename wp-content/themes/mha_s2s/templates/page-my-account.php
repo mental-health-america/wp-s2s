@@ -185,7 +185,8 @@ if (strpos($account_action, 'save_screen_') !== false) {
     <div class="wrap normal pb-5">
 
         <?php the_content(); ?>	
-
+        
+        <?php get_template_part( 'templates/partials/dashboard-screen-collection'); ?>
 
         <div id="dashboard-test-results" class="pt-5 mt-5">
 

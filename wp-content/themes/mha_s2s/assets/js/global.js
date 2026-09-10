@@ -516,6 +516,105 @@
 
 
 		/**
+		 * Progress step completion
+		 * Every page of the form is in the DOM, so a step gets its checkmark
+		 * once each question still showing on its page has an answer, rather
+		 * than just because it sits before the page you're on.
+		 */
+		var $progressList = $('.mha-progress-steps ol.full-progress-bar');
+
+		if($progressList.length){
+
+			var $progressPages = $progressList.closest('form').find('.gform_page');
+
+			// Conditional logic hides fields inline, which stays readable even
+			// though the page itself is display:none.
+			var progressFieldShowing = function(){
+				return this.style.display !== 'none';
+			};
+
+			var progressFieldAnswered = function(){
+				var $inputs = $(this).find('input, select, textarea');
+
+				if($inputs.filter(':radio, :checkbox').length){
+					return $inputs.filter(':checked').length > 0;
+				}
+
+				return $inputs.filter(function(){
+					return $.trim($(this).val() || '') !== '';
+				}).length > 0;
+			};
+
+			var refreshProgressSteps = function(){
+				var formComplete = $progressList.children('li').length > 0;
+
+				$progressList.children('li').each(function(){
+					var $step = $(this),
+						page  = /\bstep-(\d+)\b/.exec($step.attr('class'));
+
+					if(!page){
+						formComplete = false;
+						return;
+					}
+
+					var $questions = $progressPages.eq(page[1] - 1)
+							.find('.gfield.question, .gfield.question-optional')
+							.filter(progressFieldShowing),
+						done;
+
+					if($step.hasClass('not-interested') || $questions.length === 0){
+						done = true;
+					} else {
+						done = $questions.filter(progressFieldAnswered).length === $questions.length;
+					}
+
+					$step.toggleClass('filled', done).toggleClass('empty', !done);
+
+					if(!done){
+						formComplete = false;
+					}
+				});
+
+				$progressList.closest('form').toggleClass('mha-form-ready-to-submit', formComplete);
+			};
+
+			// Conditional logic runs after the change event and can animate, so a
+			// straight change handler reads the old set of visible questions.
+			var progressRefreshTimer,
+				queueProgressRefresh = function(){
+					clearTimeout(progressRefreshTimer);
+					progressRefreshTimer = setTimeout(refreshProgressSteps, 50);
+				};
+
+			refreshProgressSteps();
+			$progressList.closest('form').on('change', 'input, select, textarea', queueProgressRefresh);
+			$(document).on('gform_page_loaded gform_post_render gform_post_conditional_logic', queueProgressRefresh);
+		}
+
+		/**
+		 * Submitting from a page other than the last.
+		 *
+		 * The target page is rendered into the form as "next page" and Gravity
+		 * Forms only rewrites it for a previous-type submission, so an early
+		 * Submit would otherwise post the next page number and just advance.
+		 */
+		if(window.gform && gform.utils && gform.utils.addAsyncFilter){
+			gform.utils.addAsyncFilter('gform/submission/pre_submission', function(data){
+				if(data.submissionType !== 'submit' || !data.form || !data.form.querySelector('.mha-early-submit')){
+					return data;
+				}
+
+				var $target = $('#gform_target_page_number_' + data.form.dataset.formid);
+
+				if($target.length){
+					$target.val('0');
+				}
+
+				return data;
+			});
+		}
+
+		/**
 		 * Autosubmit .auto-submit Gravity Forms on radio change
 		 */
 		if($('.auto-submit').length){

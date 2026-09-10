@@ -131,6 +131,7 @@ a.social {
     span { position: absolute; left: -999em; }
 }
 
+span.button,
 button.button,
 a.button,
 .button a,
@@ -857,6 +858,16 @@ button.bar {
         text-decoration: none;
         &:after {
             width: 100%;
+        }
+    }
+
+    &.teal {
+        &:after {
+            background: $teal;
+        }
+        &:hover {
+            color: $teal;
+            background: transparent;
         }
     }
 }

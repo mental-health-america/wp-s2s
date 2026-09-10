@@ -1070,9 +1070,8 @@ function hideScreen(){
 	}
 	
 	// Make serialized data readable
-	parse_str( (string) $_POST['data'], $data );
-	$nonce = isset( $data['nonce'] ) ? $data['nonce'] : '';
-    $isAuthentic = wp_verify_nonce( $nonce, 'hideScreen');
+	parse_str($_POST['data'], $data);  
+    $isAuthentic = wp_verify_nonce( $data['nonce'], 'hideScreen');
 	
 	// Submission is good, proceed
 	if($isAuthentic && is_user_logged_in()){
@@ -1089,20 +1088,14 @@ function hideScreen(){
 		}
 
 		// Vars
-		$table = 'screens_hidden';	
+		$table = 'screens_hidden';
 
-		// Check if hidden previously
-		$db_hidden = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM {$table} WHERE uid = %d AND pid = %d",
-				$uid,
-				$pid
-			)
-		);
+		// Check if liked previously
+		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");			
 		
-		if($db_hidden && isset( $db_hidden[0]->unhidden ) && (int) $db_hidden[0]->unhidden === 0){
+		if($db_hidden && $db_hidden[0]->unliked == 0){
 
-			// Result found, let's unhide it!
+			// Result found, let's unlike it!
 			$db_update = $wpdb->update(
 				$table, 
 				array('unhidden' => 1), 
@@ -1110,9 +1103,9 @@ function hideScreen(){
 			);			
 			$result['unhidden'] = 0;
 
-		} else if($db_hidden && isset( $db_hidden[0]->unhidden ) && (int) $db_hidden[0]->unhidden === 1){
+		} else if($db_hidden && $db_hidden[0]->unliked == 1){
 
-			// Screen was previously unhidden, so lets hide it again!
+			// Thought was previously hidden, so lets hide it again!
 			$db_update = $wpdb->update(
 				$table, 
 				array('unhidden' => 0), 
@@ -1132,19 +1125,20 @@ function hideScreen(){
 
 		} else {
 
-			// No results, hide it for the first time!
-			$response =	array( 
-				'uid' => $uid,
-				'pid' => $pid
-			);	
-			$db_insert = $wpdb->insert($table, $response);
+			// No results, hide it for the first time
+			$wpdb->insert(
+				$table,
+				array(
+					'uid' => $uid,
+					'pid' => $pid,
+				),
+				array( '%d', '%d' )
+			);
 			$result['unhidden'] = 1;
 
 		}
 
-    } else {
-		$result['error'] = 'Unauthorized.';
-	}
+    }
 
     echo json_encode($result);
     exit();
