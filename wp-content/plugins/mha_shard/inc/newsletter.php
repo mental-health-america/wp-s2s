@@ -68,6 +68,7 @@ function mha_s2s_salsa_signup( $form ) {
     ]);	
     $response = curl_exec($curl);
     $error = curl_error($curl);	
+    $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
     curl_close($curl);	
 
     // Update "Response" field with Salsa's response or error
@@ -75,7 +76,14 @@ function mha_s2s_salsa_signup( $form ) {
         $_POST['input_7'] = 'Error: '.$error;
     } else {
         $res = json_decode($response);
-        $_POST['input_7'] = 'Salsa: '.$res->payload->supporters[0]->result;
+
+        if(isset($res->payload->supporters[0]->result)){
+            $_POST['input_7'] = 'Salsa: '.$res->payload->supporters[0]->result;
+        } else {
+            // curl_error() only covers transport failures, so a rejected request
+            // (auth, rate limit, validation) still lands here with no supporter.
+            $_POST['input_7'] = 'Salsa: unexpected response (HTTP '.$status.') '.substr(trim((string) $response), 0, 400);
+        }
     }
 
     //GFCommon::log_debug( 'Salsa Response: body => ' . print_r( $response, true ) );
