@@ -14,7 +14,7 @@ wp_reset_query();
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
-	<div class="page-heading bar<?php echo $customClasses; ?>">	
+	<div class="page-heading bar">	
 	<div class="wrap normal">	
 		<?php
 			if(get_field('custom_title', $term)){
