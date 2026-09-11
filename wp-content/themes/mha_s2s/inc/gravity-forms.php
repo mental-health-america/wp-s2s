@@ -38,14 +38,28 @@ function mha_get_auth0_token() {
 
     // Check for errors
     if (is_wp_error($response)) {
-        return 'Error: ' . $response->get_error_message();
+        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - Auth0 token request failed => ' . $response->get_error_message() );
+        return null;
     }
 
     // Decode response
+    $status = (int) wp_remote_retrieve_response_code($response);
     $response_body = json_decode(wp_remote_retrieve_body($response), true);
 
+    // A rejected grant (bad secret, revoked client, wrong audience) answers with an
+    // error payload instead of a token, so treat a missing token as a hard failure.
+    if (empty($response_body['access_token'])) {
+        GFCommon::log_debug( sprintf(
+            'DIGITAL PATHWAYS PROJECT - Auth0 returned no access token (HTTP %d) => %s: %s',
+            $status,
+            $response_body['error'] ?? 'unknown_error',
+            $response_body['error_description'] ?? wp_remote_retrieve_body($response)
+        ) );
+        return null;
+    }
+
     // Return the access token
-    return $response_body['access_token'] ?? null;
+    return $response_body['access_token'];
 }
 
 // Pre form submission overrides
@@ -113,7 +127,15 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 		// Connect to Columbia API
 		$jwt_token = mha_get_auth0_token();
 
-        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $jwt_token => ' . print_r($jwt_token, true) );
+        // Don't log the token itself; it's a live credential and these logs are kept on disk.
+        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $jwt_token => ' . ( $jwt_token ? 'obtained' : 'MISSING' ) );
+
+        // Without a token the API answers {"message":"Unauthorized"}, which reads as a
+        // Columbia-side rejection. Record the real cause instead.
+        if ( ! $jwt_token ) {
+            GFAPI::update_entry_field( rgar($entry, 'id'), '4', 'Error: could not obtain Auth0 access token' );
+            return;
+        }
 
         $api_domain = DIGIPATH_DOMAIN;
 		
@@ -132,9 +154,17 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 
         GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - $api_response => ' . print_r($api_response, true) );
 
-		if ( !is_wp_error( $api_response ) ) {
+		if ( is_wp_error( $api_response ) ) {
+			GFAPI::update_entry_field( rgar($entry, 'id'), '4', 'Error: ' . $api_response->get_error_message() );
+			GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - API request failed => ' . $api_response->get_error_message() );
+		} else {
+			$status = (int) wp_remote_retrieve_response_code( $api_response );
 			$response = wp_remote_retrieve_body( $api_response );
-			$result = GFAPI::update_entry_field( rgar($entry, 'id'), '4', $response );
+
+			// Prefix rejections with the status so the entry shows a 401 apart from a 403 or 500.
+			$stored = $status >= 400 ? 'HTTP ' . $status . ' ' . $response : $response;
+
+			$result = GFAPI::update_entry_field( rgar($entry, 'id'), '4', $stored );
 			GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - Updating Entry for => ' . print_r(rgar($entry, 'id'), true) );
 			GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $result => ' . print_r($result, true) );
 		}
