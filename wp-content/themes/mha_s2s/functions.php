@@ -97,7 +97,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20260909' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v202609111' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
     
 	// Add print CSS.
@@ -838,7 +838,7 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 
 	$list_id = 'mha-progress-steps-' . (int) rgar( $form, 'id' );
 
-	// Summary is the accordion toggle below the stacking breakpoint and hidden above it.
+	// Summary is the accordion toggle, shown at every width.
 	// Bootstrap collapse handles the expand/collapse and keeps aria-expanded in sync.
 	$summary  = '<button type="button" class="mha-progress-steps-summary collapsed" data-toggle="collapse" data-target="#' . esc_attr( $list_id ) . '" aria-expanded="false" aria-controls="' . esc_attr( $list_id ) . '">';
 	$summary .= '<span class="mha-progress-steps-summary-text">';
@@ -860,7 +860,7 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 	$summary .= '</button>';
 
 	$out = $back_html . '<div class="mha-progress-steps">' . $summary;
-	$out .= '<ol id="' . esc_attr( $list_id ) . '" class="full-progress-bar collapse clearfix step-' . $current_page . '-of-' . $page_count . '">';
+	$out .= '<ol id="' . esc_attr( $list_id ) . '" class="full-progress-bar collapse step-' . $current_page . '-of-' . $page_count . '">';
 	foreach ( $steps as $step ) {
 		$k = $step['page'];
 		// Page links let people jump around, so position relative to the current
