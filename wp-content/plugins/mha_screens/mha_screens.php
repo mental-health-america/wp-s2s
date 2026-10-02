@@ -333,6 +333,40 @@ function getUserScreenResults( $user_screen_id ) {
 
 }
 
+/**
+ * Force a link destined for screening mail onto https.
+ *
+ * Mail is read outside of any request to the site, so the scheme cannot be
+ * inferred from the current request, and home_url() reports whatever scheme the
+ * environment happens to have stored. The screening site is https only.
+ *
+ * @param string $url Absolute URL.
+ * @return string
+ */
+function mha_screen_email_url( $url ){
+
+	return set_url_scheme( (string) $url, 'https' );
+
+}
+
+/**
+ * Opt screening results mail out of Mailgun click tracking.
+ *
+ * Mailgun rewrites every anchor in HTML mail to its tracking domain, and that
+ * wrapper is http until web_scheme is switched on the Mailgun domain. Skipping
+ * click tracking keeps the results link https and readable end to end.
+ *
+ * @param array<string,mixed> $message_body Mailgun API request body.
+ * @return array<string,mixed>
+ */
+function mha_screen_email_disable_click_tracking( $message_body ){
+
+	$message_body['o:tracking-clicks'] = 'no';
+
+	return $message_body;
+
+}
+
 function mhaScreenEmail(){
     global $wpdb;
     
