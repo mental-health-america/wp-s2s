@@ -1424,7 +1424,19 @@ function display_featured_next_steps( $args ){
         foreach($args['additional_result_text'] as $item){
             // Support both { group_title, text } and legacy plain string
             $addl_text = is_array($item) && isset($item['text']) ? $item['text'] : (is_object($item) && isset($item->text) ? $item->text : $item);
-            $addl_text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', (string) $addl_text);
+            // Result text is stored as already-rendered HTML. Stripping every script
+            // also removes the Gravity Forms iframe listener, so the confirmation
+            // stays inside the iframe and the spinner never clears.
+            $addl_text = preg_replace_callback(
+                '/<script\b[^>]*>(.*?)<\/script>/is',
+                function( $matches ) {
+                    if ( strpos( $matches[0], 'gform_ajax_frame_' ) !== false || strpos( $matches[0], 'GF_AJAX_POSTBACK' ) !== false ) {
+                        return $matches[0];
+                    }
+                    return '';
+                },
+                (string) $addl_text
+            );
             if ( $addl_text !== '' ) {
                 $addl_text = do_shortcode( $addl_text );
             }
