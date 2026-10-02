@@ -791,7 +791,30 @@ function mha_screen_collection_query_args_from_request_for_collection() {
 }
 
 /**
+ * Whether a collection is gated to approved organizations.
+ *
+ * Mirrors the `$org_restricted` check in single-screen-collection.php: with no
+ * allowed_organizations rows the collection page redirects straight into page 1
+ * of the form, so there is no collection landing page to go back to.
+ *
+ * @param int $collection_id Collection post ID.
+ * @return bool
+ */
+function mha_screen_collection_has_allowed_organizations( $collection_id ) {
+	$collection_id = absint( $collection_id );
+	if ( ! $collection_id || ! function_exists( 'get_field' ) ) {
+		return false;
+	}
+	$rows = get_field( 'allowed_organizations', $collection_id );
+
+	return is_array( $rows ) && ! empty( $rows );
+}
+
+/**
  * Permalink to the screen-collection for the current `sc` context, with org/ref/iframe/partner aligned to the request.
+ *
+ * Empty for collections without approved organizations, so the "Back to Screen
+ * Collection" link is not rendered where it would only restart the form.
  *
  * @param int $screen_post_id Unused; kept for call-site compatibility.
  * @return string URL or empty when unknown.
@@ -800,6 +823,9 @@ function mha_screen_collection_prescreen_back_to_collection_url( $screen_post_id
 	$ctx           = mha_screen_collection_get_sc_request_context();
 	$collection_id = ( $ctx && ! empty( $ctx['collection_id'] ) ) ? absint( $ctx['collection_id'] ) : 0;
 	if ( ! $collection_id || get_post_type( $collection_id ) !== 'screen-collection' ) {
+		return '';
+	}
+	if ( ! mha_screen_collection_has_allowed_organizations( $collection_id ) ) {
 		return '';
 	}
 	$permalink = get_permalink( $collection_id );
