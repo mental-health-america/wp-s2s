@@ -397,6 +397,98 @@ function mha_screen_collection_render_answers_html( $rows ) {
 }
 
 /**
+ * Gravity Forms field IDs from a comma- or space-separated list.
+ *
+ * @param mixed $raw Field ID list.
+ * @return int[]
+ */
+function mha_screen_collection_parse_field_ids( $raw ) {
+	if ( is_array( $raw ) ) {
+		$raw = implode( ',', $raw );
+	}
+	$raw = trim( (string) $raw );
+	if ( '' === $raw ) {
+		return array();
+	}
+
+	$ids = array();
+	foreach ( preg_split( '/[\s,]+/', $raw ) as $part ) {
+		if ( preg_match( '/^(\d+)/', $part, $matches ) ) {
+			$id = (int) $matches[1];
+			if ( $id > 0 ) {
+				$ids[] = $id;
+			}
+		}
+	}
+	return array_values( array_unique( $ids ) );
+}
+
+/**
+ * Score a set of question fields.
+ *
+ * Page modules leave `.exclude` fields out of the total. A field-ID module is
+ * that question's score, so those fields count even when they use `.exclude`.
+ *
+ * @param array $fields          GF field objects.
+ * @param array $form            GF form.
+ * @param array $entry           GF entry.
+ * @param bool  $score_excluded  Add `.exclude` field values to the total.
+ * @return array{total:int,answer_rows:array,visible_questions:int,unanswered_visible:int}
+ */
+function mha_screen_collection_score_question_fields( $fields, $form, $entry, $score_excluded = false ) {
+	$total              = 0;
+	$answer_rows        = array();
+	$visible_questions  = 0;
+	$unanswered_visible = 0;
+
+	foreach ( $fields as $field ) {
+		if ( ! is_object( $field ) ) {
+			continue;
+		}
+		$fid      = (string) $field->id;
+		$css      = isset( $field->cssClass ) ? (string) $field->cssClass : '';
+		$excluded = false !== strpos( $css, 'exclude' );
+		$visible  = mha_screen_collection_field_is_visible( $form, $field, $entry );
+		$answered = mha_screen_collection_field_is_answered( $field, $entry );
+		$multi    = mha_screen_collection_multi_choice_labels( $field, $entry );
+
+		if ( $visible ) {
+			++$visible_questions;
+			if ( ! $answered ) {
+				++$unanswered_visible;
+			}
+		}
+
+		if ( is_array( $multi ) ) {
+			if ( empty( $multi ) ) {
+				continue;
+			}
+			$val = implode( ', ', $multi );
+		} else {
+			$val = isset( $entry[ $fid ] ) ? $entry[ $fid ] : '';
+			if ( '' === $val || null === $val ) {
+				continue;
+			}
+			if ( ! $excluded || $score_excluded ) {
+				$total += intval( $val );
+			}
+		}
+
+		$row_built = mha_screen_collection_build_answer_row( $field, $val );
+		if ( $row_built ) {
+			$answer_rows[] = $row_built;
+		}
+	}
+
+	return array(
+		'total'              => $total,
+		'answer_rows'        => $answer_rows,
+		'visible_questions'  => $visible_questions,
+		'unanswered_visible' => $unanswered_visible,
+	);
+}
+
+/**
  * Score collection results_modules against a GF entry.
  *
  * @param int        $collection_id Collection post ID.
@@ -440,14 +532,15 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 		return $empty;
 	}
 
-	// Index question fields by page number.
+	// Index question fields by page number and field ID.
 	$fields_by_page = array();
+	$fields_by_id   = array();
 	foreach ( $form['fields'] as $field ) {
 		if ( ! is_object( $field ) ) {
 			continue;
 		}
 		$css = isset( $field->cssClass ) ? (string) $field->cssClass : '';
-		// `exclude` still belongs in Your Answers. It only means the field is not scored.
+		// `exclude` still belongs in Your Answers. It only means the field is not scored on a page module.
 		if ( false === strpos( $css, 'question' ) ) {
 			continue;
 		}
@@ -456,6 +549,22 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 			$fields_by_page[ $page ] = array();
 		}
 		$fields_by_page[ $page ][] = $field;
+		$fields_by_id[ (int) $field->id ] = $field;
+	}
+
+	// Field-ID modules claim their questions so a page module does not score or list them too.
+	$claimed_field_ids = array();
+	foreach ( $modules_cfg as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+		$source = isset( $row['module_source'] ) ? (string) $row['module_source'] : 'page';
+		if ( 'fields' !== $source ) {
+			continue;
+		}
+		foreach ( mha_screen_collection_parse_field_ids( isset( $row['field_ids'] ) ? $row['field_ids'] : '' ) as $field_id ) {
+			$claimed_field_ids[ $field_id ] = true;
+		}
 	}
 
 	$modules = array();
@@ -463,62 +572,53 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 		if ( ! is_array( $row ) ) {
 			continue;
 		}
+		$source    = isset( $row['module_source'] ) ? (string) $row['module_source'] : 'page';
 		$page      = isset( $row['form_page_number'] ) ? (int) $row['form_page_number'] : 0;
 		$max_score = isset( $row['maximum_score'] ) ? (float) $row['maximum_score'] : 0;
 		$threshold = isset( $row['positive_score_threshold'] ) ? (float) $row['positive_score_threshold'] : 0;
 		$label     = isset( $row['module_label'] ) ? trim( (string) $row['module_label'] ) : '';
 		$symptom   = isset( $row['symptom_label'] ) ? trim( (string) $row['symptom_label'] ) : '';
 		$rec       = isset( $row['recommended_screen'] ) ? absint( $row['recommended_screen'] ) : 0;
+		$field_ids = 'fields' === $source
+			? mha_screen_collection_parse_field_ids( isset( $row['field_ids'] ) ? $row['field_ids'] : '' )
+			: array();
 
-		if ( $page < 1 || $max_score <= 0 ) {
+		if ( $max_score <= 0 ) {
 			continue;
 		}
 
-		$page_fields = isset( $fields_by_page[ $page ] ) ? $fields_by_page[ $page ] : array();
-		if ( empty( $page_fields ) ) {
+		$module_fields = array();
+		if ( 'fields' === $source ) {
+			foreach ( $field_ids as $field_id ) {
+				if ( isset( $fields_by_id[ $field_id ] ) ) {
+					$module_fields[] = $fields_by_id[ $field_id ];
+				}
+			}
+			if ( $page < 1 && ! empty( $module_fields ) ) {
+				$page = isset( $module_fields[0]->pageNumber ) ? (int) $module_fields[0]->pageNumber : 0;
+			}
+		} else {
+			if ( $page < 1 ) {
+				continue;
+			}
+			$page_fields = isset( $fields_by_page[ $page ] ) ? $fields_by_page[ $page ] : array();
+			foreach ( $page_fields as $field ) {
+				if ( isset( $claimed_field_ids[ (int) $field->id ] ) ) {
+					continue;
+				}
+				$module_fields[] = $field;
+			}
+		}
+
+		if ( empty( $module_fields ) ) {
 			continue;
 		}
 
-		$total              = 0;
-		$answer_rows        = array();
-		$visible_questions  = 0;
-		$unanswered_visible = 0;
-		foreach ( $page_fields as $field ) {
-			$fid      = (string) $field->id;
-			$css      = isset( $field->cssClass ) ? (string) $field->cssClass : '';
-			$excluded = false !== strpos( $css, 'exclude' );
-			$visible  = mha_screen_collection_field_is_visible( $form, $field, $entry );
-			$answered = mha_screen_collection_field_is_answered( $field, $entry );
-			$multi    = mha_screen_collection_multi_choice_labels( $field, $entry );
-
-			if ( $visible ) {
-				++$visible_questions;
-				if ( ! $answered ) {
-					++$unanswered_visible;
-				}
-			}
-
-			if ( is_array( $multi ) ) {
-				if ( empty( $multi ) ) {
-					continue;
-				}
-				// Checkbox and multi-select values are condition labels, not scores.
-				$val = implode( ', ', $multi );
-			} else {
-				$val = isset( $entry[ $fid ] ) ? $entry[ $fid ] : '';
-				if ( '' === $val || null === $val ) {
-					continue;
-				}
-				if ( ! $excluded ) {
-					$total += intval( $val );
-				}
-			}
-
-			$row_built = mha_screen_collection_build_answer_row( $field, $val );
-			if ( $row_built ) {
-				$answer_rows[] = $row_built;
-			}
-		}
+		$scored = mha_screen_collection_score_question_fields( $module_fields, $form, $entry, 'fields' === $source );
+		$total              = $scored['total'];
+		$answer_rows        = $scored['answer_rows'];
+		$visible_questions  = $scored['visible_questions'];
+		$unanswered_visible = $scored['unanswered_visible'];
 
 		$rank       = $max_score > 0 ? ( $total / $max_score ) : 0;
 		$positive   = $total >= $threshold;
@@ -531,7 +631,9 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 			'index'               => (int) $idx,
 			'module_label'        => $label,
 			'symptom_label'       => $symptom,
+			'module_source'       => 'fields' === $source ? 'fields' : 'page',
 			'form_page_number'    => $page,
+			'field_ids'           => $field_ids,
 			'total_score'         => $total,
 			'maximum_score'       => $max_score,
 			'threshold'           => $threshold,
@@ -585,9 +687,9 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 
 	$default_index = 0;
 	if ( ! empty( $positive ) ) {
-		$first_positive_page = $positive[0]['form_page_number'];
+		$target_index = (int) $positive[0]['index'];
 		foreach ( $modules as $i => $m ) {
-			if ( (int) $m['form_page_number'] === (int) $first_positive_page ) {
+			if ( (int) $m['index'] === $target_index ) {
 				$default_index = $i;
 				break;
 			}

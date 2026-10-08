@@ -64,7 +64,7 @@
             "name": "results_modules",
             "aria-label": "",
             "type": "repeater",
-            "instructions": "Map each results module to a page of the collection's Gravity Form. Module scores and thresholds will be used to build the collection results.",
+            "instructions": "Score each results module from a Gravity Form page, or from specific field IDs when a question on that page is its own result. Field ID modules are left out of the page module.",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -129,14 +129,82 @@
                     "parent_repeater": "field_697d394e7c101"
                 },
                 {
+                    "key": "field_69b8a1010011",
+                    "label": "Module Source",
+                    "name": "module_source",
+                    "aria-label": "",
+                    "type": "select",
+                    "instructions": "Form Page scores every question on that page. Field IDs scores only the listed questions, including ones marked exclude.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "choices": {
+                        "page": "Form Page",
+                        "fields": "Field IDs"
+                    },
+                    "default_value": "page",
+                    "return_format": "value",
+                    "multiple": 0,
+                    "allow_null": 0,
+                    "ui": 0,
+                    "ajax": 0,
+                    "placeholder": "",
+                    "allow_in_bindings": 0,
+                    "parent_repeater": "field_697d394e7c101"
+                },
+                {
+                    "key": "field_69b8a1010012",
+                    "label": "Field IDs",
+                    "name": "field_ids",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Comma-separated Gravity Forms field IDs. These questions are this module's score and answers, and they are left out of the page module.",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69b8a1010011",
+                                "operator": "==",
+                                "value": "fields"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "214, 215",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_697d394e7c101"
+                },
+                {
                     "key": "field_697d394e7c104",
                     "label": "Form Page Number",
                     "name": "form_page_number",
                     "aria-label": "",
                     "type": "number",
                     "instructions": "The Gravity Forms page containing this module's questions.",
-                    "required": 1,
-                    "conditional_logic": 0,
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69b8a1010011",
+                                "operator": "!=",
+                                "value": "fields"
+                            }
+                        ]
+                    ],
                     "wrapper": {
                         "width": "33",
                         "class": "",
@@ -610,5 +678,5 @@
             "json"
         ]
     },
-    "modified": 1791491097
+    "modified": 1791502200
 }
