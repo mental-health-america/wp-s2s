@@ -61,7 +61,7 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 							</ul>
 						</div>
 					<?php else : ?>
-						<p class="mb-0"><?php echo esc_html( $empty_positive ); ?></p>
+						<p class="mb-0"><?php echo $empty_positive; ?></p>
 					<?php endif; ?>
 				</div>
 			</div>
@@ -78,6 +78,16 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 			'email_button',
 			array( 'espanol' => false )
 		);
+		if ( ! is_user_logged_in() ) {
+			get_template_part(
+				'templates/results/action',
+				'login_button',
+				array(
+					'espanol'      => false,
+					'button_color' => 'blue',
+				)
+			);
+		}
 		?>
 
 		<?php if ( ! empty( $negative ) ) : ?>
@@ -130,6 +140,23 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 			</div>
 		<?php endif; ?>
 	</div>
+
+	<?php if ( ! is_user_logged_in() ) : ?>
+		<div id="login-email-results" class="collapse">
+			<?php
+			get_template_part(
+				'templates/results/action',
+				'login_email_display',
+				array(
+					'espanol'    => false,
+					'id'         => isset( $user_screen_result['result_id'] ) ? $user_screen_result['result_id'] : '',
+					'with_email' => false,
+					'iframe_var' => $iframe_var,
+				)
+			);
+			?>
+		</div>
+	<?php endif; ?>
 
 	<div id="screen-result-content" class="pt-4">
 		<?php
@@ -210,7 +237,7 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 		<h2 class="section-title dark-blue bold"><?php esc_html_e( 'Next Steps', 'mha_s2s' ); ?></h2>
 
 		<?php if ( $share_message !== '' ) : ?>
-			<div class="mb-5"><?php echo esc_html( $share_message ); ?></div>
+			<div class="mb-5"><?php echo  $share_message ; ?></div>
 		<?php endif; ?>
 
 		<?php if ( $show_rec && ! empty( $recommended ) ) : ?>

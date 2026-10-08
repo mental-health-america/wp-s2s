@@ -2,7 +2,10 @@
 /* Template Name: My Account */
 
 if( !is_user_logged_in() ){
-    wp_redirect('/log-in');
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/my-account/';
+    $current     = home_url( $request_uri );
+    $safe        = wp_validate_redirect( $current, home_url( '/my-account/' ) );
+    wp_safe_redirect( add_query_arg( 'redirect_to', $safe, home_url( '/log-in/' ) ) );
     exit();
 }
 
@@ -251,6 +254,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
                             $total_score = 0;
                             $test_id = '';
+                            $screen_id = '';
                             foreach($data as $k => $v):
                                 
                                 // Get field object
@@ -262,7 +266,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 }
 
                                 // Get screen token                  
-                                if (isset($field->label) && strpos($field->label, 'Token') !== false) {     
+                                if (isset($field->label) && strpos($field->label, 'Token') !== false && $v !== '') {     
                                     $test_id = $v;
                                 }
 
@@ -292,6 +296,15 @@ if (strpos($account_action, 'save_screen_') !== false) {
                             endforeach;
 
                             // Vars for later
+                            $collection_id = ( $screen_id && get_post_type( (int) $screen_id ) === 'screen-collection' ) ? (int) $screen_id : 0;
+                            if ( ! $collection_id && ! $screen_id && function_exists( 'mha_screen_collection_resolve_from_entry' ) ) {
+                                $collection_id = (int) mha_screen_collection_resolve_from_entry( $data );
+                                if ( $collection_id ) {
+                                    $screen_id = $collection_id;
+                                }
+                            }
+                            $is_collection = $collection_id > 0;
+
                             $test_title = get_the_title($screen_id);
                             $test_date = date('M j, Y', strtotime($data['date_created']));
                             $screen_results = get_field('results', $screen_id);
@@ -312,8 +325,8 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 $total_score = $max_score;
                             }
 
-                            // Limit results 
-                            if(!get_field('survey', $screen_id)){
+                            // Screen collections have no single score, so they stay out of the over-time chart.
+                            if ( ! $is_collection && ! get_field( 'survey', $screen_id ) ) {
                                 $graph_data[$test_title]['hide_scores'] = get_field('hide_result_score', $screen_id);
                                 $graph_data[$test_title]['labels'][] = date('M', strtotime($data['date_created']));
                                 $graph_data[$test_title]['scores'][] = $total_score;
@@ -322,6 +335,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                             }
 
                             $your_results_display[$test_title][$count_results]['screen_id'] = $screen_id;
+                            $your_results_display[$test_title][$count_results]['is_collection'] = $is_collection;
 
                             //if(!get_field('survey', $screen_id)){
                                 $your_results_display[$test_title][$count_results]['test_id'] = isset($data['entry_id']) ? $data['entry_id'] : null;     
@@ -329,8 +343,25 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                 $your_results_display[$test_title][$count_results]['test_title'] = $test_title;
                                 $your_results_display[$test_title][$count_results]['total_score'] = $total_score;
                                 $your_results_display[$test_title][$count_results]['max_score'] = $max_score;
+                                if ( $is_collection && $test_id === '' && ! empty( $data['partial_entry_id'] ) ) {
+                                    $test_id = $data['partial_entry_id'];
+                                }
                                 $your_results_display[$test_title][$count_results]['test_link'] = $test_id;     
                             //}
+
+                            if ( $is_collection && function_exists( 'mha_get_collection_module_results' ) ) {
+                                $collection_form = GFAPI::get_form( (int) $i->form_id );
+                                $collection_mods = mha_get_collection_module_results( $collection_id, $data, $collection_form );
+                                $concerns        = array();
+                                if ( ! empty( $collection_mods['positive'] ) && is_array( $collection_mods['positive'] ) ) {
+                                    foreach ( $collection_mods['positive'] as $mod ) {
+                                        if ( ! empty( $mod['module_label'] ) ) {
+                                            $concerns[] = $mod['module_label'];
+                                        }
+                                    }
+                                }
+                                $your_results_display[ $test_title ][ $count_results ]['concerns'] = $concerns;
+                            }
 
                             if($total_score >= $min_score && $total_score <= $max_score){
                                 if(get_sub_field('required_tags')){
@@ -454,8 +485,23 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                                             echo isset($result['test_title']) ? $result['test_title'] : ''; 
                                                         ?>
                                                     </div>
-                                                    <div class="caps small">Your test score was:</div>
-                                                    <div class="result bold large"><?php echo isset($result['result_title']) ? $result['result_title'] : '&ndash;'; ?></div>
+                                                    <?php if ( ! empty( $result['is_collection'] ) ) : ?>
+                                                        <div class="caps small">Your Concerns:</div>
+                                                        <div class="result bold">
+                                                            <?php if ( ! empty( $result['concerns'] ) ) : ?>
+                                                                <ul class="mb-0 ml-2 pl-3">
+                                                                    <?php foreach ( $result['concerns'] as $concern ) : ?>
+                                                                        <li class="mb-0"><?php echo esc_html( $concern ); ?></li>
+                                                                    <?php endforeach; ?>
+                                                                </ul>
+                                                            <?php else : ?>
+                                                                &ndash;
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    <?php else : ?>
+                                                        <div class="caps small">Your test score was:</div>
+                                                        <div class="result bold large"><?php echo isset($result['result_title']) ? $result['result_title'] : '&ndash;'; ?></div>
+                                                    <?php endif; ?>
 
                                                     
                                                     <?php if ( ! empty( $result['test_id'] ) ) : ?>
@@ -483,20 +529,24 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                                 </div>
                                                 <a href="/screening-results/?sid=<?php echo $result['test_link']; ?>" class="bubble mint thinner round-small bubble-link text-dark-blue">
                                                     <span class="inner result caps text-center bold montserrat block">
-                                                        <?php 
-                                                            $result_espanol = get_field( 'espanol', $result['screen_id'] );
-                                                            if ( ! get_field( 'hide_result_score', $result['screen_id'] ) ) {
-                                                                if ( $result_espanol ) {
-                                                                    esc_html_e( 'Sobre su puntuación', 'mha_s2s' );
-                                                                } else {
-                                                                    esc_html_e( 'About your score', 'mha_s2s' );
-                                                                }
-                                                                echo ': ' . esc_html( $result['total_score'] ) . ' / ' . esc_html( $result['max_score'] );
+                                                        <?php
+                                                            if ( ! empty( $result['is_collection'] ) ) {
+                                                                esc_html_e( 'View Full Results', 'mha_s2s' );
                                                             } else {
-                                                                if ( $result_espanol ) {
-                                                                    esc_html_e( 'Sobre su resultado', 'mha_s2s' );
+                                                                $result_espanol = get_field( 'espanol', $result['screen_id'] );
+                                                                if ( ! get_field( 'hide_result_score', $result['screen_id'] ) ) {
+                                                                    if ( $result_espanol ) {
+                                                                        esc_html_e( 'Sobre su puntuación', 'mha_s2s' );
+                                                                    } else {
+                                                                        esc_html_e( 'About your score', 'mha_s2s' );
+                                                                    }
+                                                                    echo ': ' . esc_html( $result['total_score'] ) . ' / ' . esc_html( $result['max_score'] );
                                                                 } else {
-                                                                    esc_html_e( 'About your result', 'mha_s2s' );
+                                                                    if ( $result_espanol ) {
+                                                                        esc_html_e( 'Sobre su resultado', 'mha_s2s' );
+                                                                    } else {
+                                                                        esc_html_e( 'About your result', 'mha_s2s' );
+                                                                    }
                                                                 }
                                                             }
                                                         ?>
@@ -541,14 +591,18 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
             </div>
 
-            <?php if(!empty($graph_data)): ?>
+            <?php
+                $result_group_titles = $your_results_display ? array_keys( $your_results_display ) : array();
+                $first_result_group  = $result_group_titles ? $result_group_titles[0] : '';
+            ?>
+            <?php if ( count( $result_group_titles ) > 1 || ! empty( $graph_data ) ) : ?>
             <div id="test-selection-dropdown" class="dropdown dropdown-menu-right">
                 <button class="button gray round-br dropdown-toggle" type="button" id="testSelection" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="truncate not-upper medium"><?php echo array_key_first($graph_data); ?></span>
+                    <span class="truncate not-upper medium"><?php echo esc_html( $first_result_group ); ?></span>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="testSelection">
-                    <?php foreach($graph_data as $key => $value): ?>
-                        <button class="dropdown-item show-test-group" type="button" data-group-control="<?php echo sanitize_title($key); ?>"><?php echo $key; ?></button>
+                    <?php foreach ( $result_group_titles as $key ) : ?>
+                        <button class="dropdown-item show-test-group" type="button" data-group-control="<?php echo esc_attr( sanitize_title( $key ) ); ?>"><?php echo esc_html( $key ); ?></button>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -560,7 +614,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                 if(!empty($graph_data)):
                     foreach($graph_data as $k => $v): 
                     ?>
-                    <div class="container-fluid loading-container pt-4<?php if($chart_counter > 0){ echo ' hidden'; } ?>" data-test-group="<?php echo sanitize_title($k); ?>">
+                    <div class="container-fluid loading-container pt-4<?php if ( $k !== $first_result_group ) { echo ' hidden'; } ?>" data-test-group="<?php echo sanitize_title($k); ?>">
                     <div class="row">
 
                         <div class="col-12">

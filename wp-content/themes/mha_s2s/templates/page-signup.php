@@ -4,11 +4,17 @@ get_header();
 
 $login_base     = home_url( '/log-in' );
 $redirect_query = get_query_var( 'redirect_to' );
+if ( ! $redirect_query ) {
+	$signup_action = get_query_var( 'action' );
+	if ( is_string( $signup_action ) && preg_match( '/^save_(screen|diy|thought)_[0-9]+$/', $signup_action ) ) {
+		$redirect_query = add_query_arg( 'action', $signup_action, home_url( '/my-account' ) );
+	}
+}
 $signup_url     = $login_base;
 if ( $redirect_query ) {
 	$safe_redirect = wp_validate_redirect( $redirect_query, false );
 	if ( $safe_redirect ) {
-		$signup_url = add_query_arg( 'redirect_to', $safe_redirect, $login_base );
+		$signup_url = $login_base . '?redirect_to=' . rawurlencode( $safe_redirect );
 	}
 }
 ?>

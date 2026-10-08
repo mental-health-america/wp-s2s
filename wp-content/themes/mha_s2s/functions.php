@@ -1308,12 +1308,80 @@ function remove_admin_bar() {
  */
 add_action( 'gform_user_registered', 'wpc_gravity_registration_autologin',  10, 4 );
 function wpc_gravity_registration_autologin( $user_id, $feed, $entry, $user_pass ) {
-	
-	$source = $entry['source_url'];
-	GFCommon::log_debug( __METHOD__ .'Source URL: '.$source );
 
+	$user = get_userdata( $user_id );
+	if ( ! $user ) {
+		return;
+	}
+
+	wp_set_current_user( $user_id );
 	wp_set_auth_cookie( $user_id, false, is_ssl() );
 
+	// Signup form field 7 is populated from ?action= or from redirect_to.
+	if ( (int) rgar( $entry, 'form_id' ) !== 2 ) {
+		return;
+	}
+
+	$action = isset( $entry['7'] ) ? (string) $entry['7'] : '';
+	if ( strpos( $action, 'save_screen_' ) !== 0 || ! function_exists( 'get_ipiden' ) || ! class_exists( 'GFAPI' ) ) {
+		return;
+	}
+
+	$screen_entry_id = absint( substr( $action, strlen( 'save_screen_' ) ) );
+	if ( ! $screen_entry_id ) {
+		return;
+	}
+
+	$screen_entry = GFAPI::get_entry( $screen_entry_id );
+	if ( is_wp_error( $screen_entry ) || ! is_array( $screen_entry ) ) {
+		return;
+	}
+
+	if ( (string) $screen_entry['40'] === (string) get_ipiden() && ( isset( $screen_entry['41'] ) ? (string) $screen_entry['41'] : '' ) === '' ) {
+		$screen_entry['41'] = $user->user_email;
+		GFAPI::update_entry( $screen_entry );
+	}
+
+}
+
+/**
+ * Signup's hidden Account Action field reads ?action=.
+ * Result links pass that same action inside redirect_to instead.
+ */
+add_filter( 'gform_field_value_action', 'mha_signup_action_from_redirect' );
+function mha_signup_action_from_redirect( $value ) {
+	if ( is_string( $value ) && $value !== '' ) {
+		return $value;
+	}
+
+	$redirect = get_query_var( 'redirect_to' );
+	if ( ( ! is_string( $redirect ) || $redirect === '' ) && isset( $_GET['redirect_to'] ) ) {
+		$redirect = wp_unslash( $_GET['redirect_to'] );
+	}
+	if ( ! is_string( $redirect ) || $redirect === '' ) {
+		return $value;
+	}
+
+	$safe = wp_validate_redirect( $redirect, false );
+	if ( ! $safe ) {
+		return $value;
+	}
+
+	$query = wp_parse_url( $safe, PHP_URL_QUERY );
+	if ( ! is_string( $query ) || $query === '' ) {
+		return $value;
+	}
+
+	$args = array();
+	parse_str( $query, $args );
+	if ( empty( $args['action'] ) || ! is_string( $args['action'] ) ) {
+		return $value;
+	}
+	if ( ! preg_match( '/^save_(screen|diy|thought)_[0-9]+$/', $args['action'] ) ) {
+		return $value;
+	}
+
+	return $args['action'];
 }
 
 /**
