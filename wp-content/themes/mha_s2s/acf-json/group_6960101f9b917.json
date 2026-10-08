@@ -3,6 +3,40 @@
     "title": "Screen Collection Details",
     "fields": [
         {
+            "key": "field_6960101f1287c",
+            "label": "Screen (legacy)",
+            "name": "screens",
+            "aria-label": "",
+            "type": "post_object",
+            "instructions": "Deprecated. Use the Form field (Gravity Forms ID) instead. Kept only as a fallback for collections that have not been updated yet.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "post_type": [
+                "screen"
+            ],
+            "post_status": "",
+            "taxonomy": "",
+            "return_format": "id",
+            "multiple": 0,
+            "save_custom": 0,
+            "save_post_status": "publish",
+            "acfe_bidirectional": {
+                "acfe_bidirectional_enabled": "0"
+            },
+            "allow_null": 0,
+            "allow_in_bindings": 0,
+            "bidirectional": 0,
+            "ui": 1,
+            "bidirectional_target": [],
+            "save_post_type": ""
+        },
+        {
             "key": "field_6aa1a6e8b514a",
             "label": "Form",
             "name": "form",
@@ -277,7 +311,7 @@
             "label": "Next Steps language",
             "name": "share_results_message",
             "aria-label": "",
-            "type": "textarea",
+            "type": "wysiwyg",
             "instructions": "Always shown in Next Steps part 1.",
             "required": 0,
             "conditional_logic": 0,
@@ -287,13 +321,34 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
-            "default_value": "Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.",
-            "acfe_textarea_code": 0,
-            "maxlength": "",
+            "default_value": "",
             "allow_in_bindings": 0,
-            "rows": 3,
-            "placeholder": "",
-            "new_lines": ""
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_6ac7fbfd2725b",
+            "label": "Footer language",
+            "name": "footer_language",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "Displays directly underneath the form on all pages.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "",
+            "allow_in_bindings": 0,
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
         },
         {
             "key": "field_69b8a1010005",
@@ -555,5 +610,5 @@
             "json"
         ]
     },
-    "modified": 1788980400
+    "modified": 1791491097
 }

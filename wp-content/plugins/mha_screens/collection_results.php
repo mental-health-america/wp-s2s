@@ -180,6 +180,138 @@ function mha_screen_collection_resolve_from_entry( $entry, $form = null ) {
 }
 
 /**
+ * Whether a field stores several selected choices (checkbox or multi-select).
+ *
+ * @param object $field GF field.
+ * @return bool
+ */
+function mha_screen_collection_is_multi_choice_field( $field ) {
+	$type       = isset( $field->type ) ? (string) $field->type : '';
+	$input_type = isset( $field->inputType ) ? (string) $field->inputType : '';
+	return in_array( $type, array( 'checkbox', 'multiselect', 'multi_choice' ), true ) || 'checkbox' === $input_type;
+}
+
+/**
+ * Choice label for a stored value.
+ *
+ * @param object $field GF field.
+ * @param mixed  $value Stored choice value.
+ * @return string
+ */
+function mha_screen_collection_choice_label( $field, $value ) {
+	if ( ! empty( $field->choices ) && is_array( $field->choices ) ) {
+		foreach ( $field->choices as $choice ) {
+			if ( isset( $choice['value'] ) && (string) $choice['value'] === (string) $value ) {
+				$text = isset( $choice['text'] ) ? trim( (string) $choice['text'] ) : '';
+				return '' !== $text ? $text : (string) $value;
+			}
+		}
+	}
+	return trim( (string) $value );
+}
+
+/**
+ * Selected labels for a checkbox or multi-select field.
+ *
+ * Returns null when the field is not a multi-choice field. An empty array means
+ * nothing was selected.
+ *
+ * @param object $field GF field.
+ * @param array  $entry GF entry.
+ * @return array<int,string>|null
+ */
+function mha_screen_collection_multi_choice_labels( $field, $entry ) {
+	if ( ! is_object( $field ) || ! mha_screen_collection_is_multi_choice_field( $field ) || ! is_array( $entry ) ) {
+		return null;
+	}
+
+	$selected = array();
+	$type     = isset( $field->type ) ? (string) $field->type : '';
+
+	if ( 'multiselect' === $type ) {
+		$fid = (string) $field->id;
+		$raw = isset( $entry[ $fid ] ) ? $entry[ $fid ] : '';
+		$values = array();
+		if ( is_array( $raw ) ) {
+			$values = $raw;
+		} elseif ( is_string( $raw ) && '' !== $raw ) {
+			$decoded = json_decode( $raw, true );
+			$values  = is_array( $decoded ) ? $decoded : array_map( 'trim', explode( ',', $raw ) );
+		}
+		foreach ( $values as $value ) {
+			if ( '' === $value || null === $value ) {
+				continue;
+			}
+			$selected[] = mha_screen_collection_choice_label( $field, $value );
+		}
+		return $selected;
+	}
+
+	$inputs = ! empty( $field->inputs ) && is_array( $field->inputs ) ? $field->inputs : array();
+	if ( $inputs ) {
+		foreach ( $inputs as $input ) {
+			$iid = isset( $input['id'] ) ? (string) $input['id'] : '';
+			if ( '' === $iid || ! isset( $entry[ $iid ] ) || '' === $entry[ $iid ] || null === $entry[ $iid ] ) {
+				continue;
+			}
+			$selected[] = mha_screen_collection_choice_label( $field, $entry[ $iid ] );
+		}
+		return $selected;
+	}
+
+	$prefix = (string) $field->id . '.';
+	foreach ( $entry as $key => $value ) {
+		if ( ! is_scalar( $key ) || 0 !== strpos( (string) $key, $prefix ) || '' === $value || null === $value ) {
+			continue;
+		}
+		$selected[] = mha_screen_collection_choice_label( $field, $value );
+	}
+	return $selected;
+}
+
+/**
+ * Whether a question field has a saved answer in the entry.
+ *
+ * @param object $field GF field.
+ * @param array  $entry GF entry.
+ * @return bool
+ */
+function mha_screen_collection_field_is_answered( $field, $entry ) {
+	if ( ! is_object( $field ) || ! is_array( $entry ) ) {
+		return false;
+	}
+
+	$multi = mha_screen_collection_multi_choice_labels( $field, $entry );
+	if ( is_array( $multi ) ) {
+		return ! empty( $multi );
+	}
+
+	$fid = (string) $field->id;
+	$val = isset( $entry[ $fid ] ) ? $entry[ $fid ] : '';
+	return '' !== $val && null !== $val;
+}
+
+/**
+ * Whether a field was shown for this entry (GF conditional logic + page/section).
+ *
+ * Hidden fields are treated as unanswered-on-purpose, not incomplete.
+ *
+ * @param array  $form  GF form.
+ * @param object $field GF field.
+ * @param array  $entry GF entry.
+ * @return bool
+ */
+function mha_screen_collection_field_is_visible( $form, $field, $entry ) {
+	if ( ! is_object( $field ) || ! is_array( $form ) || ! is_array( $entry ) ) {
+		return true;
+	}
+	if ( ! class_exists( 'GFFormsModel' ) || ! is_callable( array( 'GFFormsModel', 'is_field_hidden' ) ) ) {
+		return true;
+	}
+	return ! GFFormsModel::is_field_hidden( $form, $field, array(), $entry );
+}
+
+/**
  * Build a single Your Answers HTML row for a question field.
  *
  * @param object $field GF field.
@@ -217,9 +349,12 @@ function mha_screen_collection_build_answer_row( $field, $value ) {
 	if ( false !== strpos( $css_class, 'question-optional' ) ) {
 		$answer = $value;
 	} elseif ( false !== strpos( $css_class, 'hide-score' ) ) {
-		$answer = $value_label;
+		$answer = '' !== $value_label ? $value_label : $value;
 	} else {
 		$answer = $value_label . $value_extra;
+	}
+	if ( '' === trim( (string) $answer ) ) {
+		$answer = is_scalar( $value ) ? (string) $value : '';
 	}
 
 	return array(
@@ -249,11 +384,12 @@ function mha_screen_collection_render_answers_html( $rows ) {
 		$temp_answer = isset( $ya['answer'] ) && function_exists( 'removeTextBetween' )
 			? removeTextBetween( $ya['answer'], ' (e.g.', ')' )
 			: ( isset( $ya['answer'] ) ? $ya['answer'] : '' );
+		$temp_answer = wp_strip_all_tags( (string) $temp_answer );
 		$css = isset( $ya['css'] ) ? $ya['css'] : 'question-row row pb-4';
 		if ( isset( $ya['type'] ) && 'extra' === $ya['type'] ) {
-			$html[] = '<div class="' . esc_attr( $css ) . '"><div class="col-12 text-gray">' . $temp_answer . '</div></div>';
+			$html[] = '<div class="' . esc_attr( $css ) . '"><div class="col-12 text-gray">' . esc_html( $temp_answer ) . '</div></div>';
 		} else {
-			$q = isset( $ya['question'] ) ? $ya['question'] : '';
+			$q = isset( $ya['question'] ) ? wp_strip_all_tags( (string) $ya['question'] ) : '';
 			$html[] = '<div class="' . esc_attr( $css ) . '"><div class="col-sm-7 col-12 text-gray">' . esc_html( $q ) . '</div><div class="col-sm-5 col-12 bold text-dark-blue">' . esc_html( $temp_answer ) . '</div></div>';
 		}
 	}
@@ -271,6 +407,7 @@ function mha_screen_collection_render_answers_html( $rows ) {
  *   modules:array<int,array<string,mixed>>,
  *   positive:array<int,array<string,mixed>>,
  *   negative:array<int,array<string,mixed>>,
+ *   incomplete:array<int,array<string,mixed>>,
  *   recommended:array<int,array<string,mixed>>,
  *   default_module_index:int
  * }
@@ -282,6 +419,7 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 		'modules'              => array(),
 		'positive'             => array(),
 		'negative'             => array(),
+		'incomplete'           => array(),
 		'recommended'          => array(),
 		'default_module_index' => 0,
 	);
@@ -309,7 +447,8 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 			continue;
 		}
 		$css = isset( $field->cssClass ) ? (string) $field->cssClass : '';
-		if ( false === strpos( $css, 'question' ) || false !== strpos( $css, 'exclude' ) ) {
+		// `exclude` still belongs in Your Answers. It only means the field is not scored.
+		if ( false === strpos( $css, 'question' ) ) {
 			continue;
 		}
 		$page = isset( $field->pageNumber ) ? (int) $field->pageNumber : 1;
@@ -340,36 +479,70 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 			continue;
 		}
 
-		$total        = 0;
-		$answer_rows  = array();
+		$total              = 0;
+		$answer_rows        = array();
+		$visible_questions  = 0;
+		$unanswered_visible = 0;
 		foreach ( $page_fields as $field ) {
-			$fid = (string) $field->id;
-			$val = isset( $entry[ $fid ] ) ? $entry[ $fid ] : '';
-			if ( '' === $val || null === $val ) {
-				continue;
+			$fid      = (string) $field->id;
+			$css      = isset( $field->cssClass ) ? (string) $field->cssClass : '';
+			$excluded = false !== strpos( $css, 'exclude' );
+			$visible  = mha_screen_collection_field_is_visible( $form, $field, $entry );
+			$answered = mha_screen_collection_field_is_answered( $field, $entry );
+			$multi    = mha_screen_collection_multi_choice_labels( $field, $entry );
+
+			if ( $visible ) {
+				++$visible_questions;
+				if ( ! $answered ) {
+					++$unanswered_visible;
+				}
 			}
-			$total += intval( $val );
+
+			if ( is_array( $multi ) ) {
+				if ( empty( $multi ) ) {
+					continue;
+				}
+				// Checkbox and multi-select values are condition labels, not scores.
+				$val = implode( ', ', $multi );
+			} else {
+				$val = isset( $entry[ $fid ] ) ? $entry[ $fid ] : '';
+				if ( '' === $val || null === $val ) {
+					continue;
+				}
+				if ( ! $excluded ) {
+					$total += intval( $val );
+				}
+			}
+
 			$row_built = mha_screen_collection_build_answer_row( $field, $val );
 			if ( $row_built ) {
 				$answer_rows[] = $row_built;
 			}
 		}
 
-		$rank     = $max_score > 0 ? ( $total / $max_score ) : 0;
-		$positive = $total >= $threshold;
+		$rank       = $max_score > 0 ? ( $total / $max_score ) : 0;
+		$positive   = $total >= $threshold;
+		// Below threshold with skipped visible questions = incomplete, not "not struggling".
+		$incomplete = ! $positive && $unanswered_visible > 0;
+		// Page/fields all hidden by conditional logic: omit from negative and incomplete lists.
+		$skipped = ! $positive && ! $incomplete && $visible_questions < 1;
 
 		$modules[] = array(
-			'index'              => (int) $idx,
-			'module_label'       => $label,
-			'symptom_label'      => $symptom,
-			'form_page_number'   => $page,
-			'total_score'        => $total,
-			'maximum_score'      => $max_score,
-			'threshold'          => $threshold,
-			'rank'               => $rank,
-			'positive'           => $positive,
-			'recommended_screen' => $rec,
-			'your_answers_html'  => mha_screen_collection_render_answers_html( $answer_rows ),
+			'index'               => (int) $idx,
+			'module_label'        => $label,
+			'symptom_label'       => $symptom,
+			'form_page_number'    => $page,
+			'total_score'         => $total,
+			'maximum_score'       => $max_score,
+			'threshold'           => $threshold,
+			'rank'                => $rank,
+			'positive'            => $positive,
+			'incomplete'          => $incomplete,
+			'skipped'             => $skipped,
+			'visible_questions'   => $visible_questions,
+			'unanswered_visible'  => $unanswered_visible,
+			'recommended_screen'  => $rec,
+			'your_answers_html'   => mha_screen_collection_render_answers_html( $answer_rows ),
 		);
 	}
 
@@ -380,22 +553,33 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 		return $a['rank'] < $b['rank'] ? 1 : -1;
 	};
 
+	$by_index = static function ( $a, $b ) {
+		return $a['index'] <=> $b['index'];
+	};
+
 	$positive = array_values( array_filter( $modules, static function ( $m ) {
 		return ! empty( $m['positive'] );
 	} ) );
 	usort( $positive, $by_rank_desc );
 
+	$incomplete = array_values( array_filter( $modules, static function ( $m ) {
+		return ! empty( $m['incomplete'] );
+	} ) );
+	usort( $incomplete, $by_index );
+
 	$negative = array_values( array_filter( $modules, static function ( $m ) {
-		return empty( $m['positive'] );
+		return empty( $m['positive'] ) && empty( $m['incomplete'] ) && empty( $m['skipped'] );
 	} ) );
 	usort( $negative, $by_rank_desc );
 
-	$recommended = array_values(
-		array_filter(
-			$positive,
-			static function ( $m ) {
-				return ! empty( $m['recommended_screen'] );
-			}
+	$recommended = mha_collection_limit_recommended_screens(
+		array_values(
+			array_filter(
+				$positive,
+				static function ( $m ) {
+					return ! empty( $m['recommended_screen'] );
+				}
+			)
 		)
 	);
 
@@ -415,9 +599,126 @@ function mha_get_collection_module_results( $collection_id, $entry, $form = null
 		'modules'              => $modules,
 		'positive'             => $positive,
 		'negative'             => $negative,
+		'incomplete'           => $incomplete,
 		'recommended'          => $recommended,
 		'default_module_index' => $default_index,
 	);
+}
+
+/**
+ * Gravity Forms view totals, keyed by form ID.
+ *
+ * @return array<int,int>
+ */
+function mha_screen_collection_form_view_counts() {
+	static $counts = null;
+	if ( null !== $counts ) {
+		return $counts;
+	}
+	$counts = array();
+	if ( ! class_exists( 'GFFormsModel' ) || ! is_callable( array( 'GFFormsModel', 'get_view_count_per_form' ) ) ) {
+		return $counts;
+	}
+	$rows = GFFormsModel::get_view_count_per_form();
+	if ( ! is_array( $rows ) ) {
+		return $counts;
+	}
+	foreach ( $rows as $row ) {
+		$form_id = isset( $row->form_id ) ? (int) $row->form_id : 0;
+		if ( $form_id ) {
+			$counts[ $form_id ] = isset( $row->view_count ) ? (int) $row->view_count : 0;
+		}
+	}
+	return $counts;
+}
+
+/**
+ * Form ID embedded in a Screen post, without rendering the content.
+ *
+ * @param int $screen_id Screen post ID.
+ * @return int
+ */
+function mha_screen_collection_screen_form_id( $screen_id ) {
+	static $cache = array();
+	$screen_id = absint( $screen_id );
+	if ( ! $screen_id ) {
+		return 0;
+	}
+	if ( isset( $cache[ $screen_id ] ) ) {
+		return $cache[ $screen_id ];
+	}
+	$post = get_post( $screen_id );
+	$form_id = 0;
+	if ( $post ) {
+		$haystack = (string) $post->post_content . "\n" . (string) $post->post_excerpt;
+		if ( preg_match( '/\[gravityform\s+id=["\']?(\d+)["\']?/i', $haystack, $matches ) ) {
+			$form_id = absint( $matches[1] );
+		}
+	}
+	$cache[ $screen_id ] = $form_id;
+	return $form_id;
+}
+
+/**
+ * Popularity for a Screen: total Gravity Forms views of its embedded form.
+ *
+ * @param int $screen_id Screen post ID.
+ * @return int
+ */
+function mha_screen_collection_screen_popularity( $screen_id ) {
+	$form_id = mha_screen_collection_screen_form_id( $screen_id );
+	if ( ! $form_id ) {
+		return 0;
+	}
+	$counts = mha_screen_collection_form_view_counts();
+	return isset( $counts[ $form_id ] ) ? (int) $counts[ $form_id ] : 0;
+}
+
+/**
+ * Unique recommended screens, most-viewed first, capped at 4.
+ *
+ * Ties fall back to the module rank (highest first).
+ *
+ * @param array<int,array<string,mixed>> $recommended Positive modules that have a recommended screen.
+ * @param int                             $limit      Maximum links.
+ * @return array<int,array<string,mixed>>
+ */
+function mha_collection_limit_recommended_screens( $recommended, $limit = 4 ) {
+	$seen   = array();
+	$unique = array();
+	foreach ( $recommended as $mod ) {
+		if ( ! is_array( $mod ) ) {
+			continue;
+		}
+		$screen_id = isset( $mod['recommended_screen'] ) ? absint( $mod['recommended_screen'] ) : 0;
+		if ( ! $screen_id || isset( $seen[ $screen_id ] ) || 'publish' !== get_post_status( $screen_id ) ) {
+			continue;
+		}
+		$seen[ $screen_id ]         = true;
+		$mod['screen_popularity']   = mha_screen_collection_screen_popularity( $screen_id );
+		$unique[]                   = $mod;
+	}
+
+	usort(
+		$unique,
+		static function ( $a, $b ) {
+			$pop_a = isset( $a['screen_popularity'] ) ? (int) $a['screen_popularity'] : 0;
+			$pop_b = isset( $b['screen_popularity'] ) ? (int) $b['screen_popularity'] : 0;
+			if ( $pop_a !== $pop_b ) {
+				return $pop_a < $pop_b ? 1 : -1;
+			}
+			$rank_a = isset( $a['rank'] ) ? (float) $a['rank'] : 0;
+			$rank_b = isset( $b['rank'] ) ? (float) $b['rank'] : 0;
+			if ( $rank_a !== $rank_b ) {
+				return $rank_a < $rank_b ? 1 : -1;
+			}
+			$index_a = isset( $a['index'] ) ? (int) $a['index'] : 0;
+			$index_b = isset( $b['index'] ) ? (int) $b['index'] : 0;
+			return $index_a <=> $index_b;
+		}
+	);
+
+	return array_slice( $unique, 0, max( 0, (int) $limit ) );
 }
 
 /**
@@ -431,6 +732,7 @@ function mha_get_collection_results_settings( $collection_id ) {
 	$defaults      = array(
 		'positive_summary_prefix'     => 'Here are some things you seem to be struggling with right now:',
 		'negative_summary_prefix'     => "Here are some things you don't seem to be struggling with right now:",
+		'incomplete_summary_prefix'   => "These pages weren't fully answered, so we couldn't tell whether these areas are a concern:",
 		'empty_positive_message'      => "Based on your answers, you don't seem to be struggling with the areas we asked about right now. Still, it's okay to check in with someone you trust if anything feels off.",
 		'share_results_message'       => 'Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.',
 		'recommended_screens_heading' => 'Screens to take next',
@@ -469,12 +771,45 @@ function mha_get_collection_results_settings( $collection_id ) {
 	return array(
 		'positive_summary_prefix'     => (string) $get( 'positive_summary_prefix', $defaults['positive_summary_prefix'] ),
 		'negative_summary_prefix'     => (string) $get( 'negative_summary_prefix', $defaults['negative_summary_prefix'] ),
+		'incomplete_summary_prefix'   => (string) $get( 'incomplete_summary_prefix', $defaults['incomplete_summary_prefix'] ),
 		'empty_positive_message'      => (string) $get( 'empty_positive_message', $defaults['empty_positive_message'] ),
 		'share_results_message'       => (string) $get( 'share_results_message', $defaults['share_results_message'] ),
 		'recommended_screens_heading' => (string) $get( 'recommended_screens_heading', $defaults['recommended_screens_heading'] ),
 		'show_recommended_screens'    => $show,
 		'results_resources'           => $resources,
 	);
+}
+
+/**
+ * Results line: bold module name, then the symptom phrase.
+ *
+ * A symptom that already begins with the module name is not repeated.
+ *
+ * @param string $module_label  Clinical module name.
+ * @param string $symptom_label Plain-language symptom phrase.
+ * @return string Escaped HTML.
+ */
+function mha_collection_format_labeled_symptom( $module_label, $symptom_label ) {
+	$module  = trim( wp_strip_all_tags( (string) $module_label ) );
+	$symptom = trim( wp_strip_all_tags( (string) $symptom_label ) );
+
+	if ( $module !== '' && $symptom !== '' ) {
+		$symptom = preg_replace( '/^' . preg_quote( $module, '/' ) . '\s*[:\x{2013}\x{2014}\-]?\s*/iu', '', $symptom );
+		$symptom = trim( (string) $symptom );
+	}
+
+	if ( $symptom !== '' ) {
+		$symptom = mb_strtoupper( mb_substr( $symptom, 0, 1 ) ) . mb_substr( $symptom, 1 );
+	}
+
+	if ( $module === '' ) {
+		return esc_html( $symptom );
+	}
+	if ( $symptom === '' ) {
+		return '<strong>' . esc_html( $module ) . '</strong>';
+	}
+
+	return '<strong>' . esc_html( $module ) . ':</strong> ' . esc_html( $symptom );
 }
 
 /**
@@ -519,7 +854,7 @@ function mha_get_collection_email_body( $user_screen_id, $collection_id, $entry_
 	if ( ! empty( $positive ) ) {
 		$html .= '<p><strong>' . esc_html( $settings['positive_summary_prefix'] ) . '</strong></p><ul>';
 		foreach ( $positive as $module ) {
-			$html .= '<li>' . esc_html( $module['symptom_label'] ) . '</li>';
+			$html .= '<li>' . mha_collection_format_labeled_symptom( $module['module_label'], $module['symptom_label'] ) . '</li>';
 		}
 		$html .= '</ul>';
 	} else {
@@ -539,7 +874,7 @@ function mha_get_collection_email_body( $user_screen_id, $collection_id, $entry_
 			if ( ! $url ) {
 				continue;
 			}
-			$html .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( $module['module_label'] ) . '</a></li>';
+			$html .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( get_the_title( $screen_id ) ) . '</a></li>';
 		}
 		$html .= '</ul>';
 	}
@@ -614,7 +949,7 @@ function mha_example_collection_results_seed_payload() {
 			),
 			array(
 				'module_label'             => 'Panic Attacks',
-				'symptom_label'            => 'sudden waves of fear or panic',
+				'symptom_label'            => 'times when you become suddenly very afraid',
 				'form_page_number'         => 4,
 				'positive_score_threshold' => 1,
 				'maximum_score'            => 4,
@@ -632,7 +967,7 @@ function mha_example_collection_results_seed_payload() {
 			),
 			array(
 				'module_label'             => 'Specific Phobia',
-				'symptom_label'            => 'intense fear of a specific thing or situation',
+				'symptom_label'            => 'intense fear of one particular thing or situation',
 				'form_page_number'         => 6,
 				'positive_score_threshold' => 1,
 				'maximum_score'            => 7,
@@ -688,6 +1023,7 @@ function mha_example_collection_results_seed_payload() {
 		'copy'             => array(
 			'positive_summary_prefix'     => 'Here are some things you seem to be struggling with right now:',
 			'negative_summary_prefix'     => "Here are some things you don't seem to be struggling with right now:",
+			'incomplete_summary_prefix'   => "These pages weren't fully answered, so we couldn't tell whether these areas are a concern:",
 			'empty_positive_message'      => "Based on your answers, you don't seem to be struggling with the areas we asked about right now. Still, it's okay to check in with someone you trust if anything feels off.",
 			'share_results_message'       => 'Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.',
 			'recommended_screens_heading' => 'Screens to take next',

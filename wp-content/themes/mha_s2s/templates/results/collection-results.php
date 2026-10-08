@@ -23,16 +23,18 @@ $iframe_var          = isset( $args['iframe_var'] ) ? $args['iframe_var'] : null
 $modules        = isset( $module_results['modules'] ) ? $module_results['modules'] : array();
 $positive       = isset( $module_results['positive'] ) ? $module_results['positive'] : array();
 $negative       = isset( $module_results['negative'] ) ? $module_results['negative'] : array();
+$incomplete     = isset( $module_results['incomplete'] ) ? $module_results['incomplete'] : array();
 $recommended    = isset( $module_results['recommended'] ) ? $module_results['recommended'] : array();
 $default_index  = isset( $module_results['default_module_index'] ) ? (int) $module_results['default_module_index'] : 0;
 
-$positive_prefix = isset( $settings['positive_summary_prefix'] ) ? $settings['positive_summary_prefix'] : '';
-$negative_prefix = isset( $settings['negative_summary_prefix'] ) ? $settings['negative_summary_prefix'] : '';
-$empty_positive  = isset( $settings['empty_positive_message'] ) ? $settings['empty_positive_message'] : '';
-$share_message   = isset( $settings['share_results_message'] ) ? $settings['share_results_message'] : '';
-$rec_heading     = isset( $settings['recommended_screens_heading'] ) ? $settings['recommended_screens_heading'] : 'Screens to take next';
-$show_rec        = ! empty( $settings['show_recommended_screens'] );
-$resources       = isset( $settings['results_resources'] ) && is_array( $settings['results_resources'] ) ? $settings['results_resources'] : array();
+$positive_prefix   = isset( $settings['positive_summary_prefix'] ) ? $settings['positive_summary_prefix'] : '';
+$negative_prefix   = isset( $settings['negative_summary_prefix'] ) ? $settings['negative_summary_prefix'] : '';
+$incomplete_prefix = isset( $settings['incomplete_summary_prefix'] ) ? $settings['incomplete_summary_prefix'] : '';
+$empty_positive    = isset( $settings['empty_positive_message'] ) ? $settings['empty_positive_message'] : '';
+$share_message     = isset( $settings['share_results_message'] ) ? $settings['share_results_message'] : '';
+$rec_heading       = isset( $settings['recommended_screens_heading'] ) ? $settings['recommended_screens_heading'] : 'Screens to take next';
+$show_rec          = ! empty( $settings['show_recommended_screens'] );
+$resources         = isset( $settings['results_resources'] ) && is_array( $settings['results_resources'] ) ? $settings['results_resources'] : array();
 
 $screen_title     = ! empty( $user_screen_result['screen_id'] ) ? get_the_title( $user_screen_result['screen_id'] ) : '';
 $collection_title = $collection_id ? get_the_title( $collection_id ) : '';
@@ -47,18 +49,22 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 			<h1 class="white small">
 				Your Results<?php if ( $collection_title !== '' ) : ?>: <span id="collection-name"><?php echo esc_html( $collection_title ); ?></span><?php endif; ?> <!--&mdash; <span id="screen-name"><?php echo esc_html( $screen_title ); ?></span>-->
 			</h1>
-			<?php if ( ! empty( $positive ) ) : ?>
-				<div class="collection-keyword-summary white">
-					<p class="mb-2"><?php echo esc_html( $positive_prefix ); ?></p>
-					<ul class="mb-0 ml-3 pl-3">
-						<?php foreach ( $positive as $mod ) : ?>
-							<li><?php echo esc_html( $mod['symptom_label'] ); ?></li>
-						<?php endforeach; ?>
-					</ul>
+			<div class="bubble thinner mint round-small mb-0">
+				<div class="inner">
+					<?php if ( ! empty( $positive ) ) : ?>
+						<div class="collection-keyword-summary">
+							<p class="mb-2"><?php echo esc_html( $positive_prefix ); ?></p>
+							<ul class="mb-0 ml-3 pl-3">
+								<?php foreach ( $positive as $mod ) : ?>
+									<li><?php echo mha_collection_format_labeled_symptom( $mod['module_label'], $mod['symptom_label'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes both labels. ?></li>
+								<?php endforeach; ?>
+							</ul>
+						</div>
+					<?php else : ?>
+						<p class="mb-0"><?php echo esc_html( $empty_positive ); ?></p>
+					<?php endif; ?>
 				</div>
-			<?php else : ?>
-				<p class="white mb-0"><?php echo esc_html( $empty_positive ); ?></p>
-			<?php endif; ?>
+			</div>
 		</div>
 	</div>
 
@@ -86,12 +92,38 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 			>
 				Things you don't seem to be struggling with (<?php echo esc_html( (string) count( $negative ) ); ?>)
 			</button>
-			<div class="bubble thick light-teal bubble-border round-tl montserrat mt-3 collapse anchor-content" id="collection-negative-summary">
-				<div class="inner small">
+			<div class="bubble thinner light-teal bubble-border round-tl noto mt-3 collapse anchor-content" id="collection-negative-summary">
+				<div class="inner">
 					<p class="mb-2"><?php echo esc_html( $negative_prefix ); ?></p>
-					<ul class="mb-0 pl-3">
+					<ul class="mb-0 pl-3 ml-3">
 						<?php foreach ( $negative as $mod ) : ?>
-							<li><?php echo esc_html( $mod['symptom_label'] ); ?></li>
+							<li><?php echo mha_collection_format_labeled_symptom( $mod['module_label'], $mod['symptom_label'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes both labels. ?></li>
+						<?php endforeach; ?>
+					</ul>
+				</div>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $incomplete ) ) : ?>
+			<button
+				id="collection-incomplete-toggle"
+				class="button mint round thin"
+				type="button"
+				data-toggle="collapse"
+				data-target="#collection-incomplete-summary"
+				aria-expanded="false"
+				aria-controls="collection-incomplete-summary"
+			>
+				Incomplete Pages (<?php echo esc_html( (string) count( $incomplete ) ); ?>)
+			</button>
+			<div class="bubble thinner light-teal bubble-border round-tl noto mt-3 collapse anchor-content" id="collection-incomplete-summary">
+				<div class="inner">
+					<?php if ( $incomplete_prefix !== '' ) : ?>
+						<p class="mb-2"><?php echo esc_html( $incomplete_prefix ); ?></p>
+					<?php endif; ?>
+					<ul class="mb-0 pl-3 ml-3">
+						<?php foreach ( $incomplete as $mod ) : ?>
+							<li><?php echo esc_html( $mod['module_label'] ); ?></li>
 						<?php endforeach; ?>
 					</ul>
 				</div>
@@ -131,7 +163,7 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 								<?php endforeach; ?>
 							</select>
 
-							<ul class="nav nav-pills flex-wrap mb-3 d-none d-md-flex collection-module-tabs" role="tablist">
+							<ul class="nav nav-pills flex-wrap mb-3 ml-0 d-none d-md-flex collection-module-tabs" role="tablist">
 								<?php foreach ( $modules as $i => $mod ) : ?>
 									<li class="nav-item mb-2 mr-2" role="presentation">
 										<button
@@ -182,23 +214,28 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 		<?php endif; ?>
 
 		<?php if ( $show_rec && ! empty( $recommended ) ) : ?>
-			<h3 class="section-title cerulean small bold mb-3"><?php echo esc_html( $rec_heading ); ?></h3>
-			<ul class="collection-recommended-screens mb-5 pl-3">
-				<?php foreach ( $recommended as $mod ) : ?>
-					<?php
-					$screen_id = absint( $mod['recommended_screen'] );
-					$url       = $screen_id ? get_permalink( $screen_id ) : '';
-					if ( ! $url ) {
-						continue;
-					}
-					?>
-					<li class="mb-2">
-						<a class="dark-blue bold" href="<?php echo esc_url( $url ); ?>"<?php echo $link_target; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-							<?php echo esc_html( $mod['module_label'] ); ?>
-						</a>
-					</li>
-				<?php endforeach; ?>
-			</ul>
+			<div class="featured-next-steps-test-container mb-5">
+				<h3 class="section-title featured-results-header dark-blue bold mb-3"><?php echo esc_html( $rec_heading ); ?></h3>
+				<div class="featured-next-steps-test-group">
+					<ol>
+						<?php foreach ( $recommended as $mod ) : ?>
+							<?php
+							$screen_id = absint( $mod['recommended_screen'] );
+							$url       = $screen_id ? get_permalink( $screen_id ) : '';
+							$title     = $screen_id ? get_the_title( $screen_id ) : '';
+							if ( ! $url || '' === $title ) {
+								continue;
+							}
+							?>
+							<li class="link-item mb-3">
+								<a class="button green thin round mr-3" href="<?php echo esc_url( $url ); ?>"<?php echo $link_target; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+									<?php echo esc_html( $title ); ?>
+								</a>
+							</li>
+						<?php endforeach; ?>
+					</ol>
+				</div>
+			</div>
 		<?php endif; ?>
 
 		<?php if ( ! empty( $resources ) ) : ?>

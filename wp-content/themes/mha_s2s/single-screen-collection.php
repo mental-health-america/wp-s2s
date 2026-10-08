@@ -80,6 +80,9 @@ get_header();
 						)
 					);
 					?>
+
+					<div class="footer-language mt-5"><?php echo get_field('footer_language'); ?></div>
+
 				</div>
 			<?php else : ?>
 
