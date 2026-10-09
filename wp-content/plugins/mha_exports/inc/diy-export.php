@@ -27,13 +27,62 @@ function removeMhaTooltip($input) {
     return $output;
 }
 
+/**
+ * Column label for one activity question. Matches the export's existing fallback.
+ */
+function mha_export_diy_question_label( $question ) {
+    if ( ! is_array( $question ) ) {
+        return '';
+    }
+    if ( isset( $question['question_label'] ) && $question['question_label'] !== '' ) {
+        return $question['question_label'];
+    }
+    return removeMhaTooltip( strip_tags( isset( $question['question'] ) ? $question['question'] : '' ) );
+}
+
+/**
+ * Like or flag totals for one page of responses, keyed by post ID then answer row.
+ *
+ * @param string $table    thoughts_likes or thoughts_flags.
+ * @param int[]  $post_ids Response post IDs on this export page.
+ * @param string $status   likes or flags.
+ * @return array<int, array<int, int>>
+ */
+function mha_export_diy_reaction_counts( $table, $post_ids, $status ) {
+    global $wpdb;
+
+    $post_ids = array_values( array_filter( array_map( 'absint', (array) $post_ids ) ) );
+    if ( ! $post_ids ) {
+        return array();
+    }
+
+    if ( 'likes' === $status && 'thoughts_likes' === $table ) {
+        $status_sql = 'unliked = 0';
+    } elseif ( 'flags' === $status && 'thoughts_flags' === $table ) {
+        $status_sql = 'status = 0';
+    } else {
+        return array();
+    }
+
+    $in   = implode( ',', $post_ids );
+    $rows = $wpdb->get_results(
+        "SELECT pid, `row` AS answer_row, COUNT(*) AS total FROM {$table} WHERE pid IN ({$in}) AND {$status_sql} GROUP BY pid, `row`"
+    );
+
+    $counts = array();
+    foreach ( (array) $rows as $row ) {
+        $counts[ (int) $row->pid ][ (int) $row->answer_row ] = (int) $row->total;
+    }
+
+    return $counts;
+}
+
 add_action( 'wp_ajax_mha_export_diy_tool_data', 'mha_export_diy_tool_data' );
 function mha_export_diy_tool_data(){
 
     mha_exports_verify_ajax_request( 'mhadiyexport' );
 
 	// General variables
-    global $wpdb;
     $timezone = new DateTimeZone('America/New_York');
 	
     // Prep our post data args
@@ -98,7 +147,8 @@ function mha_export_diy_tool_data(){
         10 => 'post_id',
     ];
 
-    // Begin query
+    // Begin query. activity_id_num is the indexed numeric activity id.
+    $activity_id = absint( $args['form_id'] );
     $diy_res_args = array(
         "post_type" => 'diy_responses',
         "post_status" => array('draft','publish'),
@@ -106,11 +156,12 @@ function mha_export_diy_tool_data(){
         "order" => 'ASC',
         "orderby" => 'date',
         "paged" => $args['page'],
+        "update_post_term_cache" => false,
         "meta_query"		=> array(
             array(
-                'key'       => 'activity_id',
-                'value'     => $args["form_id"],
-                'compare'   => 'LIKE'
+                'key'       => 'activity_id_num',
+                'value'     => (string) $activity_id,
+                'compare'   => '=',
             )
         )
     );    
@@ -132,15 +183,32 @@ function mha_export_diy_tool_data(){
 
     $diy_res_loop = new WP_Query($diy_res_args);
 
+    $activity_questions = get_field( 'questions', $activity_id );
+    if ( ! is_array( $activity_questions ) ) {
+        $activity_questions = array();
+    }
+    $activity_title = get_the_title( $activity_id );
+    $response_ids   = wp_list_pluck( $diy_res_loop->posts, 'ID' );
+    $like_counts    = mha_export_diy_reaction_counts( 'thoughts_likes', $response_ids, 'likes' );
+    $flag_counts    = mha_export_diy_reaction_counts( 'thoughts_flags', $response_ids, 'flags' );
+    $author_cache   = array();
+
     if($diy_res_loop->have_posts()):  
     while($diy_res_loop->have_posts()) : $diy_res_loop->the_post();
     
         $response_id = get_the_ID();
-        $activity_id = get_field('activity_id')->ID;
-        $activity_questions = get_field('questions', $activity_id);
         $activity_response = get_field('response');
-        $author_id = get_post_field ('post_author', $response_id);
-        $display_name = get_the_author_meta( 'display_name' , $author_id );
+        $author_id = (int) get_post_field( 'post_author', $response_id );
+        if ( ! isset( $author_cache[ $author_id ] ) ) {
+            $author_cache[ $author_id ] = get_userdata( $author_id );
+        }
+        $start_page = get_field('start_page');
+        $start_page_id = 0;
+        if ( is_object( $start_page ) && isset( $start_page->ID ) ) {
+            $start_page_id = (int) $start_page->ID;
+        } elseif ( is_numeric( $start_page ) ) {
+            $start_page_id = (int) $start_page;
+        }
         
         // Get headers on first page
         if( $args['page'] == 1 && $i == 0){
@@ -157,14 +225,14 @@ function mha_export_diy_tool_data(){
 
         // Add data to temp array
         $csv_data[$i] = [
-            'activity'                          => get_the_title($activity_id).' (#'.$activity_id.')',
+            'activity'                          => $activity_title.' (#'.$activity_id.')',
             'ipiden'                            => get_field('ipiden'),
-            'username'                          => get_the_author_meta( 'user_nicename', get_post_field ('post_author', $response_id) ),
+            'username'                          => get_the_author_meta( 'user_nicename', $author_id ),
             'hidden_from_my_account'            => get_field('hidden'),
             'hidden_from_crowdsource'           => get_field('crowdsource_hidden'),
             'viewed_crowdsource'                => get_field('user_viewed_crowdsource'),
-            'start_page'                        => get_field('start_page') ? get_the_title( get_field('start_page') ).' (#'.get_field('start_page').')' : '',
-            'started_on_embed'                  => get_field('start_page') ? 1 : 0,
+            'start_page'                        => $start_page_id ? get_the_title( $start_page_id ).' (#'.$start_page_id.')' : '',
+            'started_on_embed'                  => $start_page_id ? 1 : 0,
             'start_page_url'                    => get_field('start_page_url'),
             'ref_code'                          => get_field('ref_code'),
             'post_status'                       => get_post_status(),
@@ -177,7 +245,7 @@ function mha_export_diy_tool_data(){
             if($v['question_type'] == 'html' || $v['question_type'] == 'breathe'){
                 continue;
             }
-            $label_key = $v['question_label'] != '' ? $v['question_label'] : removeMhaTooltip(strip_tags($v['question']));
+            $label_key = mha_export_diy_question_label( $v );
             $csv_data[$i][$label_key.' - Response'] = '';
             $csv_data[$i][$label_key.' - Date']     = '';
             $csv_data[$i][$label_key.' - Updated']  = '';
@@ -190,18 +258,23 @@ function mha_export_diy_tool_data(){
         // Update question columns with actual responses
         $response_total_likes = 0;
         $response_total_flags = 0;
+        if ( is_array( $activity_response ) ) {
         foreach($activity_response as $ar){     
             if(isset($ar['question_type']) && $ar['question_type'] == 'html' || isset($ar['question_type']) && $ar['question_type'] == 'breathe'){
                 continue;
-            }  
-            $total_likes = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_likes WHERE pid = '.$response_id.' AND \'row\' = '.$ar['id'].' AND unliked = 0');
-            $total_flags = $wpdb->get_var( 'SELECT COUNT(*) FROM thoughts_flags WHERE pid = '.$response_id.' AND \'row\' = '.$ar['id'].' AND status = 0');
+            }
+            if ( ! isset( $activity_questions[ $ar['id'] ] ) ) {
+                continue;
+            }
+            $answer_row  = (int) $ar['id'];
+            $total_likes = isset( $like_counts[ $response_id ][ $answer_row ] ) ? $like_counts[ $response_id ][ $answer_row ] : 0;
+            $total_flags = isset( $flag_counts[ $response_id ][ $answer_row ] ) ? $flag_counts[ $response_id ][ $answer_row ] : 0;
 
             $ar_date_convert = str_replace('/', '-', $ar['date']);
             $row_date = new DateTime($ar_date_convert);
             $row_date->setTimezone($timezone);
             
-            $question_key = $activity_questions[ $ar['id'] ]['question_label'] != '' ? $activity_questions[ $ar['id'] ]['question_label'] : removeMhaTooltip(strip_tags($activity_questions[ $ar['id'] ]['question']));
+            $question_key = mha_export_diy_question_label( $activity_questions[ $ar['id'] ] );
             $csv_data[$i][$question_key.' - Response'] = $ar['answer'];
             $csv_data[$i][$question_key.' - Date']     = $row_date->format("Y-m-d H:i:s");
             $csv_data[$i][$question_key.' - Updated']  = $ar['updated'];
@@ -212,6 +285,7 @@ function mha_export_diy_tool_data(){
             $response_total_likes = $response_total_likes + $total_likes;
             $response_total_flags = $response_total_flags + $total_flags;
         }
+        }
 
         //if($ar['tool_type'] == 'question_answer'){
             $csv_data[$i]['Total Likes'] = $response_total_likes;
@@ -221,9 +295,8 @@ function mha_export_diy_tool_data(){
         //}  
 
         $hash_email = '';
-        if($author_id != 4){
-            $user_info = get_userdata($author_id);
-            $hash_email = md5($user_info->user_email);
+        if($author_id != 4 && ! empty( $author_cache[ $author_id ]->user_email ) ){
+            $hash_email = md5( $author_cache[ $author_id ]->user_email );
         }
 
         $csv_data[$i]['User Email (Hashed)'] = $hash_email;
