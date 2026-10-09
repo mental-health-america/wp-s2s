@@ -18,7 +18,7 @@ function mha_dpp_log( $message ) {
     $elapsed = $mha_dpp_started ? sprintf( ' [+%.2fs]', microtime( true ) - $mha_dpp_started ) : '';
     $line = 'DIGITAL PATHWAYS PROJECT' . $elapsed . ' - ' . $message;
     if ( class_exists( 'GFCommon' ) ) {
-        GFCommon::log_debug( $line );
+        //GFCommon::log_debug( $line );
     }
     error_log( $line );
 }
@@ -240,10 +240,10 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 		mha_dpp_step( 'score screening entry ' . $entry_id );
 		$user_screen_result = mha_get_user_screen_results( $entry_id, false );
 
-        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $entry => ' . print_r($entry, true) );
-        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $sid => ' . print_r($sid, true) );
-        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $entry_id => ' . print_r($entry_id, true) );
-        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $user_screen_result => ' . print_r($user_screen_result, true) );
+        //GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $entry => ' . print_r($entry, true) );
+        //GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $sid => ' . print_r($sid, true) );
+        //GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $entry_id => ' . print_r($entry_id, true) );
+        //GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $user_screen_result => ' . print_r($user_screen_result, true) );
 
 		// Submission data cleanup
 		$transgender = (!empty($user_screen_result['answered_demos']['Please check this box if you identify as transgender.']) && !empty($user_screen_result['answered_demos']['Please check this box if you identify as transgender.'][0])) ? 'yes' : 'no';
@@ -263,14 +263,14 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 			"userscore" => $user_screen_result['total_score'] // Optional
 		];
 
-        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $payload => ' . print_r($digital_pathways_payload, true) );
+        //GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $payload => ' . print_r($digital_pathways_payload, true) );
 		
 		// Connect to Columbia API
 		mha_dpp_step( 'request Auth0 token' );
 		$jwt_token = mha_get_auth0_token();
 
         // Don't log the token itself; it's a live credential and these logs are kept on disk.
-        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $jwt_token => ' . ( $jwt_token ? 'obtained' : 'MISSING' ) );
+        //GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $jwt_token => ' . ( $jwt_token ? 'obtained' : 'MISSING' ) );
 
         // Without a token the API answers {"message":"Unauthorized"}, which reads as a
         // Columbia-side rejection. Record the real cause instead.
@@ -308,12 +308,12 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 		$api_response = wp_remote_post($url, $args);
 		mha_dpp_step( 'API responded' );
 
-        GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - $api_response => ' . print_r($api_response, true) );
+        //GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - $api_response => ' . print_r($api_response, true) );
 
 		if ( is_wp_error( $api_response ) ) {
 			$api_error = 'Error: ' . $api_response->get_error_message();
 			GFAPI::update_entry_field( rgar($entry, 'id'), '4', $api_error );
-			GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - API request failed => ' . $api_response->get_error_message() );
+			//GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - API request failed => ' . $api_response->get_error_message() );
 			mha_dpp_notify_error( $entry, $api_error );
 		} else {
 			$status = (int) wp_remote_retrieve_response_code( $api_response );
@@ -323,8 +323,8 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 			$stored = $status >= 400 ? 'HTTP ' . $status . ' ' . $response : $response;
 
 			$result = GFAPI::update_entry_field( rgar($entry, 'id'), '4', $stored );
-			GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - Updating Entry for => ' . print_r(rgar($entry, 'id'), true) );
-			GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $result => ' . print_r($result, true) );
+			//GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT - Updating Entry for => ' . print_r(rgar($entry, 'id'), true) );
+			//GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $result => ' . print_r($result, true) );
 
 			if ( mha_dpp_response_is_error( $status, $response ) ) {
 				mha_dpp_notify_error( $entry, $stored );
