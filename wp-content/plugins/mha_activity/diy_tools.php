@@ -445,6 +445,7 @@ function mhaDiySubmit(){
             if($answer_count > 0){
 
                 update_field('field_63483d064cbb0', $response_rows, $result['post_id']);
+                update_post_meta( $result['post_id'], 'crowdsource_answer_count', (int) $answer_count );
 
                 // Publish if its the last question
                 if($args['submit'] == 1){	
@@ -764,6 +765,276 @@ function mha_diy_crowdsource_cache_generation( $activity_id ) {
     return $global_generation . '_' . $activity_generation;
 }
 
+function mha_diy_crowdsource_cache_key( $activity_id ) {
+    $activity_id = absint( $activity_id );
+    return 'diy_crowdsource_' . $activity_id . '_v2_' . mha_diy_crowdsource_cache_generation( $activity_id );
+}
+
+function mha_diy_crowdsource_stale_key( $activity_id ) {
+    return 'diy_crowdsource_' . absint( $activity_id ) . '_v2_stale';
+}
+
+function mha_diy_crowdsource_dirty_key( $activity_id ) {
+    return 'mha_diy_crowdsource_dirty_' . absint( $activity_id );
+}
+
+function mha_diy_crowdsource_is_dirty( $activity_id ) {
+    return (bool) get_option( mha_diy_crowdsource_dirty_key( $activity_id ), 0 );
+}
+
+function mha_diy_clear_crowdsource_dirty( $activity_id ) {
+    delete_option( mha_diy_crowdsource_dirty_key( $activity_id ) );
+}
+
+/**
+ * Queue one rebuild for an activity. A second call does nothing while that event is waiting.
+ */
+function mha_diy_schedule_crowdsource_rebuild( $activity_id ) {
+    $activity_id = absint( $activity_id );
+    if ( ! $activity_id ) {
+        return;
+    }
+
+    $args = array( $activity_id );
+    if ( wp_next_scheduled( 'mha_diy_rebuild_crowdsource', $args ) ) {
+        return;
+    }
+
+    wp_schedule_single_event( time() + MINUTE_IN_SECONDS, 'mha_diy_rebuild_crowdsource', $args );
+}
+
+function mha_diy_mark_crowdsource_dirty( $activity_id ) {
+    $activity_id = absint( $activity_id );
+    if ( ! $activity_id ) {
+        return;
+    }
+
+    update_option( mha_diy_crowdsource_dirty_key( $activity_id ), 1, false );
+    mha_diy_schedule_crowdsource_rebuild( $activity_id );
+}
+
+/**
+ * Same score as get_diy_response_display(): complete-answer bonus, then recency bias.
+ */
+function mha_diy_score_crowdsource_response( $likes, $total_answers, $total_questions, $post_date, $complete_bonus, $recency_check ) {
+    $score = ( (int) $total_answers == (int) $total_questions ) ? $likes + ( $complete_bonus ? $complete_bonus : 0 ) : $likes;
+    $p_date = strtotime( (string) $post_date );
+
+    if ( $recency_check && is_array( $recency_check ) ) {
+        foreach ( $recency_check as $rule ) {
+            if ( empty( $rule['date_range'] ) ) {
+                continue;
+            }
+            $rule_date = strtotime( $rule['date_range'] );
+            if ( $rule_date >= $p_date ) {
+                $score += $rule['score'];
+            }
+        }
+    }
+
+    return $score;
+}
+
+/**
+ * Filled-answer count for ranking. Prefer the value stored at save time.
+ * Older rows are counted from the primed repeater meta, without truncating answers.
+ */
+function mha_diy_count_filled_answers_from_meta( $post_id ) {
+    $post_id = absint( $post_id );
+    $stored  = get_post_meta( $post_id, 'crowdsource_answer_count', true );
+    if ( $stored !== '' && false !== $stored && null !== $stored ) {
+        return (int) $stored;
+    }
+
+    $rows = get_post_meta( $post_id, 'response', true );
+    $rows = is_numeric( $rows ) ? (int) $rows : 0;
+    $filled = 0;
+    for ( $i = 0; $i < $rows; $i++ ) {
+        $answer = get_post_meta( $post_id, 'response_' . $i . '_answer', true );
+        if ( is_string( $answer ) && $answer !== '' ) {
+            $filled++;
+        }
+    }
+
+    return $filled;
+}
+
+/**
+ * Build and store the ranked list for one activity.
+ *
+ * Returns the ranked rows, or false when another rebuild already holds the lock.
+ * Rows contain scores only. Answer text is loaded later for the visible page.
+ */
+function mha_diy_rebuild_crowdsource_cache( $activity_id ) {
+    global $wpdb;
+
+    $activity_id = absint( $activity_id );
+    if ( ! $activity_id ) {
+        return array();
+    }
+
+    $rebuild_lock = mha_diy_acquire_crowdsource_lock( $activity_id, 120 );
+    if ( ! $rebuild_lock ) {
+        return false;
+    }
+
+    $activity_questions = get_field( 'questions', $activity_id );
+    $total_questions    = $activity_questions ? count( $activity_questions ) : 0;
+
+    $crowdsource_scoring_date_range = get_field( 'crowdsource_scoring_date_range', $activity_id );
+    $date_old = $crowdsource_scoring_date_range
+        ? date( 'Y-m-d', strtotime( $crowdsource_scoring_date_range ) )
+        : date( 'Y-m-d', strtotime( '30 days ago' ) );
+
+    $relate_bonus   = get_field( 'crowdsource_scoring_relate_bonus', $activity_id );
+    $complete_bonus = get_field( 'crowdsource_scoring_complete_answers_bonus', $activity_id );
+    $recency_check  = get_field( 'crowdsource_scoring_recency_bias', $activity_id );
+
+    $posts_query = $wpdb->prepare(
+        "SELECT
+            p.ID as pid,
+            p.post_date,
+            p.post_title,
+            COALESCE(l.like_count, 0) as like_count,
+            COALESCE(l.recent_like_count, 0) as recent_like_count
+        FROM {$wpdb->posts} p
+        INNER JOIN {$wpdb->postmeta} pm_activity
+            ON p.ID = pm_activity.post_id
+            AND pm_activity.meta_key = 'activity_id_num'
+            AND pm_activity.meta_value = %s
+        LEFT JOIN (
+            SELECT
+                tl.pid,
+                COUNT(*) as like_count,
+                SUM(CASE WHEN tl.date >= %s THEN 1 ELSE 0 END) as recent_like_count
+            FROM thoughts_likes tl
+            INNER JOIN {$wpdb->postmeta} pm_like_activity
+                ON pm_like_activity.post_id = tl.pid
+                AND pm_like_activity.meta_key = 'activity_id_num'
+                AND pm_like_activity.meta_value = %s
+            WHERE tl.unliked = 0
+            GROUP BY tl.pid
+        ) l ON p.ID = l.pid
+        LEFT JOIN {$wpdb->postmeta} pm_hidden
+            ON p.ID = pm_hidden.post_id
+            AND pm_hidden.meta_key = 'crowdsource_hidden'
+        WHERE p.post_type = 'diy_responses'
+        AND p.post_status = 'publish'
+        AND (pm_hidden.meta_value != '1' OR pm_hidden.meta_value IS NULL)
+        AND NOT EXISTS (
+            SELECT 1
+            FROM thoughts_flags tf
+            LEFT JOIN {$wpdb->postmeta} an
+                ON an.post_id = tf.pid
+                AND an.meta_key = 'admin_notes'
+            WHERE tf.ref_pid = %d
+            AND tf.pid = p.ID
+            AND (an.meta_id IS NULL OR an.meta_value IS NULL OR an.meta_value = '')
+        )
+        ORDER BY recent_like_count DESC, p.post_date DESC
+        LIMIT 200",
+        (string) $activity_id,
+        $date_old,
+        (string) $activity_id,
+        $activity_id
+    );
+
+    $all_posts = $wpdb->get_results( $posts_query );
+    $post_ids  = array_map( 'absint', wp_list_pluck( $all_posts, 'pid' ) );
+    if ( $post_ids ) {
+        update_meta_cache( 'post', $post_ids );
+    }
+
+    $responses = array();
+    foreach ( $all_posts as $post ) {
+        $pid        = (int) $post->pid;
+        $true_likes = (int) $post->recent_like_count;
+        $likes      = $relate_bonus ? ( $relate_bonus * $true_likes ) : $true_likes;
+        $answers    = mha_diy_count_filled_answers_from_meta( $pid );
+
+        $responses[] = array(
+            'pid'           => $pid,
+            'activity_id'   => $activity_id,
+            'started'       => (string) get_post_meta( $pid, 'started', true ),
+            'true_likes'    => $true_likes,
+            'likes'         => $likes,
+            'total_answers' => $answers,
+            'score'         => mha_diy_score_crowdsource_response( $likes, $answers, $total_questions, $post->post_date, $complete_bonus, $recency_check ),
+        );
+    }
+
+    usort(
+        $responses,
+        static function ( $a, $b ) {
+            return $b['score'] <=> $a['score'];
+        }
+    );
+
+    $cache_data = array(
+        'responses'     => $responses,
+        'cached_at'     => current_time( 'mysql' ),
+        'cache_version' => '3.0',
+    );
+
+    $saved = set_transient( mha_diy_crowdsource_cache_key( $activity_id ), $cache_data, DAY_IN_SECONDS );
+    set_transient( mha_diy_crowdsource_stale_key( $activity_id ), $cache_data, 7 * DAY_IN_SECONDS );
+    delete_option( $rebuild_lock );
+
+    if ( $saved ) {
+        mha_diy_clear_crowdsource_dirty( $activity_id );
+    } else {
+        mha_diy_schedule_crowdsource_rebuild( $activity_id );
+    }
+
+    return $responses;
+}
+
+add_action( 'mha_diy_rebuild_crowdsource', 'mha_diy_rebuild_crowdsource_cron' );
+function mha_diy_rebuild_crowdsource_cron( $activity_id ) {
+    $activity_id = absint( $activity_id );
+    $rebuilt     = mha_diy_rebuild_crowdsource_cache( $activity_id );
+    if ( false === $rebuilt ) {
+        mha_diy_schedule_crowdsource_rebuild( $activity_id );
+    }
+}
+
+/**
+ * Load and truncate answer text for the rows on the current page.
+ */
+function mha_diy_hydrate_crowdsource_answers( array $responses ) {
+    $post_ids = array();
+    foreach ( $responses as $response ) {
+        $post_ids[] = absint( $response['pid'] ?? 0 );
+    }
+    $post_ids = array_values( array_filter( $post_ids ) );
+    if ( $post_ids ) {
+        update_meta_cache( 'post', $post_ids );
+    }
+
+    foreach ( $responses as $index => $response ) {
+        $pid        = absint( $response['pid'] ?? 0 );
+        $qresponses = $pid ? get_field( 'response', $pid ) : array();
+        $answers    = array();
+
+        if ( is_array( $qresponses ) ) {
+            foreach ( $qresponses as $qr ) {
+                if ( ! isset( $qr['answer'] ) || $qr['answer'] === '' ) {
+                    continue;
+                }
+                if ( str_word_count( $qr['answer'] ) > 45 ) {
+                    $answers[ $qr['id'] ]['answer'] = truncate_answer( $qr['answer'], 35, 'q' . $pid . $qr['id'] );
+                } else {
+                    $answers[ $qr['id'] ]['answer'] = $qr['answer'];
+                }
+            }
+        }
+
+        $responses[ $index ]['answers'] = $answers;
+    }
+
+    return $responses;
+}
+
 function getDiyCrowdsource(){
     // Cache debugging control - set to false to disable debugging
     $enable_cache_debugging = false;
@@ -811,8 +1082,8 @@ function getDiyCrowdsource(){
     // the current response are applied after the shared list is retrieved.
     $activity_id = absint( $args['activity_id'] );
     $cache_args  = [ 'activity_id' => $activity_id ];
-    $cache_key   = 'diy_crowdsource_' . $activity_id . '_v2_' . mha_diy_crowdsource_cache_generation( $activity_id );
-    $stale_key   = 'diy_crowdsource_' . $activity_id . '_v2_stale';
+    $cache_key   = mha_diy_crowdsource_cache_key( $activity_id );
+    $stale_key   = mha_diy_crowdsource_stale_key( $activity_id );
     // Remove cache group - some cache backends don't handle groups properly
     $cache_group = '';
     
@@ -837,200 +1108,44 @@ function getDiyCrowdsource(){
         $result['cache_debug'] = null;
     }
     
-    // Check cache first
+    // A fresh list is served even when a refresh is already queued.
     $use_cache = false;
     $responses = [];
-    
-    // Try to get from cache using transients (more reliable than object cache)
+
     $cached_data = get_transient($cache_key);
     if ($enable_cache_debugging && current_user_can('manage_options')) {
         $result['cache_debug']['cache_get_result'] = $cached_data;
     }
-    
-    if ($cached_data !== false) {
-        $responses = $cached_data['responses'] ?? [];
-        $result['total_pages'] = $cached_data['total_pages'] ?? 0;
+
+    if ( is_array( $cached_data ) && isset( $cached_data['responses'] ) && is_array( $cached_data['responses'] ) ) {
+        $responses = $cached_data['responses'];
         $result['use_cache'] = 'true';
         $use_cache = true;
+        if ( mha_diy_crowdsource_is_dirty( $activity_id ) ) {
+            mha_diy_schedule_crowdsource_rebuild( $activity_id );
+        }
     }
 
-    if (!$use_cache) {
-        $result['use_cache'] = 'false';
-
-        $rebuild_lock = mha_diy_acquire_crowdsource_lock( $activity_id, 120 );
-        if ( ! $rebuild_lock ) {
-            // Another request is already rebuilding. Serve the last known-good
-            // list instead of stacking another expensive database query.
-            $cached_data = get_transient( $stale_key );
-            if ( false !== $cached_data ) {
-                $responses            = $cached_data['responses'] ?? [];
-                $result['total_pages'] = $cached_data['total_pages'] ?? 0;
-                $result['use_cache']   = 'stale';
-                $use_cache             = true;
-            } else {
-                $result['use_cache']  = 'rebuild_in_progress';
-                $result['retry_after'] = 3;
-                $use_cache            = true;
-            }
+    if ( ! $use_cache ) {
+        $stale_data = get_transient( $stale_key );
+        if ( is_array( $stale_data ) && isset( $stale_data['responses'] ) && is_array( $stale_data['responses'] ) ) {
+            $responses = $stale_data['responses'];
+            $result['use_cache'] = 'stale';
+            $use_cache = true;
+            mha_diy_mark_crowdsource_dirty( $activity_id );
         }
-        
-        if (!$use_cache && $enable_cache_debugging && current_user_can('manage_options')) {
-            // Test cache functionality using transients
-            $test_key = 'diy_test_' . time();
-            $test_data = ['test' => 'data'];
-            set_transient($test_key, $test_data, 60);
-            $test_retrieved = get_transient($test_key);
-            delete_transient($test_key);
+    }
 
-            $result['cache_debug']['cache_test'] = [
-                'set_success' => ($test_retrieved === $test_data),
-                'test_retrieved' => $test_retrieved
-            ];
-            
-            // Additional cache debugging
-            $result['cache_debug']['cache_storage_test'] = [
-                'cache_key_exists' => get_transient($cache_key) !== false,
-                'cache_key_after_set' => null,
-                'cache_group_keys' => [],
-                'wp_cache_get_result' => get_transient($cache_key),
-                'transient_test' => [
-                    'set' => set_transient('diy_test_transient', ['test' => 'data'], 60),
-                    'get' => get_transient('diy_test_transient'),
-                    'delete' => delete_transient('diy_test_transient')
-                ]
-            ];
-        }
-        
-        if ( ! $use_cache ) {
-        // Get scoring configuration
-        $crowdsource_scoring_date_range = get_field('crowdsource_scoring_date_range', $activity_id);
-        $date_old = $crowdsource_scoring_date_range 
-            ? date('Y-m-d', strtotime($crowdsource_scoring_date_range))
-            : date('Y-m-d', strtotime('30 days ago'));
-            
-        $relate_bonus = get_field('crowdsource_scoring_relate_bonus', $activity_id);
-        $complete_bonus = get_field('crowdsource_scoring_complete_answers_bonus', $activity_id);
-        $recency_check = get_field('crowdsource_scoring_recency_bias', $activity_id);
-
-        global $wpdb;
-
-        // Indexed activity filter + likes scoped to this activity only (no full thoughts_likes scan).
-        // Flagged responses without admin notes are excluded via NOT EXISTS (no giant NOT IN list).
-        $posts_query = $wpdb->prepare(
-            "SELECT
-                p.ID as pid,
-                p.post_date,
-                p.post_title,
-                COALESCE(l.like_count, 0) as like_count,
-                COALESCE(l.recent_like_count, 0) as recent_like_count
-            FROM {$wpdb->posts} p
-            INNER JOIN {$wpdb->postmeta} pm_activity
-                ON p.ID = pm_activity.post_id
-                AND pm_activity.meta_key = 'activity_id_num'
-                AND pm_activity.meta_value = %s
-            LEFT JOIN (
-                SELECT
-                    tl.pid,
-                    COUNT(*) as like_count,
-                    SUM(CASE WHEN tl.date >= %s THEN 1 ELSE 0 END) as recent_like_count
-                FROM thoughts_likes tl
-                INNER JOIN {$wpdb->postmeta} pm_like_activity
-                    ON pm_like_activity.post_id = tl.pid
-                    AND pm_like_activity.meta_key = 'activity_id_num'
-                    AND pm_like_activity.meta_value = %s
-                WHERE tl.unliked = 0
-                GROUP BY tl.pid
-            ) l ON p.ID = l.pid
-            LEFT JOIN {$wpdb->postmeta} pm_hidden
-                ON p.ID = pm_hidden.post_id
-                AND pm_hidden.meta_key = 'crowdsource_hidden'
-            WHERE p.post_type = 'diy_responses'
-            AND p.post_status = 'publish'
-            AND (pm_hidden.meta_value != '1' OR pm_hidden.meta_value IS NULL)
-            AND NOT EXISTS (
-                SELECT 1
-                FROM thoughts_flags tf
-                LEFT JOIN {$wpdb->postmeta} an
-                    ON an.post_id = tf.pid
-                    AND an.meta_key = 'admin_notes'
-                WHERE tf.ref_pid = %d
-                AND tf.pid = p.ID
-                AND (an.meta_id IS NULL OR an.meta_value IS NULL OR an.meta_value = '')
-            )
-            ORDER BY recent_like_count DESC, p.post_date DESC
-            LIMIT 200",
-            (string) $activity_id,
-            $date_old,
-            (string) $activity_id,
-            $activity_id
-        );
-
-        $all_posts = $wpdb->get_results($posts_query);
-
-        // Prime all response metadata in one query. Subsequent ACF get_field()
-        // calls are served from WordPress's post-meta cache.
-        $post_ids = array_map( 'absint', wp_list_pluck( $all_posts, 'pid' ) );
-        if ( $post_ids ) {
-            update_meta_cache( 'post', $post_ids );
-        }
-        
-        // Process posts and calculate scores
-        $responses_collection = [];
-        foreach ($all_posts as $post) {
-            $pid = $post->pid;
-            
-            // Apply relate bonus if configured
-            $true_likes = intval($post->recent_like_count);
-            $likes = $relate_bonus ? ($relate_bonus * $true_likes) : $true_likes;
-            
-            $responses_collection[$pid] = [
-                'id' => $pid,
-                'date' => $post->post_date,
-                'likes' => $likes,
-                'true_likes' => $true_likes,
-            ];
-        }
-        
-        // Process responses through display function to calculate scores
-        foreach ($responses_collection as $pid => $response_data) {
-            $response_args = [
-                'pid' => $pid,
-                'true_likes' => $response_data['true_likes'],
-                'likes' => $response_data['likes'],
-                'args' => $args,
-                'date' => $response_data['date'],
-                'total_questions' => $total_questions,
-                'crowdsource_scoring_id' => $activity_id,
-                'skip_activity_check' => true,
-                'complete_bonus' => $complete_bonus,
-                'recency_check' => $recency_check
-            ];
-            
-            $display_response = get_diy_response_display($response_args);
-            if ($display_response) {
-                $responses[] = $display_response;
-            }
-        }
-        
-        // Sort by score (highest first)
-        usort($responses, function ($a, $b) {
-            return $b['score'] <=> $a['score'];
-        });
-        
-        // Cache the full ranked list (pagination is applied after cache get/set)
-        $cache_data = [
-            'responses' => $responses,
-            'cached_at' => current_time('mysql'),
-            'cache_version' => '2.0'
-        ];
-        
-        $cache_set_result = set_transient($cache_key, $cache_data, DAY_IN_SECONDS);
-        set_transient( $stale_key, $cache_data, 7 * DAY_IN_SECONDS );
-        delete_option( $rebuild_lock );
-        if ($enable_cache_debugging && current_user_can('manage_options')) {
-            $result['cache_debug']['cache_set_result'] = $cache_set_result;
-            $result['cache_debug']['cache_data_size'] = strlen(serialize($cache_data));
-        }
+    if ( ! $use_cache ) {
+        $rebuilt = mha_diy_rebuild_crowdsource_cache( $activity_id );
+        if ( false === $rebuilt ) {
+            mha_diy_mark_crowdsource_dirty( $activity_id );
+            $result['use_cache']  = 'rebuild_in_progress';
+            $result['retry_after'] = 3;
+            $responses = [];
+        } else {
+            $responses = $rebuilt;
+            $result['use_cache'] = 'cold';
         }
     }
 
@@ -1052,6 +1167,7 @@ function getDiyCrowdsource(){
     $result['has_next_page'] = ($next_page_start < $total_posts);
     $start_index = ($args['page'] - 1) * $per_page;
     $responses = array_slice($responses, $start_index, $per_page);
+    $responses = mha_diy_hydrate_crowdsource_answers( $responses );
     
     // Get user likes for pre-marking
     $pids_search = array_column($responses, 'pid');
@@ -1357,10 +1473,8 @@ function invalidate_diy_crowdsource_cache($activity_id) {
         return;
     }
 
-    // Versioned keys work whether transients are stored in wp_options or an
-    // external object cache. Keep the static stale key for fail-soft serving.
-    $generation_key = 'mha_diy_crowdsource_generation_' . $activity_id;
-    update_option( $generation_key, max( 1, (int) get_option( $generation_key, 1 ) ) + 1, false );
+    // Keep the current ranked list in place. A single cron event refreshes it.
+    mha_diy_mark_crowdsource_dirty( $activity_id );
 }
 
 /**
@@ -1442,26 +1556,7 @@ function invalidate_diy_crowdsource_cache_on_like() {
  * Warm cache for a specific activity (pre-generate first few pages)
  */
 function warm_diy_crowdsource_cache($activity_id, $pages_to_warm = 3) {
-    for ($page = 1; $page <= $pages_to_warm; $page++) {
-        // Simulate the AJAX request to generate cache
-        $args = [
-            'question' => null,
-            'current' => null,
-            'activity_id' => $activity_id,
-            'carousel' => null,
-            'page' => $page,
-            'embedded' => 0,
-            'single_embed' => 0
-        ];
-        
-        // Create a mock request to trigger cache generation
-        $_POST['data'] = http_build_query($args);
-        
-        // Temporarily capture output
-        ob_start();
-        getDiyCrowdsource();
-        ob_end_clean();
-    }
+    mha_diy_rebuild_crowdsource_cache( absint( $activity_id ) );
 }
 
 /**
