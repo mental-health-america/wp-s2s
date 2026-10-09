@@ -258,6 +258,118 @@
         screenExportDataStart();    
     });
 
+    /**
+     * Screen Collection Export
+     */
+    function collectionExportDataLooper( results ){
+        var res = JSON.parse(results);
+
+        if(res.error){
+            $('#screen-collection-export-error').html(res.error);
+            $('#export_screen_collection_link').prop('disabled', false).text('Download Screen Collection Data');
+        } else if(res.next_page != ''){
+            $.ajax({
+                type: "POST",
+                url: do_mhaThoughts.ajaxurl,
+                data: {
+                    action: 'mha_export_screen_data',
+                    data: res,
+                    start: 0
+                },
+                success: function( results_2 ) {
+                    var next = JSON.parse(results_2);
+                    $('#screen-collection-exports-progress').slideDown();
+                    $('#screen-collection-exports-progress .bar').css('width', next.percent+'%');
+                    $('#screen-collection-exports-progress .label-number').html( next.percent );
+                    collectionExportDataLooper( results_2 );
+                },
+                error: function(xhr, ajaxOptions, thrownError){
+                    console.error(xhr,thrownError);
+                    $('#export_screen_collection_link').prop('disabled', false).text('Download Screen Collection Data');
+                }
+            });
+        } else if(res.all_collections){
+            $('#mha-screen-collection-exports input[name="all_collections"]').val(res.all_collections);
+            $('#screen-collection-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+res.download+'">'+res.download+'</a></li>');
+            $('#screen-collection-exports-progress .bar').css('width', '0%');
+            $('#screen-collection-exports-progress .label-number').html( 'Calculating...' );
+            collectionExportDataStart( 1 );
+        } else {
+            $('#export_screen_collection_link').prop('disabled', false).text('Download Screen Collection Data');
+            $('#screen-collection-exports-progress .bar').css('width', '100%').css('background-color', '#f89941').removeClass('loading');
+            if(res.download && res.download !== '#'){
+                $('#screen-collection-exports-download').slideDown().append('<li><strong>Download:</strong> <a target="_blank" download="'+res.filename+'" href="'+res.download+'">'+res.download+'</a></li>');
+            }
+            $('#screen-collection-exports-download').slideDown().append('<li>Done!</li>');
+        }
+    }
+
+    function collectionExportDataStart( continueLoop ){
+        var $form = $('#mha-screen-collection-exports');
+        var $checked = $form.find('.collection-checkboxes:checked');
+
+        if(continueLoop == 1){
+            var remaining = ($form.find('input[name="all_collections"]').val() || '').split(',').filter(function(id){ return id !== ''; });
+            var nextId = remaining.shift();
+            $form.find('input[name="all_collections"]').val( remaining.join(',') );
+            $form.find('input[name="screen_collection_id"]').val( nextId );
+            $form.find('input[name="form_id"]').val( $form.find('.collection-checkboxes[value="'+nextId+'"]').attr('data-form-id') );
+        } else {
+            if(!$checked.length){
+                $('#screen-collection-export-error').html('Select a screen collection.');
+                return;
+            }
+            var ids = $checked.map(function(){ return $(this).val(); }).get();
+            var first = ids.shift();
+            $form.find('input[name="screen_collection_id"]').val( first );
+            $form.find('input[name="form_id"]').val( $checked.filter('[value="'+first+'"]').attr('data-form-id') );
+            $form.find('input[name="all_collections"]').val( ids.join(',') );
+            $('#screen-collection-exports-download').hide().empty();
+        }
+
+        $('#export_screen_collection_link').prop('disabled', true).text('Processing...');
+        $('#screen-collection-export-error').html('');
+        $('#screen-collection-exports-progress').slideDown();
+        $('#screen-collection-exports-progress .bar').css('background-color', '').addClass('loading');
+        $('#screen-collection-exports-progress .label-number').html( 'Calculating...' );
+
+        $.ajax({
+            type: "POST",
+            url: do_mhaThoughts.ajaxurl,
+            data: {
+                action: 'mha_export_screen_data',
+                data: $form.serialize(),
+                start: 1
+            },
+            success: function( results ) {
+                if(!results){
+                    $('#screen-collection-exports-progress .bar').css('width', '100%').css('background-color', '#ed5d66').removeClass('loading');
+                    $('#screen-collection-exports-download').slideDown().append('<li>No data available for this query.</li>');
+                    $('#export_screen_collection_link').prop('disabled', false).text('Download Screen Collection Data');
+                    return;
+                }
+                var res = JSON.parse(results);
+                if(res.error){
+                    alert(res.error+' Please refresh this page and try again.');
+                    $('#export_screen_collection_link').prop('disabled', false).text('Download Screen Collection Data');
+                    return;
+                }
+                $('#screen-collection-exports-progress .bar').css('width', res.percent+'%');
+                $('#screen-collection-exports-progress .label-number').html( res.percent );
+                collectionExportDataLooper( results );
+            },
+            error: function(xhr, ajaxOptions, thrownError){
+                console.error(xhr,thrownError);
+                $('#export_screen_collection_link').prop('disabled', false).text('Download Screen Collection Data');
+            }
+        });
+    }
+
+    $(document).on('submit', '#mha-screen-collection-exports', function(event){
+        event.preventDefault();
+        collectionExportDataStart();
+    });
+
     allFormIdUpdate();
     $(document).on('keyup click', '#mha-all-screen-exports input[name="form_ids"]', function(){
         allFormIdUpdate();

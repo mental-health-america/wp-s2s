@@ -60,6 +60,9 @@ function mha_export_screen_data(){
             'all_forms'                 => null,
             'all_forms_ids'             => null,
             'all_forms_headers'         => null,
+            'all_collections'           => null,
+            'screen_collection_id'      => 0,
+            'export_screen_collection'  => 0,
             'export_single'             => null,
             'export_single_continue'    => null,
 
@@ -110,6 +113,12 @@ function mha_export_screen_data(){
     // Get field order/headers for later
     $gform = GFAPI::get_form( $args['form_id'] );
     $form_slug = $args['export_single'] ? 'combined' : sanitize_title($gform['title']);
+    if ( ! empty( $args['export_screen_collection'] ) && ! empty( $args['screen_collection_id'] ) ) {
+        $collection_title = get_the_title( (int) $args['screen_collection_id'] );
+        if ( $collection_title ) {
+            $form_slug = sanitize_title( $collection_title );
+        }
+    }
     $all_form_ids = $args['all_forms_ids'] != null ? explode(',', $args['all_forms_ids']) : null;
         
     if(empty($args['fields'])){
@@ -232,6 +241,20 @@ function mha_export_screen_data(){
             $fi++;
         }
 
+    }
+
+    // Screen collection exports only include entries for the selected collection.
+    if ( ! empty( $args['export_screen_collection'] ) && ! empty( $args['screen_collection_id'] ) && ! empty( $gform['fields'] ) ) {
+        foreach ( $gform['fields'] as $field ) {
+            $field_label = isset( $field['label'] ) ? (string) $field['label'] : '';
+            if ( false !== strpos( $field_label, 'Screen ID' ) ) {
+                $search_criteria['field_filters'][] = array(
+                    'key'   => $field['id'],
+                    'value' => (string) $args['screen_collection_id'],
+                );
+                break;
+            }
+        }
     }
 
     // Referer filter
@@ -371,7 +394,10 @@ function mha_export_screen_data(){
         $csv_data[$i]['Remote IP address'] = $entry['ip'];    
         //$csv_data[$i]['User Email (Hashed)'] = isset($temp_array['uid']) && $temp_array['uid'] != '' ? md5($temp_array['uid']) : '';
         $csv_data[$i]['uid'] = $entry['created_by'];
-        $csv_data[$i]['post_id'] = $entry['id']; 
+        $csv_data[$i]['post_id'] = $entry['id'];
+        if ( ! empty( $args['export_screen_collection'] ) ) {
+            $csv_data[$i]['Complete'] = mha_export_screen_collection_complete_value( $args['screen_collection_id'], $entry, $gform );
+        }
 
         $i++;
     }
@@ -484,6 +510,20 @@ function mha_export_screen_data(){
             $csv_headers = array_values($csv_headers);
             array_unshift($csv_headers, "Created", "Remote IP address", "post_id");
 
+            if ( ! empty( $args['export_screen_collection'] ) ) {
+                $complete_pos = array_search( 'Complete', $csv_headers, true );
+                if ( false !== $complete_pos ) {
+                    unset( $csv_headers[ $complete_pos ] );
+                    $csv_headers = array_values( $csv_headers );
+                }
+                $post_id_pos = array_search( 'post_id', $csv_headers, true );
+                if ( false === $post_id_pos ) {
+                    $csv_headers[] = 'Complete';
+                } else {
+                    array_splice( $csv_headers, $post_id_pos + 1, 0, array( 'Complete' ) );
+                }
+            }
+
             // Set order for later
             $args['csv_headers'] = array_values($csv_headers);
             
@@ -522,7 +562,7 @@ function mha_export_screen_data(){
     }
 
     // All Forms Continuation
-    if(!$args['all_forms']){    
+    if(!$args['all_forms'] && empty($args['all_collections'])){    
         $args['all_forms'] = null;
         $args['all_forms_continue'] = null;
         $args['export_single'] = null;
@@ -541,6 +581,36 @@ function mha_export_screen_data(){
         exit();
     }
 
+}
+
+/**
+ * Complete column for a screen collection entry.
+ *
+ * Yes when every scored module was fully answered. Blank when any module is incomplete.
+ *
+ * @param int   $collection_id Screen collection post ID.
+ * @param array $entry         GF entry.
+ * @param array $form          GF form.
+ * @return string
+ */
+function mha_export_screen_collection_complete_value( $collection_id, $entry, $form ) {
+    $collection_id = absint( $collection_id );
+    if ( ! $collection_id || ! function_exists( 'mha_get_collection_module_results' ) ) {
+        return '';
+    }
+
+    $results = mha_get_collection_module_results( $collection_id, $entry, $form );
+    if ( empty( $results['modules'] ) || ! is_array( $results['modules'] ) ) {
+        return '';
+    }
+
+    foreach ( $results['modules'] as $module ) {
+        if ( ! empty( $module['incomplete'] ) ) {
+            return '';
+        }
+    }
+
+    return 'Yes';
 }
 
 // Array Helpers

@@ -49,6 +49,9 @@ function mhathoughtexport(){
             <button class="nav-link active" id="screen-exports-tab" data-toggle="tab" data-target="#screen-exports" type="button" role="tab" aria-controls="screen-exports" aria-selected="true">Screen Exports</button>
         </li>
         <li class="nav-item" role="presentation">
+            <button class="nav-link" id="screen-collection-exports-tab" data-toggle="tab" data-target="#screen-collection-exports" type="button" role="tab" aria-controls="screen-collection-exports" aria-selected="false">Screen Collections</button>
+        </li>
+        <li class="nav-item" role="presentation">
             <button class="nav-link" id="diy-tool-export-tab" data-toggle="tab" data-target="#diy-tool-export" type="button" role="tab" aria-controls="diy-tool-export" aria-selected="false">DIY Tool Data</button>
         </li>
         <li class="nav-item" role="presentation">
@@ -154,6 +157,98 @@ function mhathoughtexport(){
                         </div>
                         <ul id="screen-exports-download" style="display: none;"></ul>      
                         
+                    </td>
+                </tr>
+            </tbody>
+            </table>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Screen Collection Exports Tab -->
+        <div class="tab-pane fade" id="screen-collection-exports" role="tabpanel" aria-labelledby="screen-collection-exports-tab">
+            <form id="mha-screen-collection-exports" action="#" method="POST">
+                <div class="acf-columns-2">
+                    <div class="acf-column-1">
+                        <div id="screen-collection-export-error"></div>
+            <h2>Screen Collection Exports</h2>
+            <p class="description">Same columns as a screen export, with a Complete column. Complete is Yes when every module was fully answered, and blank when any module is incomplete.</p>
+            <table class="form-table" role="presentation">
+            <tbody>
+                <tr>
+                    <th scope="row"><label for="collection_export_start_date">Start Date</label></th>
+                    <td>
+                        <input type="date" name="export_screen_start_date" id="collection_export_start_date" value="<?php echo date('Y-m', strtotime('now - 1 month')); ?>-01" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="collection_export_end_date">End Date</label></th>
+                    <td>
+                        <input type="date" name="export_screen_end_date" id="collection_export_end_date" value="<?php echo date('Y-m-t', strtotime('now - 1 month')); ?>" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="collection_export_ref">Referrer URL Contains</label></th>
+                    <td>
+                        <input type="text" name="export_screen_ref" id="collection_export_ref" placeholder="mhanational.org" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label>Screen Collection(s)</label></th>
+                    <td>
+                        <?php
+                            $screen_collections = get_posts(
+                                array(
+                                    'post_type'      => 'screen-collection',
+                                    'post_status'    => 'publish',
+                                    'posts_per_page' => -1,
+                                    'orderby'        => 'title',
+                                    'order'          => 'ASC',
+                                )
+                            );
+                            $collection_count = 0;
+                            foreach ( $screen_collections as $screen_collection ) {
+                                $collection_form_id = function_exists( 'mha_screen_collection_get_form_id' )
+                                    ? mha_screen_collection_get_form_id( $screen_collection->ID )
+                                    : 0;
+                                if ( ! $collection_form_id ) {
+                                    continue;
+                                }
+                                $collection_count++;
+                                echo '<p><label><input type="checkbox" name="collection_ids" class="collection-checkboxes" value="' . esc_attr( $screen_collection->ID ) . '" data-form-id="' . esc_attr( $collection_form_id ) . '"> ' . esc_html( $screen_collection->post_title ) . '</label></p>';
+                            }
+                            if ( ! $collection_count ) {
+                                echo '<p>No published screen collections with a form were found.</p>';
+                            }
+                        ?>
+                        <?php if ( $collection_count ) : ?>
+                        <hr />
+                        <p><label><input type="checkbox" name="collection_ids_select_toggle" id="collection_ids_select_toggle" data-toggle="collection_ids" class="form-toggler" value="1">Select All/None</label></p>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="collection_export_excluded_ips">Exclude Spam IP Addresses</label><p class="description">Skip suspected spam IPs addresses in the export.<br /><a target="_blank" href="/wp-admin/admin.php?page=acf-options-mha-global-options">Update IP list</a> on the 'Misc' tab of MHA Global Options.</p></th>
+                    <td>
+                        <input type="checkbox" name="export_excluded_ips" id="collection_export_excluded_ips" value="1" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <p>
+                            <input type="hidden" name="form_id" value="" />
+                            <input type="hidden" name="screen_collection_id" value="" />
+                            <input type="hidden" name="all_collections" value="" />
+                            <input type="hidden" name="export_screen_collection" value="1" />
+                            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('mhathoughtexport'); ?>" />
+                            <input type="submit" class="button button-primary" id="export_screen_collection_link" value="Download Screen Collection Data">
+                        </p>
+                        <div id="screen-collection-exports-progress" style="display: none; margin-top: 20px;">
+                            <div class="bar-wrapper"><div class="bar"></div></div>
+                            <strong class="label"><span class="label-number">0</span>%</strong>
+                        </div>
+                        <ul id="screen-collection-exports-download" style="display: none;"></ul>
                     </td>
                 </tr>
             </tbody>
