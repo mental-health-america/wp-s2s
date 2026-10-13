@@ -29,6 +29,7 @@ $default_index  = isset( $module_results['default_module_index'] ) ? (int) $modu
 
 $positive_prefix   = isset( $settings['positive_summary_prefix'] ) ? $settings['positive_summary_prefix'] : '';
 $negative_prefix   = isset( $settings['negative_summary_prefix'] ) ? $settings['negative_summary_prefix'] : '';
+$missing_prefix    = isset( $settings['missing_summary_prefix'] ) ? $settings['missing_summary_prefix'] : 'Incomplete Pages';
 $incomplete_prefix = isset( $settings['incomplete_summary_prefix'] ) ? $settings['incomplete_summary_prefix'] : '';
 $empty_positive    = isset( $settings['empty_positive_message'] ) ? $settings['empty_positive_message'] : '';
 $share_message     = isset( $settings['share_results_message'] ) ? $settings['share_results_message'] : '';
@@ -68,7 +69,7 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 		</div>
 	</div>
 
-	<div id="screen-result-buttons" class="button-grid pt-3 pb-3 pl-0 pr-0 pl-md-5 pr-md-5">
+	<div id="screen-result-buttons" class="button-grid pl-0 pr-0 pl-md-5 pr-md-5">
 		<button id="screen-answers" class="button mint round thin" type="button" data-toggle="collapse" data-target="#your-answers" aria-expanded="false" aria-controls="your-answers">
 			<?php esc_html_e( 'Your Answers', 'mha_s2s' ); ?>
 		</button>
@@ -78,16 +79,6 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 			'email_button',
 			array( 'espanol' => false )
 		);
-		if ( ! is_user_logged_in() ) {
-			get_template_part(
-				'templates/results/action',
-				'login_button',
-				array(
-					'espanol'      => false,
-					'button_color' => 'blue',
-				)
-			);
-		}
 		?>
 
 		<?php if ( ! empty( $negative ) ) : ?>
@@ -102,16 +93,6 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 			>
 				Things you don't seem to be struggling with (<?php echo esc_html( (string) count( $negative ) ); ?>)
 			</button>
-			<div class="bubble thinner light-teal bubble-border round-tl noto mt-3 collapse anchor-content" id="collection-negative-summary">
-				<div class="inner">
-					<p class="mb-2"><?php echo esc_html( $negative_prefix ); ?></p>
-					<ul class="mb-0 pl-3 ml-3">
-						<?php foreach ( $negative as $mod ) : ?>
-							<li><?php echo mha_collection_format_labeled_symptom( $mod['module_label'], $mod['symptom_label'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes both labels. ?></li>
-						<?php endforeach; ?>
-					</ul>
-				</div>
-			</div>
 		<?php endif; ?>
 
 		<?php if ( ! empty( $incomplete ) ) : ?>
@@ -124,9 +105,40 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 				aria-expanded="false"
 				aria-controls="collection-incomplete-summary"
 			>
-				Incomplete Pages (<?php echo esc_html( (string) count( $incomplete ) ); ?>)
+				<?php echo esc_html( $missing_prefix !== '' ? $missing_prefix : 'Incomplete Pages' ); ?> (<?php echo esc_html( (string) count( $incomplete ) ); ?>)
 			</button>
-			<div class="bubble thinner light-teal bubble-border round-tl noto mt-3 collapse anchor-content" id="collection-incomplete-summary">
+		<?php endif; ?>
+
+		<?php
+		if ( ! is_user_logged_in() ) {
+			get_template_part(
+				'templates/results/action',
+				'login_button',
+				array(
+					'espanol'      => false,
+					'button_color' => 'blue',
+				)
+			);
+		}
+		?>
+	</div>
+
+	<div class="collection-summary-panels pl-0 pr-0 pl-md-5 pr-md-5">
+		<?php if ( ! empty( $negative ) ) : ?>
+			<div class="bubble thinner light-teal bubble-border round-tl noto mb-3 collapse anchor-content" id="collection-negative-summary">
+				<div class="inner">
+					<p class="mb-2"><?php echo esc_html( $negative_prefix ); ?></p>
+					<ul class="mb-0 pl-3 ml-3">
+						<?php foreach ( $negative as $mod ) : ?>
+							<li><?php echo mha_collection_format_labeled_symptom( $mod['module_label'], $mod['symptom_label'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes both labels. ?></li>
+						<?php endforeach; ?>
+					</ul>
+				</div>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $incomplete ) ) : ?>
+			<div class="bubble thinner light-teal bubble-border round-tl noto mb-3 collapse anchor-content" id="collection-incomplete-summary">
 				<div class="inner">
 					<?php if ( $incomplete_prefix !== '' ) : ?>
 						<p class="mb-2"><?php echo esc_html( $incomplete_prefix ); ?></p>

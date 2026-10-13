@@ -834,6 +834,7 @@ function mha_get_collection_results_settings( $collection_id ) {
 	$defaults      = array(
 		'positive_summary_prefix'     => 'Here are some things you seem to be struggling with right now:',
 		'negative_summary_prefix'     => "Here are some things you don't seem to be struggling with right now:",
+		'missing_summary_prefix'      => 'Incomplete Pages',
 		'incomplete_summary_prefix'   => "These pages weren't fully answered, so we couldn't tell whether these areas are a concern:",
 		'empty_positive_message'      => "Based on your answers, you don't seem to be struggling with the areas we asked about right now. Still, it's okay to check in with someone you trust if anything feels off.",
 		'share_results_message'       => 'Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.',
@@ -873,6 +874,7 @@ function mha_get_collection_results_settings( $collection_id ) {
 	return array(
 		'positive_summary_prefix'     => (string) $get( 'positive_summary_prefix', $defaults['positive_summary_prefix'] ),
 		'negative_summary_prefix'     => (string) $get( 'negative_summary_prefix', $defaults['negative_summary_prefix'] ),
+		'missing_summary_prefix'      => (string) $get( 'missing_summary_prefix', $defaults['missing_summary_prefix'] ),
 		'incomplete_summary_prefix'   => (string) $get( 'incomplete_summary_prefix', $defaults['incomplete_summary_prefix'] ),
 		'empty_positive_message'      => (string) $get( 'empty_positive_message', $defaults['empty_positive_message'] ),
 		'share_results_message'       => (string) $get( 'share_results_message', $defaults['share_results_message'] ),
@@ -1125,6 +1127,7 @@ function mha_example_collection_results_seed_payload() {
 		'copy'             => array(
 			'positive_summary_prefix'     => 'Here are some things you seem to be struggling with right now:',
 			'negative_summary_prefix'     => "Here are some things you don't seem to be struggling with right now:",
+			'missing_summary_prefix'      => 'Incomplete Pages',
 			'incomplete_summary_prefix'   => "These pages weren't fully answered, so we couldn't tell whether these areas are a concern:",
 			'empty_positive_message'      => "Based on your answers, you don't seem to be struggling with the areas we asked about right now. Still, it's okay to check in with someone you trust if anything feels off.",
 			'share_results_message'       => 'Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.',

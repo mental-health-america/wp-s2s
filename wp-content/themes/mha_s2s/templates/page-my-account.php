@@ -305,6 +305,11 @@ if (strpos($account_action, 'save_screen_') !== false) {
                             }
                             $is_collection = $collection_id > 0;
 
+                            // Surveys stay out of the screen picker and the per-screen results summary.
+                            if ( ! $is_collection && get_field( 'survey', $screen_id ) ) {
+                                continue;
+                            }
+
                             $test_title = get_the_title($screen_id);
                             $test_date = date('M j, Y', strtotime($data['date_created']));
                             $screen_results = get_field('results', $screen_id);
@@ -449,6 +454,9 @@ if (strpos($account_action, 'save_screen_') !== false) {
                             endif;
 
                             $count_results++;
+                        }
+                        if ( $your_results_display ) {
+                            uksort( $your_results_display, 'strnatcasecmp' );
                         }
                     endif;
                 ?>

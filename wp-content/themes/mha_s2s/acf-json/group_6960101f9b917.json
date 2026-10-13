@@ -352,6 +352,52 @@
             "acfe_textarea_code": 0
         },
         {
+            "key": "field_69b8a1010008",
+            "label": "Missing Summary Prefix",
+            "name": "missing_summary_prefix",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "Label for the incomplete/missing modules summary toggle. The count is appended automatically (e.g. \"Incomplete Pages (3)\").",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "Incomplete Pages",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "rows": 2,
+            "placeholder": "",
+            "new_lines": "",
+            "acfe_textarea_code": 0
+        },
+        {
+            "key": "field_69b8a1010009",
+            "label": "Incomplete Summary Prefix",
+            "name": "incomplete_summary_prefix",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "Intro text shown when the collapsed incomplete/missing modules list is expanded.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "These pages weren't fully answered, so we couldn't tell whether these areas are a concern:",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "rows": 2,
+            "placeholder": "",
+            "new_lines": "",
+            "acfe_textarea_code": 0
+        },
+        {
             "key": "field_69b8a1010003",
             "label": "Empty Positive Message",
             "name": "empty_positive_message",
@@ -678,5 +724,5 @@
             "json"
         ]
     },
-    "modified": 1791502200
+    "modified": 1791926939
 }
