@@ -762,18 +762,69 @@ function mha_screen_collection_screen_form_id( $screen_id ) {
 }
 
 /**
- * Popularity for a Screen: total Gravity Forms views of its embedded form.
+ * Post Views Counter totals for Screen posts, keyed by post ID.
+ *
+ * Reads the plugin's total bucket (type 4, period "total").
+ *
+ * @return array<int,int>
+ */
+function mha_screen_collection_post_view_counts() {
+	static $counts = null;
+	if ( null !== $counts ) {
+		return $counts;
+	}
+	$counts = array();
+	global $wpdb;
+	$table = $wpdb->prefix . 'post_views';
+	$found = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+	if ( $found !== $table ) {
+		return $counts;
+	}
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT v.id, v.count
+			FROM {$table} v
+			INNER JOIN {$wpdb->posts} p ON p.ID = v.id
+			WHERE p.post_type = %s
+			AND v.type = 4
+			AND v.period = %s",
+			'screen',
+			'total'
+		)
+	);
+	if ( ! is_array( $rows ) ) {
+		return $counts;
+	}
+	foreach ( $rows as $row ) {
+		$screen_id = isset( $row->id ) ? (int) $row->id : 0;
+		if ( $screen_id ) {
+			$counts[ $screen_id ] = isset( $row->count ) ? (int) $row->count : 0;
+		}
+	}
+	return $counts;
+}
+
+/**
+ * Popularity for a Screen.
+ *
+ * Gravity Forms view totals cover historical form traffic. Post Views Counter
+ * totals are added on top so the screen page itself can break ties and rank
+ * screens that do not embed a unique form.
  *
  * @param int $screen_id Screen post ID.
  * @return int
  */
 function mha_screen_collection_screen_popularity( $screen_id ) {
-	$form_id = mha_screen_collection_screen_form_id( $screen_id );
-	if ( ! $form_id ) {
-		return 0;
+	$screen_id = absint( $screen_id );
+	$form_id   = mha_screen_collection_screen_form_id( $screen_id );
+	$form_views = 0;
+	if ( $form_id ) {
+		$form_counts = mha_screen_collection_form_view_counts();
+		$form_views  = isset( $form_counts[ $form_id ] ) ? (int) $form_counts[ $form_id ] : 0;
 	}
-	$counts = mha_screen_collection_form_view_counts();
-	return isset( $counts[ $form_id ] ) ? (int) $counts[ $form_id ] : 0;
+	$post_counts = mha_screen_collection_post_view_counts();
+	$post_views  = isset( $post_counts[ $screen_id ] ) ? (int) $post_counts[ $screen_id ] : 0;
+	return $form_views + $post_views;
 }
 
 /**
