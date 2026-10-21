@@ -22,7 +22,11 @@
                 <p><?php esc_html_e( 'Or, you can enter an email address and have us email your results to you.', 'mha_s2s' ); ?></p>
                 <?php endif; ?>
 
-                <a class="append-thought-id button navy round"<?php echo $login_target; ?> href="/sign-up/?redirect_to=<?php echo urlencode(site_url().'/my-account?action=save_screen_').$args['id'] ?>">
+                <?php
+                    $screen_save_action = 'save_screen_' . absint( $args['id'] );
+                    $signup_href        = site_url( '/sign-up/' ) . '?action=' . rawurlencode( $screen_save_action ) . '&redirect_to=' . rawurlencode( site_url( '/my-account?action=' . $screen_save_action ) );
+                ?>
+                <a class="append-thought-id button navy round"<?php echo $login_target; ?> href="<?php echo esc_url( $signup_href ); ?>">
                     <?php esc_html_e( 'Register or log in to save results', 'mha_s2s' ); ?>
                 </a>
             </div>

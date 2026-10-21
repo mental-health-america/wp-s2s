@@ -1014,9 +1014,11 @@ h3 {
         margin-bottom: .5em;
     }
 
-    &.blue {
-        color: $blueDark;
-    }
+    // Colors
+    &.white { color: $white; }
+    &.cerulean { color: $cerulean; }
+    &.blue { color: $blue; }
+    &.dark-blue { color: $mediumTeal; }
 }
 
 h4 {

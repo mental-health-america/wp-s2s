@@ -97,7 +97,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v202609111' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20261005' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
     
 	// Add print CSS.
@@ -131,7 +131,7 @@ function mha_s2s_scripts() {
 	// wp_script_add_data( 'html5', 'conditional', 'lt IE 9' );
 
 	// Global Javascript
-	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20260909', true );
+	wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), 'v20261008', true );
 	//wp_enqueue_script( 'mha_s2s-global', get_theme_file_uri( '/assets/js/global.js' ), array( 'jquery' ), time(), true );
 
 	// Consent Management
@@ -836,11 +836,39 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 		}
 	}
 
+	// The demographics page is unlabelled so it stays out of the breadcrumb list.
+	// The summary button would otherwise be blank while that page is open.
+	if ( $current_label === '' ) {
+		$page_css = ( 1 === $current_page && isset( $form['firstPageCssClass'] ) ) ? (string) $form['firstPageCssClass'] : '';
+		if ( $page_css === '' && ! empty( $form['fields'] ) && is_array( $form['fields'] ) ) {
+			foreach ( $form['fields'] as $field ) {
+				if ( is_object( $field ) && isset( $field->type ) && 'page' === $field->type && (int) $field->pageNumber === $current_page ) {
+					$page_css = isset( $field->cssClass ) ? (string) $field->cssClass : '';
+					break;
+				}
+			}
+		}
+		if ( preg_match( '/(?:^|\s)demographics(?:\s|$)/', $page_css ) ) {
+			$current_label = __( 'Optional Questions', 'mha_s2s' );
+		}
+	}
+
 	$list_id = 'mha-progress-steps-' . (int) rgar( $form, 'id' );
+
+	$crumb_id = static function ( $prefix, $page, $label ) {
+		$slug = sanitize_title( wp_strip_all_tags( (string) $label ) );
+		$id   = $prefix . '-' . (int) $page;
+		if ( $slug !== '' ) {
+			$id .= '-' . $slug;
+		}
+		return $id;
+	};
+
+	$summary_id = $current_label !== '' ? $crumb_id( 'breadcrumb-summary', $current_page, $current_label ) : 'breadcrumb-summary';
 
 	// Summary is the accordion toggle, shown at every width.
 	// Bootstrap collapse handles the expand/collapse and keeps aria-expanded in sync.
-	$summary  = '<button type="button" class="mha-progress-steps-summary collapsed" data-toggle="collapse" data-target="#' . esc_attr( $list_id ) . '" aria-expanded="false" aria-controls="' . esc_attr( $list_id ) . '">';
+	$summary  = '<button type="button" id="' . esc_attr( $summary_id ) . '" class="mha-progress-steps-summary collapsed dl-click" data-dl-id="' . esc_attr( $summary_id ) . '" data-toggle="collapse" data-target="#' . esc_attr( $list_id ) . '" aria-expanded="false" aria-controls="' . esc_attr( $list_id ) . '">';
 	$summary .= '<span class="mha-progress-steps-summary-text">';
 	if ( $current_label !== '' ) {
 		$summary .= '<span class="mha-progress-steps-current">' . esc_html( wp_strip_all_tags( $current_label ) ) . '</span>';
@@ -871,7 +899,8 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 		if ( $step['not_interested'] ) {
 			$li_classes[] = 'not-interested';
 		}
-		$label_link = '<a href="' . esc_attr( '#' . (string) $k ) . '" class="gpmpn-page-link">' . $step['label'] . '</a>';
+		$step_id    = 'sc-'.$crumb_id( 'breadcrumb', $k, $step['label'] );
+		$label_link = '<a href="' . esc_attr( '#' . (string) $k ) . '" id="' . esc_attr( $step_id ) . '" class="gpmpn-page-link dl-click" data-dl-id="' . esc_attr( $step_id ) . '">' . $step['label'] . '</a>';
 		$out       .= '<li class="' . esc_attr( implode( ' ', $li_classes ) ) . '">' . $label_link . '</li>';
 	}
 	$out .= '</ol></div>';
@@ -881,8 +910,9 @@ function custom_screen_progress_steps( $progress_steps, $form, $page ) {
 
 /**
  * Extra Submit on earlier pages of a screen collection's skip-around (full-pager-links) form.
- * Hidden until JS confirms every visible question is answered; then it uses the same
- * GF submission path as the last-page Submit (target page 0).
+ * Hidden until JS confirms every visible screening question is answered. Clicking it
+ * still posts the form, but global.js sends that post to the demographics page
+ * instead of finishing the entry. The Submit on the demographics page still finishes it.
  *
  * @param string $button Next button HTML.
  * @param array  $form   GF form.
@@ -913,10 +943,12 @@ function mha_early_submit_beside_next( $button, $form ) {
 		'gform_submit_button_' . $form_id . '_early_' . $field_id,
 		$gf_button,
 		$label,
-		'gform_button mha-early-submit',
+		'gform_button mha-early-submit dl-click',
 		$label,
 		0
 	);
+
+	$early = preg_replace( '/<button\b/', '<button data-dl-id="sc-view-results"', $early, 1 );
 
 	return $button . ' ' . $early;
 }
@@ -1276,12 +1308,80 @@ function remove_admin_bar() {
  */
 add_action( 'gform_user_registered', 'wpc_gravity_registration_autologin',  10, 4 );
 function wpc_gravity_registration_autologin( $user_id, $feed, $entry, $user_pass ) {
-	
-	$source = $entry['source_url'];
-	GFCommon::log_debug( __METHOD__ .'Source URL: '.$source );
 
+	$user = get_userdata( $user_id );
+	if ( ! $user ) {
+		return;
+	}
+
+	wp_set_current_user( $user_id );
 	wp_set_auth_cookie( $user_id, false, is_ssl() );
 
+	// Signup form field 7 is populated from ?action= or from redirect_to.
+	if ( (int) rgar( $entry, 'form_id' ) !== 2 ) {
+		return;
+	}
+
+	$action = isset( $entry['7'] ) ? (string) $entry['7'] : '';
+	if ( strpos( $action, 'save_screen_' ) !== 0 || ! function_exists( 'get_ipiden' ) || ! class_exists( 'GFAPI' ) ) {
+		return;
+	}
+
+	$screen_entry_id = absint( substr( $action, strlen( 'save_screen_' ) ) );
+	if ( ! $screen_entry_id ) {
+		return;
+	}
+
+	$screen_entry = GFAPI::get_entry( $screen_entry_id );
+	if ( is_wp_error( $screen_entry ) || ! is_array( $screen_entry ) ) {
+		return;
+	}
+
+	if ( (string) $screen_entry['40'] === (string) get_ipiden() && ( isset( $screen_entry['41'] ) ? (string) $screen_entry['41'] : '' ) === '' ) {
+		$screen_entry['41'] = $user->user_email;
+		GFAPI::update_entry( $screen_entry );
+	}
+
+}
+
+/**
+ * Signup's hidden Account Action field reads ?action=.
+ * Result links pass that same action inside redirect_to instead.
+ */
+add_filter( 'gform_field_value_action', 'mha_signup_action_from_redirect' );
+function mha_signup_action_from_redirect( $value ) {
+	if ( is_string( $value ) && $value !== '' ) {
+		return $value;
+	}
+
+	$redirect = get_query_var( 'redirect_to' );
+	if ( ( ! is_string( $redirect ) || $redirect === '' ) && isset( $_GET['redirect_to'] ) ) {
+		$redirect = wp_unslash( $_GET['redirect_to'] );
+	}
+	if ( ! is_string( $redirect ) || $redirect === '' ) {
+		return $value;
+	}
+
+	$safe = wp_validate_redirect( $redirect, false );
+	if ( ! $safe ) {
+		return $value;
+	}
+
+	$query = wp_parse_url( $safe, PHP_URL_QUERY );
+	if ( ! is_string( $query ) || $query === '' ) {
+		return $value;
+	}
+
+	$args = array();
+	parse_str( $query, $args );
+	if ( empty( $args['action'] ) || ! is_string( $args['action'] ) ) {
+		return $value;
+	}
+	if ( ! preg_match( '/^save_(screen|diy|thought)_[0-9]+$/', $args['action'] ) ) {
+		return $value;
+	}
+
+	return $args['action'];
 }
 
 /**

@@ -141,6 +141,7 @@ label {
     .gform_wrapper {
         position: relative;
         
+        .gfield,
         p,
         li {
             clear: both;
@@ -157,6 +158,7 @@ label {
         }
 
         &#sign-up-form {
+            .gfield,
             li,
             p {
                 clear: left;

@@ -351,6 +351,10 @@
             flex: 0 1 100%;
         }
     }
+    > .collapse,
+    > .anchor-content {
+        flex: 0 0 100%;
+    }
 }
 
 ol.next-steps.columned {

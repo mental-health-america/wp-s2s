@@ -7,12 +7,19 @@ $signup_url     = $signup_base;
 if ( $redirect_query ) {
 	$safe_redirect = wp_validate_redirect( $redirect_query, false );
 	if ( $safe_redirect ) {
-		$signup_url = add_query_arg( 'redirect_to', $safe_redirect, $signup_base );
+		$signup_url = $signup_base . '?redirect_to=' . rawurlencode( $safe_redirect );
 	}
 }
 
 if ( is_user_logged_in() ) {
-	wp_safe_redirect( home_url( '/my-account' ) );
+	$destination = home_url( '/my-account' );
+	if ( $redirect_query ) {
+		$logged_in_redirect = wp_validate_redirect( $redirect_query, false );
+		if ( $logged_in_redirect ) {
+			$destination = $logged_in_redirect;
+		}
+	}
+	wp_safe_redirect( $destination );
 	exit();
 }
 

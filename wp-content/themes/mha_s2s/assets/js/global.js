@@ -254,6 +254,12 @@
 		});
 
 		
+		// Result panels act as one accordion on screen and screen-collection results.
+		var resultAccordion = '#score-interpretation, #your-answers, #email-results, #login-email-results, #collection-negative-summary, #collection-incomplete-summary';
+		$(document).on('show.bs.collapse', resultAccordion, function() {
+			$(resultAccordion).not(this).filter('.show').collapse('hide');
+		});
+
 		// Accordion Toggle Overrides
 		// Switch between original text and toggle text on show/hide
 		$('.button[data-toggle="collapse"]').each(function(event){
@@ -595,18 +601,50 @@
 		 * Submitting from a page other than the last.
 		 *
 		 * The target page is rendered into the form as "next page" and Gravity
-		 * Forms only rewrites it for a previous-type submission, so an early
-		 * Submit would otherwise post the next page number and just advance.
+		 * Forms only rewrites it for a previous-type submission, so a Submit
+		 * would otherwise post the next page number and just advance.
+		 *
+		 * The early Submit on a screen collection still posts the form. Unless
+		 * that click is already on the demographics page, the post lands there
+		 * instead of finishing the entry (target page 0).
 		 */
 		if(window.gform && gform.utils && gform.utils.addAsyncFilter){
+			var earlySubmitClicked = false;
+
+			// Capture runs before the button's inline onclick, which starts the
+			// Gravity Forms submission immediately.
+			document.addEventListener('click', function(event){
+				var el = event.target;
+				if(el && el.closest && el.closest('.mha-early-submit')){
+					earlySubmitClicked = true;
+				}
+			}, true);
+
 			gform.utils.addAsyncFilter('gform/submission/pre_submission', function(data){
+				var fromEarly = earlySubmitClicked;
+				earlySubmitClicked = false;
+
 				if(data.submissionType !== 'submit' || !data.form || !data.form.querySelector('.mha-early-submit')){
 					return data;
 				}
 
 				var $target = $('#gform_target_page_number_' + data.form.dataset.formid);
 
-				if($target.length){
+				if(!$target.length){
+					return data;
+				}
+
+				var $demo = $(data.form).find('.gform_page.demographics').first();
+				var demoMatch = $demo.length ? String($demo.attr('id') || '').match(/_(\d+)$/) : null;
+				var demoPage = demoMatch ? demoMatch[1] : '';
+				var $visible = $(data.form).find('.gform_page').filter(function(){
+					return this.style.display !== 'none';
+				}).first();
+				var onDemographics = $demo.length && $visible.length && $visible.is($demo);
+
+				if(fromEarly && demoPage && !onDemographics){
+					$target.val(demoPage);
+				} else {
 					$target.val('0');
 				}
 

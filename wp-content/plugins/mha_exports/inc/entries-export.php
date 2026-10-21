@@ -60,6 +60,9 @@ function mha_export_screen_data(){
             'all_forms'                 => null,
             'all_forms_ids'             => null,
             'all_forms_headers'         => null,
+            'all_collections'           => null,
+            'screen_collection_id'      => 0,
+            'export_screen_collection'  => 0,
             'export_single'             => null,
             'export_single_continue'    => null,
 
@@ -110,6 +113,12 @@ function mha_export_screen_data(){
     // Get field order/headers for later
     $gform = GFAPI::get_form( $args['form_id'] );
     $form_slug = $args['export_single'] ? 'combined' : sanitize_title($gform['title']);
+    if ( ! empty( $args['export_screen_collection'] ) && ! empty( $args['screen_collection_id'] ) ) {
+        $collection_title = get_the_title( (int) $args['screen_collection_id'] );
+        if ( $collection_title ) {
+            $form_slug = sanitize_title( $collection_title );
+        }
+    }
     $all_form_ids = $args['all_forms_ids'] != null ? explode(',', $args['all_forms_ids']) : null;
         
     if(empty($args['fields'])){
@@ -234,6 +243,20 @@ function mha_export_screen_data(){
 
     }
 
+    // Screen collection exports only include entries for the selected collection.
+    if ( ! empty( $args['export_screen_collection'] ) && ! empty( $args['screen_collection_id'] ) && ! empty( $gform['fields'] ) ) {
+        foreach ( $gform['fields'] as $field ) {
+            $field_label = isset( $field['label'] ) ? (string) $field['label'] : '';
+            if ( false !== strpos( $field_label, 'Screen ID' ) ) {
+                $search_criteria['field_filters'][] = array(
+                    'key'   => $field['id'],
+                    'value' => (string) $args['screen_collection_id'],
+                );
+                break;
+            }
+        }
+    }
+
     // Referer filter
     if($args['export_screen_ref'] != ''):
         foreach($gform['fields'] as $field):
@@ -255,6 +278,10 @@ function mha_export_screen_data(){
     $entries = GFAPI::get_entries( $args['form_id'], $search_criteria, null, $paging, $total_count );
     $csv_data = [];
     $i = 0;
+    $collection_column_labels = array();
+    if ( ! empty( $args['export_screen_collection'] ) ) {
+        $collection_column_labels = mha_export_screen_collection_existing_labels( $args['fields'] );
+    }
     
     // Parse through form entries
     foreach($entries as $entry){
@@ -371,7 +398,14 @@ function mha_export_screen_data(){
         $csv_data[$i]['Remote IP address'] = $entry['ip'];    
         //$csv_data[$i]['User Email (Hashed)'] = isset($temp_array['uid']) && $temp_array['uid'] != '' ? md5($temp_array['uid']) : '';
         $csv_data[$i]['uid'] = $entry['created_by'];
-        $csv_data[$i]['post_id'] = $entry['id']; 
+        $csv_data[$i]['post_id'] = $entry['id'];
+        if ( ! empty( $args['export_screen_collection'] ) ) {
+            $collection_results = mha_export_screen_collection_result_columns( $args['screen_collection_id'], $entry, $gform, $collection_column_labels );
+            $csv_data[$i]['Complete'] = $collection_results['complete'];
+            foreach ( $collection_results['columns'] as $column_label => $column_value ) {
+                $csv_data[$i][ $column_label ] = $column_value;
+            }
+        }
 
         $i++;
     }
@@ -484,6 +518,25 @@ function mha_export_screen_data(){
             $csv_headers = array_values($csv_headers);
             array_unshift($csv_headers, "Created", "Remote IP address", "post_id");
 
+            if ( ! empty( $args['export_screen_collection'] ) ) {
+                $collection_headers = mha_export_screen_collection_result_headers( $args['screen_collection_id'], mha_export_screen_collection_existing_labels( $args['fields'] ) );
+                $collection_block   = array_merge( array( 'Complete' ), $collection_headers );
+                foreach ( $collection_block as $collection_header ) {
+                    $collection_pos = array_search( $collection_header, $csv_headers, true );
+                    if ( false !== $collection_pos ) {
+                        unset( $csv_headers[ $collection_pos ] );
+                    }
+                }
+                $csv_headers = array_values( $csv_headers );
+                $post_id_pos = array_search( 'post_id', $csv_headers, true );
+                if ( false === $post_id_pos ) {
+                    $csv_headers[] = 'Complete';
+                } else {
+                    array_splice( $csv_headers, $post_id_pos + 1, 0, array( 'Complete' ) );
+                }
+                $csv_headers = array_merge( $csv_headers, $collection_headers );
+            }
+
             // Set order for later
             $args['csv_headers'] = array_values($csv_headers);
             
@@ -522,7 +575,7 @@ function mha_export_screen_data(){
     }
 
     // All Forms Continuation
-    if(!$args['all_forms']){    
+    if(!$args['all_forms'] && empty($args['all_collections'])){    
         $args['all_forms'] = null;
         $args['all_forms_continue'] = null;
         $args['export_single'] = null;
@@ -541,6 +594,175 @@ function mha_export_screen_data(){
         exit();
     }
 
+}
+
+/**
+ * Export column labels already used by form fields, so module columns do not overwrite them.
+ *
+ * @param array $fields Export field definitions.
+ * @return string[]
+ */
+function mha_export_screen_collection_existing_labels( $fields ) {
+    $labels = array( 'Created', 'Remote IP address', 'uid', 'post_id', 'Complete' );
+    if ( ! is_array( $fields ) ) {
+        return $labels;
+    }
+    foreach ( $fields as $field ) {
+        $label = isset( $field['label'] ) ? (string) $field['label'] : '';
+        switch ( $label ) {
+            case 'User Score':
+                $label = 'Score';
+                break;
+            case 'User Result':
+                $label = 'Result';
+                break;
+            case 'ipiden':
+                $label = 'IP Identifier';
+                break;
+            case 'Screen ID':
+                $label = 'Screen';
+                break;
+            default:
+                $label = strip_tags( $label );
+                break;
+        }
+        if ( '' !== $label ) {
+            $labels[] = $label;
+        }
+    }
+    return $labels;
+}
+
+/**
+ * Column labels for a screen collection's Results Modules, then the three totals.
+ *
+ * @param int      $collection_id Screen collection post ID.
+ * @param string[] $avoid_labels  Labels already used by other export columns.
+ * @return string[]
+ */
+function mha_export_screen_collection_result_headers( $collection_id, $avoid_labels = array() ) {
+    $row = mha_export_screen_collection_result_columns( $collection_id, array(), array(), $avoid_labels );
+    return array_keys( $row['columns'] );
+}
+
+/**
+ * Complete flag plus one column per Results Module and the positive/negative/incomplete totals.
+ *
+ * Module values match the results page: Positive, Negative, or Incomplete.
+ * A module hidden by conditional logic is left blank and is not included in the totals.
+ *
+ * @param int      $collection_id Screen collection post ID.
+ * @param array    $entry         GF entry.
+ * @param array    $form          GF form.
+ * @param string[] $avoid_labels  Labels already used by other export columns.
+ * @return array{complete:string,columns:array<string,int|string>}
+ */
+function mha_export_screen_collection_result_columns( $collection_id, $entry, $form, $avoid_labels = array() ) {
+    $collection_id = absint( $collection_id );
+    $columns       = array();
+    $modules_cfg   = ( $collection_id && function_exists( 'get_field' ) ) ? get_field( 'results_modules', $collection_id ) : array();
+    if ( ! is_array( $modules_cfg ) ) {
+        $modules_cfg = array();
+    }
+
+    $scored = array();
+    if ( $collection_id && is_array( $entry ) && ! empty( $entry ) && function_exists( 'mha_get_collection_module_results' ) ) {
+        $results = mha_get_collection_module_results( $collection_id, $entry, $form );
+        if ( ! empty( $results['modules'] ) && is_array( $results['modules'] ) ) {
+            foreach ( $results['modules'] as $module ) {
+                $scored[ (int) $module['index'] ] = $module;
+            }
+        }
+    }
+
+    $used              = array();
+    $reserved          = array_merge(
+        array( 'Complete', 'Total Positive', 'Total Negative', 'Total Incomplete' ),
+        is_array( $avoid_labels ) ? $avoid_labels : array()
+    );
+    $total_positive    = 0;
+    $total_negative    = 0;
+    $total_incomplete  = 0;
+    $has_scored_module = false;
+    $any_incomplete    = false;
+
+    foreach ( $modules_cfg as $idx => $row ) {
+        if ( ! is_array( $row ) ) {
+            continue;
+        }
+        $label = isset( $row['module_label'] ) ? trim( wp_strip_all_tags( (string) $row['module_label'] ) ) : '';
+        if ( '' === $label ) {
+            $label = 'Module ' . ( (int) $idx + 1 );
+        }
+        $header = $label;
+        $suffix = 2;
+        while ( isset( $used[ $header ] ) || in_array( $header, $reserved, true ) ) {
+            $header = $label . ' (' . $suffix . ')';
+            $suffix++;
+        }
+        $used[ $header ] = true;
+
+        $value = '';
+        if ( isset( $scored[ (int) $idx ] ) ) {
+            $module            = $scored[ (int) $idx ];
+            $has_scored_module = true;
+            if ( ! empty( $module['positive'] ) ) {
+                $value = 'Positive';
+                $total_positive++;
+            } elseif ( ! empty( $module['incomplete'] ) ) {
+                $value = 'Incomplete';
+                $total_incomplete++;
+                $any_incomplete = true;
+            } elseif ( empty( $module['skipped'] ) ) {
+                $value = 'Negative';
+                $total_negative++;
+            }
+        }
+        $columns[ $header ] = $value;
+    }
+
+    $form_labels = is_array( $avoid_labels ) ? $avoid_labels : array();
+    foreach (
+        array(
+            'Total Positive'   => $total_positive,
+            'Total Negative'   => $total_negative,
+            'Total Incomplete' => $total_incomplete,
+        ) as $total_label => $total_value
+    ) {
+        $header = $total_label;
+        $suffix = 2;
+        while ( isset( $used[ $header ] ) || in_array( $header, $form_labels, true ) ) {
+            $header = $total_label . ' (' . $suffix . ')';
+            $suffix++;
+        }
+        $used[ $header ]           = true;
+        $columns[ $header ]       = $total_value;
+    }
+
+    $complete = '';
+    if ( $has_scored_module && ! $any_incomplete ) {
+        $complete = 'Yes';
+    }
+
+    return array(
+        'complete' => $complete,
+        'columns'  => $columns,
+    );
+}
+
+/**
+ * Complete column for a screen collection entry.
+ *
+ * Yes when every scored module was fully answered. Blank when any module is incomplete.
+ *
+ * @param int   $collection_id Screen collection post ID.
+ * @param array $entry         GF entry.
+ * @param array $form          GF form.
+ * @return string
+ */
+function mha_export_screen_collection_complete_value( $collection_id, $entry, $form ) {
+    $row = mha_export_screen_collection_result_columns( $collection_id, $entry, $form );
+    return $row['complete'];
 }
 
 // Array Helpers

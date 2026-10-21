@@ -3,6 +3,40 @@
     "title": "Screen Collection Details",
     "fields": [
         {
+            "key": "field_6960101f1287c",
+            "label": "Screen (legacy)",
+            "name": "screens",
+            "aria-label": "",
+            "type": "post_object",
+            "instructions": "Deprecated. Use the Form field (Gravity Forms ID) instead. Kept only as a fallback for collections that have not been updated yet.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "post_type": [
+                "screen"
+            ],
+            "post_status": "",
+            "taxonomy": "",
+            "return_format": "id",
+            "multiple": 0,
+            "save_custom": 0,
+            "save_post_status": "publish",
+            "acfe_bidirectional": {
+                "acfe_bidirectional_enabled": "0"
+            },
+            "allow_null": 0,
+            "allow_in_bindings": 0,
+            "bidirectional": 0,
+            "ui": 1,
+            "bidirectional_target": [],
+            "save_post_type": ""
+        },
+        {
             "key": "field_6aa1a6e8b514a",
             "label": "Form",
             "name": "form",
@@ -30,7 +64,7 @@
             "name": "results_modules",
             "aria-label": "",
             "type": "repeater",
-            "instructions": "Map each results module to a page of the collection's Gravity Form. Module scores and thresholds will be used to build the collection results.",
+            "instructions": "Score each results module from a Gravity Form page, or from specific field IDs when a question on that page is its own result. Field ID modules are left out of the page module.",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -95,14 +129,86 @@
                     "parent_repeater": "field_697d394e7c101"
                 },
                 {
+                    "key": "field_69b8a1010011",
+                    "label": "Module Source",
+                    "name": "module_source",
+                    "aria-label": "",
+                    "type": "select",
+                    "instructions": "Form Page scores every question on that page. Field IDs scores only the listed questions, including ones marked exclude.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "choices": {
+                        "page": "Form Page",
+                        "fields": "Field IDs"
+                    },
+                    "default_value": "page",
+                    "return_format": "value",
+                    "multiple": 0,
+                    "allow_null": 0,
+                    "ui": 0,
+                    "ajax": 0,
+                    "placeholder": "",
+                    "allow_in_bindings": 0,
+                    "parent_repeater": "field_697d394e7c101",
+                    "create_options": 0,
+                    "save_options": 0,
+                    "allow_custom": 0,
+                    "search_placeholder": ""
+                },
+                {
+                    "key": "field_69b8a1010012",
+                    "label": "Field IDs",
+                    "name": "field_ids",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Comma-separated Gravity Forms field IDs. These questions are this module's score and answers, and they are left out of the page module.",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69b8a1010011",
+                                "operator": "==",
+                                "value": "fields"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "relevanssi_exclude": 0,
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "214, 215",
+                    "prepend": "",
+                    "append": "",
+                    "parent_repeater": "field_697d394e7c101"
+                },
+                {
                     "key": "field_697d394e7c104",
                     "label": "Form Page Number",
                     "name": "form_page_number",
                     "aria-label": "",
                     "type": "number",
                     "instructions": "The Gravity Forms page containing this module's questions.",
-                    "required": 1,
-                    "conditional_logic": 0,
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69b8a1010011",
+                                "operator": "!=",
+                                "value": "fields"
+                            }
+                        ]
+                    ],
                     "wrapper": {
                         "width": "33",
                         "class": "",
@@ -250,11 +356,57 @@
             "acfe_textarea_code": 0
         },
         {
+            "key": "field_69b8a1010008",
+            "label": "Missing Summary Prefix",
+            "name": "missing_summary_prefix",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "Label for the incomplete\/missing modules summary toggle. The count is appended automatically (e.g. \"Incomplete Pages (3)\").",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "Incomplete Pages",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "rows": 2,
+            "placeholder": "",
+            "new_lines": "",
+            "acfe_textarea_code": 0
+        },
+        {
+            "key": "field_69b8a1010009",
+            "label": "Incomplete Summary Prefix",
+            "name": "incomplete_summary_prefix",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "Intro text shown when the collapsed incomplete\/missing modules list is expanded.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "These pages weren't fully answered, so we couldn't tell whether these areas are a concern:",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "rows": 2,
+            "placeholder": "",
+            "new_lines": "",
+            "acfe_textarea_code": 0
+        },
+        {
             "key": "field_69b8a1010003",
             "label": "Empty Positive Message",
             "name": "empty_positive_message",
             "aria-label": "",
-            "type": "textarea",
+            "type": "wysiwyg",
             "instructions": "Shown instead of the positive symptom list when no modules scored positive.",
             "required": 0,
             "conditional_logic": 0,
@@ -264,20 +416,19 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
-            "default_value": "Based on your answers, you don't seem to be struggling with the areas we asked about right now. Still, it's okay to check in with someone you trust if anything feels off.",
-            "maxlength": "",
+            "default_value": "",
             "allow_in_bindings": 0,
-            "rows": 3,
-            "placeholder": "",
-            "new_lines": "",
-            "acfe_textarea_code": 0
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
         },
         {
             "key": "field_69b8a1010004",
             "label": "Next Steps language",
             "name": "share_results_message",
             "aria-label": "",
-            "type": "textarea",
+            "type": "wysiwyg",
             "instructions": "Always shown in Next Steps part 1.",
             "required": 0,
             "conditional_logic": 0,
@@ -287,13 +438,34 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
-            "default_value": "Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.",
-            "acfe_textarea_code": 0,
-            "maxlength": "",
+            "default_value": "",
             "allow_in_bindings": 0,
-            "rows": 3,
-            "placeholder": "",
-            "new_lines": ""
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_6ac7fbfd2725b",
+            "label": "Footer language",
+            "name": "footer_language",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "Displays directly underneath the form on all pages.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "",
+            "allow_in_bindings": 0,
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
         },
         {
             "key": "field_69b8a1010005",
@@ -555,5 +727,5 @@
             "json"
         ]
     },
-    "modified": 1788980400
+    "modified": 1792588784
 }

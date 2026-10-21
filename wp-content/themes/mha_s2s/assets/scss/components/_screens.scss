@@ -618,7 +618,8 @@ article {
                 .button {
                     background-image: none;
                 }
-                .gform-loader {  width: 20px;
+                .gform-loader {  
+                    width: 20px;
                     height: 20px;
                     animation: rotate 2s linear infinite;
                     border: 3px dotted white;
@@ -759,7 +760,7 @@ ol.screen-progress-bar {
         content: "";
         display: block;
         position: absolute;
-        top: 15px;
+        top: 0;
         left: 0;
         right: 0;
         margin: 0 auto;
@@ -802,7 +803,8 @@ ol.full-progress-bar {
             display: block;
             position: absolute;
             z-index: 5;
-            top: 0;
+            top: -2px;
+            bottom: 0;
             left: 0;
             right: 0;
             margin: 0 auto;
@@ -819,7 +821,7 @@ ol.full-progress-bar {
             z-index: 30;
             top: -40px;
             text-align: center;
-            display: block;
+            display: inline-block;
         }
 
         &.active {
@@ -1025,7 +1027,7 @@ ol.full-progress-bar.prescreen-section-nav {
             flex: none;
             min-height: 30px;
             margin: 0;
-            padding: 0 0 20px 45px;
+            padding: 0 0 20px 0;
             text-align: left;
             font-size: .95em;
             line-height: 1.3em;
@@ -1074,7 +1076,7 @@ ol.full-progress-bar.prescreen-section-nav {
 
             .gpmpn-page-link {
                 top: 0;
-                padding: 4px 0 0 0;
+                padding: 4px 15px 4px 45px;
                 text-align: left;
             }
         }
