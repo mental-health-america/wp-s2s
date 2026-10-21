@@ -1498,7 +1498,7 @@ add_filter('posts_where', 'path_article_where');
  */
 add_action( 'load-profile.php', function() {
     if(!current_user_can('manage_options')){
-        exit( wp_safe_redirect('/my-account?cb='.date('U')) );
+        exit( wp_safe_redirect('/my-account') );
 	}
 });
 
@@ -1716,6 +1716,7 @@ add_filter('auth_cookie_expiration', 'set_admin_cookie_expiration', 10, 3);
 
 include_once('inc/functions_facetwp.php'); // FacetWP options
 include_once('inc/gravity-forms.php'); // Gravity Forms overrides
+include_once('inc/account-results.php'); // Account dashboard result loading
 
 /**
  * Get matching partner information based on referer code
