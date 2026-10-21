@@ -91,7 +91,7 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 				aria-expanded="false"
 				aria-controls="collection-negative-summary"
 			>
-				Things you don't seem to be struggling with (<?php echo esc_html( (string) count( $negative ) ); ?>)
+				<span class="translation-block">Things you don't seem to be struggling with</span> (<?php echo esc_html( (string) count( $negative ) ); ?>)
 			</button>
 		<?php endif; ?>
 
@@ -105,7 +105,7 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 				aria-expanded="false"
 				aria-controls="collection-incomplete-summary"
 			>
-				<?php echo esc_html( $missing_prefix !== '' ? $missing_prefix : 'Incomplete Pages' ); ?> (<?php echo esc_html( (string) count( $incomplete ) ); ?>)
+				<span class="translation-block"><?php echo esc_html( $missing_prefix !== '' ? $missing_prefix : 'Incomplete Pages' ); ?></span> (<?php echo esc_html( (string) count( $incomplete ) ); ?>)
 			</button>
 		<?php endif; ?>
 

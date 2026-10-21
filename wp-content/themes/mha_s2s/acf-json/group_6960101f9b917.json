@@ -155,7 +155,11 @@
                     "ajax": 0,
                     "placeholder": "",
                     "allow_in_bindings": 0,
-                    "parent_repeater": "field_697d394e7c101"
+                    "parent_repeater": "field_697d394e7c101",
+                    "create_options": 0,
+                    "save_options": 0,
+                    "allow_custom": 0,
+                    "search_placeholder": ""
                 },
                 {
                     "key": "field_69b8a1010012",
@@ -357,7 +361,7 @@
             "name": "missing_summary_prefix",
             "aria-label": "",
             "type": "textarea",
-            "instructions": "Label for the incomplete/missing modules summary toggle. The count is appended automatically (e.g. \"Incomplete Pages (3)\").",
+            "instructions": "Label for the incomplete\/missing modules summary toggle. The count is appended automatically (e.g. \"Incomplete Pages (3)\").",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -380,7 +384,7 @@
             "name": "incomplete_summary_prefix",
             "aria-label": "",
             "type": "textarea",
-            "instructions": "Intro text shown when the collapsed incomplete/missing modules list is expanded.",
+            "instructions": "Intro text shown when the collapsed incomplete\/missing modules list is expanded.",
             "required": 0,
             "conditional_logic": 0,
             "wrapper": {
@@ -402,7 +406,7 @@
             "label": "Empty Positive Message",
             "name": "empty_positive_message",
             "aria-label": "",
-            "type": "textarea",
+            "type": "wysiwyg",
             "instructions": "Shown instead of the positive symptom list when no modules scored positive.",
             "required": 0,
             "conditional_logic": 0,
@@ -412,13 +416,12 @@
                 "id": ""
             },
             "relevanssi_exclude": 0,
-            "default_value": "Based on your answers, you don't seem to be struggling with the areas we asked about right now. Still, it's okay to check in with someone you trust if anything feels off.",
-            "maxlength": "",
+            "default_value": "",
             "allow_in_bindings": 0,
-            "rows": 3,
-            "placeholder": "",
-            "new_lines": "",
-            "acfe_textarea_code": 0
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
         },
         {
             "key": "field_69b8a1010004",
@@ -724,5 +727,5 @@
             "json"
         ]
     },
-    "modified": 1791926939
+    "modified": 1792588784
 }

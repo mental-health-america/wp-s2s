@@ -961,10 +961,10 @@ function mha_collection_format_labeled_symptom( $module_label, $symptom_label ) 
 		return esc_html( $symptom );
 	}
 	if ( $symptom === '' ) {
-		return '<strong>' . esc_html( $module ) . '</strong>';
+		return '<strong><span class="translation-block">' . esc_html( $module ) . '</span></strong>';
 	}
 
-	return '<strong>' . esc_html( $module ) . ':</strong> ' . esc_html( $symptom );
+	return '<strong><span class="translation-block">' . esc_html( $module ) . '</span>:</strong> ' . esc_html( $symptom );
 }
 
 /**
