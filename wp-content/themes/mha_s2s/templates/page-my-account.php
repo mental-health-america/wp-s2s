@@ -305,6 +305,11 @@ if (strpos($account_action, 'save_screen_') !== false) {
                             }
                             $is_collection = $collection_id > 0;
 
+                            $screen_post_type = $screen_id ? get_post_type( (int) $screen_id ) : '';
+                            if ( ! in_array( $screen_post_type, array( 'screen', 'screen-collection' ), true ) ) {
+                                continue;
+                            }
+
                             // Surveys stay out of the screen picker and the per-screen results summary.
                             if ( ! $is_collection && get_field( 'survey', $screen_id ) ) {
                                 continue;
