@@ -144,7 +144,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 				$logo_url = home_url( '/' );
 			}
 		?>
-		<a id="logo" href="<?php echo esc_url( $logo_url ); ?>"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/mha-logo.png" alt="<?php bloginfo( 'name' ); ?>" /></a>
+		<a id="logo" href="<?php echo esc_url( $logo_url ); ?>">
+			<?php 
+			$header_logo = get_field('header_logo','options');
+			if($header_logo): 
+			?>
+				<img src="<?php echo $header_logo['url']; ?>" alt="<?php echo $header_logo['alt']; ?>" />
+			<?php else: ?>
+				<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/mha-logo-color.png" alt="<?php bloginfo( 'name' ); ?>" />
+			<?php endif; ?>
+		</a>
 
 		<div id="utility-menu" class="utility-menu relative">
 

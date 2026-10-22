@@ -21,6 +21,35 @@
             "selected": 0
         },
         {
+            "key": "field_6ada7462a612f",
+            "label": "Header Logo",
+            "name": "header_logo",
+            "aria-label": "",
+            "type": "image",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "uploader": "",
+            "return_format": "array",
+            "library": "all",
+            "acfe_thumbnail": 0,
+            "min_width": "",
+            "min_height": "",
+            "min_size": "",
+            "max_width": "",
+            "max_height": "",
+            "max_size": "",
+            "mime_types": "",
+            "allow_in_bindings": 0,
+            "preview_size": "thumbnail"
+        },
+        {
             "key": "field_5fd78fd12eec5",
             "label": "Log In Introduction",
             "name": "log_in_introduction",
@@ -1504,5 +1533,5 @@
             "json"
         ]
     },
-    "modified": 1783029069
+    "modified": 1792701570
 }

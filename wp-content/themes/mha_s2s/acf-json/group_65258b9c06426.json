@@ -395,7 +395,10 @@
                                         "id": ""
                                     },
                                     "relevanssi_exclude": 0,
-                                    "choices": [],
+                                    "choices": {
+                                        "psychosis-ab-eligible": "psychosis-ab-eligible — Digital Pathways - positive scorers - A\/B test eligible",
+                                        "psychosis-ab-disqualified": "psychosis-ab-disqualified — Digital Pathways - positive scorers - disqualified from A\/B test"
+                                    },
                                     "default_value": false,
                                     "return_format": "value",
                                     "multiple": 0,
@@ -437,7 +440,8 @@
                                     "rows": 8,
                                     "placeholder": "{\n  \"operator\": \"and\",\n  \"conditions\": []\n}",
                                     "new_lines": "",
-                                    "parent_repeater": "field_651eee5560881"
+                                    "parent_repeater": "field_651eee5560881",
+                                    "acfe_textarea_code": 0
                                 }
                             ]
                         },
@@ -609,12 +613,12 @@
     "description": "",
     "show_in_rest": 0,
     "display_title": "",
-    "acfe_display_title": "",
-    "acfe_autosync": [
-        "json"
-    ],
-    "acfe_form": 0,
-    "acfe_meta": "",
-    "acfe_note": "",
-    "modified": 1783025500
+    "allow_ai_access": false,
+    "ai_description": "",
+    "acfe": {
+        "autosync": [
+            "json"
+        ]
+    },
+    "modified": 1786713720
 }
