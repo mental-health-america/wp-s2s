@@ -718,7 +718,7 @@ article .gform_wrapper.gravity-theme {
     }
 }
 
-/* Normal Forms */
+// Normal Forms
 .form-container {
     input {
         padding: 0 25px;
@@ -731,3 +731,32 @@ article .gform_wrapper.gravity-theme {
     }
 }
 
+
+// Digital Pathways Project Form Overrides
+article {
+    .digital-pathways-project_wrapper.gform_wrapper.gravity-theme {
+
+        .gform_fields {
+            .gfield { 
+                margin-bottom: 1rem; 
+                &:last-of-type {
+                    margin-bottom: 0;
+                }
+
+                &.text-white {
+                    .gfield_description, 
+                    .gfield_label {
+                        color: $white;
+                    }
+                    .gfield_description {
+                        text-align: left;
+                        font-size: .85em;
+                        margin-left: 20px;
+                    }
+                }
+            }
+
+        }
+
+    }
+}

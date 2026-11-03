@@ -225,6 +225,7 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 
 		// Initial data
 		$phone = rgar($entry, 1);
+		$message = rgar($entry, 5);
 		$sid = str_replace( '_pull', '', rgar($entry, 3));
 
         $offhours = 'false';
@@ -260,7 +261,8 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 			"transgender" => $transgender, // Optional
 			"sendwelcomesms" => "1", // Optional, defaults to "1"
 			// "offhours" => $offhours, // Optional, defaults to "false"
-			"userscore" => $user_screen_result['total_score'] // Optional
+			"userscore" => $user_screen_result['total_score'], // Optional
+            "message" => $message,
 		];
 
         //GFCommon::log_debug( 'DIGITAL PATHWAYS PROJECT $payload => ' . print_r($digital_pathways_payload, true) );
@@ -284,7 +286,7 @@ function mha_form_post_submit_override_customizations( $entry, $form ) {
 
         if ( ! defined( 'DIGIPATH_DOMAIN' ) ) {
             $domain_error = 'Error: DIGIPATH_DOMAIN not defined';
-            mha_dpp_log( 'Missing constant DIGIPATH_DOMAIN (is keys.php present on this server?)' );
+            mha_dpp_log( 'Missing constant DIGIPATH_DOMAIN' );
             GFAPI::update_entry_field( rgar($entry, 'id'), '4', $domain_error );
             mha_dpp_notify_error( $entry, $domain_error );
             mha_dpp_step( 'done (no API domain)' );
