@@ -15,10 +15,42 @@
 function mha_approved_partners() {
 	$partners = array(
 		'own',
-		'easterseals'
+		//'easterseals'
 	);
 	return $partners;
 }
+
+/**
+ * Iframe embeds are limited to partners in mha_approved_partners().
+ *
+ * @return bool True when ?iframe=true is set and the partner is missing or not approved.
+ */
+function mha_is_unapproved_iframe_embed() {
+	$is_iframe = ( isset( $_GET['iframe'] ) && $_GET['iframe'] == 'true' ) || get_query_var( 'iframe' ) == 'true';
+	if ( ! $is_iframe ) {
+		return false;
+	}
+
+	$partner = get_query_var( 'partner' );
+	return ! in_array( $partner, mha_approved_partners() );
+}
+
+/**
+ * Replace the page with the iframe embed error when the partner is not approved.
+ */
+function mha_iframe_embed_error_template( $template ) {
+	if ( ! mha_is_unapproved_iframe_embed() ) {
+		return $template;
+	}
+
+	$error_template = locate_template( 'templates/iframe-embed-error.php' );
+	if ( $error_template ) {
+		return $error_template;
+	}
+
+	return $template;
+}
+add_filter( 'template_include', 'mha_iframe_embed_error_template', 99 );
 
 /**
  * Sets up theme defaults and registers support for various WordPress features.
@@ -149,10 +181,12 @@ function mha_s2s_scripts() {
 				$partner_css = get_template_directory_uri() . '/assets/css/partner/own.css';
 				$partner_js = get_template_directory_uri() . '/assets/js/partner/own.js';
 				break;
+			/*
 			case 'easterseals':
 				$partner_css = get_template_directory_uri() . '/assets/css/partner/easterseals.css';
 				$partner_js = get_template_directory_uri() . '/assets/js/partner/easterseals.js';
 				break;
+			*/
 			default:
 				$partner_css = null;
 				$partner_js = null;
@@ -252,6 +286,9 @@ function wp_body_classes( $classes ) {
 	// Iframe mode classes
 	if(isset($_GET['iframe']) && $_GET['iframe'] == 'true'){
 		$classes[] = 'iframe-mode';
+	}
+	if ( mha_is_unapproved_iframe_embed() ) {
+		$classes[] = 'iframe-embed-error';
 	}      
 
 	// Partner classes

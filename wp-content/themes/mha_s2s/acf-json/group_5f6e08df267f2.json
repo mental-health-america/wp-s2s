@@ -818,6 +818,29 @@
             "acfe_textarea_code": 0
         },
         {
+            "key": "field_6aea498ae9136",
+            "label": "Iframe Embed Error Message",
+            "name": "iframe_embed_error_message",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "An error message to display when a the site is embedded with an iframe parameter and no applicable partner value.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "relevanssi_exclude": 0,
+            "default_value": "",
+            "acfe_textarea_code": 0,
+            "maxlength": "",
+            "allow_in_bindings": 1,
+            "rows": "",
+            "placeholder": "",
+            "new_lines": ""
+        },
+        {
             "key": "field_62b9f103e041c",
             "label": "Related Article Scoring",
             "name": "",
@@ -1533,5 +1556,5 @@
             "json"
         ]
     },
-    "modified": 1792701570
+    "modified": 1793739195
 }
