@@ -1035,73 +1035,84 @@ add_action("wp_ajax_getArticlesAjax", "getArticlesAjax");
 function get_geo( $zip = null ){
 
 	// For Ajax use
-	if($_POST['data']){
-		// General variables
-		$result = array();
-		$options = [];
-
+	if( isset( $_POST['data'] ) && is_string( $_POST['data'] ) ){
 		// Make serialized data readable
 		parse_str($_POST['data'], $data);
-		$zip = $data['zip'];
+		$zip = isset( $data['zip'] ) ? $data['zip'] : null;
 	}
 
-	global $wpdb;
-	$zip_check = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT * FROM zips
-			WHERE zip = %d LIMIT 1",
-			$zip
-		)
-	);
+	// A US ZIP code (ZIP+4 is trimmed to the first five digits). Anything else is not looked up,
+	// which also keeps arbitrary text from being sent on to the paid geocoding service.
+	$zip = is_scalar( $zip ) ? trim( (string) $zip ) : '';
+	if ( preg_match( '/^(\d{5})(?:-\d{4})?$/', $zip, $zip_match ) ) {
+		$zip = $zip_match[1];
+	} else {
+		$zip = '';
+	}
 
 	$geo = [];
 
-	if ( count($zip_check) > 0 ){
+	if ( $zip !== '' ) {
 
-		// Already have the lat/long, just spit those back out
-		$geo['lat'] = $zip_check[0]->lat;
-		$geo['lng'] = $zip_check[0]->lng;
-		$geo['state'] = $zip_check[0]->state;
+		global $wpdb;
+		$zip_check = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM zips
+				WHERE zip = %d LIMIT 1",
+				$zip
+			)
+		);
 
-	} else {
+		if ( count($zip_check) > 0 ){
 
-		// Get lat/long from Google
-		$address_url = urlencode( $zip );		
-		$handle = curl_init(); 
-		$url = "https://maps.googleapis.com/maps/api/geocode/json?address=$address_url&key=".GOOGLE_API_KEY;
-		curl_setopt($handle, CURLOPT_URL, $url);
-		curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-		$output = json_decode(curl_exec($handle), true);
-		curl_close($handle);
+			// Already have the lat/long, just spit those back out
+			$geo['lat'] = $zip_check[0]->lat;
+			$geo['lng'] = $zip_check[0]->lng;
+			$geo['state'] = $zip_check[0]->state;
 
-		if(count($output['results']) > 0){
-			$geo = [];
+		} elseif ( ! function_exists( 'mha_rate_limit_allow' ) || mha_rate_limit_allow( 'get_geo_lookup', mha_get_remote_ip(), 20, HOUR_IN_SECONDS ) ) {
 
-			// Get lat/long
-			$geo['lat'] = $output['results'][0]['geometry']['location']['lat'];
-			$geo['lng'] = $output['results'][0]['geometry']['location']['lng'];
+			// Not stored yet: ask Google. Each of these calls is billed, so they are limited per visitor.
+			$url = add_query_arg(
+				array(
+					'address' => $zip,
+					'key'     => GOOGLE_API_KEY,
+				),
+				'https://maps.googleapis.com/maps/api/geocode/json'
+			);
+			$response = wp_remote_get( $url, array( 'timeout' => 8 ) );
+			$output   = is_wp_error( $response ) ? null : json_decode( wp_remote_retrieve_body( $response ), true );
 
-			// Get State
-			$geo['state'] = '';
-			for ($i = 0; $i < count($output['results'][0]['address_components']); $i++) {
-				$state_check = array($output['results'][0]['address_components'][$i]['types'][0]);
-				if(in_array("administrative_area_level_1", $state_check)) {
-					$geo['state'] = $output['results'][0]['address_components'][$i]['long_name'];
+			if( is_array( $output ) && ! empty( $output['results'][0] ) ){
+
+				// Get lat/long
+				$geo['lat'] = $output['results'][0]['geometry']['location']['lat'];
+				$geo['lng'] = $output['results'][0]['geometry']['location']['lng'];
+
+				// Get State
+				$geo['state'] = '';
+				$components = isset( $output['results'][0]['address_components'] ) ? $output['results'][0]['address_components'] : array();
+				for ($i = 0; $i < count($components); $i++) {
+					$state_check = array( isset( $components[$i]['types'][0] ) ? $components[$i]['types'][0] : '' );
+					if(in_array("administrative_area_level_1", $state_check)) {
+						$geo['state'] = $components[$i]['long_name'];
+					}
 				}
+
+				$insert_zips = $wpdb->insert("zips", array(
+						'zip' => $zip,
+						'lat' => $geo['lat'],
+						'lng' => $geo['lng'],
+						'state' => $geo['state']
+					), array(
+						'%d',
+						'%f',
+						'%f',
+						'%s'
+					)
+				);
 			}
 
-			$insert_zips = $wpdb->insert("zips", array(
-					'zip' => $zip,
-					'lat' => $geo['lat'],
-					'lng' => $geo['lng'],
-					'state' => $geo['state']
-				), array(
-					'%d',
-					'%f',
-					'%f',
-					'%s'
-				)
-			);
 		}
 
 	}

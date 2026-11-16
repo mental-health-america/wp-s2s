@@ -212,9 +212,10 @@ function mha_export_click_monitor_data(){
 
         if (!$args['filename']) {
             $args['filename'] = $no_date_filter
-                ? 'click-monitor--all--'.date('U').'.csv'
-                : 'click-monitor--'.$args['export_click_monitor_start_date'].'_'.$args['export_click_monitor_end_date'].'--'.date('U').'.csv';
+                ? mha_exports_new_filename( 'click-monitor', 'all' )
+                : mha_exports_new_filename( 'click-monitor', $args['export_click_monitor_start_date'].'_'.$args['export_click_monitor_end_date'] );
         }
+        $args['filename'] = mha_exports_require_filename( $args['filename'] );
         $writer_type = $args['filename'] ? 'a+' : 'w+';
                 
         if($args['page'] >= $max_pages){

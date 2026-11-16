@@ -89,16 +89,21 @@ add_action('request', function ($query_vars) {
  * Authorization guard for the export AJAX endpoints.
  *
  * A `wp_ajax_` hook only requires the request to be authenticated, not authorized, so
- * every callback has to check capability itself. The nonce is verified only when the
- * request carries one, because the paging loops in js/ re-issue continuation requests
- * without resending the form fields.
+ * every callback has to check capability itself. The nonce is always required. The paging
+ * loops in js/ send it on every continuation request (either inside the serialized `data`
+ * string or as `data[nonce]` when the previous response is posted back).
  *
- * Sends a 403 and exits when the request is not permitted.
+ * Responses are echoed as plain JSON rather than through wp_send_json_*(), because the
+ * scripts in js/ run JSON.parse() on the raw response text.
+ *
+ * Sends an error and exits when the request is not permitted.
  */
 function mha_exports_verify_ajax_request( $nonce_action = null ) {
 
 	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_send_json_error( array( 'error' => 'You do not have permission to run this export.' ), 403 );
+		status_header( 403 );
+		echo json_encode( array( 'error' => 'You do not have permission to run this export.' ) );
+		exit();
 	}
 
 	if ( ! $nonce_action ) {
@@ -116,10 +121,144 @@ function mha_exports_verify_ajax_request( $nonce_action = null ) {
 		}
 	}
 
-	if ( ! empty( $nonce ) && ! wp_verify_nonce( $nonce, $nonce_action ) ) {
-		wp_send_json_error( array( 'error' => 'Security check failed. Refresh the page and try again.' ), 403 );
+	if ( ! is_string( $nonce ) || '' === $nonce || ! wp_verify_nonce( $nonce, $nonce_action ) ) {
+		echo json_encode( array( 'error' => 'Security check failed. Refresh the page and try again.' ) );
+		exit();
 	}
+
+	// Housekeeping: drop stale export files whenever an export is being used.
+	mha_exports_cleanup_tmp();
 }
+
+
+/**
+ * Export files
+ *
+ * WP Engine offers no non-public folder, so exports are written to this plugin's tmp/ folder and
+ * downloaded from there directly. Protection comes from three things:
+ *  - names that stay readable (what was exported, and the date range) but end in a long random
+ *    token instead of a guessable timestamp,
+ *  - strict validation of any file name the browser sends back during paging, so it can never
+ *    point anywhere except a CSV with a name this plugin generated, inside tmp/,
+ *  - automatic deletion of files older than two hours.
+ */
+define( 'MHA_EXPORTS_TMP_MAX_AGE', 2 * HOUR_IN_SECONDS );
+define( 'MHA_EXPORTS_TOKEN_LENGTH', 20 );
+
+function mha_exports_tmp_dir() {
+	return plugin_dir_path( __FILE__ ) . 'tmp/';
+}
+
+/**
+ * Build a new export file name: `<what>--<date range>--<random token>.csv`
+ *
+ * @param string $label Readable description of the export (form title, tool name, ...).
+ * @param string $range Optional date range or qualifier, e.g. '2026-08-01_2026-09-30'.
+ * @return string
+ */
+function mha_exports_new_filename( $label, $range = '' ) {
+
+	$label = strtolower( preg_replace( '/[^A-Za-z0-9_-]+/', '-', sanitize_title( (string) $label ) ) );
+	$label = trim( substr( $label, 0, 80 ), '-' );
+	if ( '' === $label ) {
+		$label = 'export';
+	}
+
+	$range = preg_replace( '/[^A-Za-z0-9_-]+/', '', (string) $range );
+	$token = wp_generate_password( MHA_EXPORTS_TOKEN_LENGTH, false, false );
+
+	return $label . '--' . ( '' !== $range ? $range . '--' : '' ) . $token . '.csv';
+}
+
+/**
+ * Validate a file name received from the browser during paging.
+ *
+ * @param mixed $filename Value from the request.
+ * @return string|false The file name when it is one this plugin could have generated, otherwise false.
+ */
+function mha_exports_resolve_filename( $filename ) {
+
+	if ( ! is_string( $filename ) || '' === $filename ) {
+		return false;
+	}
+
+	$filename = basename( $filename );
+
+	$pattern = '/^[A-Za-z0-9_-]+--(?:[A-Za-z0-9_-]+--)?[A-Za-z0-9]{' . MHA_EXPORTS_TOKEN_LENGTH . '}\.csv$/';
+	if ( ! preg_match( $pattern, $filename ) ) {
+		return false;
+	}
+
+	return $filename;
+}
+
+/**
+ * Same as mha_exports_resolve_filename(), but stops the request when the name is not valid.
+ *
+ * @param mixed $filename Value from the request.
+ * @return string
+ */
+function mha_exports_require_filename( $filename ) {
+
+	$valid = mha_exports_resolve_filename( $filename );
+
+	if ( false === $valid ) {
+		status_header( 400 );
+		echo json_encode( array( 'error' => 'Invalid export file name. Please refresh this page and start the export again.' ) );
+		exit();
+	}
+
+	return $valid;
+}
+
+/**
+ * Delete export files older than the maximum age.
+ *
+ * Only *.csv files are removed, so the index.php guard in tmp/ is never touched. A file that is
+ * still being written to has a recent modification time and is left alone.
+ *
+ * @param int $max_age Age in seconds.
+ * @return int Number of files deleted.
+ */
+function mha_exports_cleanup_tmp( $max_age = MHA_EXPORTS_TMP_MAX_AGE ) {
+
+	$files = glob( mha_exports_tmp_dir() . '*.csv' );
+	if ( ! $files ) {
+		return 0;
+	}
+
+	$cutoff  = time() - (int) $max_age;
+	$deleted = 0;
+
+	foreach ( $files as $file ) {
+		if ( is_file( $file ) && filemtime( $file ) < $cutoff && @unlink( $file ) ) {
+			$deleted++;
+		}
+	}
+
+	return $deleted;
+}
+
+// Scheduled cleanup, so files are removed even when nobody is running an export.
+add_filter( 'cron_schedules', function ( $schedules ) {
+	$schedules['mha_exports_half_hour'] = array(
+		'interval' => 30 * MINUTE_IN_SECONDS,
+		'display'  => 'Every 30 minutes (MHA exports cleanup)',
+	);
+	return $schedules;
+} );
+
+add_action( 'mha_exports_cleanup_tmp_event', 'mha_exports_cleanup_tmp' );
+
+add_action( 'init', function () {
+	if ( ! wp_next_scheduled( 'mha_exports_cleanup_tmp_event' ) ) {
+		wp_schedule_event( time() + 300, 'mha_exports_half_hour', 'mha_exports_cleanup_tmp_event' );
+	}
+} );
+
+register_deactivation_hook( __FILE__, function () {
+	wp_clear_scheduled_hook( 'mha_exports_cleanup_tmp_event' );
+} );
 
 
 /**

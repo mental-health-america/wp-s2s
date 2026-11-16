@@ -72,7 +72,7 @@
 	?>
 		window.dataLayer.push({
 			'event': 'diy_view',
-			'diy_title': '<?php echo get_the_title(); ?>'
+			'diy_title': '<?php echo esc_js( wp_strip_all_tags( get_the_title() ) ); ?>'
 		});
 	<?php
 	endif;
@@ -82,7 +82,7 @@
 	?>
 		window.dataLayer.push({
 			'event': 'ai_view',
-			'page_title': '<?php echo get_the_title(); ?>'
+			'page_title': '<?php echo esc_js( wp_strip_all_tags( get_the_title() ) ); ?>'
 		});
 	<?php
 	endif;
@@ -90,7 +90,7 @@
 
 	<?php if(basename(get_page_template()) == 'page-screen-results.php'): ?>
 		window.dataLayer.push({
-			'sid': '<?php echo get_query_var('sid'); ?>',
+			'sid': '<?php echo esc_js( sanitize_text_field( (string) get_query_var( 'sid' ) ) ); ?>',
 			'event': 'completed_screen',
 		});
 	<?php endif; ?>

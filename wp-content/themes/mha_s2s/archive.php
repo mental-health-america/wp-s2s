@@ -42,14 +42,14 @@ wp_reset_query();
 						<div class="row">
 
                         	<div class="col-12 col-md-6">
-								<p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo $search_query; ?>" placeholder="Search <?php echo $term->name; ?> articles" type="text" /></p>
+								<p class="mb-0 wide block"><input id="search-archive" name="search" value="<?php echo esc_attr( (string) $search_query ); ?>" placeholder="Search <?php echo esc_attr( $term->name ); ?> articles" type="text" /></p>
 							</div>
 
 							<div class="col-12 col-md-3 mt-3 mt-md-0">
-								<input type="hidden" name="search_tag" value="<?php echo $term->term_id; ?>" />
-								<input type="hidden" name="search_taxonomy" value="<?php echo $term->taxonomy; ?>" />
-								<input type="hidden" name="order" value="<?php echo get_query_var('order'); ?>" />
-								<input type="hidden" name="orderby" value="<?php echo get_query_var('orderby'); ?>" />
+								<input type="hidden" name="search_tag" value="<?php echo (int) $term->term_id; ?>" />
+								<input type="hidden" name="search_taxonomy" value="<?php echo esc_attr( $term->taxonomy ); ?>" />
+								<input type="hidden" name="order" value="<?php echo esc_attr( (string) get_query_var( 'order' ) ); ?>" />
+								<input type="hidden" name="orderby" value="<?php echo esc_attr( (string) get_query_var( 'orderby' ) ); ?>" />
 								<p class="m-0 wide block"><input type="submit" class="button gform_button white block pl-0 pr-0" value="Search" /></p>
 							</div>
 

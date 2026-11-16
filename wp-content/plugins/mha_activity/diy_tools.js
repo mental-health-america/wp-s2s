@@ -929,7 +929,7 @@
 				url: do_mhaDiyTools.ajaxurl,
 				data: { 
 					action: 'mhaToggleHideThought',
-					data: 'pid='+pid+'&value='+value
+					data: 'pid='+encodeURIComponent(pid)+'&value='+value+'&nonce='+encodeURIComponent($checkbox.attr('data-nonce') || '')
 				},
 				success: function( results ) {					
 					var res = JSON.parse(results),
@@ -946,6 +946,8 @@
 				},
 				error: function(xhr, ajaxOptions, thrownError){
 					console.error(xhr,thrownError);
+					// Put the checkbox back the way it was so the page does not show a state that was not saved
+					$checkbox.prop('checked', !$checkbox.prop('checked')).prop('disabled', false).removeClass('loading');
 				}
 			});	
 			

@@ -367,56 +367,92 @@ function mha_screen_email_disable_click_tracking( $message_body ){
 
 }
 
+/**
+ * Email a screening result to the address the visitor supplies.
+ *
+ * Open to anonymous visitors by design. The result being sent is identified by the screening
+ * `sid` token the visitor holds, which is the same proof that unlocks the results page. The
+ * entry ID posted by the browser is never trusted on its own, because entry IDs are sequential
+ * and guessable. Sending is throttled so the endpoint cannot be used to mail-bomb a third
+ * party or enumerate results.
+ */
 function mhaScreenEmail(){
-    global $wpdb;
-    
-	// General variables
-    $result = array();
-	
+
 	// Make serialized data readable
-	parse_str($_POST['data'], $data);
-	
-	// Cleaned Up Data
-	$email = sanitize_email($data['email']);
-    $screen_id = intval($data['screen_id']);
-    $entry_id = intval($data['entry_id']);
-    $screen_user_id = sanitize_text_field($data['screen_user_id']);
-    
-    $isAuthentic = wp_verify_nonce( $data['nonce'], 'mhaScreenEmail');
-	
-	if($isAuthentic){
-	
-		// Send the email
-		$to = $email;
-		$collection_id = 0;
-		if ( $entry_id && class_exists( 'GFAPI' ) && function_exists( 'mha_screen_collection_resolve_from_entry' ) ) {
-			$entry = GFAPI::get_entry( $entry_id );
-			if ( is_array( $entry ) ) {
-				$collection_id = mha_screen_collection_resolve_from_entry( $entry );
-			}
-		}
-
-		if ( $collection_id && function_exists( 'mha_get_collection_email_body' ) ) {
-			$subject = 'Mental Health America ' . get_the_title( $collection_id ) . ' Results';
-			$body    = mha_get_collection_email_body( $screen_user_id, $collection_id, $entry_id );
-		} else {
-			$subject = 'Mental Health America ' . get_the_title( $screen_id ) . ' Results';
-			$body    = mha_get_screen_email_body( $screen_user_id, $screen_id, $entry_id );
-		}
-		$headers = array('Content-Type: text/html; charset=UTF-8');	
-		$headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
-
-		$result['mail'] = wp_mail( $to, $subject, $body, $headers );
-		
-	} else {
-		
-		$result['error'] = true;
-
+	$data = array();
+	if ( isset( $_POST['data'] ) && is_string( $_POST['data'] ) ) {
+		parse_str( $_POST['data'], $data );
 	}
 
-    echo json_encode($result);
+	// Cleaned up data
+	$email          = isset( $data['email'] ) ? sanitize_email( (string) $data['email'] ) : '';
+	$posted_entry   = isset( $data['entry_id'] ) ? absint( $data['entry_id'] ) : 0;
+	$screen_user_id = isset( $data['screen_user_id'] ) ? sanitize_text_field( (string) $data['screen_user_id'] ) : '';
+	$nonce          = isset( $data['nonce'] ) ? (string) $data['nonce'] : '';
 
-    exit();
+	if ( ! wp_verify_nonce( $nonce, 'mhaScreenEmail' ) ) {
+		wp_send_json_error( array( 'error' => true ), 403 );
+	}
+
+	// Throttle by IP first, so failed lookups count too and cannot be used to probe.
+	$ip = function_exists( 'mha_get_remote_ip' ) ? mha_get_remote_ip() : '';
+	if ( function_exists( 'mha_rate_limit_allow' ) && ! mha_rate_limit_allow( 'screen_email_ip', $ip, 20, HOUR_IN_SECONDS ) ) {
+		wp_send_json_error( array( 'error' => true ), 429 );
+	}
+
+	if ( ! is_email( $email ) || $screen_user_id === '' || strlen( $screen_user_id ) > 128 ) {
+		wp_send_json_error( array( 'error' => true ), 400 );
+	}
+
+	// The sid, not the posted entry ID, decides which result is sent.
+	$entry_id = function_exists( 'mha_get_gf_entry_id_by_sid' ) ? (int) mha_get_gf_entry_id_by_sid( $screen_user_id ) : 0;
+	if ( ! $entry_id || ( $posted_entry && $posted_entry !== $entry_id ) ) {
+		wp_send_json_error( array( 'error' => true ), 403 );
+	}
+
+	// Per-result and per-recipient limits.
+	if ( function_exists( 'mha_rate_limit_allow' ) ) {
+		if (
+			! mha_rate_limit_allow( 'screen_email_sid', (string) $entry_id, 5, HOUR_IN_SECONDS ) ||
+			! mha_rate_limit_allow( 'screen_email_to', strtolower( $email ), 3, HOUR_IN_SECONDS )
+		) {
+			wp_send_json_error( array( 'error' => true ), 429 );
+		}
+	}
+
+	// Which screen this is comes from the stored result, not from the browser.
+	$user_screen_result = function_exists( 'mha_get_user_screen_results' ) ? mha_get_user_screen_results( $entry_id, false ) : array();
+	$screen_id          = ( is_array( $user_screen_result ) && ! empty( $user_screen_result['screen_id'] ) ) ? absint( $user_screen_result['screen_id'] ) : 0;
+	if ( ! $screen_id ) {
+		wp_send_json_error( array( 'error' => true ), 403 );
+	}
+
+	$result = array();
+	$to     = $email;
+
+	$collection_id = 0;
+	if ( class_exists( 'GFAPI' ) && function_exists( 'mha_screen_collection_resolve_from_entry' ) ) {
+		$entry = GFAPI::get_entry( $entry_id );
+		if ( is_array( $entry ) ) {
+			$collection_id = mha_screen_collection_resolve_from_entry( $entry );
+		}
+	}
+
+	if ( $collection_id && function_exists( 'mha_get_collection_email_body' ) ) {
+		$subject = 'Mental Health America ' . get_the_title( $collection_id ) . ' Results';
+		$body    = mha_get_collection_email_body( $screen_user_id, $collection_id, $entry_id );
+	} else {
+		$subject = 'Mental Health America ' . get_the_title( $screen_id ) . ' Results';
+		$body    = mha_get_screen_email_body( $screen_user_id, $screen_id, $entry_id );
+	}
+	$headers   = array( 'Content-Type: text/html; charset=UTF-8' );
+	$headers[] = 'From: MHA Screening - Mental Health America <screening@mhanational.org>';
+
+	$result['mail'] = wp_mail( $to, $subject, $body, $headers );
+
+	echo json_encode( $result );
+
+	exit();
 }
 
 add_action("wp_ajax_nopriv_mhaScreenEmail", "mhaScreenEmail");
@@ -450,7 +486,7 @@ function mha_get_screen_email_body( $user_screen_id, $screen_id, $entry_id ){
     endif;
 
     // Link back to results page
-    $header .= '<p><a href="'.get_site_url().'/screening-results/?sid='.$user_screen_id.'">View your results online and see next steps</a></p>';
+    $header .= '<p><a href="'.esc_url( get_site_url().'/screening-results/?sid='.rawurlencode( $user_screen_id ) ).'">View your results online and see next steps</a></p>';
 
     // Body
     $html .= '<h3 class="section-title dark-teal mb-4">Your Answers</h3>';   
@@ -706,7 +742,7 @@ function getScreenAnswers( $user_screen_id, $screen_id, $entry_id ){
                     endif;
 
 					// Link back to results page
-					$header .= '<p><a href="'.get_site_url().'/screening-results/?sid='.$user_screen_id.'">View your results online and see next steps</a></p>';
+					$header .= '<p><a href="'.esc_url( get_site_url().'/screening-results/?sid='.rawurlencode( $user_screen_id ) ).'">View your results online and see next steps</a></p>';
 			
 				}
 			endwhile;

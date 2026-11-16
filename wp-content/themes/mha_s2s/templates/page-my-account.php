@@ -16,7 +16,7 @@ $uid = get_current_user_id();
 $current_user = wp_get_current_user();
 
 if(get_query_var('admin_uid') && current_user_can('administrator')){
-    $uid = get_query_var('admin_uid');
+    $uid = absint( get_query_var('admin_uid') );
     $current_user = get_user_by( 'id', $uid );
 }
 
@@ -195,7 +195,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
 
             <h2 class="pt-3 mb-4 heading">Recent Test Results</h2>
             <?php
-                $hidden_screens_check = $wpdb->get_results("SELECT pid FROM screens_hidden WHERE uid = $uid and pid != 0", ARRAY_N);
+                $hidden_screens_check = $wpdb->get_results("SELECT pid FROM screens_hidden WHERE uid = " . (int) $uid . " and pid != 0", ARRAY_N);
                 $hide_screens = [];
                 foreach($hidden_screens_check as $pid){
                     $hide_screens[] = $pid[0];
@@ -462,7 +462,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
         <div class="dashboard-block diy-activity pt-5 pb-5">
             <h2 class="bar">DIY Tools Submissions</h2>                
             <?php
-                $hidden_thoughts_check = $wpdb->get_results("SELECT pid FROM thoughts_hidden WHERE uid = $uid", ARRAY_N);
+                $hidden_thoughts_check = $wpdb->get_results("SELECT pid FROM thoughts_hidden WHERE uid = " . (int) $uid, ARRAY_N);
                 $hide_diy_submissions = [];
                 foreach($hidden_thoughts_check as $pid){
                     $hide_diy_submissions[] = $pid[0];
@@ -535,6 +535,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
                                             name="private_thought_<?php echo $answer_id; ?>"
                                             id="private_thought_<?php echo $answer_id; ?>" 
                                             data-id="<?php echo $answer_id; ?>" 
+                                            data-nonce="<?php echo esc_attr( wp_create_nonce( 'diySubmission' ) ); ?>" 
                                             <?php if(get_field('crowdsource_hidden', $answer_id)){ echo 'checked'; }; ?> 
                                         />
                                         Hide this from public submissions (all submissions are anonymous)
@@ -597,7 +598,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
         
         <!-- Overcoming Thoughts -->      
             <?php
-                $hidden_thoughts_check = $wpdb->get_results("SELECT pid FROM thoughts_hidden WHERE uid = $uid", ARRAY_N);
+                $hidden_thoughts_check = $wpdb->get_results("SELECT pid FROM thoughts_hidden WHERE uid = " . (int) $uid, ARRAY_N);
                 $hide_thoughts = [];
                 foreach($hidden_thoughts_check as $pid){
                     $hide_thoughts[] = $pid[0];
@@ -752,7 +753,7 @@ if (strpos($account_action, 'save_screen_') !== false) {
             $liked_articles = [];
             $liked_resources = [];
             $resources = array('diy','connect','treatment','provider');
-            $likes = $wpdb->get_results("SELECT pid FROM article_likes WHERE uid = $uid AND unliked = 0 ORDER BY id DESC");	
+            $likes = $wpdb->get_results("SELECT pid FROM article_likes WHERE uid = " . (int) $uid . " AND unliked = 0 ORDER BY id DESC");	
 
             foreach($likes as $like){
                 $article_type = get_field('type', $like->pid);                    

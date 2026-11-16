@@ -9,7 +9,7 @@
     <button class="button gray round-br dropdown-toggle normal-case" type="button" id="orderSelection" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-order="DESC" value="featured">
         <?php
             if(get_query_var('filter_order')){
-                echo get_query_var('filter_order');
+                echo esc_html( (string) get_query_var( 'filter_order' ) );
             } else {
                 echo 'Default';
             }

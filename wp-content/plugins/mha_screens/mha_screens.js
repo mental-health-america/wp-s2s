@@ -337,11 +337,12 @@ jQuery(function ($) {
 					success: function( results ) {
 						
                         let res = JSON.parse(results),
-							record_id = res.record_id;
+							record_id = res.record_id,
+							record_token = res.record_token;
 						
 						if(record_id){
 							
-							mhaStartCtaClickListener( record_id );
+							mhaStartCtaClickListener( record_id, record_token );
 
 							let cta_change_interval = setInterval(() => {
 
@@ -353,6 +354,7 @@ jQuery(function ($) {
 
 									let updated_cta_data = {
 										record_id: record_id,
+										record_token: record_token,
 										updated_link: changed_href
 									};
 
@@ -395,7 +397,7 @@ jQuery(function ($) {
 		}
 	});
 
-	function mhaStartCtaClickListener( record_id = false ) {
+	function mhaStartCtaClickListener( record_id = false, record_token = '' ) {
 
 		if ( record_id ) {
 			
@@ -408,7 +410,8 @@ jQuery(function ($) {
 				if( cta_title.toLowerCase().includes('elevance') && cta_href.includes('sms:') ){
 					
 					let updated_cta_data = {
-						record_id: record_id
+						record_id: record_id,
+						record_token: record_token
 					};
 
 					$.ajax({

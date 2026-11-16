@@ -119,8 +119,9 @@ function mha_export_ab_testing_data(){
 
         if(!$args['filename']){
             $form_slug = 'ab_testing_logs';
-            $args['filename'] = $args['filename'] ? $args['filename'] : $form_slug.'-'.$args['abtesting_export_start_date'].'_'.$args['abtesting_export_end_date'].'-'.date('U').'.csv';
+            $args['filename'] = $args['filename'] ? $args['filename'] : mha_exports_new_filename( $form_slug, $args['abtesting_export_start_date'].'_'.$args['abtesting_export_end_date'] );
         }
+        $args['filename'] = mha_exports_require_filename( $args['filename'] );
         $writer_type = $args['filename'] ? 'a+' : 'w+';
                 
         if($args['page'] >= $args['max']){

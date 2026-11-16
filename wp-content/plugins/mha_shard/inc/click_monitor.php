@@ -13,12 +13,17 @@ function mhaClickMonitorScripts() {
  * AJAX handler to track clicks and insert into database
  */
 function track_click_monitor() {
+
+	// Open to anonymous visitors by design (click analytics), so cap how much any one IP can write.
+	if ( function_exists( 'mha_rate_limit_allow' ) && ! mha_rate_limit_allow( 'click_monitor', mha_get_remote_ip(), 300, HOUR_IN_SECONDS ) ) {
+		wp_send_json_error( array( 'message' => 'Too many requests' ), 429 );
+	}
 	
-	// Sanitize and get the data
-	$click_id = isset($_POST['click_id']) ? sanitize_text_field($_POST['click_id']) : '';
-	$cta_id = isset($_POST['cta_id']) ? sanitize_text_field($_POST['cta_id']) : '';
-	$url = isset($_POST['url']) ? esc_url_raw($_POST['url']) : '';
-	$data_attributes_json = isset($_POST['data_attributes']) ? $_POST['data_attributes'] : '';
+	// Sanitize and get the data (scalars only, bounded length)
+	$click_id = ( isset($_POST['click_id']) && is_scalar($_POST['click_id']) ) ? mb_substr( sanitize_text_field( wp_unslash( $_POST['click_id'] ) ), 0, 500 ) : '';
+	$cta_id = ( isset($_POST['cta_id']) && is_scalar($_POST['cta_id']) ) ? mb_substr( sanitize_text_field( wp_unslash( $_POST['cta_id'] ) ), 0, 255 ) : '';
+	$url = ( isset($_POST['url']) && is_scalar($_POST['url']) ) ? mb_substr( esc_url_raw( wp_unslash( $_POST['url'] ) ), 0, 2000 ) : '';
+	$data_attributes_json = ( isset($_POST['data_attributes']) && is_string($_POST['data_attributes']) && strlen($_POST['data_attributes']) <= 5000 ) ? $_POST['data_attributes'] : '';
 	
 	// Validate and sanitize JSON data attributes (exclude standard Bootstrap attributes)
 	$data_attributes = '';
@@ -34,7 +39,10 @@ function track_click_monitor() {
 				'data-wrap', 'data-focus', 'data-original-title', 'data-original-text',
 			);
 			$sanitized_attrs = array();
-			foreach ($decoded as $key => $value) {
+			foreach (array_slice($decoded, 0, 30, true) as $key => $value) {
+				if (!is_scalar($value)) {
+					continue;
+				}
 				$sanitized_key = sanitize_key($key);
 				// Skip Bootstrap 4/5 standard attributes
 				if (in_array($sanitized_key, $bootstrap_data_attrs, true)) {
@@ -44,7 +52,7 @@ function track_click_monitor() {
 				if (strpos($sanitized_key, 'data-bs-') === 0) {
 					continue;
 				}
-				$sanitized_value = sanitize_text_field($value);
+				$sanitized_value = mb_substr( sanitize_text_field($value), 0, 500 );
 				$sanitized_attrs[$sanitized_key] = $sanitized_value;
 			}
 			$data_attributes = json_encode($sanitized_attrs);
@@ -80,8 +88,7 @@ function track_click_monitor() {
 		));
 	} else {
 		wp_send_json_error(array(
-			'message' => 'Failed to track click',
-			'error' => $wpdb->last_error
+			'message' => 'Failed to track click'
 		));
 	}
 	

@@ -266,7 +266,7 @@
         <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('diySubmission'); ?>" />
         <input type="hidden" name="activity_id" value="<?php echo $activity_id; ?>" />
         <input type="hidden" name="pid" value="<?php echo $activity_id; ?>" />
-        <input type="hidden" name="ref_code" value="<?php echo get_query_var('ref'); ?>" />
+        <input type="hidden" name="ref_code" value="<?php echo esc_attr( (string) get_query_var( 'ref' ) ); ?>" />
         <input type="hidden" name="current_url" value="<?php echo sanitize_url("https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"); ?>" />
         <input type="hidden" name="diytool_current_id" value="" />
         <input type="hidden" name="opened_diy" value="" />

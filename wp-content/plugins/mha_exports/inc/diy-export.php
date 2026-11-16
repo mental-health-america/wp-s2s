@@ -333,8 +333,9 @@ function mha_export_diy_tool_data(){
 
         if(!$args['filename']){
             $form_slug = sanitize_title (get_the_title($args['form_id']) );
-            $args['filename'] = $args['filename'] ? $args['filename'] : $form_slug.'--'.$args['diytool_export_start_date'].'_'.$args['diytool_export_end_date'].'--'.date('U').'.csv';
+            $args['filename'] = $args['filename'] ? $args['filename'] : mha_exports_new_filename( $form_slug, $args['diytool_export_start_date'].'_'.$args['diytool_export_end_date'] );
         }
+        $args['filename'] = mha_exports_require_filename( $args['filename'] );
         $writer_type = $args['filename'] ? 'a+' : 'w+';
                 
         if($args['page'] >= $args['max']){

@@ -32,6 +32,53 @@ function get_ipiden(){
 }
 
 /**
+ * Requesting IP for rate limiting and audit purposes.
+ *
+ * Only REMOTE_ADDR is trusted. Headers such as X-Forwarded-For and Client-IP are set by the
+ * client and can be spoofed to dodge a limit or to forge an audit trail.
+ *
+ * @return string
+ */
+function mha_get_remote_ip() {
+	return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+}
+
+/**
+ * Fixed-window rate limiter backed by transients.
+ *
+ * Records a hit when it allows the request. Not atomic, so a burst of simultaneous requests
+ * can slightly overshoot the limit, which is acceptable for abuse throttling.
+ *
+ * @param string $bucket     Name of the thing being limited (e.g. 'screen_email_ip').
+ * @param string $identifier What is being counted within the bucket (IP, address, token).
+ * @param int    $limit      Maximum hits allowed per window.
+ * @param int    $window     Window length in seconds.
+ * @return bool True when the request is allowed, false when the limit has been reached.
+ */
+function mha_rate_limit_allow( $bucket, $identifier, $limit, $window ) {
+
+	$key  = 'mha_rl_' . md5( $bucket . '|' . $identifier );
+	$now  = time();
+	$data = get_transient( $key );
+
+	if ( ! is_array( $data ) || ! isset( $data['count'], $data['start'] ) || ( $now - (int) $data['start'] ) >= $window ) {
+		$data = array(
+			'count' => 0,
+			'start' => $now,
+		);
+	}
+
+	if ( (int) $data['count'] >= (int) $limit ) {
+		return false;
+	}
+
+	$data['count'] = (int) $data['count'] + 1;
+	set_transient( $key, $data, max( 1, $window - ( $now - (int) $data['start'] ) ) );
+
+	return true;
+}
+
+/**
  * Replaces "[...]" (appended to automatically generated excerpts) with ... and a 'Continue reading' link.
  */
 function mha_shard__excerpt_more( $url ) {

@@ -28,7 +28,13 @@ if ( isset( $_POST['delete_api_key'] ) && check_admin_referer( 'delete_api_key_n
 	$wpdb->delete( $wpdb->options, array( 'option_name' => '_api_key_' . sanitize_title( $key_name ) ) );
 }
 
-$api_keys = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}options WHERE option_name LIKE '_api_key_%'", ARRAY_A );
+$api_keys = $wpdb->get_results(
+	$wpdb->prepare(
+		"SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s",
+		$wpdb->esc_like( '_api_key_' ) . '%'
+	),
+	ARRAY_A
+);
 ?>
 
 <div class="wrap">

@@ -8,16 +8,38 @@ use MHA\ApiLogEntry;
 
 // REST API Endpoint
 add_action( 'rest_api_init', function () {
-  // Remove the default filter and add headers as custom; fix CORS
+
+  // WordPress sends its own CORS headers for every REST route. Replace that handler so the
+  // custom API can send stricter, API-specific headers, and hand every other route straight
+  // back to core's handler so nothing else on the site changes.
   remove_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
-  add_filter( 'rest_pre_serve_request', function ( $value ) {
-    header( 'Access-Control-Allow-Origin: *' );
-    header( 'Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE' );
-    header( 'Access-Control-Allow-Credentials: true' );
-    header( 'Access-Control-Allow-Headers: *' );
+  add_filter( 'rest_pre_serve_request', function ( $value, $result = null, $request = null ) {
+
+    $route = ( $request instanceof WP_REST_Request ) ? $request->get_route() : '';
+
+    if ( 0 !== strpos( $route, '/custom-api/v1/' ) ) {
+      return rest_send_cors_headers( $value );
+    }
+
+    // This API is authenticated by an API key header, never by cookies, so credentialed
+    // CORS is not needed and is not enabled. Browser access can be limited to specific
+    // origins with the `mha_api_allowed_origins` filter; an empty list allows any origin.
+    $allowed_origins = (array) apply_filters( 'mha_api_allowed_origins', array() );
+    $origin          = get_http_origin();
+
+    if ( empty( $allowed_origins ) ) {
+      header( 'Access-Control-Allow-Origin: *' );
+    } elseif ( $origin && in_array( $origin, $allowed_origins, true ) ) {
+      header( 'Access-Control-Allow-Origin: ' . esc_url_raw( $origin ) );
+      header( 'Vary: Origin', false );
+    }
+
+    header( 'Access-Control-Allow-Methods: GET, OPTIONS' );
+    header( 'Access-Control-Allow-Headers: Content-Type, Accept, X-API-Key' );
+    header( 'Access-Control-Max-Age: 600' );
 
     return $value;
-  } );
+  }, 10, 3 );
 
   register_rest_route( 'custom-api/v1', '/get-sid-data/(?P<sid>[a-zA-Z0-9\-_]+)', [
     'methods'             => WP_REST_Server::READABLE,
@@ -113,67 +135,47 @@ function mha_api_get_user_screen_result_by_sid( WP_REST_Request $request )
   return new WP_REST_Response( $user_data_return, 200 );
 }
 
-function mha_api_permission_check( WP_REST_Request $request )
-{
-  // Validate API Key
-  $is_key_valid = mha_authenticate_api_key( $request );
+/**
+ * Stored API key hashes, as rows of option_name / option_value.
+ *
+ * @return array
+ */
+function mha_get_stored_api_keys() {
+  global $wpdb;
 
-  if ( is_wp_error( $is_key_valid ) ) {
-    return $is_key_valid;
-  } else {
-    // Validate the WordPress user to check permissions
-    $x_wp_auth = $request->get_header( 'x_wp_auth' );
-    // error_log( 'x_wp_auth: ' . $x_wp_auth );
-
-    if ( empty( $x_wp_auth ) ) {
-      return new WP_Error(
-        'wp_user_missing',
-        __( 'Missing or invalid WordPress user credentials.' ),
-        [ 'status' => 403 ]
-      );
-    }
-
-    // error_log( 'Authenticating WP user in REST API request...');
-    [ $username, $password ] = explode( ':', base64_decode( $x_wp_auth ) );
-
-    // Check if Application Passwords are enabled and use those, otherwise
-    // expect regular login passwords
-    $user = ( WP_Application_Passwords::is_in_use() )
-      ? wp_authenticate_application_password( null, $username, $password )
-      : wp_authenticate( $username, $password );
-
-    // error_log( 'Authenticated REST API user: ' . print_r( $user, true ) );
-
-    if ( is_wp_error( $user ) || is_null ( $user ) ) {
-
-      return new WP_Error(
-        'wp_user_invalid',
-        __( 'Invalid WordPress user credentials.' ),
-        [ 'status' => 403 ]
-      );
-
-
-    } else {
-      /** @var $user WP_User */
-      // TODO: Perform any necessary permissions checking?
-      // error_log( 'Authenticated REST API user: ' . $user->user_email );
-      return true;
-    }
-  }
+  return (array) $wpdb->get_results(
+    $wpdb->prepare(
+      "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s",
+      $wpdb->esc_like( '_api_key_' ) . '%'
+    ),
+    ARRAY_A
+  );
 }
+
+// Failed key attempts allowed from one IP inside the window before it is locked out.
+const MHA_API_MAX_FAILED_ATTEMPTS = 10;
+const MHA_API_FAILED_ATTEMPT_WINDOW = 15 * MINUTE_IN_SECONDS;
 
 function mha_authenticate_api_key( WP_REST_Request $request ) {
 
+  $requesting_ip = mha_get_requesting_ip( $request );
+  $failure_key   = 'mha_api_fail_' . md5( $requesting_ip );
+  $failures      = (int) get_transient( $failure_key );
+
+  // Locked out: answer without checking keys or writing a log row for every attempt.
+  if ( $failures >= MHA_API_MAX_FAILED_ATTEMPTS ) {
+    return new WP_Error(
+      'api_key_throttled',
+      __( 'Too many failed attempts. Try again later.' ),
+      array( 'status' => 429 )
+    );
+  }
+
   $api_key = $request->get_header('x_api_key');
-  // error_log( 'request header x-api-key: ' . $api_key );
 
   if ( ! empty( $api_key ) ) {
     // Validate the API key.
-    global $wpdb;
-    $stored_keys = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}options WHERE option_name LIKE '_api_key_%'", ARRAY_A );
-    // error_log( 'Stored keys: ' . print_r( $stored_keys, true ) );
-
-    foreach ( $stored_keys as $key ) {
+    foreach ( mha_get_stored_api_keys() as $key ) {
       if ( password_verify( $api_key, $key['option_value'] ) ) {
         return true;
       }
@@ -181,20 +183,20 @@ function mha_authenticate_api_key( WP_REST_Request $request ) {
   }
 
   // Authentication Failure
+  set_transient( $failure_key, $failures + 1, MHA_API_FAILED_ATTEMPT_WINDOW );
+
   $log_auth_failure = new ApiLogEntry(
     'missing-or-invalid',
-    mha_get_requesting_ip( $request ),
+    $requesting_ip,
     $request->get_param( 'sid' ),
     403,
     __( 'Missing or invalid API key.' ),
-    // accessed_on,
-    // id
+   // accessed_on,
+   // id
   );
 
-//  if ( get_option( 'mha_api_log_failed_api_key_auth' ) ):
-    $save_result = MHA\ApiLogger::save( $log_auth_failure );
-    if ( is_wp_error( $save_result ) ) error_log( 'Error saving API log entry for key auth failure: '. $save_result->get_error_message() );
-//  endif;
+  $save_result = MHA\ApiLogger::save( $log_auth_failure );
+  if ( is_wp_error( $save_result ) ) error_log( 'Error saving API log entry for key auth failure: '. $save_result->get_error_message() );
 
   return new WP_Error(
     'api_key_missing_or_invalid',
@@ -211,12 +213,8 @@ function mha_authenticate_api_key( WP_REST_Request $request ) {
  */
 function mha_get_api_key_label( string $api_key ): WP_Error|string
 {
-  global $wpdb;
-  $stored_keys = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}options WHERE option_name LIKE '_api_key_%'", ARRAY_A );
-
-  foreach ( $stored_keys as $key ) {
+  foreach ( mha_get_stored_api_keys() as $key ) {
     if ( password_verify( $api_key, $key['option_value'] ) ) {
-      // error_log( 'Found key: ' . print_r( $key, true ) );
       return substr( $key['option_name'], 9 );
     }
   }
@@ -229,26 +227,16 @@ function mha_get_api_key_label( string $api_key ): WP_Error|string
 }
 
 /**
+ * Address of the client making the request, for the audit log and for lockouts.
+ *
+ * Only REMOTE_ADDR is used. X-Forwarded-For and Client-IP are supplied by the caller, so
+ * trusting them would let anyone dodge the lockout or write a false address into the log.
+ *
  * @param  WP_REST_Request  $request
  *
- * @return mixed
+ * @return string
  */
-function mha_get_requesting_ip( WP_REST_Request $request ): mixed
+function mha_get_requesting_ip( WP_REST_Request $request ): string
 {
-  $headers = $request->get_headers();
-
-  // Check for IP in X-Forwarded-For header
-  if (!empty($headers['x_forwarded_for'])) {
-    // Get the first IP in case of multiple forwarded IPs
-    $ips = explode(',', $headers['x_forwarded_for'][0]);
-    return trim($ips[0]);
-  }
-
-  // Check for Client IP header
-  if (!empty($headers['client_ip'])) {
-    return $headers['client_ip'][0];
-  }
-
-  // Fall back to HTTP_CLIENT_IP or REMOTE_ADDR
-  return $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
+  return mha_get_remote_ip();
 }

@@ -270,7 +270,8 @@ function mha_export_feedback_data(){
      */
     try {
 
-        $args['filename'] = $args['filename'] ? $args['filename'] : $form_slug.'--'.$args['export_feedback_start_date'].'_'.$args['export_feedback_end_date'].'--'.date('U').'.csv';
+        $args['filename'] = $args['filename'] ? $args['filename'] : mha_exports_new_filename( $form_slug, $args['export_feedback_start_date'].'_'.$args['export_feedback_end_date'] );
+        $args['filename'] = mha_exports_require_filename( $args['filename'] );
         $writer_type = $args['filename'] ? 'a+' : 'w+';
                 
         if($args['page'] >= $max_pages){

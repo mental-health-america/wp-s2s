@@ -158,6 +158,31 @@ add_action("wp_ajax_nopriv_thoughtSubmission", "thoughtSubmission");
 add_action("wp_ajax_thoughtSubmission", "thoughtSubmission");
 
 
+/**
+ * SQL (with placeholders) and arguments that match the current visitor's rows in the
+ * thoughts_likes / thoughts_flags tables: the logged-in user, or for anonymous visitors
+ * (user 4) the visitor with the same ipiden.
+ *
+ * @param int $uid Current user ID, 0 when logged out.
+ * @return array{0:string,1:array}
+ */
+function mha_activity_visitor_clause( $uid ) {
+	if ( ! $uid || 4 === (int) $uid ) {
+		return array( 'uid = 4 AND ipiden = %s', array( get_ipiden() ) );
+	}
+	return array( 'uid = %d', array( (int) $uid ) );
+}
+
+/**
+ * Positive integers only, for building IN() lists.
+ *
+ * @param mixed $values Candidate IDs.
+ * @return int[]
+ */
+function mha_activity_int_list( $values ) {
+	return array_values( array_filter( array_map( 'absint', (array) $values ) ) );
+}
+
 /** 
  * Thought liking
  */
@@ -189,14 +214,10 @@ function thoughtLike(){
 		}
 
 		// Handle anonymous or logged in differently
-		if($uid == 4){			
-			$user_where = "uid = 4 AND ipiden = '$ipiden'";
-		} else {
-			$user_where = "uid = $uid";
-		}		
+		list( $user_sql, $user_args ) = mha_activity_visitor_clause( $uid );
 
 		// Check if liked previously
-		$db_like = $wpdb->get_results("SELECT * FROM $table WHERE $user_where AND 'row' = $row AND pid = $pid");		
+		$db_like = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE {$user_sql} AND `row` = %d AND pid = %d", array_merge( $user_args, array( $row, $pid ) ) ) );		
 		//$result['db_liked'] = $db_like[0]->id;		
 		
 		if($db_like && $db_like[0]->unliked == 0){
@@ -278,14 +299,10 @@ function thoughtFlag(){
 		}
 
 		// Handle anonymous or logged in differently
-		if($uid == 0){			
-			$user_where = "uid = 0 AND ipiden = '$ipiden'";
-		} else {
-			$user_where = "uid = $uid";
-		}		
+		list( $user_sql, $user_args ) = mha_activity_visitor_clause( $uid );
 
 		// Check if flagged previously
-		$db_flag = $wpdb->get_results("SELECT * FROM $table WHERE $user_where AND 'row' = $row AND pid = $pid");		
+		$db_flag = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE {$user_sql} AND `row` = %d AND pid = %d", array_merge( $user_args, array( $row, $pid ) ) ) );		
 		
 		if($db_flag){
 
@@ -343,13 +360,9 @@ function likeChecker($pid, $row){
 		$uid = get_current_user_id();
 
 		// Handle anonymous or logged in differently
-		if($uid == 0){			
-			$user_where = "uid = 4 AND ipiden = '$ipiden'";
-		} else {
-			$user_where = "uid = $uid";
-		}	
+		list( $user_sql, $user_args ) = mha_activity_visitor_clause( $uid );
 
-		$db_like = $wpdb->get_var("SELECT id FROM $table WHERE $user_where AND 'row' = $row AND pid = $pid AND unliked = 0");	
+		$db_like = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE {$user_sql} AND `row` = %d AND pid = %d AND unliked = 0", array_merge( $user_args, array( (int) $row, (int) $pid ) ) ) );	
 
 		if($db_like){
 			return true;
@@ -369,22 +382,19 @@ function getAllUserThoughtLikes( $cargs ){
 
 	$ipiden = get_ipiden();	
 	$uid = get_current_user_id();
-	$row = $args['row'];
-	$pids = implode(',', $args['pids']);
+	$row = (int) $args['row'];
+	$pid_list = mha_activity_int_list( $args['pids'] );
 	$user_likes = [];
 
-	if(is_array($args['pids']) && !empty($args['pids'])){
+	if( $pid_list ){
 
 		// Handle anonymous or logged in differently
-		if($uid == 0){			
-			$user_where = "uid = 4 AND ipiden = '$ipiden'";
-		} else {
-			$user_where = "uid = $uid";
-		}	
+		list( $user_sql, $user_args ) = mha_activity_visitor_clause( $uid );
 
 		// Get results
 		global $wpdb;
-		$results = $wpdb->get_results("SELECT pid FROM thoughts_likes WHERE $user_where AND 'row' = $row AND pid IN ($pids) AND unliked = 0", ARRAY_A );	
+		$placeholders = implode( ',', array_fill( 0, count( $pid_list ), '%d' ) );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT pid FROM thoughts_likes WHERE {$user_sql} AND `row` = %d AND pid IN ({$placeholders}) AND unliked = 0", array_merge( $user_args, array( $row ), $pid_list ) ), ARRAY_A );	
 		
 		foreach ($results as $result) {
 			$pid = $result['pid'];		
@@ -408,12 +418,16 @@ function get_all_mha_user_likes( $pids = array() ){
 	$uid = get_current_user_id();
 
 	// Handle anonymous or logged in differently
-	$user_where = ($uid == 0) ? "uid = 4 AND ipiden = '$ipiden'" : "uid = $uid";
-	$pids_where = $pids ? ' AND pid IN ('.implode(',',$pids).') ' : '';
+	list( $user_sql, $user_args ) = mha_activity_visitor_clause( $uid );
+	$pid_list   = mha_activity_int_list( $pids );
+	$pids_where = '';
+	if ( $pid_list ) {
+		$pids_where = ' AND pid IN (' . implode( ',', array_fill( 0, count( $pid_list ), '%d' ) ) . ') ';
+	}
 	
 	// Get Results
 	global $wpdb;
-	$db_likes = $wpdb->get_results("SELECT * FROM thoughts_likes WHERE $user_where AND unliked = 0 $pids_where ORDER BY date DESC LIMIT 100");	
+	$db_likes = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM thoughts_likes WHERE {$user_sql} AND unliked = 0 {$pids_where} ORDER BY date DESC LIMIT 100", array_merge( $user_args, $pid_list ) ) );	
 
 	return $db_likes ? $db_likes : false;
 }
@@ -464,13 +478,21 @@ function getThoughtsSubmitted( $activity_id = null, $index = null, $path = null,
 	 */
 	if(isset($_POST['data'])){
 		parse_str($_POST['data'], $data); 
-		$activity_id = $data['activity_id'];
-		$index = $data['index'];
-		$path = $data['path'];
-		$admin_seed = $data['admin_seed'];
-		$user_seed = $data['user_seed'];
-		$return = isset($data['return']) ? $data['return'] : null;
-		$paged = isset($data['paged']) ? $data['paged'] : null;
+		// Values come from the browser: numbers only, but keep blank values blank because the
+		// code below tells "not given" apart from 0.
+		$cast_int = function ( $value ) {
+			if ( null === $value || '' === $value ) {
+				return $value;
+			}
+			return is_scalar( $value ) ? intval( $value ) : '';
+		};
+		$activity_id = $cast_int( isset( $data['activity_id'] ) ? $data['activity_id'] : null );
+		$index = $cast_int( isset( $data['index'] ) ? $data['index'] : null );
+		$path = $cast_int( isset( $data['path'] ) ? $data['path'] : null );
+		$admin_seed = $cast_int( isset( $data['admin_seed'] ) ? $data['admin_seed'] : null );
+		$user_seed = $cast_int( isset( $data['user_seed'] ) ? $data['user_seed'] : null );
+		$return = $cast_int( isset($data['return']) ? $data['return'] : null );
+		$paged = $cast_int( isset($data['paged']) ? $data['paged'] : null );
 		if($index == 0 && $path != ''){
 			$index = 1;
 		}
@@ -730,7 +752,7 @@ function thoughtRow($pid = null, $text = null, $index = null, $thought_likes = a
 function getThoughtLikes($pid, $row = 0){
 	if($pid){
 		global $wpdb;
-		$like_count = $wpdb->get_var( "SELECT COUNT(*) FROM thoughts_likes WHERE pid = $pid AND 'row' = $row AND unliked = 0" );
+		$like_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM thoughts_likes WHERE pid = %d AND `row` = %d AND unliked = 0", (int) $pid, (int) $row ) );
 		if(!$like_count){
 			$like_count = 0;
 		}
@@ -749,15 +771,16 @@ function getAllThoughtLikes( $cargs ){
 		'row' => 0
 	);
     $args = wp_parse_args( $cargs, $defaults ); 
-	$row = $args['row'];
-	$pids = implode(',', $args['pids']);
+	$row = (int) $args['row'];
+	$pid_list = mha_activity_int_list( $args['pids'] );
 	$likes = [];
 
-	if(is_array($args['pids']) && !empty($args['pids'])){
+	if( $pid_list ){
 
 		// Get results
 		global $wpdb;
-		$results = $wpdb->get_results( "SELECT pid, COUNT(*) as like_count FROM thoughts_likes WHERE pid IN ($pids) AND 'row' = $row AND unliked = 0 GROUP BY pid ORDER BY like_count DESC", ARRAY_A );
+		$placeholders = implode( ',', array_fill( 0, count( $pid_list ), '%d' ) );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT pid, COUNT(*) as like_count FROM thoughts_likes WHERE pid IN ({$placeholders}) AND `row` = %d AND unliked = 0 GROUP BY pid ORDER BY like_count DESC", array_merge( $pid_list, array( $row ) ) ), ARRAY_A );
 
 		foreach ($results as $result) {
 			$pid = $result['pid'];
@@ -866,7 +889,7 @@ add_action("wp_ajax_abandonThought", "abandonThought");
  */
 function checkArticleLikes( $pid, $uid ){
 	global $wpdb;
-	$like_count = $wpdb->get_var( "SELECT COUNT(*) FROM article_likes WHERE pid = $pid AND uid = $uid AND unliked = 0" );
+	$like_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM article_likes WHERE pid = %d AND uid = %d AND unliked = 0", (int) $pid, (int) $uid ) );
 	if($like_count){
 		return true;
 	}
@@ -892,13 +915,13 @@ function articleLike(){
 		// Organize our data
 		$result['response'] = $data;
 		$uid = get_current_user_id();
-		$pid = $data['pid'];	
+		$pid = isset( $data['pid'] ) ? absint( $data['pid'] ) : 0;
 
 		// Vars
 		$table = 'article_likes';	
 
 		// Check if liked previously
-		$db_like = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");				
+		$db_like = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE uid = %d AND pid = %d", $uid, $pid ) );				
 		
 		if($db_like && $db_like[0]->unliked == 0){
 
@@ -1091,7 +1114,7 @@ function hideScreen(){
 		$table = 'screens_hidden';
 
 		// Check if liked previously
-		$db_hidden = $wpdb->get_results("SELECT * FROM $table WHERE uid = $uid AND pid = $pid");			
+		$db_hidden = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE uid = %d AND pid = %d", $uid, $pid ) );			
 		
 		if($db_hidden && $db_hidden[0]->unliked == 0){
 

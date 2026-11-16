@@ -84,6 +84,47 @@ function mha_imports_prepare_tmp_dir() {
 
 
 /**
+ * Delete staged CSV uploads that are old enough to be abandoned.
+ *
+ * Only files named the way the uploader names them (`<unix time>_<12 random characters>.csv`) are
+ * removed, so anything placed in tmp/ by hand is never touched. The window is generous because a
+ * large import is paged through over many requests.
+ *
+ * @param int $max_age Age in seconds. Defaults to 24 hours.
+ * @return int Number of files deleted.
+ */
+function mha_imports_cleanup_tmp( $max_age = DAY_IN_SECONDS ) {
+
+    $files = glob( mha_imports_tmp_dir() . '*.csv' );
+    if ( ! $files ) {
+        return 0;
+    }
+
+    $cutoff  = time() - (int) $max_age;
+    $deleted = 0;
+
+    foreach ( $files as $file ) {
+        if ( ! preg_match( '/^\d+_[A-Za-z0-9]{12}\.csv$/', basename( $file ) ) ) {
+            continue;
+        }
+        if ( is_file( $file ) && filemtime( $file ) < $cutoff && @unlink( $file ) ) {
+            $deleted++;
+        }
+    }
+
+    return $deleted;
+}
+
+// Scheduled cleanup, so abandoned uploads are removed even when nobody is importing.
+add_action( 'mha_imports_cleanup_tmp_event', 'mha_imports_cleanup_tmp' );
+add_action( 'init', function () {
+    if ( ! wp_next_scheduled( 'mha_imports_cleanup_tmp_event' ) ) {
+        wp_schedule_event( time() + 600, 'hourly', 'mha_imports_cleanup_tmp_event' );
+    }
+} );
+
+
+/**
  * Resolve an uploaded CSV back to a real path inside the tmp directory.
  *
  * The filename round-trips through the browser between the upload request and each paged
@@ -115,6 +156,8 @@ add_action( 'wp_ajax_mhaImporterUploader', 'mhaImporterUploader' );
 function mhaImporterUploader(){
 
     mha_imports_verify_ajax_request();
+
+    mha_imports_cleanup_tmp();
 
     // General Vars
     $result = [];

@@ -1156,6 +1156,11 @@ add_filter( 'gform_replace_merge_tags', 'mha_screen_collection_prescreen_replace
  */
 function mha_screen_collection_ajax_sc_user_hash() {
 	check_ajax_referer( 'mha_screen_collection_sc', 'nonce' );
+	// The value is a pseudonymous label only (never used to grant access), but this signs whatever it is
+	// given, so keep it from being used as a high-volume hashing oracle.
+	if ( function_exists( 'mha_rate_limit_allow' ) && ! mha_rate_limit_allow( 'sc_user_hash', mha_get_remote_ip(), 120, HOUR_IN_SECONDS ) ) {
+		wp_send_json_error( array( 'message' => 'rate_limited' ), 429 );
+	}
 	$uid = isset( $_POST['user_id'] ) ? sanitize_text_field( wp_unslash( $_POST['user_id'] ) ) : '';
 	if ( $uid === '' || strlen( $uid ) > 256 ) {
 		wp_send_json_error( array( 'message' => 'invalid' ) );
@@ -1813,12 +1818,21 @@ function mha_screen_collection_prescreen_shortcode( $atts ) {
  * AJAX handler to reload screen collection list with completion checks
  */
 function mha_reload_screen_collection_list() {
-	$screens = isset($_POST['screens']) ? sanitize_text_field($_POST['screens']) : '';
+	// Values are placed inside a shortcode string below. esc_attr() does not touch "[" or "]", so a "]"
+	// in a value could end the shortcode early and let a visitor run other shortcodes. Remove them.
+	$clean = static function ( $key, $default = '' ) {
+		if ( ! isset( $_POST[ $key ] ) || ! is_scalar( $_POST[ $key ] ) ) {
+			return $default;
+		}
+		return str_replace( array( '[', ']' ), '', sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) );
+	};
+
+	$screens = $clean( 'screens' );
 	$screen_order = isset($_POST['screen_order']) ? filter_var($_POST['screen_order'], FILTER_VALIDATE_BOOLEAN) : false;
-	$org_id = isset($_POST['org_id']) ? sanitize_text_field($_POST['org_id']) : '';
-	$user_id = isset($_POST['user_id']) ? sanitize_text_field($_POST['user_id']) : '';
-	$referrer = isset($_POST['referrer']) ? sanitize_text_field($_POST['referrer']) : '';
-	$iframe_mode = isset($_POST['iframe_mode']) ? sanitize_text_field($_POST['iframe_mode']) : 'false';
+	$org_id = $clean( 'org_id' );
+	$user_id = $clean( 'user_id' );
+	$referrer = $clean( 'referrer' );
+	$iframe_mode = $clean( 'iframe_mode', 'false' );
 	$collection_id = isset( $_POST['collection_id'] ) ? absint( $_POST['collection_id'] ) : 0;
 	if ( $collection_id && get_post_type( $collection_id ) !== 'screen-collection' ) {
 		$collection_id = 0;
@@ -1829,9 +1843,9 @@ function mha_reload_screen_collection_list() {
 	
 	$html = do_shortcode($shortcode);
 	
-	// Get debug data from shortcode execution
+	// Debug data is for staff only
 	global $mha_screen_collection_debug;
-	$debug_info = isset($mha_screen_collection_debug) ? $mha_screen_collection_debug : array();
+	$debug_info = ( current_user_can( 'manage_options' ) && isset($mha_screen_collection_debug) ) ? $mha_screen_collection_debug : array();
 	
 	wp_send_json_success(array(
 		'html' => $html,

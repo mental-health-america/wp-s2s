@@ -999,11 +999,11 @@ function mha_aggregate_data_export(){
     try {
 
         // Create CSV
-        if(isset($data['filename'])){
-            $filename = $data['filename'];
+        if(!empty($data['filename'])){
+            $filename = mha_exports_require_filename( $data['filename'] );
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
         } else {
-            $filename = 'aggregate-export-'.date('U').'.csv';
+            $filename = mha_exports_new_filename( 'aggregate-export' );
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
         }
 
@@ -1320,13 +1320,13 @@ function mha_nonaggregate_data_export(){
             ->outputEncoding('utf-8-bom')
         ;
         */
-        if(isset($data['filename'])){
+        if(!empty($data['filename'])){
             // Update existing file
-            $filename = $data['filename'];
+            $filename = mha_exports_require_filename( $data['filename'] );
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
         } else {
             // Create file
-            $filename = 'nonaggregate-export-'.date('U').'.csv';
+            $filename = mha_exports_new_filename( 'nonaggregate-export' );
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
         }
         //$writer->addFormatter($encoder);
@@ -1739,13 +1739,13 @@ function mha_nonaggregate_data_export_original(){
             ->outputEncoding('utf-8-bom')
         ;
         */
-        if(isset($data['filename'])){
+        if(!empty($data['filename'])){
             // Update existing file
-            $filename = $data['filename'];
+            $filename = mha_exports_require_filename( $data['filename'] );
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
         } else {
             // Create file
-            $filename = 'nonaggregate-export-'.date('U').'.csv';
+            $filename = mha_exports_new_filename( 'nonaggregate-export' );
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
         }
         //$writer->addFormatter($encoder);
@@ -1859,13 +1859,13 @@ function mha_user_data_export(){
     try {
 
         // Create CSV
-        if(isset($data['filename'])){
+        if(!empty($data['filename'])){
             // Update existing file
-            $filename = $data['filename'];
+            $filename = mha_exports_require_filename( $data['filename'] );
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'a+');
         } else {
             // Create file
-            $filename = 'mhauser-export-'.date('U').'.csv';
+            $filename = mha_exports_new_filename( 'mhauser-export' );
             $writer = Writer::createFromPath(plugin_dir_path(__FILE__).'tmp/'.$filename, 'w+');
         }
         //$writer->addFormatter($encoder);

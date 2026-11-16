@@ -131,6 +131,7 @@
                         name="private_thought_<?php echo $pid; ?>"
                         id="private_thought_<?php echo $pid; ?>" 
                         data-id="<?php echo $pid; ?>" 
+                        data-nonce="<?php echo esc_attr( wp_create_nonce( 'diySubmission' ) ); ?>" 
                         <?php if(get_field('crowdsource_hidden', $pid)){ echo 'checked'; }; ?> 
                     />
                     Hide this from public submissions (all submissions are anonymous)

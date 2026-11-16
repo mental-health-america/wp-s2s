@@ -6,7 +6,7 @@
 // Enqueing Scripts
 add_action('init', 'mhaDiyToolsScripts');
 function mhaDiyToolsScripts() {
-	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20260820', true);
+	wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), 'v20261109', true);
 	//wp_enqueue_script('process_mhaDiyTools', plugin_dir_url( __FILE__ ).'diy_tools.js', array( 'jquery' ), time(), true);
 	wp_localize_script('process_mhaDiyTools', 'do_mhaDiyTools', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
@@ -354,7 +354,12 @@ function mhaDiySubmit(){
         */
 		// $current_post_loop = new WP_Query($current_post_args);
         // $current_post_id = $current_post_loop->found_posts ? $current_post_loop->post->ID : null;
-        $current_post_id = $args['diytool_current_id'] ? $args['diytool_current_id'] : null;
+        // The browser reports which draft it is continuing. Only honor that for a response this
+        // visitor owns; anything else starts a new draft instead of touching someone else's post.
+        $current_post_id = ! empty( $args['diytool_current_id'] ) ? absint( $args['diytool_current_id'] ) : null;
+        if ( $current_post_id && ! mha_diy_visitor_owns_response( $current_post_id ) ) {
+            $current_post_id = null;
+        }
         
         $response_rows = array();
         $answer_count = 0;
@@ -1448,9 +1453,22 @@ function mhaDiyGetConfirmation() {
         'id' => null,
         'embedded' => 0
     );    
-    parse_str($_POST['data'], $data);  
-    $args = wp_parse_args( $data, $defaults ); 	
-    $result['args'] = $args;
+    $data = array();
+    if ( isset( $_POST['data'] ) && is_string( $_POST['data'] ) ) {
+        parse_str( wp_unslash( $_POST['data'] ), $data );
+    }
+    $args = wp_parse_args( $data, $defaults );
+    $args['id']       = absint( $args['id'] );
+    $args['embedded'] = empty( $args['embedded'] ) ? 0 : 1;
+
+    // The confirmation shows the submitter's own answers, so only the person who submitted them
+    // (same account, or the same anonymous visitor) may load it.
+    if ( ! mha_diy_visitor_owns_response( $args['id'] ) ) {
+        status_header( 403 );
+        echo json_encode( array( 'error' => true ) );
+        exit();
+    }
+
     $result['title'] = get_the_title($args['id']);
 
     ob_start();
@@ -1608,28 +1626,76 @@ function admin_clear_diy_caches() {
 /**
  * Toggle hide thought
  */
+/**
+ * Does the current visitor own this DIY response?
+ *
+ * Responses can be submitted anonymously, so ownership follows the same identity model as
+ * mhaDiySubmit(): the logged-in user who authored the response, or, for responses stored under
+ * the shared anonymous user (ID 4), the visitor whose ipiden matches the one saved with it.
+ * Anyone who can edit the post is also allowed.
+ *
+ * @param int $pid DIY response post ID.
+ * @return bool
+ */
+function mha_diy_visitor_owns_response( $pid ) {
+
+	$pid  = absint( $pid );
+	$post = $pid ? get_post( $pid ) : null;
+
+	if ( ! $post || 'diy_responses' !== $post->post_type ) {
+		return false;
+	}
+
+	if ( current_user_can( 'edit_post', $pid ) ) {
+		return true;
+	}
+
+	$uid = get_current_user_id();
+	if ( $uid && 4 !== $uid && (int) $post->post_author === $uid ) {
+		return true;
+	}
+
+	if ( 4 === (int) $post->post_author ) {
+		$stored = (string) get_post_meta( $pid, 'ipiden', true );
+		return '' !== $stored && hash_equals( $stored, (string) get_ipiden() );
+	}
+
+	return false;
+}
+
+/**
+ * Hide or unhide a DIY response from the public crowdsource view.
+ *
+ * Open to anonymous visitors, but only for a response they own, with a valid nonce, and only
+ * to set the flag to 0 or 1.
+ */
 add_action("wp_ajax_nopriv_mhaToggleHideThought", "mhaToggleHideThought");
 add_action("wp_ajax_mhaToggleHideThought", "mhaToggleHideThought");
 function mhaToggleHideThought() {
 
-	// General variables
-    $result = [];
+	$data = array();
+	if ( isset( $_POST['data'] ) && is_string( $_POST['data'] ) ) {
+		parse_str( $_POST['data'], $data );
+	}
 
-    // Post data
-    $defaults = array(
-        'pid' => null,
-        'value' => null
-    );    
-    parse_str($_POST['data'], $data); 
+	$nonce = isset( $data['nonce'] ) ? (string) $data['nonce'] : '';
+	if ( ! wp_verify_nonce( $nonce, 'diySubmission' ) ) {
+		wp_send_json_error( array( 'error' => 'Security check failed.' ), 403 );
+	}
 
-    $result['defaults'] = $defaults;
-    $result['data'] = $data;
+	$pid   = isset( $data['pid'] ) ? absint( $data['pid'] ) : 0;
+	$value = ( isset( $data['value'] ) && 1 === (int) $data['value'] ) ? 1 : 0;
 
-    $result['updated'] = update_field('crowdsource_hidden', $data['value'], $data['pid']);
-    $result['new_value'] = get_field('crowdsource_hidden', $data['pid']);
+	if ( ! mha_diy_visitor_owns_response( $pid ) ) {
+		wp_send_json_error( array( 'error' => 'Not allowed.' ), 403 );
+	}
 
-    echo json_encode($result);
-    exit();
+	$result = array();
+	$result['updated']   = update_field( 'crowdsource_hidden', $value, $pid );
+	$result['new_value'] = get_field( 'crowdsource_hidden', $pid );
+
+	echo json_encode( $result );
+	exit();
 
 }
 

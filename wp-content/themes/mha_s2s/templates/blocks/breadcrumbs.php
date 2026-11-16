@@ -124,7 +124,7 @@
                                         }
                                         echo '<a class="crumb crumb-referrer" href="'.get_term_link($term).'"><span class="text">'.$term_name.'</span></a>';
                                     } else {
-                                        echo '<a class="crumb crumb-referrer" href="'.get_the_permalink( get_query_var('ref') ).'"><span class="text">'.get_the_title( get_query_var('ref') ).'</span></a>';
+                                        echo '<a class="crumb crumb-referrer" href="'.esc_url( get_the_permalink( get_query_var('ref') ) ).'"><span class="text">'.esc_html( get_the_title( get_query_var('ref') ) ).'</span></a>';
                                     }
                                 }
                             }
