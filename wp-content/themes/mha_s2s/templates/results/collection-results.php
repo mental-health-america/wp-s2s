@@ -35,6 +35,7 @@ $empty_positive    = isset( $settings['empty_positive_message'] ) ? $settings['e
 $share_message     = isset( $settings['share_results_message'] ) ? $settings['share_results_message'] : '';
 $rec_heading       = isset( $settings['recommended_screens_heading'] ) ? $settings['recommended_screens_heading'] : 'Screens to take next';
 $show_rec          = ! empty( $settings['show_recommended_screens'] );
+$articles_intro    = isset( $settings['articles_introduction'] ) ? (string) $settings['articles_introduction'] : '';
 $resources         = isset( $settings['results_resources'] ) && is_array( $settings['results_resources'] ) ? $settings['results_resources'] : array();
 
 $screen_title     = ! empty( $user_screen_result['screen_id'] ) ? get_the_title( $user_screen_result['screen_id'] ) : '';
@@ -278,7 +279,14 @@ $link_target      = $iframe_var ? ' target="_blank" rel="noopener noreferrer"' :
 		<?php endif; ?>
 
 		<?php if ( ! empty( $resources ) ) : ?>
-			<h2 class="section-title dark-blue small bold pb-3"><?php esc_html_e( 'Articles and resources', 'mha_s2s' ); ?></h2>
+			<?php if ( '' !== trim( wp_strip_all_tags( $articles_intro ) ) ) : ?>
+				<div class="articles-introduction mb-4"><?php
+					// Staff-edited ACF wysiwyg, already run through the content filters (shortcodes included, e.g.
+					// [mha_reading_path]). Not passed through wp_kses_post: that strips the <svg> path spacers.
+					echo $articles_intro; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				?></div>
+			<?php endif; ?>
+			<!--<h2 class="section-title dark-blue small bold pb-3"><?php esc_html_e( 'Articles and resources', 'mha_s2s' ); ?></h2>-->
 			<ol class="next-steps masonry">
 				<?php foreach ( $resources as $resource_id ) : ?>
 					<?php

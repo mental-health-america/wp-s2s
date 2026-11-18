@@ -760,7 +760,7 @@ ol.screen-progress-bar {
         content: "";
         display: block;
         position: absolute;
-        top: 0;
+        top: 13px;
         left: 0;
         right: 0;
         margin: 0 auto;
@@ -1103,5 +1103,32 @@ form.hide-previous {
     .button[aria-expanded="true"] {
         background: $blueDark;
         color: $white;
+    }
+}
+
+// Sticky section headers in multi-page Gravity Forms.
+.gform_wrapper .gform_fields > .gfield:has(.sticky-header) {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 30; // above the questions, below menus/overlays
+    background: $white;
+    padding: 10px 0;
+    margin-bottom: 0;
+
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+
+
+    .sticky-header {
+        margin: 0;
+        padding: 5px 0;
+    }
+
+    // Logged-in users have the WP admin bar fixed at the top
+    .admin-bar & {
+        top: 32px;
+        @media only screen and (max-width: 782px) {
+            top: 46px;
+        }
     }
 }

@@ -891,6 +891,7 @@ function mha_get_collection_results_settings( $collection_id ) {
 		'share_results_message'       => 'Consider sharing these results with someone you trust — a parent, counselor, or other supportive adult.',
 		'recommended_screens_heading' => 'Screens to take next',
 		'show_recommended_screens'    => true,
+		'articles_introduction'       => '',
 		'results_resources'           => array(),
 	);
 
@@ -931,6 +932,7 @@ function mha_get_collection_results_settings( $collection_id ) {
 		'share_results_message'       => (string) $get( 'share_results_message', $defaults['share_results_message'] ),
 		'recommended_screens_heading' => (string) $get( 'recommended_screens_heading', $defaults['recommended_screens_heading'] ),
 		'show_recommended_screens'    => $show,
+		'articles_introduction'       => (string) $get( 'articles_introduction', $defaults['articles_introduction'] ),
 		'results_resources'           => $resources,
 	);
 }
@@ -1035,7 +1037,11 @@ function mha_get_collection_email_body( $user_screen_id, $collection_id, $entry_
 	}
 
 	if ( ! empty( $resources ) ) {
-		$html .= '<h3>Articles and resources</h3><ul>';
+		// A collection-specific introduction replaces the default heading; without one the heading stays.
+		$articles_intro = isset( $settings['articles_introduction'] ) ? (string) $settings['articles_introduction'] : '';
+		if ( '' !== trim( wp_strip_all_tags( $articles_intro ) ) ) {
+			$html .= wp_kses_post( $articles_intro ) . '<ul>';
+		}
 		foreach ( $resources as $resource_id ) {
 			$resource_id = absint( $resource_id );
 			if ( ! $resource_id || 'publish' !== get_post_status( $resource_id ) ) {

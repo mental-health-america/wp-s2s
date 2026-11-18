@@ -129,7 +129,7 @@ function mha_s2s_scripts() {
 	// Load our main styles
 	wp_enqueue_style( 'mha_s2s-style', get_stylesheet_uri() );
     wp_enqueue_style( 'mha_s2s-bootstrap-grid-css', get_template_directory_uri() . '/assets/bootstrap/css/bootstrap-grid.min.css', array(), '4.3.1.20220722' ); // Bootstrap grid only
-	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20261005' );
+	wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), 'v20261118a' );
 	//wp_enqueue_style( 'mha_s2s-main-style', get_template_directory_uri() . '/assets/css/main.css', array(), time() );
     
 	// Add print CSS.
@@ -989,6 +989,29 @@ function mha_early_submit_beside_next( $button, $form ) {
 
 	return $button . ' ' . $early;
 }
+
+/**
+ * Gravity Forms 3.2.1+ keeps the current page of a multi-page form in the URL (?gf_page_{form id}=2) and
+ * opens that page when the URL is loaded. For a single Screen that breaks the Back button: coming back
+ * from the results page lands on page 2 with page 1 unanswered, and the form can then be submitted with
+ * page 1 never validated (blank answers saved as 0). This filter turns the feature off, both the URL
+ * updates and reading the argument on load, for everything except Screen Collection forms, which keep
+ * the default behavior. Collection forms are the ones on a screen-collection page or using the
+ * `full-pager-links` form class (the class also covers AJAX re-renders where is_singular() is false).
+ *
+ * @param bool  $disabled Whether the page query argument is disabled.
+ * @param array $form     The current form.
+ * @return bool
+ */
+add_filter( 'gform_disable_page_query_arg', function ( $disabled, $form ) {
+	if ( is_singular( 'screen-collection' ) ) {
+		return $disabled;
+	}
+	if ( ! empty( $form['cssClass'] ) && str_contains( (string) $form['cssClass'], 'full-pager-links' ) ) {
+		return $disabled;
+	}
+	return true;
+}, 10, 2 );
 
 /**
  * Gravity Forms <form> tag overrides
