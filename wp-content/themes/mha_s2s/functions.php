@@ -13,10 +13,46 @@
   * Approved partner list
   */
 function mha_approved_partners() {
+
+	// Looked up once per request; this runs several times per page load.
+	static $partners = null;
+	if ( null !== $partners ) {
+		return $partners;
+	}
+
+	// Always approved, regardless of the partner post type.
 	$partners = array(
 		'own',
-		//'easterseals'
+		//'easterseals',
 	);
+
+	// Every published Partner whose "Partner Code" (partner_information > partner_code) is filled in.
+	// Drafts, pending, private and trashed partners are not approved.
+	$partner_ids = get_posts( array(
+		'post_type'              => 'partners',
+		'post_status'            => 'publish',
+		'posts_per_page'         => -1,
+		'fields'                 => 'ids',
+		'no_found_rows'          => true,
+		'update_post_term_cache' => false,
+	) );
+	$today = gmdate( 'Ymd' );
+	foreach ( $partner_ids as $partner_id ) {
+		// Same expiry rule the iframe CSP header uses (mha_iframe_control): a partner whose iframe
+		// end date has passed is no longer approved. Blank means no expiry.
+		$iframe_end = (string) get_post_meta( $partner_id, 'partner_information_end_date_iframe', true );
+		if ( '' !== $iframe_end && $iframe_end <= $today ) {
+			continue;
+		}
+
+		// ACF stores a group sub-field as {group}_{field}.
+		$code = trim( sanitize_text_field( (string) get_post_meta( $partner_id, 'partner_information_partner_code', true ) ) );
+		if ( '' !== $code ) {
+			$partners[] = $code;
+		}
+	}
+
+	$partners = array_values( array_unique( $partners ) );
 	return $partners;
 }
 
@@ -31,8 +67,17 @@ function mha_is_unapproved_iframe_embed() {
 		return false;
 	}
 
-	$partner = get_query_var( 'partner' );
-	return ! in_array( $partner, mha_approved_partners() );
+	// The partner's code can arrive as ?partner= (layout override) or ?ref= (the Partner Code used for
+	// banners/footers), so either one may identify an approved partner.
+	$approved = mha_approved_partners();
+	foreach ( array( 'partner', 'ref' ) as $param ) {
+		$code = get_query_var( $param );
+		if ( is_string( $code ) && '' !== $code && in_array( $code, $approved, true ) ) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 /**
