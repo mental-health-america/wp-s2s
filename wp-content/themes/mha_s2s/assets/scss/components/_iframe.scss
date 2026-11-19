@@ -131,3 +131,25 @@
         }
     }
 }
+
+// Answer buttons in an embedded Screen.
+// The real radio/checkbox is hidden by parking it at left: -999em. When one gets focus (clicking its
+// label focuses it), Chrome scrolls every ancestor to reveal the focused element, and with the Screen
+// inside a partner's page that can move the PARENT window (Firefox does not). Keep the input inside its
+// own button instead: still invisible and not clickable, but always on screen, so there is nothing to
+// scroll to. Only applies when embedded (?iframe=true).
+.iframe-mode .gform_wrapper .gchoice {
+    position: relative;
+
+    input[type="radio"],
+    input[type="checkbox"] {
+        left: 0 !important;
+        top: 0 !important;
+        width: 1px;
+        height: 1px;
+        margin: 0;
+        padding: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+}
